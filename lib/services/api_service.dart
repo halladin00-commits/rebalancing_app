@@ -38,8 +38,13 @@ class ApiService {
 
     try {
       if (market == 'KR') {
+        // 'A' 접두사 제거 + 비숫자 제거 → 6자리 숫자만
+        String cleanTicker = ticker.replaceAll(RegExp(r'[^0-9]'), '');
+        if (cleanTicker.isEmpty) {
+          return ApiResult.error('$ticker: 유효하지 않은 종목코드');
+        }
+
         // KOSPI(.KS) 시도 → 실패 시 KOSDAQ(.KQ) 시도
-        final cleanTicker = ticker.replaceAll(RegExp(r'[^0-9A-Za-z]'), '');
         final kospiResult = await _fetchYahoo('$cleanTicker.KS');
         if (kospiResult.ok) return kospiResult;
 

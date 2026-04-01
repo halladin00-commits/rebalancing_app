@@ -8,11 +8,13 @@ class StockSearchResult {
   final String ticker;
   final String name;
   final String market; // 'KR' or 'US'
+  final bool isEtf;
 
   StockSearchResult({
     required this.ticker,
     required this.name,
     required this.market,
+    this.isEtf = false,
   });
 }
 
@@ -36,30 +38,55 @@ class StockSearchService {
     _checkAndUpdate();
   }
 
-  /// 종목 검색
+  /// 종목 검색 (정확도순 정렬)
   static Future<List<StockSearchResult>> search(String query) async {
     if (!_initialized) await initialize();
     if (query.trim().isEmpty || _stocks == null) return [];
 
     final q = query.trim().toLowerCase();
-    return _stocks!
-        .where((s) {
-          final ticker = (s['t'] as String).toLowerCase();
-          final name = (s['n'] as String).toLowerCase();
-          return name.contains(q) || ticker.contains(q);
-        })
-        .take(10)
-        .map((s) {
-          final marketCode = s['m'] as String;
-          final market =
-              (marketCode == 'KS' || marketCode == 'KQ') ? 'KR' : 'US';
-          return StockSearchResult(
-            ticker: s['t'] as String,
-            name: s['n'] as String,
-            market: market,
-          );
-        })
-        .toList();
+
+    // 1단계: 매칭되는 종목 수집
+    final matches = <_ScoredResult>[];
+    for (final s in _stocks!) {
+      final ticker = (s['t'] as String).toLowerCase();
+      final name = (s['n'] as String).toLowerCase();
+
+      if (!name.contains(q) && !ticker.contains(q)) continue;
+
+      // 점수 계산: 낮을수록 우선
+      int score;
+      if (ticker == q) {
+        score = 0; // 티커 정확히 일치
+      } else if (name == q) {
+        score = 1; // 이름 정확히 일치
+      } else if (ticker.startsWith(q)) {
+        score = 2; // 티커가 쿼리로 시작
+      } else if (name.startsWith(q)) {
+        score = 3; // 이름이 쿼리로 시작
+      } else if (ticker.contains(q)) {
+        score = 4; // 티커에 포함
+      } else {
+        score = 5; // 이름에 포함
+      }
+
+      final marketCode = s['m'] as String;
+      final market = (marketCode == 'KS' || marketCode == 'KQ') ? 'KR' : 'US';
+      final isEtf = (s['ty'] ?? '') == 'E';
+
+      matches.add(_ScoredResult(
+        result: StockSearchResult(
+          ticker: s['t'] as String,
+          name: s['n'] as String,
+          market: market,
+          isEtf: isEtf,
+        ),
+        score: score,
+      ));
+    }
+
+    // 2단계: 점수순 정렬 → 상위 15건
+    matches.sort((a, b) => a.score.compareTo(b.score));
+    return matches.take(15).map((m) => m.result).toList();
   }
 
   /// 데이터 로드 우선순위: 캐시 → 번들
@@ -135,4 +162,10 @@ class StockSearchService {
       print('업데이트 실패 (기존 데이터 유지): $e');
     }
   }
+}
+
+class _ScoredResult {
+  final StockSearchResult result;
+  final int score;
+  _ScoredResult({required this.result, required this.score});
 }
