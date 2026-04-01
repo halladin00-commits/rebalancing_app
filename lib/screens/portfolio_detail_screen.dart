@@ -200,7 +200,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     );
   }
 
-  Future<bool> _onWillPop() async {
+  void _handleBackPress() async {
     if (_editMode) {
       final result = await showDialog<bool>(
         context: context,
@@ -214,9 +214,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
         ),
       );
       if (result == true) setState(() => _editMode = false);
-      return false;
     }
-    return true;
   }
 
   // ── Build ──
@@ -240,8 +238,11 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
         final commOn = pf.commissionEnabled;
         final curSym = pf.currency == 'USD' ? '\$' : '₩';
 
-        return WillPopScope(
-          onWillPop: _onWillPop,
+        return PopScope(
+          canPop: !_editMode,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop) _handleBackPress();
+          },
           child: Scaffold(
             appBar: AppBar(
               leading: IconButton(

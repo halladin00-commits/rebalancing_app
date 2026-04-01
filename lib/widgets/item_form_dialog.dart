@@ -156,7 +156,7 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
                 TextField(
                   controller: _searchCtl,
                   decoration: InputDecoration(
-                    hintText: '종목명, ETF명 또는 티커 입력',
+                    hintText: '종목명 또는 티커 입력',
                     prefixIcon: const Icon(Icons.search, size: 20),
                     suffixIcon: _searching
                         ? const Padding(

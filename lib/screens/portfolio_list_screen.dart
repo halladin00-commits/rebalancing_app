@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
 import '../models/portfolio.dart';
@@ -91,11 +92,7 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
     if (result == true) setState(() => _editMode = false);
   }
 
-  Future<bool> _onWillPop() async {
-    if (_editMode) {
-      await _showEditExitConfirm();
-      return false; // 편집모드에서는 앱 종료 안 함
-    }
+  Future<void> _showExitConfirm() async {
     final result = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
@@ -107,7 +104,17 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
         ],
       ),
     );
-    return result ?? false;
+    if (result == true) {
+      SystemNavigator.pop();
+    }
+  }
+
+  void _handleBackPress() {
+    if (_editMode) {
+      _showEditExitConfirm();
+    } else {
+      _showExitConfirm();
+    }
   }
 
   @override
@@ -117,8 +124,11 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
         if (!provider.loaded) {
           return const Scaffold(body: Center(child: CircularProgressIndicator()));
         }
-        return WillPopScope(
-          onWillPop: _onWillPop,
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop) _handleBackPress();
+          },
           child: Scaffold(
             appBar: AppBar(
               title: const Text('Rebalancing',
