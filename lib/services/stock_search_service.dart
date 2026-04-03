@@ -8,13 +8,11 @@ class StockSearchResult {
   final String ticker;
   final String name;
   final String market; // 'KR' or 'US'
-  final bool isEtf;
 
   StockSearchResult({
     required this.ticker,
     required this.name,
     required this.market,
-    this.isEtf = false,
   });
 }
 
@@ -71,14 +69,12 @@ class StockSearchService {
 
       final marketCode = s['m'] as String;
       final market = (marketCode == 'KS' || marketCode == 'KQ') ? 'KR' : 'US';
-      final isEtf = (s['ty'] ?? '') == 'E';
 
       matches.add(_ScoredResult(
         result: StockSearchResult(
           ticker: s['t'] as String,
           name: s['n'] as String,
           market: market,
-          isEtf: isEtf,
         ),
         score: score,
       ));
@@ -124,19 +120,30 @@ class StockSearchService {
       final dir = await getApplicationDocumentsDirectory();
       final metaFile = File('${dir.path}/$_cacheMetaFileName');
 
+      // 1) 서버 meta를 먼저 가져옴 (작은 파일, 빠름)
+      final metaResp = await http
+          .get(Uri.parse(_metaUrl))
+          .timeout(const Duration(seconds: 10));
+      if (metaResp.statusCode != 200) {
+        print('meta.json 조회 실패: ${metaResp.statusCode}');
+        return;
+      }
+      final serverMeta = json.decode(metaResp.body);
+      final serverUpdatedAt = serverMeta['updated_at'] ?? '';
+
+      // 2) 캐시된 meta와 비교 → 같으면 스킵
       if (await metaFile.exists()) {
-        final metaStr = await metaFile.readAsString();
-        final meta = json.decode(metaStr);
-        final lastUpdate = DateTime.tryParse(meta['updated_at'] ?? '');
-        if (lastUpdate != null) {
-          final diff = DateTime.now().toUtc().difference(lastUpdate);
-          if (diff.inHours < 24) {
-            print('종목 데이터 최신 (${diff.inHours}시간 전)');
-            return;
-          }
+        final cachedMetaStr = await metaFile.readAsString();
+        final cachedMeta = json.decode(cachedMetaStr);
+        final cachedUpdatedAt = cachedMeta['updated_at'] ?? '';
+
+        if (serverUpdatedAt == cachedUpdatedAt && serverUpdatedAt.isNotEmpty) {
+          print('종목 데이터 최신 (서버와 동일)');
+          return;
         }
       }
 
+      // 3) 서버 데이터가 더 새로움 → 다운로드
       print('종목 데이터 업데이트 중...');
       final dataResp = await http
           .get(Uri.parse(_remoteUrl))
@@ -149,12 +156,8 @@ class StockSearchService {
       final cacheFile = File('${dir.path}/$_cacheFileName');
       await cacheFile.writeAsString(dataResp.body);
 
-      final metaResp = await http
-          .get(Uri.parse(_metaUrl))
-          .timeout(const Duration(seconds: 10));
-      if (metaResp.statusCode == 200) {
-        await metaFile.writeAsString(metaResp.body);
-      }
+      // 서버 meta를 캐시에 저장
+      await metaFile.writeAsString(metaResp.body);
 
       _stocks = list.cast<Map<String, dynamic>>();
       print('종목 데이터 업데이트 완료: ${_stocks!.length}건');

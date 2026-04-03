@@ -206,18 +206,6 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
                                 child: Text(s.market, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700,
                                     color: s.market == 'US' ? const Color(0xFF7C3AED) : const Color(0xFF0369A1))),
                               ),
-                              if (s.isEtf) ...[
-                                const SizedBox(width: 4),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFFEF3C7),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: const Text('ETF', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700,
-                                      color: Color(0xFF92400E))),
-                                ),
-                              ],
                               const SizedBox(width: 8),
                               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                                 Text(s.name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis),
