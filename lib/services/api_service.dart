@@ -38,8 +38,14 @@ class ApiService {
 
     try {
       if (market == 'KR') {
-        // 'A' 접두사 제거 + 비숫자 제거 → 6자리 숫자만
-        String cleanTicker = ticker.replaceAll(RegExp(r'[^0-9]'), '');
+        // 'A' 접두사만 제거 (신규 ETF는 0035T0 같이 영문 포함)
+        String cleanTicker = ticker;
+        if (cleanTicker.startsWith('A') && cleanTicker.length > 1) {
+          final rest = cleanTicker.substring(1);
+          if (rest.contains(RegExp(r'^[0-9]'))) {
+            cleanTicker = rest;
+          }
+        }
         if (cleanTicker.isEmpty) {
           return ApiResult.error('$ticker: 유효하지 않은 종목코드');
         }

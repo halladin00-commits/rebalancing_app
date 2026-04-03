@@ -162,7 +162,7 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
                   )
                 : _editMode
                     ? ReorderableListView.builder(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
                         itemCount: provider.portfolios.length,
                         onReorder: (o, n) {
                           if (n > o) n--;
@@ -177,7 +177,7 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
                         },
                       )
                     : ListView.builder(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
                         itemCount: provider.portfolios.length,
                         itemBuilder: (ctx, idx) => _buildCard(context, provider.portfolios[idx]),
                       ),

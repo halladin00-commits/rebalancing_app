@@ -381,7 +381,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                         ]))
                       : _editMode
                           ? ReorderableListView.builder(
-                              padding: const EdgeInsets.all(16),
+                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
                               itemCount: pf.items.length,
                               onReorder: (o, n) {
                                 if (n > o) n--;
@@ -394,7 +394,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                                   _buildItemCard(pf, pf.items[idx], rb, key: ValueKey(pf.items[idx].id)),
                             )
                           : ListView.builder(
-                              padding: const EdgeInsets.all(16),
+                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
                               itemCount: pf.items.length,
                               itemBuilder: (ctx, idx) => _buildItemCard(pf, pf.items[idx], rb),
                             ),
