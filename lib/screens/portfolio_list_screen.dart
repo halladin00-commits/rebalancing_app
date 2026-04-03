@@ -104,9 +104,7 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
         ],
       ),
     );
-    if (result == true) {
-      SystemNavigator.pop();
-    }
+    if (result == true) SystemNavigator.pop();
   }
 
   void _handleBackPress() {
@@ -124,16 +122,25 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
         if (!provider.loaded) {
           return const Scaffold(body: Center(child: CircularProgressIndicator()));
         }
+        final isDark = context.isDark;
         return PopScope(
           canPop: false,
           onPopInvokedWithResult: (didPop, _) {
             if (!didPop) _handleBackPress();
           },
           child: Scaffold(
+            backgroundColor: context.scaffoldBg,
             appBar: AppBar(
+              backgroundColor: context.appBarBg,
               title: const Text('Rebalancing',
                   style: TextStyle(fontWeight: FontWeight.w800, fontSize: 20)),
               actions: [
+                // 다크모드 토글
+                IconButton(
+                  icon: Icon(isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined),
+                  tooltip: isDark ? '라이트 모드' : '다크 모드',
+                  onPressed: () => context.read<ThemeNotifier>().toggle(context),
+                ),
                 if (_editMode)
                   TextButton.icon(
                     onPressed: () => setState(() => _editMode = false),
@@ -154,10 +161,10 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
                       const Text('📊', style: TextStyle(fontSize: 48)),
                       const SizedBox(height: 12),
                       Text('포트폴리오가 없습니다',
-                          style: TextStyle(fontSize: 16, color: Colors.grey[500])),
+                          style: TextStyle(fontSize: 16, color: context.textHint)),
                       const SizedBox(height: 4),
                       Text('아래 + 버튼을 눌러 추가하세요',
-                          style: TextStyle(fontSize: 14, color: Colors.grey[400])),
+                          style: TextStyle(fontSize: 14, color: context.textHint)),
                     ]),
                   )
                 : _editMode
@@ -179,7 +186,8 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
                     : ListView.builder(
                         padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
                         itemCount: provider.portfolios.length,
-                        itemBuilder: (ctx, idx) => _buildCard(context, provider.portfolios[idx]),
+                        itemBuilder: (ctx, idx) =>
+                            _buildCard(context, provider.portfolios[idx]),
                       ),
             floatingActionButton: _editMode
                 ? null
@@ -200,6 +208,7 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
     if (_editMode) {
       return Card(
         key: key,
+        color: context.cardBg,
         margin: const EdgeInsets.only(bottom: 10),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Padding(
@@ -209,7 +218,10 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
               onPressed: () => _showDeleteConfirm(context, pf),
               icon: Container(
                 width: 30, height: 30,
-                decoration: BoxDecoration(color: Colors.red[50], shape: BoxShape.circle, border: Border.all(color: Colors.red[200]!)),
+                decoration: BoxDecoration(
+                    color: Colors.red[900]?.withValues(alpha: 0.15) ?? Colors.red.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.red[300]!.withValues(alpha: 0.6))),
                 child: const Icon(Icons.remove, color: Colors.red, size: 20),
               ),
               padding: EdgeInsets.zero,
@@ -219,16 +231,21 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
             Text(pf.emoji, style: const TextStyle(fontSize: 26)),
             const SizedBox(width: 12),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(pf.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis),
+              Text(pf.name,
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: context.textPrimary),
+                  overflow: TextOverflow.ellipsis),
               const SizedBox(height: 2),
               Text('${pf.items.length}개 종목 · ${_fmt(tv, pf.currency)}',
-                  style: TextStyle(fontSize: 13, color: Colors.grey[600])),
+                  style: TextStyle(fontSize: 13, color: context.textSecondary)),
             ])),
             IconButton(
               onPressed: () => _showEditDialog(context, pf),
               icon: Container(
                 width: 30, height: 30,
-                decoration: BoxDecoration(color: Colors.blue[50], shape: BoxShape.circle, border: Border.all(color: Colors.blue[200]!)),
+                decoration: BoxDecoration(
+                    color: const Color(0xFF3B82F6).withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: const Color(0xFF3B82F6).withValues(alpha: 0.4))),
                 child: const Icon(Icons.edit_outlined, color: Color(0xFF3B82F6), size: 16),
               ),
               padding: EdgeInsets.zero,
@@ -241,6 +258,7 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
 
     return Card(
       key: key,
+      color: context.cardBg,
       margin: const EdgeInsets.only(bottom: 10),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
@@ -252,12 +270,14 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
             Text(pf.emoji, style: const TextStyle(fontSize: 26)),
             const SizedBox(width: 12),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(pf.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis),
+              Text(pf.name,
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: context.textPrimary),
+                  overflow: TextOverflow.ellipsis),
               const SizedBox(height: 2),
               Text('${pf.items.length}개 종목 · ${_fmt(tv, pf.currency)}',
-                  style: TextStyle(fontSize: 13, color: Colors.grey[600])),
+                  style: TextStyle(fontSize: 13, color: context.textSecondary)),
             ])),
-            Icon(Icons.chevron_right, color: Colors.grey[400]),
+            Icon(Icons.chevron_right, color: context.textHint),
           ]),
         ),
       ),

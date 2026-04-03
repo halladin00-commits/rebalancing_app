@@ -8,11 +8,13 @@ class StockSearchResult {
   final String ticker;
   final String name;
   final String market; // 'KR' or 'US'
+  final bool isEtf;
 
   StockSearchResult({
     required this.ticker,
     required this.name,
     required this.market,
+    this.isEtf = false,
   });
 }
 
@@ -43,7 +45,6 @@ class StockSearchService {
 
     final q = query.trim().toLowerCase();
 
-    // 1단계: 매칭되는 종목 수집
     final matches = <_ScoredResult>[];
     for (final s in _stocks!) {
       final ticker = (s['t'] as String).toLowerCase();
@@ -51,43 +52,42 @@ class StockSearchService {
 
       if (!name.contains(q) && !ticker.contains(q)) continue;
 
-      // 점수 계산: 낮을수록 우선
       int score;
       if (ticker == q) {
-        score = 0; // 티커 정확히 일치
+        score = 0;
       } else if (name == q) {
-        score = 1; // 이름 정확히 일치
+        score = 1;
       } else if (ticker.startsWith(q)) {
-        score = 2; // 티커가 쿼리로 시작
+        score = 2;
       } else if (name.startsWith(q)) {
-        score = 3; // 이름이 쿼리로 시작
+        score = 3;
       } else if (ticker.contains(q)) {
-        score = 4; // 티커에 포함
+        score = 4;
       } else {
-        score = 5; // 이름에 포함
+        score = 5;
       }
 
       final marketCode = s['m'] as String;
       final market = (marketCode == 'KS' || marketCode == 'KQ') ? 'KR' : 'US';
+      final isEtf = (s['ty'] as String?) == 'E';
 
       matches.add(_ScoredResult(
         result: StockSearchResult(
           ticker: s['t'] as String,
           name: s['n'] as String,
           market: market,
+          isEtf: isEtf,
         ),
         score: score,
       ));
     }
 
-    // 2단계: 점수순 정렬 → 상위 15건
     matches.sort((a, b) => a.score.compareTo(b.score));
     return matches.take(15).map((m) => m.result).toList();
   }
 
   /// 데이터 로드 우선순위: 캐시 → 번들
   static Future<void> _loadStocks() async {
-    // 1. 캐시된 파일 시도
     try {
       final dir = await getApplicationDocumentsDirectory();
       final cacheFile = File('${dir.path}/$_cacheFileName');
@@ -102,7 +102,6 @@ class StockSearchService {
       print('캐시 로드 실패: $e');
     }
 
-    // 2. 번들 파일 폴백
     try {
       final jsonStr = await rootBundle.loadString('assets/kr_stocks.json');
       final list = json.decode(jsonStr) as List<dynamic>;
@@ -120,7 +119,6 @@ class StockSearchService {
       final dir = await getApplicationDocumentsDirectory();
       final metaFile = File('${dir.path}/$_cacheMetaFileName');
 
-      // 1) 서버 meta를 먼저 가져옴 (작은 파일, 빠름)
       final metaResp = await http
           .get(Uri.parse(_metaUrl))
           .timeout(const Duration(seconds: 10));
@@ -131,7 +129,6 @@ class StockSearchService {
       final serverMeta = json.decode(metaResp.body);
       final serverUpdatedAt = serverMeta['updated_at'] ?? '';
 
-      // 2) 캐시된 meta와 비교 → 같으면 스킵
       if (await metaFile.exists()) {
         final cachedMetaStr = await metaFile.readAsString();
         final cachedMeta = json.decode(cachedMetaStr);
@@ -143,7 +140,6 @@ class StockSearchService {
         }
       }
 
-      // 3) 서버 데이터가 더 새로움 → 다운로드
       print('종목 데이터 업데이트 중...');
       final dataResp = await http
           .get(Uri.parse(_remoteUrl))
@@ -155,8 +151,6 @@ class StockSearchService {
 
       final cacheFile = File('${dir.path}/$_cacheFileName');
       await cacheFile.writeAsString(dataResp.body);
-
-      // 서버 meta를 캐시에 저장
       await metaFile.writeAsString(metaResp.body);
 
       _stocks = list.cast<Map<String, dynamic>>();

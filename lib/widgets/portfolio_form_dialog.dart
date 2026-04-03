@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../main.dart';
 
 const _emojis = [
   '📈','📉','💰','💵','💴','💶','💷','🪙','💎','🏦',
@@ -43,25 +44,37 @@ class _PortfolioFormDialogState extends State<PortfolioFormDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.isEdit ? '포트폴리오 수정' : '포트폴리오 생성'),
+      backgroundColor: context.cardBg,
+      title: Text(
+          widget.isEdit ? '포트폴리오 수정' : '포트폴리오 생성',
+          style: TextStyle(color: context.textPrimary)),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // 이름
-            const Text('포트폴리오 이름',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+            Text('포트폴리오 이름',
+                style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: context.textPrimary)),
             const SizedBox(height: 4),
             TextField(
               controller: _nameController,
+              style: TextStyle(color: context.textPrimary),
               decoration: InputDecoration(
                 hintText: '예: 연금저축, 미국주식',
+                hintStyle: TextStyle(color: context.textHint),
                 filled: true,
-                fillColor: const Color(0xFFF9FAFB),
+                fillColor: context.fieldFill,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
+                  borderSide: BorderSide(color: context.borderColor),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: context.borderColor),
                 ),
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -71,8 +84,11 @@ class _PortfolioFormDialogState extends State<PortfolioFormDialog> {
             const SizedBox(height: 16),
 
             // 아이콘
-            const Text('아이콘',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+            Text('아이콘',
+                style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: context.textPrimary)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 6,
@@ -89,12 +105,12 @@ class _PortfolioFormDialogState extends State<PortfolioFormDialog> {
                       border: Border.all(
                         color: selected
                             ? const Color(0xFF3B82F6)
-                            : Colors.grey[300]!,
+                            : context.borderColor,
                         width: selected ? 2 : 1,
                       ),
                       color: selected
-                          ? const Color(0xFFEFF6FF)
-                          : Colors.white,
+                          ? const Color(0xFF3B82F6).withValues(alpha: 0.12)
+                          : context.fieldFill,
                     ),
                     child: Center(
                       child: Text(e, style: const TextStyle(fontSize: 20)),
