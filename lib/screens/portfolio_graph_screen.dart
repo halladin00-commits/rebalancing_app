@@ -1,7 +1,6 @@
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
@@ -17,14 +16,17 @@ const _kDefaultColors = [
   Color(0xFF64748B),
 ];
 
-Color _colorForItem(Portfolio pf, String itemId, int index) {
+/// itemId 기준으로 색상 반환 (저장된 색상 우선)
+Color _colorForItem(Portfolio pf, String itemId) {
   final hex = pf.graphColors[itemId];
   if (hex != null && hex.isNotEmpty) {
     try {
       return Color(int.parse('FF${hex.replaceAll('#', '')}', radix: 16));
     } catch (_) {}
   }
-  return _kDefaultColors[index % _kDefaultColors.length];
+  // 저장된 색상 없으면 itemId의 hashCode로 안정적 색상 선택
+  final hash = itemId.codeUnits.fold(0, (a, b) => a * 31 + b).abs();
+  return _kDefaultColors[hash % _kDefaultColors.length];
 }
 
 String _nameForItem(Portfolio pf, PortfolioItem item) {
@@ -44,23 +46,24 @@ class _DonutPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final cx = size.width / 2;
     final cy = size.height / 2;
-    final r = min(cx, cy) * 0.85;
-    final innerR = r * 0.55;
+    final r = min(cx, cy) * 0.88;
+    final innerR = r * 0.54;
     final strokeW = r - innerR;
 
     final total = items.fold(0.0, (s, i) => s + i.targetWeight);
     if (total <= 0) return;
 
-    // 12시 방향(-90도)에서 시계방향으로
+    // 12시 방향(-90°)에서 시계방향으로
     double startAngle = -pi / 2;
 
     for (int i = 0; i < items.length; i++) {
       final item = items[i];
       final sweep = (item.targetWeight / total) * 2 * pi;
+
       final paint = Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = strokeW
-        ..color = _colorForItem(portfolio, item.id, i);
+        ..color = _colorForItem(portfolio, item.id);
 
       canvas.drawArc(
         Rect.fromCircle(center: Offset(cx, cy), radius: r - strokeW / 2),
@@ -70,14 +73,14 @@ class _DonutPainter extends CustomPainter {
         paint,
       );
 
-      // 구분선 (얇은 흰/다크 선)
-      final gapPaint = Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2
-        ..color = Colors.black.withValues(alpha: 0.3);
+      // 구분선
       if (items.length > 1) {
-        final x1 = cx + (innerR) * cos(startAngle);
-        final y1 = cy + (innerR) * sin(startAngle);
+        final gapPaint = Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.5
+          ..color = Colors.white.withValues(alpha: 0.6);
+        final x1 = cx + innerR * cos(startAngle);
+        final y1 = cy + innerR * sin(startAngle);
         final x2 = cx + r * cos(startAngle);
         final y2 = cy + r * sin(startAngle);
         canvas.drawLine(Offset(x1, y1), Offset(x2, y2), gapPaint);
@@ -105,38 +108,72 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
   bool _saving = false;
   final ScreenshotController _screenshotCtrl = ScreenshotController();
 
+  @override
+  void initState() {
+    super.initState();
+    // 초기 실행 시 각 항목에 안정적인 색상을 저장 (순서 변경 후에도 유지)
+    WidgetsBinding.instance.addPostFrameCallback((_) => _ensureColors());
+  }
+
+  /// 저장된 색상이 없는 항목에 안정적 기본 색상 할당 (위치 기반이 아닌 초기 순서 기반)
+  void _ensureColors() {
+    final provider = context.read<PortfolioProvider>();
+    final pf = provider.getPortfolio(widget.portfolioId);
+    if (pf == null) return;
+
+    // 비중 내림차순 정렬 → 최초 색상 할당 순서
+    final items = pf.items
+        .where((i) => !i.isCash)
+        .toList()
+      ..sort((a, b) => b.targetWeight.compareTo(a.targetWeight));
+
+    final newColors = Map<String, String>.from(pf.graphColors);
+    bool changed = false;
+
+    for (int i = 0; i < items.length; i++) {
+      final item = items[i];
+      if (!newColors.containsKey(item.id) || newColors[item.id]!.isEmpty) {
+        final color = _kDefaultColors[i % _kDefaultColors.length];
+        // RRGGBB 형식으로 저장 (FF prefix 제외)
+        newColors[item.id] =
+            color.value.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase();
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      provider.updatePortfolio(pf.id, pf.copyWith(graphColors: newColors));
+    }
+  }
+
   void _enterEdit() => setState(() => _editMode = true);
   void _exitEdit() => setState(() => _editMode = false);
 
-  // ── 이미지 저장 ──
   Future<void> _saveImage(Portfolio pf) async {
     if (_saving) return;
     setState(() => _saving = true);
-
     try {
-      // 권한 요청
-      final status = await Permission.photos.request();
+      var status = await Permission.photos.request();
       if (!status.isGranted) {
-        final status2 = await Permission.storage.request();
-        if (!status2.isGranted && mounted) {
+        status = await Permission.storage.request();
+        if (!status.isGranted && mounted) {
           _showToast('저장 권한이 필요합니다', Colors.red);
           setState(() => _saving = false);
           return;
         }
       }
-
-      final Uint8List? imageBytes = await _screenshotCtrl.capture(pixelRatio: 3.0);
+      final Uint8List? imageBytes =
+          await _screenshotCtrl.capture(pixelRatio: 3.0);
       if (imageBytes == null) {
         if (mounted) _showToast('캡처 실패', Colors.red);
         setState(() => _saving = false);
         return;
       }
-
       final result = await ImageGallerySaverPlus.saveImage(
         imageBytes,
-        name: 'rebalancing_${pf.name}_${DateTime.now().millisecondsSinceEpoch}',
+        name:
+            'rebalancing_${pf.name}_${DateTime.now().millisecondsSinceEpoch}',
       );
-
       if (mounted) {
         final ok = result['isSuccess'] == true || result['filePath'] != null;
         _showToast(ok ? '갤러리에 저장됐어요' : '저장 실패', ok ? Colors.green : Colors.red);
@@ -184,14 +221,12 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
           ),
         ),
         actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('취소')),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('취소')),
           TextButton(
             onPressed: () {
               final provider = context.read<PortfolioProvider>();
-              final updated = pf.copyWith(graphTitle: ctrl.text.trim());
-              provider.updatePortfolio(pf.id, updated);
+              provider.updatePortfolio(
+                  pf.id, pf.copyWith(graphTitle: ctrl.text.trim()));
               Navigator.pop(context);
             },
             child: const Text('확인'),
@@ -201,13 +236,13 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
     );
   }
 
-  // ── 항목 편집 팝업 (이름 + 색상) ──
-  void _showItemEdit(Portfolio pf, PortfolioItem item, int index) {
+  // ── 항목 편집 팝업 ──
+  void _showItemEdit(Portfolio pf, PortfolioItem item) {
     final nameCtrl = TextEditingController(
         text: pf.graphNames[item.id]?.isNotEmpty == true
             ? pf.graphNames[item.id]!
             : item.name);
-    Color selected = _colorForItem(pf, item.id, index);
+    Color selected = _colorForItem(pf, item.id);
 
     showDialog(
       context: context,
@@ -249,8 +284,7 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
                   return GestureDetector(
                     onTap: () => setDlg(() => selected = c),
                     child: Container(
-                      width: 28,
-                      height: 28,
+                      width: 28, height: 28,
                       decoration: BoxDecoration(
                         color: c,
                         borderRadius: BorderRadius.circular(6),
@@ -259,8 +293,7 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
                             : null,
                       ),
                       child: isSel
-                          ? const Icon(Icons.check,
-                              color: Colors.white, size: 16)
+                          ? const Icon(Icons.check, color: Colors.white, size: 16)
                           : null,
                     ),
                   );
@@ -269,19 +302,20 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
             ],
           ),
           actions: [
-            TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text('취소')),
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
             TextButton(
               onPressed: () {
                 final provider = context.read<PortfolioProvider>();
                 final newColors = Map<String, String>.from(pf.graphColors);
                 final newNames = Map<String, String>.from(pf.graphNames);
-                newColors[item.id] =
-                    selected.value.toRadixString(16).substring(2).toUpperCase();
+                newColors[item.id] = selected.value
+                    .toRadixString(16)
+                    .padLeft(8, '0')
+                    .substring(2)
+                    .toUpperCase();
                 newNames[item.id] = nameCtrl.text.trim();
-                provider.updatePortfolio(
-                    pf.id, pf.copyWith(graphColors: newColors, graphNames: newNames));
+                provider.updatePortfolio(pf.id,
+                    pf.copyWith(graphColors: newColors, graphNames: newNames));
                 Navigator.pop(ctx);
               },
               child: const Text('확인'),
@@ -301,10 +335,8 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
       }
 
       final sortedItems = pf.graphSortedItems;
-      final centerText =
-          pf.graphTitle.isNotEmpty ? pf.graphTitle : pf.name;
-      final total =
-          sortedItems.fold(0.0, (s, i) => s + i.targetWeight);
+      final centerText = pf.graphTitle.isNotEmpty ? pf.graphTitle : pf.name;
+      final total = sortedItems.fold(0.0, (s, i) => s + i.targetWeight);
 
       return Scaffold(
         backgroundColor: context.scaffoldBg,
@@ -325,14 +357,11 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
                 tooltip: '편집',
                 onPressed: _enterEdit,
               ),
-            // 저장 버튼: 편집 모드에선 비활성화
             IconButton(
               icon: _saving
                   ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                          color: Colors.white, strokeWidth: 2))
+                      width: 20, height: 20,
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                   : Icon(Icons.download_outlined,
                       color: _editMode ? Colors.grey[600] : Colors.white),
               tooltip: _editMode ? '편집 완료 후 저장 가능' : '이미지 저장',
@@ -343,7 +372,6 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
         body: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
           child: Column(children: [
-            // ── 캡처 영역 ──
             Screenshot(
               controller: _screenshotCtrl,
               child: Container(
@@ -355,11 +383,10 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
                     aspectRatio: 1,
                     child: Stack(alignment: Alignment.center, children: [
                       CustomPaint(
-                        painter: _DonutPainter(
-                            items: sortedItems, portfolio: pf),
+                        painter: _DonutPainter(items: sortedItems, portfolio: pf),
                         child: Container(),
                       ),
-                      // 중앙 텍스트 (탭하면 수정)
+                      // 중앙 텍스트
                       GestureDetector(
                         onTap: () => _showTitleEdit(pf),
                         child: Column(
@@ -368,22 +395,20 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
                             Text(
                               centerText,
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 18,
                                 fontWeight: FontWeight.w700,
                                 color: context.textPrimary,
                               ),
                               textAlign: TextAlign.center,
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              _editMode ? '탭하여 수정' : '탭하여 이름 수정',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: _editMode
-                                    ? const Color(0xFF3B82F6)
-                                    : context.textHint,
-                              ),
-                            ),
+                            // 편집 모드에서만 힌트 표시
+                            if (_editMode) ...[
+                              const SizedBox(height: 4),
+                              Text('탭하여 수정',
+                                  style: TextStyle(
+                                      fontSize: 11,
+                                      color: const Color(0xFF3B82F6))),
+                            ],
                           ],
                         ),
                       ),
@@ -391,10 +416,9 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
                   ),
                   const SizedBox(height: 16),
                   // 범례
-                  if (_editMode)
-                    _buildReorderableLegend(context, pf, sortedItems, total)
-                  else
-                    _buildStaticLegend(context, pf, sortedItems, total),
+                  _editMode
+                      ? _buildReorderableLegend(context, pf, sortedItems, total)
+                      : _buildStaticLegend(context, pf, sortedItems, total),
                 ]),
               ),
             ),
@@ -413,22 +437,19 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
     });
   }
 
-  // ── 일반 모드 범례 ──
   Widget _buildStaticLegend(BuildContext context, Portfolio pf,
       List<PortfolioItem> items, double total) {
     return Column(
       children: items.asMap().entries.map((entry) {
-        final i = entry.key;
         final item = entry.value;
         final pct = total > 0 ? item.targetWeight / total * 100 : 0.0;
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 5),
           child: Row(children: [
             Container(
-              width: 12,
-              height: 12,
+              width: 12, height: 12,
               decoration: BoxDecoration(
-                color: _colorForItem(pf, item.id, i),
+                color: _colorForItem(pf, item.id),
                 borderRadius: BorderRadius.circular(3),
               ),
             ),
@@ -439,15 +460,13 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
                   overflow: TextOverflow.ellipsis),
             ),
             Text('${pct.toStringAsFixed(1)}%',
-                style:
-                    TextStyle(fontSize: 13, color: context.textSecondary)),
+                style: TextStyle(fontSize: 13, color: context.textSecondary)),
           ]),
         );
       }).toList(),
     );
   }
 
-  // ── 편집 모드 범례 (드래그 재정렬) ──
   Widget _buildReorderableLegend(BuildContext context, Portfolio pf,
       List<PortfolioItem> items, double total) {
     return ReorderableListView.builder(
@@ -459,6 +478,7 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
         final newOrder = items.map((e) => e.id).toList();
         final removed = newOrder.removeAt(oldIndex);
         newOrder.insert(newIndex, removed);
+        // 색상은 이미 graphColors에 저장돼 있으므로 순서 변경만 저장
         final provider = context.read<PortfolioProvider>();
         provider.updatePortfolio(pf.id, pf.copyWith(graphOrder: newOrder));
       },
@@ -470,14 +490,13 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
           contentPadding: EdgeInsets.zero,
           dense: true,
           leading: Row(mainAxisSize: MainAxisSize.min, children: [
-            // 드래그 핸들
             const Icon(Icons.drag_handle, size: 18, color: Color(0xFF64748B)),
             const SizedBox(width: 6),
             Container(
-              width: 12,
-              height: 12,
+              width: 12, height: 12,
               decoration: BoxDecoration(
-                color: _colorForItem(pf, item.id, i),
+                // _colorForItem은 저장된 색상을 읽으므로 순서 바꿔도 색상 유지
+                color: _colorForItem(pf, item.id),
                 borderRadius: BorderRadius.circular(3),
               ),
             ),
@@ -487,14 +506,12 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
               overflow: TextOverflow.ellipsis),
           trailing: Row(mainAxisSize: MainAxisSize.min, children: [
             Text('${pct.toStringAsFixed(1)}%',
-                style: TextStyle(
-                    fontSize: 13, color: context.textSecondary)),
+                style: TextStyle(fontSize: 13, color: context.textSecondary)),
             const SizedBox(width: 8),
             GestureDetector(
-              onTap: () => _showItemEdit(pf, item, i),
+              onTap: () => _showItemEdit(pf, item),
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: const Color(0xFF1D4ED8),
                   borderRadius: BorderRadius.circular(4),

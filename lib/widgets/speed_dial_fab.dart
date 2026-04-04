@@ -17,6 +17,7 @@ class SpeedDialItem {
   });
 }
 
+/// Stack 안에 Positioned.fill로 사용해야 함 (barrier가 전체 화면을 덮기 위해)
 class SpeedDialFab extends StatefulWidget {
   final List<SpeedDialItem> items;
   const SpeedDialFab({super.key, required this.items});
@@ -47,87 +48,120 @@ class _SpeedDialFabState extends State<SpeedDialFab>
 
   void _toggle() {
     setState(() => _open = !_open);
-    if (_open) _ctrl.forward(); else _ctrl.reverse();
+    if (_open) _ctrl.forward();
+    else _ctrl.reverse();
   }
 
   void _close() {
+    if (!_open) return;
     setState(() => _open = false);
     _ctrl.reverse();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.end,
+    return Stack(
       children: [
-        // 메뉴 아이템들
-        FadeTransition(
-          opacity: _fade,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: widget.items.map((item) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
+        // 투명 배리어: 열렸을 때 외부 탭 감지 → 닫기
+        if (_open)
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _close,
+              child: Container(color: Colors.transparent),
+            ),
+          ),
+        // FAB + 메뉴 아이템 (우하단 고정)
+        Positioned(
+          bottom: 0,
+          right: 0,
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 16, right: 16),
+              child: Column(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  // 라벨
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: context.cardBg,
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: context.borderColor),
-                    ),
-                    child: Text(item.label,
-                        style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            color: context.textPrimary)),
-                  ),
-                  const SizedBox(width: 8),
-                  // 아이콘 버튼
-                  Material(
-                    color: item.bgColor ?? context.cardBg,
-                    borderRadius: BorderRadius.circular(16),
-                    elevation: 2,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(16),
-                      onTap: () {
-                        _close();
-                        item.onTap();
-                      },
-                      child: Container(
-                        width: 42,
-                        height: 42,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: context.borderColor),
+                  FadeTransition(
+                    opacity: _fade,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: widget.items.map((item) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // 라벨
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: context.cardBg,
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: context.borderColor),
+                              ),
+                              child: Text(item.label,
+                                  style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                      color: context.textPrimary)),
+                            ),
+                            const SizedBox(width: 8),
+                            // 아이콘 버튼
+                            Material(
+                              color: item.bgColor ?? context.cardBg,
+                              borderRadius: BorderRadius.circular(16),
+                              elevation: 2,
+                              shadowColor: Colors.black26,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(16),
+                                onTap: () {
+                                  _close();
+                                  item.onTap();
+                                },
+                                child: Container(
+                                  width: 42,
+                                  height: 42,
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(16),
+                                    border:
+                                        Border.all(color: context.borderColor),
+                                  ),
+                                  child: Icon(item.icon,
+                                      size: 20,
+                                      color: item.iconColor ??
+                                          context.textSecondary),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        child: Icon(item.icon,
-                            size: 20,
-                            color: item.iconColor ?? context.textSecondary),
+                      )).toList(),
+                    ),
+                  ),
+                  // 메인 FAB
+                  // 닫힘: ··· / 열림: ∨ (아래 꺽쇠)
+                  FloatingActionButton(
+                    heroTag: 'speed_dial_${widget.key}',
+                    onPressed: _toggle,
+                    backgroundColor: const Color(0xFF3B82F6),
+                    elevation: 4,
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 150),
+                      child: Icon(
+                        _open
+                            ? Icons.keyboard_arrow_down
+                            : Icons.more_vert,
+                        key: ValueKey(_open),
+                        color: Colors.white,
+                        size: 26,
                       ),
                     ),
                   ),
                 ],
               ),
-            )).toList(),
-          ),
-        ),
-        // 메인 FAB (··· 버튼)
-        FloatingActionButton(
-          onPressed: _toggle,
-          backgroundColor: const Color(0xFF3B82F6),
-          elevation: 4,
-          child: AnimatedRotation(
-            turns: _open ? 0.125 : 0,
-            duration: const Duration(milliseconds: 180),
-            child: Icon(
-              _open ? Icons.close : Icons.more_vert,
-              color: Colors.white,
             ),
           ),
         ),

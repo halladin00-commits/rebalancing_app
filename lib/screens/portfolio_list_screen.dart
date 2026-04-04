@@ -110,11 +110,8 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
   }
 
   void _handleBackPress() {
-    if (_editMode) {
-      _showEditExitConfirm();
-    } else {
-      _showExitConfirm();
-    }
+    if (_editMode) _showEditExitConfirm();
+    else _showExitConfirm();
   }
 
   @override
@@ -141,70 +138,69 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
                     onPressed: () => setState(() => _editMode = false),
                     icon: const Icon(Icons.check, color: Colors.white, size: 18),
                     label: const Text('완료',
-                        style: TextStyle(
-                            color: Colors.white, fontWeight: FontWeight.w600)),
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
                   ),
               ],
             ),
-            body: provider.portfolios.isEmpty
-                ? Center(
-                    child: Column(mainAxisSize: MainAxisSize.min, children: [
-                      const Text('📊', style: TextStyle(fontSize: 48)),
-                      const SizedBox(height: 12),
-                      Text('포트폴리오가 없습니다',
-                          style: TextStyle(fontSize: 16, color: context.textHint)),
-                      const SizedBox(height: 4),
-                      Text('아래 버튼을 눌러 추가하세요',
-                          style: TextStyle(fontSize: 14, color: context.textHint)),
-                    ]),
-                  )
-                : _editMode
-                    ? ReorderableListView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
-                        itemCount: provider.portfolios.length,
-                        onReorder: (o, n) {
-                          if (n > o) n--;
-                          final list = List<Portfolio>.from(provider.portfolios);
-                          final item = list.removeAt(o);
-                          list.insert(n, item);
-                          provider.reorderPortfolios(list);
-                        },
-                        itemBuilder: (ctx, idx) {
-                          final pf = provider.portfolios[idx];
-                          return _buildCard(context, pf, key: ValueKey(pf.id));
-                        },
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                        itemCount: provider.portfolios.length + 1,
-                        itemBuilder: (ctx, idx) {
-                          if (idx == provider.portfolios.length) {
-                            return _buildSlimAddCard(context);
-                          }
-                          return _buildCard(context, provider.portfolios[idx]);
-                        },
-                      ),
-            floatingActionButton: _editMode
-                ? null
-                : SpeedDialFab(items: [
-                    SpeedDialItem(
-                      icon: Icons.edit_outlined,
-                      label: '편집',
-                      onTap: () => setState(() => _editMode = true),
+            body: Stack(
+              children: [
+                Positioned.fill(
+                  child: _editMode
+                      ? ReorderableListView.builder(
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
+                          itemCount: provider.portfolios.length,
+                          onReorder: (o, n) {
+                            if (n > o) n--;
+                            final list = List<Portfolio>.from(provider.portfolios);
+                            final item = list.removeAt(o);
+                            list.insert(n, item);
+                            provider.reorderPortfolios(list);
+                          },
+                          itemBuilder: (ctx, idx) {
+                            final pf = provider.portfolios[idx];
+                            return _buildCard(context, pf, key: ValueKey(pf.id));
+                          },
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                          itemCount: provider.portfolios.length + 1,
+                          itemBuilder: (ctx, idx) {
+                            if (idx == provider.portfolios.length) {
+                              return _buildSlimAddCard(context);
+                            }
+                            return _buildCard(context, provider.portfolios[idx]);
+                          },
+                        ),
+                ),
+                // SpeedDial FAB (일반 모드에서만)
+                if (!_editMode)
+                  Positioned.fill(
+                    child: SpeedDialFab(
+                      key: const ValueKey('list_fab'),
+                      items: [
+                        SpeedDialItem(
+                          icon: Icons.edit_outlined,
+                          label: '편집',
+                          onTap: () => setState(() => _editMode = true),
+                        ),
+                        SpeedDialItem(
+                          icon: context.isDark
+                              ? Icons.light_mode_outlined
+                              : Icons.dark_mode_outlined,
+                          label: context.isDark ? '라이트 모드' : '다크 모드',
+                          onTap: () =>
+                              context.read<ThemeNotifier>().toggle(context),
+                        ),
+                        SpeedDialItem(
+                          icon: Icons.info_outline,
+                          label: '공지사항',
+                          onTap: () => DisclaimerDialog.showAlways(context),
+                        ),
+                      ],
                     ),
-                    SpeedDialItem(
-                      icon: context.isDark
-                          ? Icons.light_mode_outlined
-                          : Icons.dark_mode_outlined,
-                      label: context.isDark ? '라이트 모드' : '다크 모드',
-                      onTap: () => context.read<ThemeNotifier>().toggle(context),
-                    ),
-                    SpeedDialItem(
-                      icon: Icons.info_outline,
-                      label: '공지사항',
-                      onTap: () => DisclaimerDialog.showAlways(context),
-                    ),
-                  ]),
+                  ),
+              ],
+            ),
           ),
         );
       },
@@ -218,9 +214,9 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
         onTap: () => _showCreateDialog(context),
         borderRadius: BorderRadius.circular(12),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          padding: const EdgeInsets.symmetric(vertical: 14),
           decoration: BoxDecoration(
-            border: Border.all(color: context.borderColor, style: BorderStyle.solid),
+            border: Border.all(color: context.borderColor),
             borderRadius: BorderRadius.circular(12),
             color: context.cardBg.withValues(alpha: 0.5),
           ),
@@ -274,13 +270,9 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
             const SizedBox(width: 4),
             Text(pf.emoji, style: const TextStyle(fontSize: 26)),
             const SizedBox(width: 12),
-            Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(pf.name,
-                  style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: context.textPrimary),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: context.textPrimary),
                   overflow: TextOverflow.ellipsis),
               const SizedBox(height: 2),
               Text('${pf.items.length}개 종목 · ${_fmt(tv, pf.currency)}',
@@ -293,10 +285,8 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
                 decoration: BoxDecoration(
                     color: const Color(0xFF3B82F6).withValues(alpha: 0.15),
                     shape: BoxShape.circle,
-                    border: Border.all(
-                        color: const Color(0xFF3B82F6).withValues(alpha: 0.4))),
-                child: const Icon(Icons.edit_outlined,
-                    color: Color(0xFF3B82F6), size: 16),
+                    border: Border.all(color: const Color(0xFF3B82F6).withValues(alpha: 0.4))),
+                child: const Icon(Icons.edit_outlined, color: Color(0xFF3B82F6), size: 16),
               ),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
@@ -319,13 +309,9 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
           child: Row(children: [
             Text(pf.emoji, style: const TextStyle(fontSize: 26)),
             const SizedBox(width: 12),
-            Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(pf.name,
-                  style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: context.textPrimary),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: context.textPrimary),
                   overflow: TextOverflow.ellipsis),
               const SizedBox(height: 2),
               Text('${pf.items.length}개 종목 · ${_fmt(tv, pf.currency)}',
