@@ -6,6 +6,7 @@ import '../models/portfolio.dart';
 import '../widgets/portfolio_form_dialog.dart';
 import '../widgets/disclaimer_dialog.dart';
 import '../widgets/speed_dial_fab.dart';
+import '../widgets/app_logo.dart';
 import 'portfolio_detail_screen.dart';
 
 class PortfolioListScreen extends StatefulWidget {
@@ -130,8 +131,7 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
             backgroundColor: context.scaffoldBg,
             appBar: AppBar(
               backgroundColor: context.appBarBg,
-              title: const Text('Rebalancing',
-                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 20)),
+              title: const AppLogo(iconSize: 26),
               actions: [
                 if (_editMode)
                   TextButton.icon(
