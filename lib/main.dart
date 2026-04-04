@@ -6,6 +6,7 @@ import 'services/storage_service.dart';
 import 'screens/portfolio_list_screen.dart';
 import 'services/stock_search_service.dart';
 import 'widgets/disclaimer_dialog.dart';
+import 'widgets/app_logo.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -211,16 +212,30 @@ class _AppEntryPoint extends StatefulWidget {
 }
 
 class _AppEntryPointState extends State<_AppEntryPoint> {
+  bool _showSplash = true;
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      DisclaimerDialog.showIfNeeded(context);
+    Future.delayed(const Duration(milliseconds: 1400), () {
+      if (!mounted) return;
+      setState(() => _showSplash = false);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        DisclaimerDialog.showIfNeeded(context);
+      });
     });
   }
 
   @override
-  Widget build(BuildContext context) => const PortfolioListScreen();
+  Widget build(BuildContext context) {
+    if (_showSplash) {
+      return const Scaffold(
+        backgroundColor: Color(0xFF0F172A),
+        body: Center(child: AppLogo(iconSize: 38)),
+      );
+    }
+    return const PortfolioListScreen();
+  }
 }
 
 // ── 포트폴리오 Provider ──
