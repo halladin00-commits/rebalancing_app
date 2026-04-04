@@ -74,42 +74,19 @@ class _SettingsDialogState extends State<SettingsDialog> {
               // ── 기준 통화 ──
               _sectionHeader(context, '기준 통화'),
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                child: Row(
-                  children: ['KRW', 'USD'].map((c) {
-                    final sel = _currency == c;
-                    return Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                            right: c == 'KRW' ? 4 : 0,
-                            left: c == 'USD' ? 4 : 0),
-                        child: OutlinedButton(
-                          onPressed: () => setState(() => _currency = c),
-                          style: OutlinedButton.styleFrom(
-                            backgroundColor: sel
-                                ? const Color(0xFF3B82F6).withValues(alpha: 0.12)
-                                : Colors.transparent,
-                            side: BorderSide(
-                              color: sel
-                                  ? const Color(0xFF3B82F6)
-                                  : context.borderColor,
-                              width: sel ? 2 : 1,
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                          ),
-                          child: Text(
-                            c == 'KRW' ? '₩ 원화' : '\$ 달러',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: sel
-                                  ? const Color(0xFF3B82F6)
-                                  : context.textSecondary,
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: context.rowBg,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: context.borderColor),
+                  ),
+                  child: Row(children: [
+                    _segBtn(context, '₩ 원화', _currency == 'KRW',
+                        () => setState(() => _currency = 'KRW')),
+                    _segBtn(context, '\$ 달러', _currency == 'USD',
+                        () => setState(() => _currency = 'USD')),
+                  ]),
                 ),
               ),
 

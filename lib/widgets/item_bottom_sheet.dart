@@ -250,16 +250,18 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
       ),
       const SizedBox(width: 10),
       Expanded(
-        child: ElevatedButton(
+        child: OutlinedButton(
           onPressed: () => Navigator.pop(context),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: context.rowBg,
-            foregroundColor: context.textSecondary,
-            elevation: 0,
+          style: OutlinedButton.styleFrom(
+            side: BorderSide(color: context.borderColor),
             padding: const EdgeInsets.symmetric(vertical: 12),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
-          child: const Text('닫기', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+          child: Text('닫기',
+              style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: context.textSecondary)),
         ),
       ),
     ]);

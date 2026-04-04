@@ -457,9 +457,9 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
   }
 
   Widget _buildEmptyState(BuildContext context, Portfolio pf) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 100),
-      child: _buildSlimAddCard(context, pf),
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+      children: [_buildSlimAddCard(context, pf)],
     );
   }
 
