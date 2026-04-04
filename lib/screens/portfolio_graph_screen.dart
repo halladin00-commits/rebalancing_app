@@ -132,7 +132,7 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
         return;
       }
 
-      final result = await ImageGallerySaver.saveImage(
+      final result = await ImageGallerySaverPlus.saveImage(
         imageBytes,
         name: 'rebalancing_${pf.name}_${DateTime.now().millisecondsSinceEpoch}',
       );
