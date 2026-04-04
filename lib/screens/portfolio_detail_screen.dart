@@ -7,6 +7,8 @@ import '../services/api_service.dart';
 import '../widgets/item_form_dialog.dart';
 import '../widgets/settings_dialog.dart';
 import '../widgets/item_bottom_sheet.dart';
+import '../widgets/speed_dial_fab.dart';
+import 'portfolio_graph_screen.dart';
 
 class PortfolioDetailScreen extends StatefulWidget {
   final String portfolioId;
@@ -26,6 +28,20 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     if (cur == 'USD') return '\$${n.toStringAsFixed(2)}';
     return '₩${n.round().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}';
   }
+
+  String _fmtCompact(double n, String cur) {
+    if (cur == 'USD') {
+      if (n >= 1000000) return '\$${(n / 1000000).toStringAsFixed(2)}M';
+      if (n >= 1000) return '\$${(n / 1000).toStringAsFixed(1)}K';
+      return '\$${n.toStringAsFixed(2)}';
+    }
+    if (n >= 100000000) return '₩${(n / 100000000).toStringAsFixed(2)}억';
+    if (n >= 10000) return '₩${(n / 10000).toStringAsFixed(0)}만';
+    return '₩${n.round()}';
+  }
+
+  String _fmtAmount(double n, String cur, bool compact) =>
+      compact ? _fmtCompact(n, cur) : _fmt(n, cur);
 
   String _fmtPrice(double n, String market) {
     if (market == 'US') return '\$${n.toStringAsFixed(2)}';
@@ -67,7 +83,8 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     }
 
     if (pf.priceAuto) {
-      final stockItems = pf.items.where((i) => !i.isCash && i.ticker.isNotEmpty).toList();
+      final stockItems =
+          pf.items.where((i) => !i.isCash && i.ticker.isNotEmpty).toList();
       for (final item in stockItems) {
         final r = await ApiService.fetchStockPrice(item.ticker, item.market);
         if (r.ok) { item.currentPrice = r.data!; successCount++; }
@@ -80,7 +97,8 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     setState(() => _refreshing = false);
 
     if (errors.isEmpty) _showToast('$successCount건 업데이트 완료', Colors.green);
-    else if (successCount > 0) _showToast('$successCount건 성공, ${errors.length}건 실패', Colors.orange);
+    else if (successCount > 0)
+      _showToast('$successCount건 성공, ${errors.length}건 실패', Colors.orange);
     else _showToast('업데이트 실패: ${errors.first}', Colors.red);
   }
 
@@ -101,7 +119,9 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     showDialog(
       context: context,
       builder: (_) => ItemFormDialog(
-        item: item, priceAuto: pf.priceAuto, currency: pf.currency,
+        item: item,
+        priceAuto: pf.priceAuto,
+        currency: pf.currency,
         onSave: (newItem) {
           final p = context.read<PortfolioProvider>();
           if (item != null) p.updateItem(pf.id, newItem);
@@ -117,10 +137,16 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
       builder: (_) => SettingsDialog(
         portfolio: pf,
         onSave: (s) {
-          context.read<PortfolioProvider>().updateSettings(pf.id,
-            currency: s['currency'], commissionEnabled: s['commissionEnabled'],
-            commissionRate: s['commissionRate'], exchangeAuto: s['exchangeAuto'],
-            exchangeRate: s['exchangeRate'], priceAuto: s['priceAuto']);
+          context.read<PortfolioProvider>().updateSettings(
+            pf.id,
+            currency: s['currency'],
+            commissionEnabled: s['commissionEnabled'],
+            commissionRate: s['commissionRate'],
+            exchangeAuto: s['exchangeAuto'],
+            exchangeRate: s['exchangeRate'],
+            priceAuto: s['priceAuto'],
+            compactAmount: s['compactAmount'],
+          );
         },
       ),
     );
@@ -133,9 +159,13 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
         title: const Text('삭제 확인'),
         content: Text("'${item.name}'을(를) 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다."),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('취소')),
           TextButton(
-            onPressed: () { context.read<PortfolioProvider>().deleteItem(pf.id, item.id); Navigator.pop(context); },
+              onPressed: () => Navigator.pop(context), child: const Text('취소')),
+          TextButton(
+            onPressed: () {
+              context.read<PortfolioProvider>().deleteItem(pf.id, item.id);
+              Navigator.pop(context);
+            },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('삭제'),
           ),
@@ -162,15 +192,19 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('취소')),
+          TextButton(
+              onPressed: () => Navigator.pop(context), child: const Text('취소')),
           TextButton(
             onPressed: () {
               final results = rb.results.map((r) => {
                 'id': r.id,
                 'newShares': r.isCash ? r.newCashAmount : r.newShares,
               }).toList();
-              context.read<PortfolioProvider>().applyRebalancing(pf.id, results, rb.cash);
-              _investController.text = rb.cash > 0 ? rb.cash.toStringAsFixed(0) : '';
+              context
+                  .read<PortfolioProvider>()
+                  .applyRebalancing(pf.id, results, rb.cash);
+              _investController.text =
+                  rb.cash > 0 ? rb.cash.toStringAsFixed(0) : '';
               Navigator.pop(context);
             },
             child: const Text('적용'),
@@ -209,13 +243,26 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
           title: const Text('편집 종료'),
           content: const Text('편집 모드를 종료하시겠습니까?'),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('취소')),
-            TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('종료')),
+            TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('취소')),
+            TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('종료')),
           ],
         ),
       );
       if (result == true) setState(() => _editMode = false);
     }
+  }
+
+  void _openGraph(Portfolio pf) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (_) =>
+              PortfolioGraphScreen(portfolioId: pf.id)),
+    );
   }
 
   // ── Build ──
@@ -226,11 +273,13 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
       builder: (context, provider, _) {
         final pf = provider.getPortfolio(widget.portfolioId);
         if (pf == null) {
-          return const Scaffold(body: Center(child: Text('포트폴리오를 찾을 수 없습니다')));
+          return const Scaffold(
+              body: Center(child: Text('포트폴리오를 찾을 수 없습니다')));
         }
 
         if (_investController.text.isEmpty && pf.additionalInvestment > 0) {
-          _investController.text = pf.additionalInvestment.toStringAsFixed(0);
+          _investController.text =
+              pf.additionalInvestment.toStringAsFixed(0);
         }
 
         final rb = Rebalancer.calculate(pf);
@@ -258,8 +307,12 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                         title: const Text('편집 종료'),
                         content: const Text('편집 모드를 종료하시겠습니까?'),
                         actions: [
-                          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('취소')),
-                          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('종료')),
+                          TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: const Text('취소')),
+                          TextButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              child: const Text('종료')),
                         ],
                       ),
                     );
@@ -270,45 +323,35 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                 },
               ),
               title: Text('${pf.emoji} ${pf.name}',
-                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 17)),
-              actions: _editMode
-                  ? [
-                      TextButton.icon(
-                        onPressed: () => setState(() => _editMode = false),
-                        icon: const Icon(Icons.check, color: Colors.white, size: 18),
-                        label: const Text('완료',
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-                      ),
-                    ]
-                  : [
-                      IconButton(
-                        icon: _refreshing
-                            ? const SizedBox(width: 20, height: 20,
-                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                            : Icon(Icons.refresh,
-                                color: (pf.exchangeAuto || pf.priceAuto)
-                                    ? Colors.white
-                                    : Colors.grey[600]),
-                        onPressed: () => _doRefresh(pf),
-                      ),
-                      IconButton(icon: const Icon(Icons.settings_outlined), onPressed: () => _showSettings(pf)),
-                      IconButton(icon: const Icon(Icons.edit_outlined), onPressed: () => setState(() => _editMode = true)),
-                      if (rb != null && hasChanges)
-                        Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: TextButton.icon(
-                            style: TextButton.styleFrom(
-                              backgroundColor: Colors.white12,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                            ),
-                            onPressed: () => _showApplyConfirm(pf, rb),
-                            icon: const Icon(Icons.check, color: Color(0xFF34D399), size: 16),
-                            label: const Text('적용',
-                                style: TextStyle(
-                                    color: Color(0xFF34D399), fontWeight: FontWeight.w600, fontSize: 13)),
-                          ),
-                        ),
-                    ],
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w700, fontSize: 17)),
+              actions: [
+                if (_editMode)
+                  TextButton.icon(
+                    onPressed: () => setState(() => _editMode = false),
+                    icon: const Icon(Icons.check,
+                        color: Colors.white, size: 18),
+                    label: const Text('완료',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600)),
+                  )
+                else
+                  // 새로고침만 AppBar에
+                  IconButton(
+                    icon: _refreshing
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                                color: Colors.white, strokeWidth: 2))
+                        : Icon(Icons.refresh,
+                            color: (pf.exchangeAuto || pf.priceAuto)
+                                ? Colors.white
+                                : Colors.grey[600]),
+                    onPressed: () => _doRefresh(pf),
+                  ),
+              ],
             ),
             body: Column(
               children: [
@@ -332,49 +375,78 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                           style: TextStyle(color: context.textPrimary),
                           decoration: InputDecoration(
                             prefixText: '$curSym ',
-                            prefixStyle: TextStyle(color: context.textPrimary),
+                            prefixStyle:
+                                TextStyle(color: context.textPrimary),
                             hintText: '0',
                             filled: true,
                             fillColor: context.fieldFill,
                             border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(color: context.borderColor)),
+                                borderSide:
+                                    BorderSide(color: context.borderColor)),
                             enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(color: context.borderColor)),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                borderSide:
+                                    BorderSide(color: context.borderColor)),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 10),
                           ),
                           onChanged: (v) {
-                            provider.setAdditionalInvestment(pf.id, double.tryParse(v) ?? 0);
+                            provider.setAdditionalInvestment(
+                                pf.id, double.tryParse(v) ?? 0);
                           },
                         ),
                         const SizedBox(height: 10),
                         Row(children: [
-                          _infoBox(context, '현재 자산',
-                              rb != null ? _fmt(rb.total - pf.additionalInvestment, pf.currency) : '—'),
+                          _infoBox(
+                              context,
+                              '현재 자산',
+                              rb != null
+                                  ? _fmtAmount(
+                                      rb.total - pf.additionalInvestment,
+                                      pf.currency,
+                                      pf.compactAmount)
+                                  : '—'),
                           const SizedBox(width: 8),
-                          _infoBox(context, '리밸런싱 기준',
-                              rb != null ? _fmt(rb.total, pf.currency) : '—'),
+                          _infoBox(
+                              context,
+                              '리밸런싱 기준',
+                              rb != null
+                                  ? _fmtAmount(rb.total, pf.currency,
+                                      pf.compactAmount)
+                                  : '—'),
                           const SizedBox(width: 8),
-                          _infoBox(context, '잔여 현금',
-                              rb != null ? _fmt(rb.cash, pf.currency) : '—',
+                          _infoBox(
+                              context,
+                              '잔여 현금',
+                              rb != null
+                                  ? _fmt(rb.cash, pf.currency)
+                                  : '—',
                               highlight: true),
                         ]),
                         if (rb != null && commOn && rb.commission > 0)
                           Padding(
                             padding: const EdgeInsets.only(top: 6),
-                            child: Text('예상 수수료: ${_fmt(rb.commission, pf.currency)}',
-                                style: TextStyle(fontSize: 12, color: context.textHint)),
+                            child: Text(
+                                '예상 수수료: ${_fmt(rb.commission, pf.currency)}',
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: context.textHint)),
                           ),
                         Padding(
                           padding: const EdgeInsets.only(top: 6),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('환율: 1 USD = ₩${pf.exchangeRate.toStringAsFixed(0)}',
-                                  style: TextStyle(fontSize: 12, color: context.textHint)),
+                              Text(
+                                  '환율: 1 USD = ₩${pf.exchangeRate.toStringAsFixed(0)}',
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      color: context.textHint)),
                               Text(_fmtTime(pf.lastUpdated),
-                                  style: TextStyle(fontSize: 12, color: context.textHint)),
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      color: context.textHint)),
                             ],
                           ),
                         ),
@@ -387,12 +459,16 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                   Container(
                     width: double.infinity,
                     color: context.warningBg,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 10),
                     child: Row(children: [
                       const Text('⚠️', style: TextStyle(fontSize: 16)),
                       const SizedBox(width: 8),
-                      Text('목표 비중 합계: ${_pct(weightSum)} (100%가 아닙니다)',
-                          style: TextStyle(fontSize: 13, color: context.warningText)),
+                      Text(
+                          '목표 비중 합계: ${_pct(weightSum)} (100%가 아닙니다)',
+                          style: TextStyle(
+                              fontSize: 13,
+                              color: context.warningText)),
                     ]),
                   ),
 
@@ -400,44 +476,81 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                 Expanded(
                   child: pf.items.isEmpty
                       ? Center(
-                          child: Column(mainAxisSize: MainAxisSize.min, children: [
+                          child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
                             Text('종목을 추가해 주세요',
-                                style: TextStyle(fontSize: 15, color: context.textSecondary)),
+                                style: TextStyle(
+                                    fontSize: 15,
+                                    color: context.textSecondary)),
                             const SizedBox(height: 6),
                             Text('아래 + 버튼을 눌러 시작하세요',
-                                style: TextStyle(fontSize: 13, color: context.textHint)),
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    color: context.textHint)),
                           ]))
                       : _editMode
                           ? ReorderableListView.builder(
-                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
+                              padding: const EdgeInsets.fromLTRB(
+                                  16, 16, 16, 80),
                               itemCount: pf.items.length,
                               onReorder: (o, n) {
                                 if (n > o) n--;
-                                final list = List<PortfolioItem>.from(pf.items);
+                                final list =
+                                    List<PortfolioItem>.from(pf.items);
                                 final item = list.removeAt(o);
                                 list.insert(n, item);
                                 provider.reorderItems(pf.id, list);
                               },
                               itemBuilder: (ctx, idx) =>
-                                  _buildItemCard(context, pf, pf.items[idx], rb,
+                                  _buildItemCard(context, pf, pf.items[idx],
+                                      rb,
                                       key: ValueKey(pf.items[idx].id)),
                             )
                           : ListView.builder(
-                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
-                              itemCount: pf.items.length,
-                              itemBuilder: (ctx, idx) =>
-                                  _buildItemCard(context, pf, pf.items[idx], rb),
+                              padding: const EdgeInsets.fromLTRB(
+                                  16, 16, 16, 100),
+                              itemCount: pf.items.length + 1,
+                              itemBuilder: (ctx, idx) {
+                                if (idx == pf.items.length) {
+                                  return _buildSlimAddCard(context, pf);
+                                }
+                                return _buildItemCard(
+                                    context, pf, pf.items[idx], rb);
+                              },
                             ),
                 ),
               ],
             ),
             floatingActionButton: _editMode
                 ? null
-                : FloatingActionButton(
-                    onPressed: () => _showItemForm(pf),
-                    backgroundColor: const Color(0xFF3B82F6),
-                    child: const Icon(Icons.add, color: Colors.white),
-                  ),
+                : SpeedDialFab(items: [
+                    SpeedDialItem(
+                      icon: Icons.settings_outlined,
+                      label: '설정',
+                      onTap: () => _showSettings(pf),
+                    ),
+                    SpeedDialItem(
+                      icon: Icons.edit_outlined,
+                      label: '편집',
+                      onTap: () => setState(() => _editMode = true),
+                    ),
+                    SpeedDialItem(
+                      icon: Icons.pie_chart_outline,
+                      label: '그래프',
+                      iconColor: const Color(0xFF93C5FD),
+                      bgColor: const Color(0xFF1D4ED8),
+                      onTap: () => _openGraph(pf),
+                    ),
+                    if (rb != null && hasChanges)
+                      SpeedDialItem(
+                        icon: Icons.check_circle_outline,
+                        label: '리밸런싱 적용',
+                        iconColor: const Color(0xFF4ADE80),
+                        bgColor: const Color(0xFF052E16),
+                        onTap: () => _showApplyConfirm(pf, rb),
+                      ),
+                  ]),
           ),
         );
       },
@@ -456,14 +569,56 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
           borderRadius: BorderRadius.circular(8),
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(label, style: TextStyle(fontSize: 11, color: context.textHint)),
+          Text(label,
+              style: TextStyle(fontSize: 11, color: context.textHint)),
           const SizedBox(height: 2),
-          Text(value,
-              style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: highlight ? context.highlightText : context.textPrimary)),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(value,
+                style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: highlight
+                        ? context.highlightText
+                        : context.textPrimary)),
+          ),
         ]),
+      ),
+    );
+  }
+
+  Widget _buildSlimAddCard(BuildContext context, Portfolio pf) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: InkWell(
+        onTap: () => _showItemForm(pf),
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            border: Border.all(color: context.borderColor),
+            borderRadius: BorderRadius.circular(12),
+            color: context.cardBg.withValues(alpha: 0.5),
+          ),
+          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                color: const Color(0xFF3B82F6),
+                borderRadius: BorderRadius.circular(5),
+              ),
+              child: const Icon(Icons.add, color: Colors.white, size: 14),
+            ),
+            const SizedBox(width: 8),
+            Text('종목 추가',
+                style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFF3B82F6))),
+          ]),
+        ),
       ),
     );
   }
@@ -471,16 +626,17 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
   Widget _buildItemCard(BuildContext context, Portfolio pf, PortfolioItem item,
       RebalanceResult? rb, {Key? key}) {
     final r = rb?.results.where((x) => x.id == item.id).firstOrNull;
-    final delta = r?.isCash == true ? r!.cashDelta.round() : (r?.delta ?? 0);
+    final delta =
+        r?.isCash == true ? r!.cashDelta.round() : (r?.delta ?? 0);
     final isBuy = delta > 0;
 
-    // ── 편집 모드 ──
     if (_editMode) {
       return Card(
         key: key,
         color: context.cardBg,
         margin: const EdgeInsets.only(bottom: 10),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
           child: Row(children: [
@@ -491,64 +647,86 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                 decoration: BoxDecoration(
                     color: Colors.red.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.red.withValues(alpha: 0.4))),
-                child: const Icon(Icons.remove, color: Colors.red, size: 18),
+                    border: Border.all(
+                        color: Colors.red.withValues(alpha: 0.4))),
+                child:
+                    const Icon(Icons.remove, color: Colors.red, size: 18),
               ),
               padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+              constraints:
+                  const BoxConstraints(minWidth: 36, minHeight: 36),
             ),
             const SizedBox(width: 4),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Expanded(
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
               Row(children: [
-                _marketBadge(item), const SizedBox(width: 6),
-                Expanded(child: Text(item.name,
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: context.textPrimary),
-                    overflow: TextOverflow.ellipsis)),
+                _marketBadge(context, item),
+                const SizedBox(width: 6),
+                Expanded(
+                    child: Text(item.name,
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: context.textPrimary),
+                        overflow: TextOverflow.ellipsis)),
               ]),
               const SizedBox(height: 2),
               Text(
                   item.isCash
                       ? _fmt(item.shares, pf.currency)
                       : '${_fmtPrice(item.currentPrice, item.market)} × ${item.shares.toInt()}',
-                  style: TextStyle(fontSize: 12, color: context.textSecondary)),
+                  style: TextStyle(
+                      fontSize: 12, color: context.textSecondary)),
             ])),
             IconButton(
               onPressed: () => _showItemForm(pf, item),
               icon: Container(
                 width: 28, height: 28,
                 decoration: BoxDecoration(
-                    color: const Color(0xFF3B82F6).withValues(alpha: 0.15),
+                    color:
+                        const Color(0xFF3B82F6).withValues(alpha: 0.15),
                     shape: BoxShape.circle,
-                    border: Border.all(color: const Color(0xFF3B82F6).withValues(alpha: 0.4))),
-                child: const Icon(Icons.edit_outlined, color: Color(0xFF3B82F6), size: 16),
+                    border: Border.all(
+                        color: const Color(0xFF3B82F6)
+                            .withValues(alpha: 0.4))),
+                child: const Icon(Icons.edit_outlined,
+                    color: Color(0xFF3B82F6), size: 16),
               ),
               padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+              constraints:
+                  const BoxConstraints(minWidth: 36, minHeight: 36),
             ),
           ]),
         ),
       );
     }
 
-    // ── 일반 모드 ──
     return Card(
       key: key,
       color: context.cardBg,
       margin: const EdgeInsets.only(bottom: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () => _showItemSheet(pf, item, rb),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          padding:
+              const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           child: Column(children: [
             Row(children: [
-              _marketBadge(item), const SizedBox(width: 6),
-              Expanded(child: RichText(
+              _marketBadge(context, item),
+              const SizedBox(width: 6),
+              Expanded(
+                  child: RichText(
                 overflow: TextOverflow.ellipsis,
                 text: TextSpan(
                   style: TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.w600, color: context.textPrimary),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: context.textPrimary),
                   children: [
                     TextSpan(text: item.name),
                     if (item.ticker.isNotEmpty)
@@ -565,7 +743,8 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                   item.isCash
                       ? _fmt(item.shares, pf.currency)
                       : '${_fmtPrice(item.currentPrice, item.market)} × ${item.shares.toInt()}',
-                  style: TextStyle(fontSize: 13, color: context.textSecondary)),
+                  style: TextStyle(
+                      fontSize: 13, color: context.textSecondary)),
             ]),
             const SizedBox(height: 4),
             Row(children: [
@@ -573,33 +752,46 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                 TextSpan(
                     text: _pct(item.targetWeight),
                     style: const TextStyle(
-                        color: Color(0xFF3B82F6), fontWeight: FontWeight.w600, fontSize: 12)),
+                        color: Color(0xFF3B82F6),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12)),
                 TextSpan(
                     text: ' → ',
-                    style: TextStyle(color: context.textHint, fontSize: 12)),
+                    style: TextStyle(
+                        color: context.textHint, fontSize: 12)),
                 TextSpan(
-                    text: r != null ? _pct(r.currentWeight) : '—',
-                    style: TextStyle(color: context.textSecondary, fontSize: 12)),
+                    text:
+                        r != null ? _pct(r.currentWeight) : '—',
+                    style: TextStyle(
+                        color: context.textSecondary, fontSize: 12)),
                 TextSpan(
                     text: ' → ',
-                    style: TextStyle(color: context.textHint, fontSize: 12)),
+                    style: TextStyle(
+                        color: context.textHint, fontSize: 12)),
                 TextSpan(
                     text: r != null ? _pct(r.finalWeight) : '—',
                     style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 12,
-                        color: r != null ? context.textPrimary : context.textHint)),
+                        color: r != null
+                            ? context.textPrimary
+                            : context.textHint)),
               ])),
               const Spacer(),
               if (r != null && delta != 0) ...[
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                      color: isBuy ? const Color(0xFF22C55E) : const Color(0xFFEF4444),
+                      color: isBuy
+                          ? const Color(0xFF22C55E)
+                          : const Color(0xFFEF4444),
                       borderRadius: BorderRadius.circular(4)),
                   child: Text(isBuy ? '매수' : '매도',
                       style: const TextStyle(
-                          color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700)),
                 ),
                 const SizedBox(width: 4),
                 Text(
@@ -609,10 +801,14 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                     style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: isBuy ? const Color(0xFF16A34A) : const Color(0xFFDC2626))),
+                        color: isBuy
+                            ? const Color(0xFF16A34A)
+                            : const Color(0xFFDC2626))),
               ],
               if (r != null && delta == 0)
-                Text('유지', style: TextStyle(fontSize: 12, color: context.textHint)),
+                Text('유지',
+                    style: TextStyle(
+                        fontSize: 12, color: context.textHint)),
             ]),
           ]),
         ),
@@ -620,21 +816,25 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     );
   }
 
-  Widget _marketBadge(PortfolioItem item) {
-    if (item.isCash) return _badge('현금', const Color(0xFF65A30D), const Color(0xFFF7FEE7), const Color(0xFF166534));
-    if (item.market == 'US') return _badge('US', const Color(0xFF7C3AED), const Color(0xFFF5F3FF), const Color(0xFF5B21B6));
-    return _badge('KR', const Color(0xFF0369A1), const Color(0xFFF0F9FF), const Color(0xFF075985));
+  Widget _marketBadge(BuildContext context, PortfolioItem item) {
+    if (item.isCash) {
+      return _badge(context, '현금', const Color(0xFF65A30D));
+    }
+    if (item.market == 'US') {
+      return _badge(context, 'US', const Color(0xFF7C3AED));
+    }
+    return _badge(context, 'KR', const Color(0xFF0369A1));
   }
 
-  Widget _badge(String text, Color lightColor, Color lightBg, Color darkColor) {
-    final isDark = context.isDark;
-    final color = isDark ? lightColor.withValues(alpha: 0.9) : lightColor;
-    final bg = isDark ? lightColor.withValues(alpha: 0.15) : lightBg;
+  Widget _badge(BuildContext context, String text, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(4)),
+      decoration: BoxDecoration(
+          color: color.withValues(alpha: context.isDark ? 0.2 : 0.1),
+          borderRadius: BorderRadius.circular(4)),
       child: Text(text,
-          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color)),
+          style: TextStyle(
+              fontSize: 11, fontWeight: FontWeight.w700, color: color)),
     );
   }
 }

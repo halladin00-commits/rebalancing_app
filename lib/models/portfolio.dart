@@ -77,8 +77,17 @@ class Portfolio {
   bool exchangeAuto;
   bool priceAuto;
   double additionalInvestment;
-  int? lastUpdated; // timestamp
+  int? lastUpdated;
   List<PortfolioItem> items;
+
+  // 금액 표시 방식: false=전체표시, true=축약표시
+  bool compactAmount;
+
+  // 그래프 커스터마이즈
+  String graphTitle;                   // 도넛 중앙 텍스트
+  Map<String, String> graphColors;    // itemId → hex color
+  Map<String, String> graphNames;     // itemId → 표시 이름
+  List<String> graphOrder;            // itemId 순서 (비어있으면 비중 내림차순)
 
   Portfolio({
     required this.id,
@@ -93,7 +102,16 @@ class Portfolio {
     this.additionalInvestment = 0,
     this.lastUpdated,
     List<PortfolioItem>? items,
-  }) : items = items ?? [];
+    this.compactAmount = false,
+    String? graphTitle,
+    Map<String, String>? graphColors,
+    Map<String, String>? graphNames,
+    List<String>? graphOrder,
+  })  : items = items ?? [],
+        graphTitle = graphTitle ?? '',
+        graphColors = graphColors ?? {},
+        graphNames = graphNames ?? {},
+        graphOrder = graphOrder ?? [];
 
   /// 총 자산 평가액
   double get totalValue {
@@ -120,6 +138,24 @@ class Portfolio {
     return item.currentPrice;
   }
 
+  /// 그래프 표시용 정렬된 종목 목록 (비중 내림차순, 또는 graphOrder 순)
+  List<PortfolioItem> get graphSortedItems {
+    final nonCash = items.where((i) => !i.isCash).toList();
+    if (graphOrder.isNotEmpty) {
+      final ordered = <PortfolioItem>[];
+      for (final id in graphOrder) {
+        final found = nonCash.where((i) => i.id == id).firstOrNull;
+        if (found != null) ordered.add(found);
+      }
+      // graphOrder에 없는 항목 뒤에 추가
+      for (final item in nonCash) {
+        if (!graphOrder.contains(item.id)) ordered.add(item);
+      }
+      return ordered;
+    }
+    return nonCash..sort((a, b) => b.targetWeight.compareTo(a.targetWeight));
+  }
+
   Map<String, dynamic> toJson() => {
     'id': id,
     'name': name,
@@ -133,6 +169,11 @@ class Portfolio {
     'additionalInvestment': additionalInvestment,
     'lastUpdated': lastUpdated,
     'items': items.map((e) => e.toJson()).toList(),
+    'compactAmount': compactAmount,
+    'graphTitle': graphTitle,
+    'graphColors': graphColors,
+    'graphNames': graphNames,
+    'graphOrder': graphOrder,
   };
 
   factory Portfolio.fromJson(Map<String, dynamic> json) => Portfolio(
@@ -151,6 +192,18 @@ class Portfolio {
             ?.map((e) => PortfolioItem.fromJson(e))
             .toList() ??
         [],
+    compactAmount: json['compactAmount'] ?? false,
+    graphTitle: json['graphTitle'] ?? '',
+    graphColors: (json['graphColors'] as Map<String, dynamic>?)
+            ?.map((k, v) => MapEntry(k, v.toString())) ??
+        {},
+    graphNames: (json['graphNames'] as Map<String, dynamic>?)
+            ?.map((k, v) => MapEntry(k, v.toString())) ??
+        {},
+    graphOrder: (json['graphOrder'] as List<dynamic>?)
+            ?.map((e) => e.toString())
+            .toList() ??
+        [],
   );
 
   Portfolio copyWith({
@@ -166,6 +219,11 @@ class Portfolio {
     double? additionalInvestment,
     int? lastUpdated,
     List<PortfolioItem>? items,
+    bool? compactAmount,
+    String? graphTitle,
+    Map<String, String>? graphColors,
+    Map<String, String>? graphNames,
+    List<String>? graphOrder,
   }) => Portfolio(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -179,6 +237,11 @@ class Portfolio {
     additionalInvestment: additionalInvestment ?? this.additionalInvestment,
     lastUpdated: lastUpdated ?? this.lastUpdated,
     items: items ?? this.items.map((e) => e.copyWith()).toList(),
+    compactAmount: compactAmount ?? this.compactAmount,
+    graphTitle: graphTitle ?? this.graphTitle,
+    graphColors: graphColors ?? Map.from(this.graphColors),
+    graphNames: graphNames ?? Map.from(this.graphNames),
+    graphOrder: graphOrder ?? List.from(this.graphOrder),
   );
 }
 
@@ -203,10 +266,10 @@ class RebalanceItemResult {
   final String id;
   final double currentWeight;
   final double finalWeight;
-  final int newShares; // 현금이 아닌 경우 주 단위
-  final double newCashAmount; // 현금인 경우 금액
-  final int delta; // 변화량 (현금 아닌 경우)
-  final double cashDelta; // 현금 변화량
+  final int newShares;
+  final double newCashAmount;
+  final int delta;
+  final double cashDelta;
   final bool isCash;
 
   RebalanceItemResult({

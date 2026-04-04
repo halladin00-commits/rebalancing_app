@@ -5,6 +5,7 @@ import 'models/portfolio.dart';
 import 'services/storage_service.dart';
 import 'screens/portfolio_list_screen.dart';
 import 'services/stock_search_service.dart';
+import 'widgets/disclaimer_dialog.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -61,7 +62,7 @@ class ThemeNotifier extends ChangeNotifier {
   }
 }
 
-// ── 앱 색상 (테마별) ──
+// ── 앱 색상 확장 ──
 
 extension AppColors on BuildContext {
   bool get isDark => Theme.of(this).brightness == Brightness.dark;
@@ -138,9 +139,7 @@ class RebalancingApp extends StatelessWidget {
               elevation: 1,
               shadowColor: Color(0x18000000),
             ),
-            dialogTheme: const DialogThemeData(
-              backgroundColor: Colors.white,
-            ),
+            dialogTheme: const DialogThemeData(backgroundColor: Colors.white),
           ),
           darkTheme: ThemeData(
             colorScheme: ColorScheme.fromSeed(
@@ -160,12 +159,10 @@ class RebalancingApp extends StatelessWidget {
               elevation: 0,
               shadowColor: Colors.transparent,
             ),
-            dialogTheme: const DialogThemeData(
-              backgroundColor: Color(0xFF1E293B),
-            ),
-            dividerTheme: const DividerThemeData(
-              color: Color(0xFF334155),
-            ),
+            dialogTheme:
+                const DialogThemeData(backgroundColor: Color(0xFF1E293B)),
+            dividerTheme:
+                const DividerThemeData(color: Color(0xFF334155)),
             switchTheme: SwitchThemeData(
               thumbColor: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.selected)) {
@@ -182,8 +179,7 @@ class RebalancingApp extends StatelessWidget {
             ),
             textButtonTheme: TextButtonThemeData(
               style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF60A5FA),
-              ),
+                  foregroundColor: const Color(0xFF60A5FA)),
             ),
             inputDecorationTheme: InputDecorationTheme(
               filled: true,
@@ -199,11 +195,32 @@ class RebalancingApp extends StatelessWidget {
               hintStyle: const TextStyle(color: Color(0xFF475569)),
             ),
           ),
-          home: const PortfolioListScreen(),
+          home: const _AppEntryPoint(),
         );
       },
     );
   }
+}
+
+// ── 첫 실행 처리 ──
+
+class _AppEntryPoint extends StatefulWidget {
+  const _AppEntryPoint();
+  @override
+  State<_AppEntryPoint> createState() => _AppEntryPointState();
+}
+
+class _AppEntryPointState extends State<_AppEntryPoint> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      DisclaimerDialog.showIfNeeded(context);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => const PortfolioListScreen();
 }
 
 // ── 포트폴리오 Provider ──
@@ -304,6 +321,7 @@ class PortfolioProvider extends ChangeNotifier {
     double? exchangeRate,
     bool? exchangeAuto,
     bool? priceAuto,
+    bool? compactAmount,
   }) async {
     final pf = getPortfolio(pfId);
     if (pf != null) {
@@ -313,6 +331,7 @@ class PortfolioProvider extends ChangeNotifier {
       if (exchangeRate != null) pf.exchangeRate = exchangeRate;
       if (exchangeAuto != null) pf.exchangeAuto = exchangeAuto;
       if (priceAuto != null) pf.priceAuto = priceAuto;
+      if (compactAmount != null) pf.compactAmount = compactAmount;
       await _save();
     }
   }

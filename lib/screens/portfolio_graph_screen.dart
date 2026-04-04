@@ -1,0 +1,511 @@
+import 'dart:math';
+import 'dart:typed_data';
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:provider/provider.dart';
+import 'package:screenshot/screenshot.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:permission_handler/permission_handler.dart';
+import '../main.dart';
+import '../models/portfolio.dart';
+
+// ── 기본 색상 팔레트 ──
+const _kDefaultColors = [
+  Color(0xFF3B82F6), Color(0xFF22C55E), Color(0xFFF59E0B),
+  Color(0xFFEF4444), Color(0xFF8B5CF6), Color(0xFFEC4899),
+  Color(0xFF06B6D4), Color(0xFFF97316), Color(0xFF84CC16),
+  Color(0xFF64748B),
+];
+
+Color _colorForItem(Portfolio pf, String itemId, int index) {
+  final hex = pf.graphColors[itemId];
+  if (hex != null && hex.isNotEmpty) {
+    try {
+      return Color(int.parse('FF${hex.replaceAll('#', '')}', radix: 16));
+    } catch (_) {}
+  }
+  return _kDefaultColors[index % _kDefaultColors.length];
+}
+
+String _nameForItem(Portfolio pf, PortfolioItem item) {
+  return pf.graphNames[item.id]?.isNotEmpty == true
+      ? pf.graphNames[item.id]!
+      : item.name;
+}
+
+// ── 도넛 차트 Painter ──
+class _DonutPainter extends CustomPainter {
+  final List<PortfolioItem> items;
+  final Portfolio portfolio;
+
+  _DonutPainter({required this.items, required this.portfolio});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final cx = size.width / 2;
+    final cy = size.height / 2;
+    final r = min(cx, cy) * 0.85;
+    final innerR = r * 0.55;
+    final strokeW = r - innerR;
+
+    final total = items.fold(0.0, (s, i) => s + i.targetWeight);
+    if (total <= 0) return;
+
+    // 12시 방향(-90도)에서 시계방향으로
+    double startAngle = -pi / 2;
+
+    for (int i = 0; i < items.length; i++) {
+      final item = items[i];
+      final sweep = (item.targetWeight / total) * 2 * pi;
+      final paint = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeW
+        ..color = _colorForItem(portfolio, item.id, i);
+
+      canvas.drawArc(
+        Rect.fromCircle(center: Offset(cx, cy), radius: r - strokeW / 2),
+        startAngle,
+        sweep,
+        false,
+        paint,
+      );
+
+      // 구분선 (얇은 흰/다크 선)
+      final gapPaint = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2
+        ..color = Colors.black.withValues(alpha: 0.3);
+      if (items.length > 1) {
+        final x1 = cx + (innerR) * cos(startAngle);
+        final y1 = cy + (innerR) * sin(startAngle);
+        final x2 = cx + r * cos(startAngle);
+        final y2 = cy + r * sin(startAngle);
+        canvas.drawLine(Offset(x1, y1), Offset(x2, y2), gapPaint);
+      }
+
+      startAngle += sweep;
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DonutPainter old) => true;
+}
+
+// ── 그래프 화면 ──
+class PortfolioGraphScreen extends StatefulWidget {
+  final String portfolioId;
+  const PortfolioGraphScreen({super.key, required this.portfolioId});
+
+  @override
+  State<PortfolioGraphScreen> createState() => _PortfolioGraphScreenState();
+}
+
+class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
+  bool _editMode = false;
+  bool _saving = false;
+  final ScreenshotController _screenshotCtrl = ScreenshotController();
+
+  void _enterEdit() => setState(() => _editMode = true);
+  void _exitEdit() => setState(() => _editMode = false);
+
+  // ── 이미지 저장 ──
+  Future<void> _saveImage(Portfolio pf) async {
+    if (_saving) return;
+    setState(() => _saving = true);
+
+    try {
+      // 권한 요청
+      final status = await Permission.photos.request();
+      if (!status.isGranted) {
+        final status2 = await Permission.storage.request();
+        if (!status2.isGranted && mounted) {
+          _showToast('저장 권한이 필요합니다', Colors.red);
+          setState(() => _saving = false);
+          return;
+        }
+      }
+
+      final Uint8List? imageBytes = await _screenshotCtrl.capture(pixelRatio: 3.0);
+      if (imageBytes == null) {
+        if (mounted) _showToast('캡처 실패', Colors.red);
+        setState(() => _saving = false);
+        return;
+      }
+
+      final result = await ImageGallerySaver.saveImage(
+        imageBytes,
+        name: 'rebalancing_${pf.name}_${DateTime.now().millisecondsSinceEpoch}',
+      );
+
+      if (mounted) {
+        final ok = result['isSuccess'] == true || result['filePath'] != null;
+        _showToast(ok ? '갤러리에 저장됐어요' : '저장 실패', ok ? Colors.green : Colors.red);
+      }
+    } catch (e) {
+      if (mounted) _showToast('저장 실패: $e', Colors.red);
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  void _showToast(String msg, Color color) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(msg, textAlign: TextAlign.center),
+      backgroundColor: color,
+      behavior: SnackBarBehavior.floating,
+      duration: const Duration(seconds: 3),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+    ));
+  }
+
+  // ── 중앙 이름 수정 팝업 ──
+  void _showTitleEdit(Portfolio pf) {
+    final ctrl = TextEditingController(
+        text: pf.graphTitle.isNotEmpty ? pf.graphTitle : pf.name);
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: context.cardBg,
+        title: Text('중앙 텍스트 수정',
+            style: TextStyle(color: context.textPrimary, fontSize: 15)),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          style: TextStyle(color: context.textPrimary),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: context.fieldFill,
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: context.borderColor)),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          ),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('취소')),
+          TextButton(
+            onPressed: () {
+              final provider = context.read<PortfolioProvider>();
+              final updated = pf.copyWith(graphTitle: ctrl.text.trim());
+              provider.updatePortfolio(pf.id, updated);
+              Navigator.pop(context);
+            },
+            child: const Text('확인'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── 항목 편집 팝업 (이름 + 색상) ──
+  void _showItemEdit(Portfolio pf, PortfolioItem item, int index) {
+    final nameCtrl = TextEditingController(
+        text: pf.graphNames[item.id]?.isNotEmpty == true
+            ? pf.graphNames[item.id]!
+            : item.name);
+    Color selected = _colorForItem(pf, item.id, index);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(builder: (ctx, setDlg) {
+        return AlertDialog(
+          backgroundColor: context.cardBg,
+          title: Text('항목 편집',
+              style: TextStyle(color: context.textPrimary, fontSize: 15)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('표시 이름',
+                  style: TextStyle(fontSize: 12, color: context.textSecondary)),
+              const SizedBox(height: 4),
+              TextField(
+                controller: nameCtrl,
+                style: TextStyle(color: context.textPrimary),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: context.fieldFill,
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: context.borderColor)),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  isDense: true,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text('색상',
+                  style: TextStyle(fontSize: 12, color: context.textSecondary)),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _kDefaultColors.map((c) {
+                  final isSel = selected.value == c.value;
+                  return GestureDetector(
+                    onTap: () => setDlg(() => selected = c),
+                    child: Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: c,
+                        borderRadius: BorderRadius.circular(6),
+                        border: isSel
+                            ? Border.all(color: Colors.white, width: 3)
+                            : null,
+                      ),
+                      child: isSel
+                          ? const Icon(Icons.check,
+                              color: Colors.white, size: 16)
+                          : null,
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('취소')),
+            TextButton(
+              onPressed: () {
+                final provider = context.read<PortfolioProvider>();
+                final newColors = Map<String, String>.from(pf.graphColors);
+                final newNames = Map<String, String>.from(pf.graphNames);
+                newColors[item.id] =
+                    selected.value.toRadixString(16).substring(2).toUpperCase();
+                newNames[item.id] = nameCtrl.text.trim();
+                provider.updatePortfolio(
+                    pf.id, pf.copyWith(graphColors: newColors, graphNames: newNames));
+                Navigator.pop(ctx);
+              },
+              child: const Text('확인'),
+            ),
+          ],
+        );
+      }),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<PortfolioProvider>(builder: (context, provider, _) {
+      final pf = provider.getPortfolio(widget.portfolioId);
+      if (pf == null) {
+        return const Scaffold(body: Center(child: Text('포트폴리오 없음')));
+      }
+
+      final sortedItems = pf.graphSortedItems;
+      final centerText =
+          pf.graphTitle.isNotEmpty ? pf.graphTitle : pf.name;
+      final total =
+          sortedItems.fold(0.0, (s, i) => s + i.targetWeight);
+
+      return Scaffold(
+        backgroundColor: context.scaffoldBg,
+        appBar: AppBar(
+          backgroundColor: context.appBarBg,
+          title: const Text('포트폴리오 그래프',
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+          actions: [
+            if (_editMode)
+              IconButton(
+                icon: const Icon(Icons.check, color: Color(0xFF4ADE80)),
+                tooltip: '편집 완료',
+                onPressed: _exitEdit,
+              )
+            else
+              IconButton(
+                icon: const Icon(Icons.edit_outlined),
+                tooltip: '편집',
+                onPressed: _enterEdit,
+              ),
+            // 저장 버튼: 편집 모드에선 비활성화
+            IconButton(
+              icon: _saving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                          color: Colors.white, strokeWidth: 2))
+                  : Icon(Icons.download_outlined,
+                      color: _editMode ? Colors.grey[600] : Colors.white),
+              tooltip: _editMode ? '편집 완료 후 저장 가능' : '이미지 저장',
+              onPressed: _editMode ? null : () => _saveImage(pf),
+            ),
+          ],
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
+          child: Column(children: [
+            // ── 캡처 영역 ──
+            Screenshot(
+              controller: _screenshotCtrl,
+              child: Container(
+                color: context.cardBg,
+                padding: const EdgeInsets.all(20),
+                child: Column(children: [
+                  // 도넛 차트
+                  AspectRatio(
+                    aspectRatio: 1,
+                    child: Stack(alignment: Alignment.center, children: [
+                      CustomPaint(
+                        painter: _DonutPainter(
+                            items: sortedItems, portfolio: pf),
+                        child: Container(),
+                      ),
+                      // 중앙 텍스트 (탭하면 수정)
+                      GestureDetector(
+                        onTap: () => _showTitleEdit(pf),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              centerText,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: context.textPrimary,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _editMode ? '탭하여 수정' : '탭하여 이름 수정',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: _editMode
+                                    ? const Color(0xFF3B82F6)
+                                    : context.textHint,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ]),
+                  ),
+                  const SizedBox(height: 16),
+                  // 범례
+                  if (_editMode)
+                    _buildReorderableLegend(context, pf, sortedItems, total)
+                  else
+                    _buildStaticLegend(context, pf, sortedItems, total),
+                ]),
+              ),
+            ),
+            if (_editMode)
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: Text(
+                  '항목을 길게 눌러 드래그하면 순서를 바꿀 수 있습니다',
+                  style: TextStyle(fontSize: 12, color: context.textHint),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+          ]),
+        ),
+      );
+    });
+  }
+
+  // ── 일반 모드 범례 ──
+  Widget _buildStaticLegend(BuildContext context, Portfolio pf,
+      List<PortfolioItem> items, double total) {
+    return Column(
+      children: items.asMap().entries.map((entry) {
+        final i = entry.key;
+        final item = entry.value;
+        final pct = total > 0 ? item.targetWeight / total * 100 : 0.0;
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 5),
+          child: Row(children: [
+            Container(
+              width: 12,
+              height: 12,
+              decoration: BoxDecoration(
+                color: _colorForItem(pf, item.id, i),
+                borderRadius: BorderRadius.circular(3),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(_nameForItem(pf, item),
+                  style: TextStyle(fontSize: 13, color: context.textPrimary),
+                  overflow: TextOverflow.ellipsis),
+            ),
+            Text('${pct.toStringAsFixed(1)}%',
+                style:
+                    TextStyle(fontSize: 13, color: context.textSecondary)),
+          ]),
+        );
+      }).toList(),
+    );
+  }
+
+  // ── 편집 모드 범례 (드래그 재정렬) ──
+  Widget _buildReorderableLegend(BuildContext context, Portfolio pf,
+      List<PortfolioItem> items, double total) {
+    return ReorderableListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: items.length,
+      onReorder: (oldIndex, newIndex) {
+        if (newIndex > oldIndex) newIndex--;
+        final newOrder = items.map((e) => e.id).toList();
+        final removed = newOrder.removeAt(oldIndex);
+        newOrder.insert(newIndex, removed);
+        final provider = context.read<PortfolioProvider>();
+        provider.updatePortfolio(pf.id, pf.copyWith(graphOrder: newOrder));
+      },
+      itemBuilder: (ctx, i) {
+        final item = items[i];
+        final pct = total > 0 ? item.targetWeight / total * 100 : 0.0;
+        return ListTile(
+          key: ValueKey(item.id),
+          contentPadding: EdgeInsets.zero,
+          dense: true,
+          leading: Row(mainAxisSize: MainAxisSize.min, children: [
+            // 드래그 핸들
+            const Icon(Icons.drag_handle, size: 18, color: Color(0xFF64748B)),
+            const SizedBox(width: 6),
+            Container(
+              width: 12,
+              height: 12,
+              decoration: BoxDecoration(
+                color: _colorForItem(pf, item.id, i),
+                borderRadius: BorderRadius.circular(3),
+              ),
+            ),
+          ]),
+          title: Text(_nameForItem(pf, item),
+              style: TextStyle(fontSize: 13, color: context.textPrimary),
+              overflow: TextOverflow.ellipsis),
+          trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+            Text('${pct.toStringAsFixed(1)}%',
+                style: TextStyle(
+                    fontSize: 13, color: context.textSecondary)),
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: () => _showItemEdit(pf, item, i),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1D4ED8),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text('편집',
+                    style: TextStyle(fontSize: 11, color: Color(0xFF93C5FD))),
+              ),
+            ),
+          ]),
+        );
+      },
+    );
+  }
+}
