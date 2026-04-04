@@ -16,7 +16,7 @@ dependencies:
   provider: ^6.1.1
   cupertino_icons: ^1.0.6
   screenshot: ^2.3.0
-  image_gallery_saver: ^2.0.3
+  image_gallery_saver_plus: ^2.0.5
   permission_handler: ^11.3.0
 
 dev_dependencies:
