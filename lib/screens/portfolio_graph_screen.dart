@@ -105,7 +105,8 @@ class PortfolioGraphScreen extends StatefulWidget {
 
 class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
   bool _editMode = false;
-  bool _showCurrent = false;   // 편집모드 전용: false=목표비중, true=현재비중
+  bool _showCurrent = false;   // false=목표비중, true=현재비중
+  bool _noticeNoData = false;  // 현재가 없을 때 안내 문구 표시 여부
   bool _saving = false;
   final ScreenshotController _screenshotCtrl = ScreenshotController();
 
@@ -148,7 +149,22 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
   }
 
   void _enterEdit() => setState(() => _editMode = true);
-  void _exitEdit() => setState(() { _editMode = false; _showCurrent = false; });
+  void _exitEdit() => setState(() => _editMode = false);  // _showCurrent 유지
+
+  Future<void> _confirmExitEdit() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('편집 종료'),
+        content: const Text('편집 모드를 종료하시겠습니까?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('취소')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('종료')),
+        ],
+      ),
+    );
+    if (result == true) _exitEdit();
+  }
 
   Future<void> _saveImage(Portfolio pf) async {
     if (_saving) return;
@@ -356,14 +372,19 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
 
       // 현재 비중 모드일 때 사용할 가상 weight (targetWeight 필드 대체)
       List<PortfolioItem> displayItems = sortedItems;
-      if (_editMode && _showCurrent && hasCurrent) {
+      if (_showCurrent && hasCurrent) {
         displayItems = sortedItems.map((item) {
           final pct = (currentValues[item.id] ?? 0) / totalCurrentVal * 100;
           return item.copyWith(targetWeight: pct);
         }).toList();
       }
 
-      return Scaffold(
+      return PopScope(
+        canPop: !_editMode,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) _confirmExitEdit();
+        },
+        child: Scaffold(
         backgroundColor: context.scaffoldBg,
         appBar: AppBar(
           backgroundColor: context.appBarBg,
@@ -413,15 +434,21 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
                       ),
                       child: Row(children: [
                         _segBtn(context, '목표 비중', !_showCurrent,
-                            () => setState(() => _showCurrent = false)),
+                            () => setState(() {
+                              _showCurrent = false;
+                              _noticeNoData = false;
+                            })),
                         _segBtn(context, '현재 비중',
                             _showCurrent && hasCurrent,
                             hasCurrent
-                                ? () => setState(() => _showCurrent = true)
-                                : null),
+                                ? () => setState(() {
+                                    _showCurrent = true;
+                                    _noticeNoData = false;
+                                  })
+                                : () => setState(() => _noticeNoData = true)),
                       ]),
                     ),
-                    if (_showCurrent && !hasCurrent)
+                    if (_noticeNoData && !hasCurrent)
                       Padding(
                         padding: const EdgeInsets.only(top: 6),
                         child: Text('현재가 정보가 없습니다. 새로고침 후 다시 시도해주세요.',
@@ -601,8 +628,8 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
               ),
             ),
           ]),
-        );
-      },
-    );
+        ),
+      );   // PopScope
+    });
   }
 }
