@@ -212,30 +212,16 @@ class _AppEntryPoint extends StatefulWidget {
 }
 
 class _AppEntryPointState extends State<_AppEntryPoint> {
-  bool _showSplash = true;
-
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(milliseconds: 1400), () {
-      if (!mounted) return;
-      setState(() => _showSplash = false);
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        DisclaimerDialog.showIfNeeded(context);
-      });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      DisclaimerDialog.showIfNeeded(context);
     });
   }
 
   @override
-  Widget build(BuildContext context) {
-    if (_showSplash) {
-      return const Scaffold(
-        backgroundColor: Color(0xFF0F172A),
-        body: Center(child: AppLogo(iconSize: 38)),
-      );
-    }
-    return const PortfolioListScreen();
-  }
+  Widget build(BuildContext context) => const PortfolioListScreen();
 }
 
 // ── 포트폴리오 Provider ──

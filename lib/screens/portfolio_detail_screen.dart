@@ -606,17 +606,26 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
             ]),
             const SizedBox(height: 4),
             Row(children: [
-              Text.rich(TextSpan(children: [
-                TextSpan(text: _pct(item.targetWeight),
-                    style: const TextStyle(color: Color(0xFF3B82F6), fontWeight: FontWeight.w600, fontSize: 12)),
-                TextSpan(text: ' → ', style: TextStyle(color: context.textHint, fontSize: 12)),
-                TextSpan(text: r != null ? _pct(r.currentWeight) : '—',
-                    style: TextStyle(color: context.textSecondary, fontSize: 12)),
-                TextSpan(text: ' → ', style: TextStyle(color: context.textHint, fontSize: 12)),
-                TextSpan(text: r != null ? _pct(r.finalWeight) : '—',
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12,
-                        color: r != null ? context.textPrimary : context.textHint)),
-              ])),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(_pct(item.targetWeight),
+                      style: const TextStyle(color: Color(0xFF3B82F6), fontWeight: FontWeight.w600, fontSize: 12)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 3),
+                    child: Icon(Icons.arrow_forward, size: 10, color: context.textHint),
+                  ),
+                  Text(r != null ? _pct(r.currentWeight) : '—',
+                      style: TextStyle(color: context.textSecondary, fontSize: 12)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 3),
+                    child: Icon(Icons.arrow_forward, size: 10, color: context.textHint),
+                  ),
+                  Text(r != null ? _pct(r.finalWeight) : '—',
+                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12,
+                          color: r != null ? context.textPrimary : context.textHint)),
+                ],
+              ),
               const Spacer(),
               if (r != null && delta != 0) ...[
                 Container(

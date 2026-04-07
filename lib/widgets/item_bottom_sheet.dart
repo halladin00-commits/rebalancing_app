@@ -279,21 +279,27 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
           child: Text('취소',
-              style: TextStyle(color: context.textSecondary, fontWeight: FontWeight.w600)),
+              style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: context.textSecondary)),
         ),
       ),
       const SizedBox(width: 10),
       Expanded(
-        child: ElevatedButton(
+        child: OutlinedButton.icon(
           onPressed: _save,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF3B82F6),
-            foregroundColor: Colors.white,
-            elevation: 0,
+          icon: const Icon(Icons.check, size: 16, color: Color(0xFF3B82F6)),
+          label: const Text('저장',
+              style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF3B82F6))),
+          style: OutlinedButton.styleFrom(
+            side: const BorderSide(color: Color(0xFF3B82F6)),
             padding: const EdgeInsets.symmetric(vertical: 12),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
-          child: const Text('저장', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
         ),
       ),
     ]);
