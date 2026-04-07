@@ -629,8 +629,8 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
               ),
             ),
           ]),
-        ),
-      );   // PopScope
-    });
+        );          // ListTile return 끝
+      },            // itemBuilder 람다 끝
+    );              // ReorderableListView.builder return 끝
   }
 }
