@@ -105,6 +105,7 @@ class PortfolioGraphScreen extends StatefulWidget {
 
 class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
   bool _editMode = false;
+  bool _showCurrent = false;   // 편집모드 전용: false=목표비중, true=현재비중
   bool _saving = false;
   final ScreenshotController _screenshotCtrl = ScreenshotController();
 
@@ -147,7 +148,7 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
   }
 
   void _enterEdit() => setState(() => _editMode = true);
-  void _exitEdit() => setState(() => _editMode = false);
+  void _exitEdit() => setState(() { _editMode = false; _showCurrent = false; });
 
   Future<void> _saveImage(Portfolio pf) async {
     if (_saving) return;
@@ -338,6 +339,30 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
       final centerText = pf.graphTitle.isNotEmpty ? pf.graphTitle : pf.name;
       final total = sortedItems.fold(0.0, (s, i) => s + i.targetWeight);
 
+      // ── 현재 비중 계산 (평가금액 기준) ──
+      // KRW 기준으로 통일 (US 종목은 × 환율)
+      final Map<String, double> currentValues = {};
+      for (final item in sortedItems) {
+        if (item.isCash) continue;
+        final price = item.currentPrice;
+        final qty   = item.shares;
+        final val   = item.market == 'US'
+            ? price * qty * pf.exchangeRate
+            : price * qty;
+        currentValues[item.id] = val;
+      }
+      final totalCurrentVal = currentValues.values.fold(0.0, (a, b) => a + b);
+      final hasCurrent = totalCurrentVal > 0;
+
+      // 현재 비중 모드일 때 사용할 가상 weight (targetWeight 필드 대체)
+      List<PortfolioItem> displayItems = sortedItems;
+      if (_editMode && _showCurrent && hasCurrent) {
+        displayItems = sortedItems.map((item) {
+          final pct = (currentValues[item.id] ?? 0) / totalCurrentVal * 100;
+          return item.copyWith(targetWeight: pct);
+        }).toList();
+      }
+
       return Scaffold(
         backgroundColor: context.scaffoldBg,
         appBar: AppBar(
@@ -378,12 +403,39 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
                 color: context.cardBg,
                 padding: const EdgeInsets.all(20),
                 child: Column(children: [
+                  // ── 편집모드 전용: 목표|현재 비중 세그먼트 ──
+                  if (_editMode) ...[
+                    Container(
+                      decoration: BoxDecoration(
+                        color: context.rowBg,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: context.borderColor),
+                      ),
+                      child: Row(children: [
+                        _segBtn(context, '목표 비중', !_showCurrent,
+                            () => setState(() => _showCurrent = false)),
+                        _segBtn(context, '현재 비중',
+                            _showCurrent && hasCurrent,
+                            hasCurrent
+                                ? () => setState(() => _showCurrent = true)
+                                : null),
+                      ]),
+                    ),
+                    if (_showCurrent && !hasCurrent)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: Text('현재가 정보가 없습니다. 새로고침 후 다시 시도해주세요.',
+                            style: TextStyle(fontSize: 11, color: Colors.orange[400]),
+                            textAlign: TextAlign.center),
+                      ),
+                    const SizedBox(height: 12),
+                  ],
                   // 도넛 차트
                   AspectRatio(
                     aspectRatio: 1,
                     child: Stack(alignment: Alignment.center, children: [
                       CustomPaint(
-                        painter: _DonutPainter(items: sortedItems, portfolio: pf),
+                        painter: _DonutPainter(items: displayItems, portfolio: pf),
                         child: Container(),
                       ),
                       // 중앙 텍스트
@@ -417,7 +469,7 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
                   const SizedBox(height: 16),
                   // 범례
                   _editMode
-                      ? _buildReorderableLegend(context, pf, sortedItems, total)
+                      ? _buildReorderableLegend(context, pf, displayItems, total)
                       : _buildStaticLegend(context, pf, sortedItems, total),
                 ]),
               ),
@@ -435,6 +487,34 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
         ),
       );
     });
+  }
+
+  Widget _segBtn(BuildContext context, String label, bool selected, VoidCallback? onTap) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: selected ? const Color(0xFF1D4ED8) : Colors.transparent,
+            borderRadius: BorderRadius.circular(7),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: selected
+                  ? const Color(0xFF93C5FD)
+                  : onTap == null
+                      ? context.textHint
+                      : context.textSecondary,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildStaticLegend(BuildContext context, Portfolio pf,
