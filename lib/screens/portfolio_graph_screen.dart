@@ -385,7 +385,7 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
           if (!didPop) _confirmExitEdit();
         },
         child: Scaffold(
-        backgroundColor: context.scaffoldBg,
+          backgroundColor: context.scaffoldBg,
         appBar: AppBar(
           backgroundColor: context.appBarBg,
           title: const Text('포트폴리오 그래프',
@@ -512,7 +512,8 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
               ),
           ]),
         ),
-      );
+        ),   // Scaffold
+      );     // PopScope
     });
   }
 
