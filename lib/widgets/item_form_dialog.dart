@@ -136,14 +136,15 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final isEdit = widget.item != null;
-    final marketLabel = _detectedMarket == 'US' ? '🇺🇸 미국' : '🇰🇷 한국';
+    final marketLabel = _detectedMarket == 'US' ? '🇺🇸 US' : '🇰🇷 KR';
     final priceSuffix = _detectedMarket == 'US' ? 'USD' : 'KRW';
     final isUS = _detectedMarket == 'US';
 
     return AlertDialog(
       backgroundColor: context.cardBg,
-      title: Text(isEdit ? '종목 수정' : '종목 추가',
+      title: Text(isEdit ? l10n.editStockTitle : l10n.addStockTitle,
           style: TextStyle(color: context.textPrimary)),
       content: SizedBox(
         width: double.maxFinite,
@@ -152,11 +153,10 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 현금 토글
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('현금 항목',
+                  Text(l10n.cashItem,
                       style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
@@ -166,13 +166,12 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
               ),
 
               if (!_isCash) ...[
-                // 종목 검색
-                _label(context, '종목 검색'),
+                _label(context, l10n.searchStock),
                 TextField(
                   controller: _searchCtl,
                   style: TextStyle(color: context.textPrimary),
                   decoration: InputDecoration(
-                    hintText: '종목명 또는 티커 입력',
+                    hintText: l10n.searchHint,
                     hintStyle: TextStyle(color: context.textHint),
                     prefixIcon: Icon(Icons.search, size: 20, color: context.textHint),
                     suffixIcon: _searching
@@ -198,7 +197,6 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
                   onChanged: _onSearchChanged,
                 ),
 
-                // 검색 결과
                 if (_showResults)
                   Container(
                     margin: const EdgeInsets.only(top: 4, bottom: 8),
@@ -256,7 +254,6 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
                                             fontSize: 11,
                                             color: context.textSecondary)),
                                   ])),
-                              // ETF 뱃지
                               if (s.isEtf)
                                 Container(
                                   margin: const EdgeInsets.only(left: 6),
@@ -266,8 +263,8 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
                                     color: Colors.amber.withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(4),
                                   ),
-                                  child: const Text('ETF',
-                                      style: TextStyle(
+                                  child: Text(l10n.etfBadge,
+                                      style: const TextStyle(
                                           fontSize: 10,
                                           fontWeight: FontWeight.w700,
                                           color: Colors.amber)),
@@ -282,13 +279,11 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
                 if (!_showResults) const SizedBox(height: 8),
               ],
 
-              // 종목명
-              _label(context, '종목명'),
-              _textField(context, _nameCtl, _isCash ? '예: 예수금' : '검색으로 자동 입력'),
+              _label(context, l10n.stockName),
+              _textField(context, _nameCtl, _isCash ? l10n.cashNameHint : l10n.autoFillHint),
 
               if (!_isCash) ...[
-                // 종목 코드 / 티커 (읽기 전용)
-                _label(context, '종목 코드 / 티커'),
+                _label(context, l10n.stockCodeTicker),
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
@@ -300,7 +295,7 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
                   child: Row(children: [
                     Expanded(
                       child: Text(
-                        _ticker.isNotEmpty ? _ticker : '검색으로 자동 입력',
+                        _ticker.isNotEmpty ? _ticker : l10n.autoFillHint,
                         style: TextStyle(
                           fontSize: 15,
                           color: _ticker.isNotEmpty ? context.textPrimary : context.textHint,
@@ -316,7 +311,6 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
                 ),
                 const SizedBox(height: 4),
 
-                // 시장 뱃지
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12, top: 2),
                   child: Container(
@@ -341,32 +335,28 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
                   ),
                 ),
 
-                // 현재가
-                _label(context, '현재가'),
+                _label(context, l10n.currentPrice),
                 _textField(context, _priceCtl,
-                    widget.priceAuto ? '자동 업데이트' : '0',
+                    widget.priceAuto ? l10n.autoUpdate : '0',
                     suffix: priceSuffix,
                     number: true,
                     enabled: !widget.priceAuto),
                 if (widget.priceAuto)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
-                    child: Text('새로고침 시 자동으로 업데이트',
-                        style: TextStyle(
-                            fontSize: 12, color: Colors.blue[400])),
+                    child: Text(l10n.autoUpdateHint,
+                        style: TextStyle(fontSize: 12, color: Colors.blue[400])),
                   ),
               ],
 
-              // 목표 비중
-              _label(context, '목표 비중'),
+              _label(context, l10n.targetWeightLabel),
               _textField(context, _weightCtl, '0', suffix: '%', number: true),
 
-              // 보유 수량
-              _label(context, _isCash ? '보유 금액' : '보유 수량'),
+              _label(context, _isCash ? l10n.holdingsAmount : l10n.holdingsShares),
               _textField(context, _sharesCtl, '0',
                   suffix: _isCash
-                      ? (widget.currency == 'USD' ? 'USD' : '원')
-                      : '주',
+                      ? (widget.currency == 'USD' ? l10n.unitUSD : l10n.unitKRW)
+                      : l10n.unitShares,
                   number: true),
             ],
           ),
@@ -374,10 +364,10 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
       ),
       actions: [
         TextButton(
-            onPressed: () => Navigator.pop(context), child: const Text('취소')),
+            onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
         TextButton(
             onPressed: _nameCtl.text.trim().isEmpty ? null : _save,
-            child: Text(isEdit ? '수정 완료' : '추가')),
+            child: Text(isEdit ? l10n.saveChanges : l10n.add)),
       ],
     );
   }

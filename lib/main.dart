@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'models/portfolio.dart';
@@ -7,6 +8,7 @@ import 'screens/portfolio_list_screen.dart';
 import 'services/stock_search_service.dart';
 import 'widgets/disclaimer_dialog.dart';
 import 'widgets/app_logo.dart';
+import 'l10n/app_localizations.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,10 +18,42 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => PortfolioProvider()),
         ChangeNotifierProvider(create: (_) => ThemeNotifier()),
+        ChangeNotifierProvider(create: (_) => LocaleProvider()),
       ],
       child: const RebalancingApp(),
     ),
   );
+}
+
+// ── 언어 관리 ──
+
+class LocaleProvider extends ChangeNotifier {
+  Locale _locale = const Locale('ko');
+  Locale get locale => _locale;
+
+  LocaleProvider() {
+    _load();
+  }
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    final code = prefs.getString('locale') ?? 'ko';
+    _locale = Locale(code);
+    notifyListeners();
+  }
+
+  Future<void> setLocale(Locale locale) async {
+    _locale = locale;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('locale', locale.languageCode);
+    notifyListeners();
+  }
+}
+
+// ── l10n 편의 Extension ──
+
+extension L10nExt on BuildContext {
+  AppLocalizations get l10n => AppLocalizations.of(this);
 }
 
 // ── 테마 관리 ──
@@ -116,12 +150,23 @@ class RebalancingApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeNotifier>(
-      builder: (context, themeNotifier, _) {
+    return Consumer2<ThemeNotifier, LocaleProvider>(
+      builder: (context, themeNotifier, localeProvider, _) {
         return MaterialApp(
           title: 'Rebalancing',
           debugShowCheckedModeBanner: false,
           themeMode: themeNotifier.mode,
+          locale: localeProvider.locale,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('ko'),
+            Locale('en'),
+          ],
           theme: ThemeData(
             colorScheme: ColorScheme.fromSeed(
               seedColor: const Color(0xFF3B82F6),

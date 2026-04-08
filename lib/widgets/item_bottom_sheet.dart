@@ -49,12 +49,12 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
 
   String _fmt(double n, String cur) {
     if (cur == 'USD') return '\$${n.toStringAsFixed(2)}';
-    return '₩${n.round().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}';
+    return '₩${n.round().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}'  ;
   }
 
   String _fmtPrice(double n, String market) {
     if (market == 'US') return '\$${n.toStringAsFixed(2)}';
-    return '₩${n.round().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}';
+    return '₩${n.round().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}'  ;
   }
 
   String _pct(double n) => '${n.toStringAsFixed(2)}%';
@@ -65,10 +65,8 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
       currentPrice: widget.portfolio.priceAuto
           ? widget.item.currentPrice
           : (double.tryParse(_priceCtl.text) ?? widget.item.currentPrice),
-      shares:
-          double.tryParse(_sharesCtl.text) ?? widget.item.shares,
-      targetWeight:
-          double.tryParse(_weightCtl.text) ?? widget.item.targetWeight,
+      shares: double.tryParse(_sharesCtl.text) ?? widget.item.shares,
+      targetWeight: double.tryParse(_weightCtl.text) ?? widget.item.targetWeight,
     );
     provider.updateItem(widget.portfolio.id, newItem);
     setState(() => _editMode = false);
@@ -76,6 +74,7 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final item = widget.item;
     final portfolio = widget.portfolio;
     final rb = widget.rb;
@@ -86,10 +85,10 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
     if (r == null) {
       tradeText = '—';
     } else if (delta == 0) {
-      tradeText = '유지';
+      tradeText = l10n.hold;
     } else {
       tradeText =
-          '${delta > 0 ? "매수 " : "매도 "}${item.isCash ? _fmt(delta.abs().toDouble(), portfolio.currency) : "${delta.abs()}주"}';
+          '${delta > 0 ? "${l10n.buy} " : "${l10n.sell} "}${item.isCash ? _fmt(delta.abs().toDouble(), portfolio.currency) : "${delta.abs()}${l10n.unitShares}"}';
     }
 
     return DraggableScrollableSheet(
@@ -102,7 +101,6 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
           color: context.cardBg,
           child: Column(
             children: [
-              // ── 핸들 + 헤더 ──
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
                 child: Column(children: [
@@ -136,7 +134,6 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
                 ]),
               ),
 
-              // ── 내용 (스크롤 가능) ──
               Expanded(
                 child: SingleChildScrollView(
                   controller: scrollController,
@@ -147,7 +144,6 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
                 ),
               ),
 
-              // ── 하단 버튼 ──
               Container(
                 color: context.cardBg,
                 padding: EdgeInsets.fromLTRB(
@@ -163,19 +159,19 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
     );
   }
 
-  // ── 일반 모드 내용 ──
   Widget _buildViewContent(BuildContext context, PortfolioItem item,
       Portfolio portfolio, String tradeText) {
+    final l10n = context.l10n;
     final r = widget.rb?.results.where((x) => x.id == item.id).firstOrNull;
     return Column(children: [
-      _infoRow(context, '현재가',
+      _infoRow(context, l10n.currentPriceLabel,
           item.isCash ? '—' : _fmtPrice(item.currentPrice, item.market)),
-      _infoRow(context, '보유 수량',
-          item.isCash ? _fmt(item.shares, portfolio.currency) : '${item.shares.toInt()}주'),
-      _infoRow(context, '목표 비중', _pct(item.targetWeight)),
-      _infoRow(context, '현재 비중', r != null ? _pct(r.currentWeight) : '—'),
-      _infoRow(context, '최종 비중', r != null ? _pct(r.finalWeight) : '—'),
-      _infoRow(context, '매매', tradeText),
+      _infoRow(context, l10n.holdingsLabel,
+          item.isCash ? _fmt(item.shares, portfolio.currency) : '${item.shares.toInt()}${l10n.unitShares}'),
+      _infoRow(context, l10n.targetWeightRow, _pct(item.targetWeight)),
+      _infoRow(context, l10n.currentWeightRow, r != null ? _pct(r.currentWeight) : '—'),
+      _infoRow(context, l10n.finalWeightRow, r != null ? _pct(r.finalWeight) : '—'),
+      _infoRow(context, l10n.tradeRow, tradeText),
       if (item.market == 'US' && portfolio.currency == 'KRW' && !item.isCash) ...[
         const SizedBox(height: 10),
         Container(
@@ -184,48 +180,48 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
           decoration: BoxDecoration(
               color: context.rowBg, borderRadius: BorderRadius.circular(8)),
           child: Text(
-              '원화 환산가: ${_fmt(item.currentPrice * portfolio.exchangeRate, "KRW")}',
+              l10n.wonEquivalent(_fmt(item.currentPrice * portfolio.exchangeRate, 'KRW')),
               style: TextStyle(fontSize: 13, color: context.textSecondary)),
         ),
       ],
     ]);
   }
 
-  // ── 편집 모드 내용 ──
   Widget _buildEditContent(
       BuildContext context, PortfolioItem item, Portfolio portfolio) {
+    final l10n = context.l10n;
     final priceEditable = !portfolio.priceAuto && !item.isCash;
     final priceSuffix = item.market == 'US' ? 'USD' : 'KRW';
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       if (!item.isCash) ...[
-        _editLabel(context, '현재가'),
+        _editLabel(context, l10n.currentPriceLabel),
         _editField(
           context, _priceCtl,
-          hint: portfolio.priceAuto ? '자동 업데이트' : '0',
+          hint: portfolio.priceAuto ? l10n.autoUpdate : '0',
           suffix: priceSuffix,
           enabled: priceEditable,
         ),
         if (portfolio.priceAuto)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child: Text('주가 자동 업데이트 설정 중 — 새로고침으로 갱신',
+            child: Text(l10n.autoPriceUpdateInfo,
                 style: TextStyle(fontSize: 11, color: Colors.blue[400])),
           ),
       ],
-      _editLabel(context, item.isCash ? '보유 금액' : '보유 수량'),
+      _editLabel(context, item.isCash ? l10n.holdingsAmount : l10n.holdingsShares),
       _editField(context, _sharesCtl,
           hint: '0',
           suffix: item.isCash
-              ? (portfolio.currency == 'USD' ? 'USD' : '원')
-              : '주'),
-      _editLabel(context, '목표 비중'),
+              ? (portfolio.currency == 'USD' ? l10n.unitUSD : l10n.unitKRW)
+              : l10n.unitShares),
+      _editLabel(context, l10n.targetWeightLabel),
       _editField(context, _weightCtl, hint: '0', suffix: '%'),
     ]);
   }
 
-  // ── 일반 모드 푸터: [편집] [닫기] ──
   Widget _buildViewFooter(
       BuildContext context, PortfolioItem item, Portfolio portfolio) {
+    final l10n = context.l10n;
     return Row(children: [
       Expanded(
         child: OutlinedButton.icon(
@@ -234,7 +230,7 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
               : () => setState(() => _editMode = true),
           icon: Icon(Icons.edit_outlined, size: 16,
               color: item.isCash ? context.textHint : const Color(0xFF3B82F6)),
-          label: Text('편집',
+          label: Text(l10n.edit,
               style: TextStyle(
                   color: item.isCash ? context.textHint : const Color(0xFF3B82F6),
                   fontWeight: FontWeight.w600)),
@@ -257,7 +253,7 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
             padding: const EdgeInsets.symmetric(vertical: 12),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
-          child: Text('닫기',
+          child: Text(l10n.close,
               style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
@@ -267,8 +263,8 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
     ]);
   }
 
-  // ── 편집 모드 푸터: [취소] [저장] ──
   Widget _buildEditFooter(BuildContext context) {
+    final l10n = context.l10n;
     return Row(children: [
       Expanded(
         child: OutlinedButton(
@@ -278,7 +274,7 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
             padding: const EdgeInsets.symmetric(vertical: 12),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
-          child: Text('취소',
+          child: Text(l10n.cancel,
               style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
@@ -290,8 +286,8 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
         child: OutlinedButton.icon(
           onPressed: _save,
           icon: const Icon(Icons.check, size: 16, color: Color(0xFF3B82F6)),
-          label: const Text('저장',
-              style: TextStyle(
+          label: Text(l10n.save,
+              style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
                   color: Color(0xFF3B82F6))),
@@ -362,9 +358,10 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
   }
 
   Widget _marketBadge(BuildContext context, PortfolioItem item) {
+    final l10n = context.l10n;
     Color color;
     String text;
-    if (item.isCash) { text = '현금'; color = const Color(0xFF65A30D); }
+    if (item.isCash) { text = l10n.cash; color = const Color(0xFF65A30D); }
     else if (item.market == 'US') { text = 'US'; color = const Color(0xFF7C3AED); }
     else { text = 'KR'; color = const Color(0xFF0369A1); }
     return Container(

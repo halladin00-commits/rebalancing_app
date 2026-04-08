@@ -60,9 +60,10 @@ class _SettingsDialogState extends State<SettingsDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return AlertDialog(
       backgroundColor: context.cardBg,
-      title: Text('설정', style: TextStyle(color: context.textPrimary)),
+      title: Text(l10n.settings, style: TextStyle(color: context.textPrimary)),
       contentPadding: EdgeInsets.zero,
       content: SizedBox(
         width: double.maxFinite,
@@ -72,7 +73,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // ── 기준 통화 ──
-              _sectionHeader(context, '기준 통화'),
+              _sectionHeader(context, l10n.baseCurrency),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
                 child: Container(
@@ -82,19 +83,19 @@ class _SettingsDialogState extends State<SettingsDialog> {
                     border: Border.all(color: context.borderColor),
                   ),
                   child: Row(children: [
-                    _segBtn(context, '₩ 원화', _currency == 'KRW',
+                    _segBtn(context, l10n.currencyKRW, _currency == 'KRW',
                         () => setState(() => _currency = 'KRW')),
-                    _segBtn(context, '\$ 달러', _currency == 'USD',
+                    _segBtn(context, l10n.currencyUSD, _currency == 'USD',
                         () => setState(() => _currency = 'USD')),
                   ]),
                 ),
               ),
 
               // ── 금액 표시 ──
-              _sectionHeader(context, '금액 표시'),
+              _sectionHeader(context, l10n.amountDisplay),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-                child: Text('현재 자산 / 리밸런싱 기준',
+                child: Text(l10n.amountDisplayHint,
                     style: TextStyle(fontSize: 12, color: context.textSecondary)),
               ),
               Padding(
@@ -106,37 +107,36 @@ class _SettingsDialogState extends State<SettingsDialog> {
                     border: Border.all(color: context.borderColor),
                   ),
                   child: Row(children: [
-                    _segBtn(context, '전체 표시', !_compactAmount,
+                    _segBtn(context, l10n.fullDisplay, !_compactAmount,
                         () => setState(() => _compactAmount = false)),
-                    _segBtn(context, '축약 표시', _compactAmount,
+                    _segBtn(context, l10n.compactDisplay, _compactAmount,
                         () => setState(() => _compactAmount = true)),
                   ]),
                 ),
               ),
 
               // ── 거래 수수료 ──
-              _sectionHeader(context, '거래 수수료'),
-              _toggleRow(context, '수수료 반영', _commEnabled,
+              _sectionHeader(context, l10n.tradingFee),
+              _toggleRow(context, l10n.includeFee, _commEnabled,
                   (v) => setState(() => _commEnabled = v)),
               if (_commEnabled)
-                _inputField(context, '수수료율', _commRateCtl, '%'),
+                _inputField(context, l10n.feeRate, _commRateCtl, '%'),
 
               // ── 환율 ──
-              _sectionHeader(context, '환율'),
-              _toggleRow(context, '자동 (실시간)', _exAuto,
+              _sectionHeader(context, l10n.exchangeRateSetting),
+              _toggleRow(context, l10n.autoRealtime, _exAuto,
                   (v) => setState(() => _exAuto = v)),
               if (!_exAuto)
-                _inputField(context, '환율 (1 USD)', _exRateCtl, '원')
+                _inputField(context, l10n.exchangeRateInput, _exRateCtl, l10n.unitKRW)
               else
-                _hintText(context, '새로고침 버튼으로 최신 환율을 가져옵니다'),
+                _hintText(context, l10n.autoRateHint),
 
               // ── 주가 ──
-              _sectionHeader(context, '주가'),
-              _toggleRow(context, '자동 (실시간)', _prAuto,
+              _sectionHeader(context, l10n.stockPriceSetting),
+              _toggleRow(context, l10n.autoRealtime, _prAuto,
                   (v) => setState(() => _prAuto = v)),
               if (_prAuto)
-                _hintText(
-                    context, '새로고침 시 종목코드/티커 기준으로 현재가를 가져옵니다'),
+                _hintText(context, l10n.autoPriceHint),
               const SizedBox(height: 8),
             ],
           ),
@@ -144,13 +144,12 @@ class _SettingsDialogState extends State<SettingsDialog> {
       ),
       actions: [
         TextButton(
-            onPressed: () => Navigator.pop(context), child: const Text('취소')),
-        TextButton(onPressed: _save, child: const Text('저장')),
+            onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
+        TextButton(onPressed: _save, child: Text(l10n.save)),
       ],
     );
   }
 
-  // ── 섹션 헤더 (파란 배너) ──
   Widget _sectionHeader(BuildContext context, String title) {
     return Container(
       width: double.infinity,
@@ -192,8 +191,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(label,
-            style:
-                TextStyle(fontSize: 12, color: context.textSecondary)),
+            style: TextStyle(fontSize: 12, color: context.textSecondary)),
         const SizedBox(height: 4),
         TextField(
           controller: ctl,
@@ -235,9 +233,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: active
-                ? const Color(0xFF1D4ED8)
-                : Colors.transparent,
+            color: active ? const Color(0xFF1D4ED8) : Colors.transparent,
             borderRadius: BorderRadius.circular(7),
           ),
           child: Text(label,

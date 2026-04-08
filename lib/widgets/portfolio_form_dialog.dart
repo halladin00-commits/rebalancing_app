@@ -43,18 +43,18 @@ class _PortfolioFormDialogState extends State<PortfolioFormDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return AlertDialog(
       backgroundColor: context.cardBg,
       title: Text(
-          widget.isEdit ? '포트폴리오 수정' : '포트폴리오 생성',
+          widget.isEdit ? l10n.editPortfolioTitle : l10n.createPortfolioTitle,
           style: TextStyle(color: context.textPrimary)),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 이름
-            Text('포트폴리오 이름',
+            Text(l10n.portfolioName,
                 style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -64,7 +64,7 @@ class _PortfolioFormDialogState extends State<PortfolioFormDialog> {
               controller: _nameController,
               style: TextStyle(color: context.textPrimary),
               decoration: InputDecoration(
-                hintText: '예: 연금저축, 미국주식',
+                hintText: l10n.portfolioExampleHint,
                 hintStyle: TextStyle(color: context.textHint),
                 filled: true,
                 fillColor: context.fieldFill,
@@ -82,9 +82,7 @@ class _PortfolioFormDialogState extends State<PortfolioFormDialog> {
               onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: 16),
-
-            // 아이콘
-            Text('아이콘',
+            Text(l10n.iconLabel,
                 style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -125,7 +123,7 @@ class _PortfolioFormDialogState extends State<PortfolioFormDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('취소'),
+          child: Text(l10n.cancel),
         ),
         TextButton(
           onPressed: _nameController.text.trim().isEmpty
@@ -134,7 +132,7 @@ class _PortfolioFormDialogState extends State<PortfolioFormDialog> {
                   widget.onSave(_nameController.text.trim(), _emoji);
                   Navigator.pop(context);
                 },
-          child: Text(widget.isEdit ? '수정 완료' : '생성'),
+          child: Text(widget.isEdit ? l10n.saveChanges : l10n.createBtn),
         ),
       ],
     );

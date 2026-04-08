@@ -24,7 +24,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
 
   String _fmt(double n, String cur) {
     if (cur == 'USD') return '\$${n.toStringAsFixed(2)}';
-    return '₩${n.round().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}';
+    return '₩${n.round().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}'  ;
   }
 
   String _fmtCompact(double n, String cur) {
@@ -43,16 +43,16 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
 
   String _fmtPrice(double n, String market) {
     if (market == 'US') return '\$${n.toStringAsFixed(2)}';
-    return '₩${n.round().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}';
+    return '₩${n.round().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}'  ;
   }
 
   String _pct(double n) => '${n.toStringAsFixed(2)}%';
 
   String _fmtTime(int? ts) {
-    if (ts == null) return '업데이트 전';
+    if (ts == null) return context.l10n.neverUpdated;
     final d = DateTime.fromMillisecondsSinceEpoch(ts);
-    return '${d.year}.${d.month.toString().padLeft(2, "0")}.${d.day.toString().padLeft(2, "0")} '
-        '${d.hour.toString().padLeft(2, "0")}:${d.minute.toString().padLeft(2, "0")}';
+    return '${d.year}.${d.month.toString().padLeft(2, '0')}.${d.day.toString().padLeft(2, '0')} '
+        '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -63,8 +63,9 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
 
   Future<void> _doRefresh(Portfolio pf) async {
     if (_refreshing) return;
+    final l10n = context.l10n;
     if (!pf.exchangeAuto && !pf.priceAuto) {
-      _showToast('설정에서 환율 또는 주가를 자동으로 변경해 주세요', Colors.orange);
+      _showToast(l10n.toastAutoSettingRequired, Colors.orange);
       return;
     }
     setState(() => _refreshing = true);
@@ -88,9 +89,9 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     await provider.updatePortfolio(pf.id, pf);
     setState(() => _refreshing = false);
 
-    if (errors.isEmpty) _showToast('$successCount건 업데이트 완료', Colors.green);
+    if (errors.isEmpty) _showToast('$successCount${l10n.updateSuccess}', Colors.green);
     else if (successCount > 0) _showToast('$successCount건 성공, ${errors.length}건 실패', Colors.orange);
-    else _showToast('업데이트 실패: ${errors.first}', Colors.red);
+    else _showToast(l10n.updateFailed(errors.first), Colors.red);
   }
 
   void _showToast(String msg, Color color) {
@@ -135,20 +136,21 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
   }
 
   void _showDeleteConfirm(Portfolio pf, PortfolioItem item) {
+    final l10n = context.l10n;
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('삭제 확인'),
-        content: Text("'${item.name}'을(를) 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다."),
+        title: Text(l10n.deleteConfirmTitle),
+        content: Text(l10n.deleteItemContent(item.name)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('취소')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
           TextButton(
             onPressed: () {
               context.read<PortfolioProvider>().deleteItem(pf.id, item.id);
               Navigator.pop(context);
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('삭제'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -156,24 +158,25 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
   }
 
   void _showApplyConfirm(Portfolio pf, RebalanceResult rb) {
+    final l10n = context.l10n;
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('리밸런싱 적용'),
+        title: Text(l10n.rebalanceApplyTitle),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _applyBullet('리밸런싱 결과를 보유 수량에 반영'),
+            _applyBullet(l10n.rebalanceBullet1),
             const SizedBox(height: 4),
-            _applyBullet('잔여 현금은 추가 투자금으로 변환'),
+            _applyBullet(l10n.rebalanceBullet2),
             const SizedBox(height: 10),
-            Text('이 작업은 되돌릴 수 없습니다.',
+            Text(l10n.irrevocable,
                 style: TextStyle(fontSize: 13, color: context.textSecondary)),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('취소')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
           TextButton(
             onPressed: () {
               final results = rb.results.map((r) => {
@@ -184,7 +187,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
               _investController.text = rb.cash > 0 ? rb.cash.toStringAsFixed(0) : '';
               Navigator.pop(context);
             },
-            child: const Text('적용'),
+            child: Text(l10n.apply),
           ),
         ],
       ),
@@ -210,21 +213,20 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     );
   }
 
-  void _handleBackPress() async {
-    if (_editMode) {
-      final result = await showDialog<bool>(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: const Text('편집 종료'),
-          content: const Text('편집 모드를 종료하시겠습니까?'),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('취소')),
-            TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('종료')),
-          ],
-        ),
-      );
-      if (result == true) setState(() => _editMode = false);
-    }
+  Future<bool> _confirmExitEdit() async {
+    final l10n = context.l10n;
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(l10n.editExitTitle),
+        content: Text(l10n.editExitContent),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.cancel)),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l10n.exit)),
+        ],
+      ),
+    );
+    return result == true;
   }
 
   void _openGraph(Portfolio pf) {
@@ -234,11 +236,12 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Consumer<PortfolioProvider>(
       builder: (context, provider, _) {
         final pf = provider.getPortfolio(widget.portfolioId);
         if (pf == null) {
-          return const Scaffold(body: Center(child: Text('포트폴리오를 찾을 수 없습니다')));
+          return Scaffold(body: Center(child: Text(l10n.portfolioNotFound)));
         }
 
         if (_investController.text.isEmpty && pf.additionalInvestment > 0) {
@@ -253,8 +256,11 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
 
         return PopScope(
           canPop: !_editMode,
-          onPopInvokedWithResult: (didPop, _) {
-            if (!didPop) _handleBackPress();
+          onPopInvokedWithResult: (didPop, _) async {
+            if (!didPop) {
+              final ok = await _confirmExitEdit();
+              if (ok) setState(() => _editMode = false);
+            }
           },
           child: Scaffold(
             backgroundColor: context.scaffoldBg,
@@ -264,18 +270,8 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                 icon: const Icon(Icons.arrow_back),
                 onPressed: () async {
                   if (_editMode) {
-                    final result = await showDialog<bool>(
-                      context: context,
-                      builder: (_) => AlertDialog(
-                        title: const Text('편집 종료'),
-                        content: const Text('편집 모드를 종료하시겠습니까?'),
-                        actions: [
-                          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('취소')),
-                          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('종료')),
-                        ],
-                      ),
-                    );
-                    if (result == true) setState(() => _editMode = false);
+                    final ok = await _confirmExitEdit();
+                    if (ok) setState(() => _editMode = false);
                   } else {
                     Navigator.pop(context);
                   }
@@ -288,8 +284,8 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                   TextButton.icon(
                     onPressed: () => setState(() => _editMode = false),
                     icon: const Icon(Icons.check, color: Colors.white, size: 18),
-                    label: const Text('완료',
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                    label: Text(l10n.done,
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
                   )
                 else
                   IconButton(
@@ -315,7 +311,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('추가 투자금',
+                              Text(l10n.additionalInvestment,
                                   style: TextStyle(fontSize: 12, color: context.textSecondary, fontWeight: FontWeight.w600)),
                               const SizedBox(height: 4),
                               TextField(
@@ -336,19 +332,19 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                               ),
                               const SizedBox(height: 10),
                               Row(children: [
-                                _infoBox(context, '현재 자산',
+                                _infoBox(context, l10n.currentAssets,
                                     rb != null ? _fmtAmount(rb.total - pf.additionalInvestment, pf.currency, pf.compactAmount) : '—'),
                                 const SizedBox(width: 8),
-                                _infoBox(context, '리밸런싱 기준',
+                                _infoBox(context, l10n.rebalancingBase,
                                     rb != null ? _fmtAmount(rb.total, pf.currency, pf.compactAmount) : '—'),
                                 const SizedBox(width: 8),
-                                _infoBox(context, '잔여 현금',
+                                _infoBox(context, l10n.remainingCash,
                                     rb != null ? _fmt(rb.cash, pf.currency) : '—', highlight: true),
                               ]),
                               if (rb != null && commOn && rb.commission > 0)
                                 Padding(
                                   padding: const EdgeInsets.only(top: 6),
-                                  child: Text('예상 수수료: ${_fmt(rb.commission, pf.currency)}',
+                                  child: Text(l10n.estimatedFee(_fmt(rb.commission, pf.currency)),
                                       style: TextStyle(fontSize: 12, color: context.textHint)),
                                 ),
                               Padding(
@@ -356,7 +352,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text('환율: 1 USD = ₩${pf.exchangeRate.toStringAsFixed(0)}',
+                                    Text(l10n.exchangeRateLabel(pf.exchangeRate.toStringAsFixed(0)),
                                         style: TextStyle(fontSize: 12, color: context.textHint)),
                                     Text(_fmtTime(pf.lastUpdated),
                                         style: TextStyle(fontSize: 12, color: context.textHint)),
@@ -376,7 +372,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                           child: Row(children: [
                             const Text('⚠️', style: TextStyle(fontSize: 16)),
                             const SizedBox(width: 8),
-                            Text('목표 비중 합계: ${_pct(weightSum)} (100%가 아닙니다)',
+                            Text(l10n.weightWarning(_pct(weightSum)),
                                 style: TextStyle(fontSize: 13, color: context.warningText)),
                           ]),
                         ),
@@ -414,7 +410,6 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                     ],
                   ),
                 ),
-                // SpeedDial FAB (일반 모드에서만)
                 if (!_editMode)
                   Positioned.fill(
                     child: SpeedDialFab(
@@ -422,17 +417,17 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                       items: [
                         SpeedDialItem(
                           icon: Icons.settings_outlined,
-                          label: '설정',
+                          label: l10n.labelSettings,
                           onTap: () => _showSettings(pf),
                         ),
                         SpeedDialItem(
                           icon: Icons.edit_outlined,
-                          label: '편집',
+                          label: l10n.labelEdit,
                           onTap: () => setState(() => _editMode = true),
                         ),
                         SpeedDialItem(
                           icon: Icons.pie_chart_outline,
-                          label: '그래프',
+                          label: l10n.labelGraph,
                           iconColor: const Color(0xFF93C5FD),
                           bgColor: const Color(0xFF1D4ED8),
                           onTap: () => _openGraph(pf),
@@ -440,7 +435,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                         if (rb != null && hasChanges)
                           SpeedDialItem(
                             icon: Icons.check_circle_outline,
-                            label: '리밸런싱 적용',
+                            label: l10n.labelRebalanceApply,
                             iconColor: const Color(0xFF4ADE80),
                             bgColor: const Color(0xFF052E16),
                             onTap: () => _showApplyConfirm(pf, rb),
@@ -508,8 +503,8 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
               child: const Icon(Icons.add, color: Colors.white, size: 14),
             ),
             const SizedBox(width: 8),
-            Text('종목 추가',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: const Color(0xFF3B82F6))),
+            Text(context.l10n.addStock,
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFF3B82F6))),
           ]),
         ),
       ),
@@ -518,6 +513,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
 
   Widget _buildItemCard(BuildContext context, Portfolio pf, PortfolioItem item,
       RebalanceResult? rb, {Key? key}) {
+    final l10n = context.l10n;
     final r = rb?.results.where((x) => x.id == item.id).firstOrNull;
     final delta = r?.isCash == true ? r!.cashDelta.round() : (r?.delta ?? 0);
     final isBuy = delta > 0;
@@ -632,16 +628,16 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                   decoration: BoxDecoration(
                       color: isBuy ? const Color(0xFF22C55E) : const Color(0xFFEF4444),
                       borderRadius: BorderRadius.circular(4)),
-                  child: Text(isBuy ? '매수' : '매도',
+                  child: Text(isBuy ? l10n.buy : l10n.sell,
                       style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
                 ),
                 const SizedBox(width: 4),
-                Text(item.isCash ? _fmt(delta.abs().toDouble(), pf.currency) : '${delta.abs()}주',
+                Text(item.isCash ? _fmt(delta.abs().toDouble(), pf.currency) : '${delta.abs()}${l10n.unitShares}',
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700,
                         color: isBuy ? const Color(0xFF16A34A) : const Color(0xFFDC2626))),
               ],
               if (r != null && delta == 0)
-                Text('유지', style: TextStyle(fontSize: 12, color: context.textHint)),
+                Text(l10n.hold, style: TextStyle(fontSize: 12, color: context.textHint)),
             ]),
           ]),
         ),
@@ -650,7 +646,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
   }
 
   Widget _marketBadge(BuildContext context, PortfolioItem item) {
-    if (item.isCash) return _badge(context, '현금', const Color(0xFF65A30D));
+    if (item.isCash) return _badge(context, context.l10n.cash, const Color(0xFF65A30D));
     if (item.market == 'US') return _badge(context, 'US', const Color(0xFF7C3AED));
     return _badge(context, 'KR', const Color(0xFF0369A1));
   }

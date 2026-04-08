@@ -24,7 +24,7 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
 
   String _fmt(double n, String cur) {
     if (cur == 'USD') return '\$${n.toStringAsFixed(2)}';
-    return '₩${n.round().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}';
+    return '₩${n.round().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}'  ;
   }
 
   void _openDetail(BuildContext context, String id) {
@@ -60,20 +60,21 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
   }
 
   void _showDeleteConfirm(BuildContext context, Portfolio pf) {
+    final l10n = context.l10n;
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('삭제 확인'),
-        content: Text("'${pf.name}' 포트폴리오를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다."),
+        title: Text(l10n.deleteConfirmTitle),
+        content: Text(l10n.deletePortfolioContent(pf.name)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('취소')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
           TextButton(
             onPressed: () {
               context.read<PortfolioProvider>().deletePortfolio(pf.id);
               Navigator.pop(context);
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('삭제'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -81,14 +82,15 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
   }
 
   Future<void> _showEditExitConfirm() async {
+    final l10n = context.l10n;
     final result = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('편집 종료'),
-        content: const Text('편집 모드를 종료하시겠습니까?'),
+        title: Text(l10n.editExitTitle),
+        content: Text(l10n.editExitContent),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('취소')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('종료')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.cancel)),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l10n.exit)),
         ],
       ),
     );
@@ -96,14 +98,15 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
   }
 
   Future<void> _showExitConfirm() async {
+    final l10n = context.l10n;
     final result = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('종료'),
-        content: const Text('앱을 종료하시겠습니까?'),
+        title: Text(l10n.appExitTitle),
+        content: Text(l10n.appExitContent),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('취소')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('종료')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.cancel)),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l10n.exit)),
         ],
       ),
     );
@@ -115,8 +118,49 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
     else _showExitConfirm();
   }
 
+  void _showLanguageDialog(BuildContext context) {
+    final l10n = context.l10n;
+    final localeProvider = context.read<LocaleProvider>();
+    final current = localeProvider.locale.languageCode;
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: context.cardBg,
+        title: Text(l10n.language, style: TextStyle(color: context.textPrimary)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _langTile(context, '한국어', 'ko', current, localeProvider),
+            _langTile(context, 'English', 'en', current, localeProvider),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n.cancel),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _langTile(BuildContext context, String label, String code,
+      String current, LocaleProvider provider) {
+    final selected = current == code;
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      title: Text(label, style: TextStyle(color: context.textPrimary)),
+      trailing: selected ? const Icon(Icons.check, color: Color(0xFF3B82F6)) : null,
+      onTap: () {
+        provider.setLocale(Locale(code));
+        Navigator.pop(context);
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Consumer<PortfolioProvider>(
       builder: (context, provider, _) {
         if (!provider.loaded) {
@@ -137,8 +181,8 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
                   TextButton.icon(
                     onPressed: () => setState(() => _editMode = false),
                     icon: const Icon(Icons.check, color: Colors.white, size: 18),
-                    label: const Text('완료',
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                    label: Text(l10n.done,
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
                   ),
               ],
             ),
@@ -172,7 +216,6 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
                           },
                         ),
                 ),
-                // SpeedDial FAB (일반 모드에서만)
                 if (!_editMode)
                   Positioned.fill(
                     child: SpeedDialFab(
@@ -180,20 +223,25 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
                       items: [
                         SpeedDialItem(
                           icon: Icons.edit_outlined,
-                          label: '편집',
+                          label: l10n.edit,
                           onTap: () => setState(() => _editMode = true),
                         ),
                         SpeedDialItem(
                           icon: context.isDark
                               ? Icons.light_mode_outlined
                               : Icons.dark_mode_outlined,
-                          label: context.isDark ? '라이트 모드' : '다크 모드',
+                          label: context.isDark ? l10n.lightMode : l10n.darkMode,
                           onTap: () =>
                               context.read<ThemeNotifier>().toggle(context),
                         ),
                         SpeedDialItem(
+                          icon: Icons.language_outlined,
+                          label: l10n.language,
+                          onTap: () => _showLanguageDialog(context),
+                        ),
+                        SpeedDialItem(
                           icon: Icons.info_outline,
-                          label: '공지사항',
+                          label: l10n.notice,
                           onTap: () => DisclaimerDialog.showAlways(context),
                         ),
                       ],
@@ -231,11 +279,11 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
               child: const Icon(Icons.add, color: Colors.white, size: 14),
             ),
             const SizedBox(width: 8),
-            Text('포트폴리오 추가',
-                style: TextStyle(
+            Text(context.l10n.portfolioAddBtn,
+                style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
-                    color: const Color(0xFF3B82F6))),
+                    color: Color(0xFF3B82F6))),
           ]),
         ),
       ),
@@ -244,6 +292,8 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
 
   Widget _buildCard(BuildContext context, Portfolio pf, {Key? key}) {
     final tv = pf.totalValue;
+    final l10n = context.l10n;
+    final subtitle = '${l10n.itemCountLabel(pf.items.length)} · ${_fmt(tv, pf.currency)}';
 
     if (_editMode) {
       return Card(
@@ -261,8 +311,7 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: context.textPrimary),
                   overflow: TextOverflow.ellipsis),
               const SizedBox(height: 2),
-              Text('${pf.items.length}개 종목 · ${_fmt(tv, pf.currency)}',
-                  style: TextStyle(fontSize: 13, color: context.textSecondary)),
+              Text(subtitle, style: TextStyle(fontSize: 13, color: context.textSecondary)),
             ])),
             IconButton(
               onPressed: () => _showEditDialog(context, pf),
@@ -313,8 +362,7 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: context.textPrimary),
                   overflow: TextOverflow.ellipsis),
               const SizedBox(height: 2),
-              Text('${pf.items.length}개 종목 · ${_fmt(tv, pf.currency)}',
-                  style: TextStyle(fontSize: 13, color: context.textSecondary)),
+              Text(subtitle, style: TextStyle(fontSize: 13, color: context.textSecondary)),
             ])),
             Icon(Icons.chevron_right, color: context.textHint),
           ]),
