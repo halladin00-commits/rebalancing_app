@@ -212,28 +212,34 @@ class _AppEntryPoint extends StatefulWidget {
 }
 
 class _AppEntryPointState extends State<_AppEntryPoint> {
-  bool _showSplash = true;
+  bool _timerDone = false;
 
   @override
   void initState() {
     super.initState();
     Future.delayed(const Duration(milliseconds: 1400), () {
       if (!mounted) return;
-      setState(() => _showSplash = false);
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        DisclaimerDialog.showIfNeeded(context);
-      });
+      setState(() => _timerDone = true);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_showSplash) {
+    final loaded = context.watch<PortfolioProvider>().loaded;
+
+    // 타이머 완료 AND 데이터 로드 완료 둘 다 충족돼야 메인 화면으로 전환
+    if (!_timerDone || !loaded) {
       return const Scaffold(
         backgroundColor: Color(0xFF0F172A),
         body: Center(child: AppLogo(iconSize: 38)),
       );
     }
+
+    // 첫 전환 시 공지사항 팝업
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      DisclaimerDialog.showIfNeeded(context);
+    });
+
     return const PortfolioListScreen();
   }
 }
