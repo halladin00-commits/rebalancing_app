@@ -254,20 +254,6 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
           child: Row(children: [
-            IconButton(
-              onPressed: () => _showDeleteConfirm(context, pf),
-              icon: Container(
-                width: 30, height: 30,
-                decoration: BoxDecoration(
-                    color: Colors.red.withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.red.withValues(alpha: 0.4))),
-                child: const Icon(Icons.remove, color: Colors.red, size: 20),
-              ),
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-            ),
-            const SizedBox(width: 4),
             Text(pf.emoji, style: const TextStyle(fontSize: 26)),
             const SizedBox(width: 12),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -287,6 +273,19 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
                     shape: BoxShape.circle,
                     border: Border.all(color: const Color(0xFF3B82F6).withValues(alpha: 0.4))),
                 child: const Icon(Icons.edit_outlined, color: Color(0xFF3B82F6), size: 16),
+              ),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+            ),
+            IconButton(
+              onPressed: () => _showDeleteConfirm(context, pf),
+              icon: Container(
+                width: 30, height: 30,
+                decoration: BoxDecoration(
+                    color: Colors.red.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.red.withValues(alpha: 0.4))),
+                child: const Icon(Icons.remove, color: Colors.red, size: 20),
               ),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 40, minHeight: 40),

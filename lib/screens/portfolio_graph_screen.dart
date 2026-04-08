@@ -370,7 +370,8 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
       final totalCurrentVal = currentValues.values.fold(0.0, (a, b) => a + b);
       final hasCurrent = totalCurrentVal > 0;
 
-      // 현재 비중 모드일 때 사용할 가상 weight (targetWeight 필드 대체)
+      // total: 현재 비중 모드면 totalCurrentVal(100%), 목표 비중 모드면 targetWeight 합계
+      final displayTotal = (_showCurrent && hasCurrent) ? 100.0 : total;
       List<PortfolioItem> displayItems = sortedItems;
       if (_showCurrent && hasCurrent) {
         displayItems = sortedItems.map((item) {
@@ -496,8 +497,8 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
                   const SizedBox(height: 16),
                   // 범례
                   _editMode
-                      ? _buildReorderableLegend(context, pf, displayItems, total)
-                      : _buildStaticLegend(context, pf, sortedItems, total),
+                      ? _buildReorderableLegend(context, pf, displayItems, displayTotal)
+                      : _buildStaticLegend(context, pf, displayItems, displayTotal),
                 ]),
               ),
             ),

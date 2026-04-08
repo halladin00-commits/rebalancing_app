@@ -531,20 +531,6 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
           child: Row(children: [
-            IconButton(
-              onPressed: () => _showDeleteConfirm(pf, item),
-              icon: Container(
-                width: 28, height: 28,
-                decoration: BoxDecoration(
-                    color: Colors.red.withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.red.withValues(alpha: 0.4))),
-                child: const Icon(Icons.remove, color: Colors.red, size: 18),
-              ),
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-            ),
-            const SizedBox(width: 4),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [
                 _marketBadge(context, item), const SizedBox(width: 6),
@@ -566,6 +552,19 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                     shape: BoxShape.circle,
                     border: Border.all(color: const Color(0xFF3B82F6).withValues(alpha: 0.4))),
                 child: const Icon(Icons.edit_outlined, color: Color(0xFF3B82F6), size: 16),
+              ),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+            ),
+            IconButton(
+              onPressed: () => _showDeleteConfirm(pf, item),
+              icon: Container(
+                width: 28, height: 28,
+                decoration: BoxDecoration(
+                    color: Colors.red.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.red.withValues(alpha: 0.4))),
+                child: const Icon(Icons.remove, color: Colors.red, size: 18),
               ),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
