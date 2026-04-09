@@ -86,7 +86,9 @@ class _SpeedDialFabState extends State<SpeedDialFab>
                 children: [
                   FadeTransition(
                     opacity: _fade,
-                    child: Column(
+                    child: IgnorePointer(
+                      ignoring: !_open,
+                      child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: widget.items.map((item) => Padding(
@@ -142,7 +144,8 @@ class _SpeedDialFabState extends State<SpeedDialFab>
                         ),
                       )).toList(),
                     ),
-                  ),
+                  ),   // IgnorePointer
+                ),     // FadeTransition
                   // 메인 FAB
                   // 닫힘: ··· / 열림: ∨ (아래 꺽쇠)
                   FloatingActionButton(

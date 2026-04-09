@@ -145,35 +145,18 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // 아이콘
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  color: Colors.red.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.exit_to_app_rounded,
-                    color: Colors.redAccent, size: 26),
+              // 제목 (질문)
+              Text(
+                l10n.appExitContent,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: context.textPrimary),
               ),
-              const SizedBox(height: 14),
-              // 제목
-              Text(l10n.appExitTitle,
-                  style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                      color: context.textPrimary)),
-              const SizedBox(height: 6),
-              // 본문
-              Text(l10n.appExitContent,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontSize: 13,
-                      color: context.textSecondary,
-                      height: 1.5)),
               // 광고 (로드된 경우만)
               if (_exitBannerLoaded && _exitBanner != null) ...[
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: SizedBox(
@@ -191,7 +174,7 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
                     onPressed: () => Navigator.pop(context, false),
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(color: context.borderColor),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 13),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10)),
                     ),
@@ -209,7 +192,7 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
                       backgroundColor: Colors.redAccent,
                       foregroundColor: Colors.white,
                       elevation: 0,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 13),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10)),
                     ),
