@@ -8,6 +8,7 @@ import '../widgets/portfolio_form_dialog.dart';
 import '../widgets/disclaimer_dialog.dart';
 import '../widgets/speed_dial_fab.dart';
 import '../widgets/app_logo.dart';
+import '../widgets/bottom_banner_ad.dart';
 import '../services/ad_service.dart';
 import 'portfolio_detail_screen.dart';
 
@@ -20,9 +21,7 @@ class PortfolioListScreen extends StatefulWidget {
 class _PortfolioListScreenState extends State<PortfolioListScreen> {
   bool _editMode = false;
 
-  // ── 광고 ──
-  BannerAd? _mainBanner;
-  bool _mainBannerLoaded = false;
+  // ── 종료 팝업 광고만 유지 (메인 배너는 BottomBannerAd 위젯이 담당) ──
   BannerAd? _exitBanner;
   bool _exitBannerLoaded = false;
 
@@ -33,16 +32,10 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
   @override
   void initState() {
     super.initState();
-    _loadAds();
+    _loadExitAd();
   }
 
-  void _loadAds() {
-    _mainBanner = AdService.createBanner(
-      adUnitId: AdService.mainBannerId,
-      size: AdSize.banner,
-      onLoaded: () { if (mounted) setState(() => _mainBannerLoaded = true); },
-      onFailed: () { _mainBanner = null; },
-    );
+  void _loadExitAd() {
     _exitBanner = AdService.createBanner(
       adUnitId: AdService.exitBannerId,
       size: AdSize.mediumRectangle,
@@ -53,7 +46,6 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
 
   @override
   void dispose() {
-    _mainBanner?.dispose();
     _exitBanner?.dispose();
     super.dispose();
   }
@@ -282,84 +274,75 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
                   ),
               ],
             ),
-            body: Stack(
+            body: Column(
               children: [
-                Positioned.fill(
-                  child: _editMode
-                      ? ReorderableListView.builder(
-                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
-                          itemCount: provider.portfolios.length,
-                          onReorder: (o, n) {
-                            if (n > o) n--;
-                            final list = List<Portfolio>.from(provider.portfolios);
-                            final item = list.removeAt(o);
-                            list.insert(n, item);
-                            provider.reorderPortfolios(list);
-                          },
-                          itemBuilder: (ctx, idx) {
-                            final pf = provider.portfolios[idx];
-                            return _buildCard(context, pf, key: ValueKey(pf.id));
-                          },
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 160),
-                          itemCount: provider.portfolios.length + 1,
-                          itemBuilder: (ctx, idx) {
-                            if (idx == provider.portfolios.length) {
-                              return _buildSlimAddCard(context);
-                            }
-                            return _buildCard(context, provider.portfolios[idx]);
-                          },
-                        ),
-                ),
-                if (!_editMode)
-                  Positioned.fill(
-                    child: SpeedDialFab(
-                      key: const ValueKey('list_fab'),
-                      bottomOffset: _mainBannerLoaded ? 50 : 0,
-                      items: [
-                        SpeedDialItem(
-                          icon: Icons.edit_outlined,
-                          label: l10n.edit,
-                          onTap: () => setState(() => _editMode = true),
-                        ),
-                        SpeedDialItem(
-                          icon: context.isDark
-                              ? Icons.light_mode_outlined
-                              : Icons.dark_mode_outlined,
-                          label: context.isDark ? l10n.lightMode : l10n.darkMode,
-                          onTap: () =>
-                              context.read<ThemeNotifier>().toggle(context),
-                        ),
-                        SpeedDialItem(
-                          icon: Icons.language_outlined,
-                          label: l10n.language,
-                          onTap: () => _showLanguageDialog(context),
-                        ),
-                        SpeedDialItem(
-                          icon: Icons.info_outline,
-                          label: l10n.notice,
-                          onTap: () => DisclaimerDialog.showAlways(context),
-                        ),
-                      ],
-                    ),
-                  ),
-                // ── 하단 배너 광고 ──
-                if (_mainBannerLoaded && _mainBanner != null)
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: SafeArea(
-                      child: Container(
-                        color: context.scaffoldBg,
-                        alignment: Alignment.center,
-                        width: _mainBanner!.size.width.toDouble(),
-                        height: _mainBanner!.size.height.toDouble(),
-                        child: AdWidget(ad: _mainBanner!),
+                Expanded(
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: _editMode
+                            ? ReorderableListView.builder(
+                                padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
+                                itemCount: provider.portfolios.length,
+                                onReorder: (o, n) {
+                                  if (n > o) n--;
+                                  final list = List<Portfolio>.from(provider.portfolios);
+                                  final item = list.removeAt(o);
+                                  list.insert(n, item);
+                                  provider.reorderPortfolios(list);
+                                },
+                                itemBuilder: (ctx, idx) {
+                                  final pf = provider.portfolios[idx];
+                                  return _buildCard(context, pf, key: ValueKey(pf.id));
+                                },
+                              )
+                            : ListView.builder(
+                                padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                                itemCount: provider.portfolios.length + 1,
+                                itemBuilder: (ctx, idx) {
+                                  if (idx == provider.portfolios.length) {
+                                    return _buildSlimAddCard(context);
+                                  }
+                                  return _buildCard(context, provider.portfolios[idx]);
+                                },
+                              ),
                       ),
-                    ),
+                      if (!_editMode)
+                        Positioned.fill(
+                          child: SpeedDialFab(
+                            key: const ValueKey('list_fab'),
+                            items: [
+                              SpeedDialItem(
+                                icon: Icons.edit_outlined,
+                                label: l10n.edit,
+                                onTap: () => setState(() => _editMode = true),
+                              ),
+                              SpeedDialItem(
+                                icon: context.isDark
+                                    ? Icons.light_mode_outlined
+                                    : Icons.dark_mode_outlined,
+                                label: context.isDark ? l10n.lightMode : l10n.darkMode,
+                                onTap: () =>
+                                    context.read<ThemeNotifier>().toggle(context),
+                              ),
+                              SpeedDialItem(
+                                icon: Icons.language_outlined,
+                                label: l10n.language,
+                                onTap: () => _showLanguageDialog(context),
+                              ),
+                              SpeedDialItem(
+                                icon: Icons.info_outline,
+                                label: l10n.notice,
+                                onTap: () => DisclaimerDialog.showAlways(context),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
                   ),
+                ),
+                // ── 하단 배너 광고 ──
+                const BottomBannerAd(),
               ],
             ),
           ),

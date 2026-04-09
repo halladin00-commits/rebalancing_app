@@ -8,6 +8,7 @@ import '../widgets/item_form_dialog.dart';
 import '../widgets/settings_dialog.dart';
 import '../widgets/item_bottom_sheet.dart';
 import '../widgets/speed_dial_fab.dart';
+import '../widgets/bottom_banner_ad.dart';
 import 'portfolio_graph_screen.dart';
 
 class PortfolioDetailScreen extends StatefulWidget {
@@ -298,7 +299,10 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                   ),
               ],
             ),
-            body: Stack(
+            body: Column(
+              children: [
+                Expanded(
+                  child: Stack(
               children: [
                 Positioned.fill(
                   child: Column(
@@ -443,8 +447,12 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                       ],
                     ),
                   ),
-              ],
-            ),
+              ],       // Stack children
+            ),         // Stack
+                ),     // Expanded
+                const BottomBannerAd(),
+              ],       // Column children
+            ),         // Column
           ),
         );
       },

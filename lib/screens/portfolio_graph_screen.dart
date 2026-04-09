@@ -7,6 +7,7 @@ import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../main.dart';
 import '../models/portfolio.dart';
+import '../widgets/bottom_banner_ad.dart';
 
 const _kDefaultColors = [
   Color(0xFF3B82F6), Color(0xFF22C55E), Color(0xFFF59E0B),
@@ -377,8 +378,11 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
               ),
             ],
           ),
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
+          body: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
             child: Column(children: [
               Screenshot(
                 controller: _screenshotCtrl,
@@ -465,7 +469,11 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
                       textAlign: TextAlign.center),
                 ),
             ]),
-          ),
+                ),   // SingleChildScrollView
+              ),     // Expanded
+              const BottomBannerAd(),
+            ],       // Column children
+          ),         // Column
         ),
       );
     });
