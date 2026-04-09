@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../main.dart';
+import '../widgets/bottom_banner_ad.dart';
 
 class SpeedDialItem {
   final IconData icon;
@@ -20,9 +21,9 @@ class SpeedDialItem {
 /// Stack 안에 Positioned.fill로 사용해야 함 (barrier가 전체 화면을 덮기 위해)
 class SpeedDialFab extends StatefulWidget {
   final List<SpeedDialItem> items;
-  /// 배너 광고 등으로 인해 FAB를 위로 올려야 할 때 사용 (기본값 0)
+  /// 하단 배너 높이만큼 FAB를 위로 올림 (기본값: kBannerHeight=50)
   final double bottomOffset;
-  const SpeedDialFab({super.key, required this.items, this.bottomOffset = 0});
+  const SpeedDialFab({super.key, required this.items, this.bottomOffset = kBannerHeight});
 
   @override
   State<SpeedDialFab> createState() => _SpeedDialFabState();
@@ -77,10 +78,9 @@ class _SpeedDialFabState extends State<SpeedDialFab>
         Positioned(
           bottom: widget.bottomOffset,
           right: 0,
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 16, right: 16),
-              child: Column(
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 16, right: 16),
+            child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [

@@ -2,14 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../services/ad_service.dart';
 
-/// 모든 화면 하단에 공통으로 사용하는 배너 광고 위젯.
-/// 자체적으로 BannerAd 생명주기를 관리하므로 부모 위젯에서 별도 처리 불필요.
+/// 모든 화면 하단 공통 배너 광고 위젯.
+/// - 광고 로드 전후 관계없이 항상 kBannerHeight(50px)를 예약 → 레이아웃 변화 없음
+/// - SafeArea는 Scaffold body가 이미 처리하므로 별도 사용 안 함
 class BottomBannerAd extends StatefulWidget {
   const BottomBannerAd({super.key});
 
   @override
   State<BottomBannerAd> createState() => _BottomBannerAdState();
 }
+
+/// 배너 광고 높이 상수 (FAB bottomOffset과 공유)
+const double kBannerHeight = 50.0;
 
 class _BottomBannerAdState extends State<BottomBannerAd> {
   BannerAd? _ad;
@@ -38,19 +42,19 @@ class _BottomBannerAdState extends State<BottomBannerAd> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_loaded || _ad == null) return const SizedBox.shrink();
-    return SafeArea(
-      top: false,
-      child: Container(
-        width: double.infinity,
-        height: _ad!.size.height.toDouble(),
-        alignment: Alignment.center,
-        child: SizedBox(
-          width: _ad!.size.width.toDouble(),
-          height: _ad!.size.height.toDouble(),
-          child: AdWidget(ad: _ad!),
-        ),
-      ),
+    // 항상 50px 자리 예약 — 광고가 없으면 빈 공간, 있으면 광고 표시
+    return SizedBox(
+      width: double.infinity,
+      height: kBannerHeight,
+      child: (_loaded && _ad != null)
+          ? Center(
+              child: SizedBox(
+                width: _ad!.size.width.toDouble(),
+                height: _ad!.size.height.toDouble(),
+                child: AdWidget(ad: _ad!),
+              ),
+            )
+          : const SizedBox.shrink(),
     );
   }
 }
