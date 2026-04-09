@@ -111,7 +111,7 @@ class _DisclaimerDialogState extends State<DisclaimerDialog> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        l10n.disclaimerDontShowAgain,
+                        '위 내용을 전부 확인하였으며 동의합니다.',
                         style: TextStyle(
                             fontSize: 13,
                             color: _checked
@@ -139,7 +139,7 @@ class _DisclaimerDialogState extends State<DisclaimerDialog> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
             child: Text(
-              widget.isFirstRun ? l10n.disclaimerStartBtn : l10n.disclaimerConfirmBtn,
+              widget.isFirstRun ? '시작하기' : l10n.disclaimerConfirmBtn,
               style: TextStyle(
                 fontWeight: FontWeight.w600,
                 color: canConfirm ? Colors.white : context.textHint,

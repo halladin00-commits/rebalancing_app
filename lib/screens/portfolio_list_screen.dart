@@ -137,26 +137,90 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
     final l10n = context.l10n;
     final result = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text(l10n.appExitTitle),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(l10n.appExitContent),
-            if (_exitBannerLoaded && _exitBanner != null) ...[
-              const SizedBox(height: 12),
-              SizedBox(
-                width: _exitBanner!.size.width.toDouble(),
-                height: _exitBanner!.size.height.toDouble(),
-                child: AdWidget(ad: _exitBanner!),
+      builder: (_) => Dialog(
+        backgroundColor: context.cardBg,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 아이콘
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.exit_to_app_rounded,
+                    color: Colors.redAccent, size: 26),
               ),
+              const SizedBox(height: 14),
+              // 제목
+              Text(l10n.appExitTitle,
+                  style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: context.textPrimary)),
+              const SizedBox(height: 6),
+              // 본문
+              Text(l10n.appExitContent,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontSize: 13,
+                      color: context.textSecondary,
+                      height: 1.5)),
+              // 광고 (로드된 경우만)
+              if (_exitBannerLoaded && _exitBanner != null) ...[
+                const SizedBox(height: 16),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: SizedBox(
+                    width: _exitBanner!.size.width.toDouble(),
+                    height: _exitBanner!.size.height.toDouble(),
+                    child: AdWidget(ad: _exitBanner!),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 20),
+              // 버튼 행
+              Row(children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: context.borderColor),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                    ),
+                    child: Text(l10n.cancel,
+                        style: TextStyle(
+                            color: context.textSecondary,
+                            fontWeight: FontWeight.w600)),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.redAccent,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                    ),
+                    child: Text(l10n.exit,
+                        style: const TextStyle(fontWeight: FontWeight.w600)),
+                  ),
+                ),
+              ]),
             ],
-          ],
+          ),
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.cancel)),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l10n.exit)),
-        ],
       ),
     );
     if (result == true) SystemNavigator.pop();
@@ -269,6 +333,7 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
                   Positioned.fill(
                     child: SpeedDialFab(
                       key: const ValueKey('list_fab'),
+                      bottomOffset: _mainBannerLoaded ? 50 : 0,
                       items: [
                         SpeedDialItem(
                           icon: Icons.edit_outlined,

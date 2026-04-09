@@ -20,7 +20,9 @@ class SpeedDialItem {
 /// Stack 안에 Positioned.fill로 사용해야 함 (barrier가 전체 화면을 덮기 위해)
 class SpeedDialFab extends StatefulWidget {
   final List<SpeedDialItem> items;
-  const SpeedDialFab({super.key, required this.items});
+  /// 배너 광고 등으로 인해 FAB를 위로 올려야 할 때 사용 (기본값 0)
+  final double bottomOffset;
+  const SpeedDialFab({super.key, required this.items, this.bottomOffset = 0});
 
   @override
   State<SpeedDialFab> createState() => _SpeedDialFabState();
@@ -73,7 +75,7 @@ class _SpeedDialFabState extends State<SpeedDialFab>
           ),
         // FAB + 메뉴 아이템 (우하단 고정)
         Positioned(
-          bottom: 0,
+          bottom: widget.bottomOffset,
           right: 0,
           child: SafeArea(
             child: Padding(
