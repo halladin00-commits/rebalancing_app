@@ -1,4 +1,4 @@
-package com.example.rebalancing_app
+package com.xaxavoo.rebalancing
 
 import io.flutter.embedding.android.FlutterActivity
 

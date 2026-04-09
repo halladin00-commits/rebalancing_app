@@ -15,7 +15,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.example.rebalancing_app"
+    namespace = "com.xaxavoo.rebalancing"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -29,7 +29,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.rebalancing_app"
+        applicationId = "com.xaxavoo.rebalancing"
         minSdk = 23                      // google_mobile_ads 7.x 요구사항
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
