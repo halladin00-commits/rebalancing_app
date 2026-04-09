@@ -19,6 +19,7 @@ dependencies:
   provider: ^6.1.1
   cupertino_icons: ^1.0.6
   screenshot: ^3.0.0
+  google_mobile_ads: ^6.0.0
   image_gallery_saver_plus: ^4.0.1
   permission_handler: ^11.3.0
 

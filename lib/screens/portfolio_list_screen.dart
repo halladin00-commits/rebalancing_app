@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../main.dart';
 import '../models/portfolio.dart';
 import '../widgets/portfolio_form_dialog.dart';
 import '../widgets/disclaimer_dialog.dart';
 import '../widgets/speed_dial_fab.dart';
 import '../widgets/app_logo.dart';
+import '../services/ad_service.dart';
 import 'portfolio_detail_screen.dart';
 
 class PortfolioListScreen extends StatefulWidget {
@@ -18,9 +20,43 @@ class PortfolioListScreen extends StatefulWidget {
 class _PortfolioListScreenState extends State<PortfolioListScreen> {
   bool _editMode = false;
 
+  // ── 광고 ──
+  BannerAd? _mainBanner;
+  bool _mainBannerLoaded = false;
+  BannerAd? _exitBanner;
+  bool _exitBannerLoaded = false;
+
   String _uid() =>
       DateTime.now().millisecondsSinceEpoch.toRadixString(36) +
       (DateTime.now().microsecond).toRadixString(36);
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAds();
+  }
+
+  void _loadAds() {
+    _mainBanner = AdService.createBanner(
+      adUnitId: AdService.mainBannerId,
+      size: AdSize.banner,
+      onLoaded: () { if (mounted) setState(() => _mainBannerLoaded = true); },
+      onFailed: () { _mainBanner = null; },
+    );
+    _exitBanner = AdService.createBanner(
+      adUnitId: AdService.exitBannerId,
+      size: AdSize.mediumRectangle,
+      onLoaded: () { if (mounted) setState(() => _exitBannerLoaded = true); },
+      onFailed: () { _exitBanner = null; },
+    );
+  }
+
+  @override
+  void dispose() {
+    _mainBanner?.dispose();
+    _exitBanner?.dispose();
+    super.dispose();
+  }
 
   String _fmt(double n, String cur) {
     if (cur == 'USD') return '\$${n.toStringAsFixed(2)}';
@@ -103,7 +139,20 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
       context: context,
       builder: (_) => AlertDialog(
         title: Text(l10n.appExitTitle),
-        content: Text(l10n.appExitContent),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(l10n.appExitContent),
+            if (_exitBannerLoaded && _exitBanner != null) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                width: _exitBanner!.size.width.toDouble(),
+                height: _exitBanner!.size.height.toDouble(),
+                child: AdWidget(ad: _exitBanner!),
+              ),
+            ],
+          ],
+        ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.cancel)),
           TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l10n.exit)),
@@ -206,7 +255,7 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
                           },
                         )
                       : ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 160),
                           itemCount: provider.portfolios.length + 1,
                           itemBuilder: (ctx, idx) {
                             if (idx == provider.portfolios.length) {
@@ -245,6 +294,22 @@ class _PortfolioListScreenState extends State<PortfolioListScreen> {
                           onTap: () => DisclaimerDialog.showAlways(context),
                         ),
                       ],
+                    ),
+                  ),
+                // ── 하단 배너 광고 ──
+                if (_mainBannerLoaded && _mainBanner != null)
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: SafeArea(
+                      child: Container(
+                        color: context.scaffoldBg,
+                        alignment: Alignment.center,
+                        width: _mainBanner!.size.width.toDouble(),
+                        height: _mainBanner!.size.height.toDouble(),
+                        child: AdWidget(ad: _mainBanner!),
+                      ),
                     ),
                   ),
               ],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'models/portfolio.dart';
 import 'services/storage_service.dart';
 import 'screens/portfolio_list_screen.dart';
@@ -12,6 +13,7 @@ import 'l10n/app_localizations.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  MobileAds.instance.initialize();
   StockSearchService.initialize();
   runApp(
     MultiProvider(
