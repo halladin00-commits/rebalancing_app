@@ -26,7 +26,7 @@ class SpeedDialFab extends StatefulWidget {
   const SpeedDialFab({
     super.key,
     required this.items,
-    this.bottomOffset = kBannerHeight,
+    this.bottomOffset = 0,
   });
 
   @override
