@@ -39,8 +39,15 @@ class LocaleProvider extends ChangeNotifier {
 
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
-    final code = prefs.getString('locale') ?? 'ko';
-    _locale = Locale(code);
+    final saved = prefs.getString('locale');
+    if (saved != null) {
+      // 저장된 값 있으면 그대로 사용
+      _locale = Locale(saved);
+    } else {
+      // 첫 실행: 기기 언어가 한국어면 한국어, 아니면 영어
+      final deviceLang = WidgetsBinding.instance.platformDispatcher.locale.languageCode;
+      _locale = Locale(deviceLang == 'ko' ? 'ko' : 'en');
+    }
     notifyListeners();
   }
 
