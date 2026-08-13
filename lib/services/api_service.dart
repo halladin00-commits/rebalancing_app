@@ -1,6 +1,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+class StockPriceData {
+  final double currentPrice;
+  final double previousClose;
+  StockPriceData({required this.currentPrice, required this.previousClose});
+}
+
 class ApiService {
   /// 환율 조회 (USD → KRW)
   static Future<ApiResult<double>> fetchExchangeRate() async {
@@ -28,7 +34,7 @@ class ApiService {
   }
 
   /// 주가 조회 (Yahoo Finance)
-  static Future<ApiResult<double>> fetchStockPrice(
+  static Future<ApiResult<StockPriceData>> fetchStockPrice(
     String ticker,
     String market,
   ) async {
@@ -64,7 +70,63 @@ class ApiService {
     }
   }
 
-  static Future<ApiResult<double>> _fetchYahoo(String symbol) async {
+  /// 기간 내 첫/마지막 거래일 종가 조회 (결산용)
+  /// periodStart~periodEnd 범위의 일별 종가 중 첫 번째와 마지막 반환
+  static Future<ApiResult<({double first, double last})>> fetchWeekPrices(
+    String ticker,
+    String market,
+    DateTime periodStart,
+    DateTime periodEnd,
+  ) async {
+    if (ticker.isEmpty) return ApiResult.error('티커 없음');
+    try {
+      if (market == 'KR') {
+        String cleanTicker = ticker;
+        if (cleanTicker.startsWith('A') && cleanTicker.length > 1) {
+          final rest = cleanTicker.substring(1);
+          if (rest.contains(RegExp(r'^[0-9]'))) cleanTicker = rest;
+        }
+        if (cleanTicker.isEmpty) return ApiResult.error('유효하지 않은 종목코드');
+
+        final r = await _fetchYahooPeriodPrices('$cleanTicker.KS', periodStart, periodEnd);
+        if (r.ok) return r;
+        return await _fetchYahooPeriodPrices('$cleanTicker.KQ', periodStart, periodEnd);
+      } else {
+        return await _fetchYahooPeriodPrices(ticker, periodStart, periodEnd);
+      }
+    } catch (e) {
+      return ApiResult.error('$ticker: $e');
+    }
+  }
+
+  static Future<ApiResult<({double first, double last})>> _fetchYahooPeriodPrices(
+      String symbol, DateTime start, DateTime end) async {
+    try {
+      // period2를 하루 더해서 end 당일 데이터 포함
+      final p1 = start.millisecondsSinceEpoch ~/ 1000;
+      final p2 = end.add(const Duration(days: 1)).millisecondsSinceEpoch ~/ 1000;
+      final url =
+          'https://query1.finance.yahoo.com/v8/finance/chart/$symbol?interval=1d&period1=$p1&period2=$p2';
+      final response = await http
+          .get(Uri.parse(url), headers: {'User-Agent': 'Mozilla/5.0'})
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode != 200) return ApiResult.error('HTTP ${response.statusCode}');
+
+      final data = json.decode(response.body);
+      final closes = data['chart']?['result']?[0]?['indicators']?['quote']?[0]?['close'];
+      if (closes == null || (closes as List).isEmpty) return ApiResult.error('데이터 없음');
+
+      final validCloses = closes.whereType<num>().map((c) => c.toDouble()).toList();
+      if (validCloses.isEmpty) return ApiResult.error('유효한 종가 없음');
+
+      return ApiResult.success((first: validCloses.first, last: validCloses.last));
+    } catch (e) {
+      return ApiResult.error('$symbol: $e');
+    }
+  }
+
+  static Future<ApiResult<StockPriceData>> _fetchYahoo(String symbol) async {
     try {
       final url =
           'https://query1.finance.yahoo.com/v8/finance/chart/$symbol?interval=1d&range=1d';
@@ -80,14 +142,19 @@ class ApiService {
       }
 
       final data = json.decode(response.body);
-      final price =
-          data['chart']?['result']?[0]?['meta']?['regularMarketPrice'];
+      final meta = data['chart']?['result']?[0]?['meta'];
+      final price = meta?['regularMarketPrice'];
 
       if (price == null) {
         return ApiResult.error('가격 데이터 없음');
       }
 
-      return ApiResult.success((price as num).toDouble());
+      final prevClose = meta?['regularMarketPreviousClose'] ?? meta?['chartPreviousClose'] ?? 0;
+
+      return ApiResult.success(StockPriceData(
+        currentPrice: (price as num).toDouble(),
+        previousClose: (prevClose as num).toDouble(),
+      ));
     } catch (e) {
       return ApiResult.error('$symbol: $e');
     }

@@ -38,8 +38,12 @@
   },
   "updateSuccess": "Updated",
   "portfolioNotFound": "Portfolio not found",
-  "additionalInvestment": "Additional Investment",
-  "currentAssets": "Current Assets",
+  "additionalInvestment": "Add Investment or Withdraw",
+  "additionalInvestmentHint": "e.g. 1000000 or -500000",
+  "priceDelayNote": "※ Prices ~20min, rate ~1day delayed",
+  "totalAssetsLabel": "Total Assets (KRW equiv.)",
+  "evaluationAmount": "Evaluation Amount",
+  "currentAssets": "Current Value",
   "rebalancingBase": "Rebalancing Base",
   "remainingCash": "Remaining Cash",
   "estimatedFee": "Est. fee: {fee}",
@@ -66,6 +70,8 @@
   "rebalanceApplyTitle": "Apply Rebalancing",
   "rebalanceBullet1": "Apply results to current holdings",
   "rebalanceBullet2": "Remaining cash becomes additional investment",
+  "rebalanceBullet3": "Avg. cost auto-updates for buy orders",
+  "rebalanceBullet3Note": "* Based on current price — may differ from actual execution price",
 
   "savePermissionRequired": "Storage permission required",
   "captureFailed": "Capture failed",
@@ -85,6 +91,12 @@
   "editTooltip": "Edit",
   "editCompleteBeforeSave": "Finish editing before saving",
   "saveImage": "Save Image",
+  "shareImage": "Share Image",
+  "capture": "Capture",
+  "portfolio": "Portfolio",
+  "settlementTab": "Settlement",
+  "duplicatePortfolio": "Duplicate Portfolio",
+  "notifPermissionDenied": "Notification permission denied. Please allow it in Settings.",
   "targetWeight": "Target Weight",
   "currentWeight": "Current Weight",
   "noPriceInfo": "No price data. Refresh and try again.",
@@ -93,9 +105,9 @@
 
   "disclaimerTitle": "Terms of Use & Disclaimer",
   "disclaimerSectionPurpose": "Purpose",
-  "disclaimerTextPurpose": "This app (Rebalancing) is a reference tool to help individual investors calculate portfolio rebalancing. It does not provide financial investment advice, investment recommendations, or asset management services under any circumstances.",
+  "disclaimerTextPurpose": "This app (Rebalancing) is a reference tool to help individual investors calculate portfolio rebalancing and analyze period-based returns from transaction history. It does not provide financial investment advice, investment recommendations, or asset management services under any circumstances.",
   "disclaimerSectionData": "Data Accuracy",
-  "disclaimerTextData": "The following information provided by the app is based on external public APIs and data sources, and may be subject to delays, errors, or omissions.\n\n• Stock information (name, ticker, market)\n• Real-time stock prices (Yahoo Finance)\n• Real-time exchange rates (public API)\n• ETF classification and related info\n• Rebalancing results (quantity, weight, remaining cash)\n• Estimated trading fees\n\nPlease verify directly, as this may differ from actual market data.",
+  "disclaimerTextData": "The following information provided by the app is based on external public APIs and data sources, and may be subject to delays, errors, or omissions.\n\n• Stock information (name, ticker, market)\n• Real-time stock prices (Yahoo Finance)\n• Real-time exchange rates (public API)\n• ETF classification and related info\n• Rebalancing results (quantity, weight, remaining cash)\n• Estimated trading fees\n• Period returns and per-asset contribution (based on user-entered transactions and historical price data)\n\nPlease verify directly, as this may differ from actual market data.",
   "disclaimerSectionRisk": "Investment Risk",
   "disclaimerTextRisk": "The developer bears no legal responsibility for investment decisions made based on this app's information, or any resulting losses. All investment decisions must be made at the user's own judgment and risk.",
   "disclaimerSectionTax": "Tax & Legal",
@@ -115,6 +127,9 @@
   "cashNameHint": "e.g. Cash Balance",
   "autoFillHint": "Auto-filled by search",
   "stockCodeTicker": "Stock Code / Ticker",
+  "avgCost": "Avg. Cost",
+  "profitLoss": "P&L",
+  "returnRate": "Return",
   "currentPrice": "Current Price",
   "autoUpdate": "Auto Update",
   "autoUpdateHint": "Auto-updated on refresh",
@@ -134,10 +149,10 @@
 
   "settings": "Settings",
   "baseCurrency": "Base Currency",
-  "currencyKRW": "₩ KRW",
-  "currencyUSD": "$ USD",
+  "currencyKRW": "KRW (₩)",
+  "currencyUSD": "USD ($)",
   "amountDisplay": "Amount Display",
-  "amountDisplayHint": "Current Assets / Rebalancing Base",
+  "amountDisplayHint": "Current Assets / Base Amount",
   "fullDisplay": "Full",
   "compactDisplay": "Compact",
   "tradingFee": "Trading Fee",
@@ -177,5 +192,116 @@
 
   "unitKrwSuffix": "",
   "unitKrwMan": "",
-  "etfBadge": "ETF"
+  "etfBadge": "ETF",
+
+  "totalPnl": "Total P&L",
+  "dayChange": "Day Change",
+
+  "disclaimerAgreeCheckbox": "I have read and agree\nto all of the above.",
+  "validationNonNegative": "Please enter a value of 0 or greater.",
+  "validationPositive": "Please enter a value greater than 0.",
+  "validationExchangeRatePositive": "Exchange rate must be greater than 0.",
+
+  "tabAssets": "Assets",
+  "tabRebalancing": "Rebalancing",
+  "tabSettlement": "Settlement",
+
+  "settlementWeekly": "Weekly",
+  "settlementMonthly": "Monthly",
+  "settlementQuarterly": "Quarterly",
+  "settlementYearly": "Yearly",
+  "settlementBasedOn": "Based on: {date}",
+  "@settlementBasedOn": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "settlementStartValue": "Base Value",
+  "settlementEndValue": "Current Value",
+  "settlementReturn": "Period Return",
+  "settlementNoData": "Collecting data",
+  "settlementNoDataDesc": "Snapshots are saved automatically on refresh.",
+  "settlementViewWithApi": "View with API data",
+  "settlementApiFallbackWarning": "Based on Yahoo Finance historical data (holdings changes not reflected)",
+  "settlementContribution": "Contribution",
+
+  "backupData": "Backup",
+  "restoreData": "Restore",
+  "backupFailed": "Backup failed",
+  "restoreConfirmTitle": "Restore Data",
+  "restoreConfirmContent": "Restore {count} portfolios?\nAll current data will be replaced.",
+  "@restoreConfirmContent": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "restoreSuccess": "Restored: {count} portfolios",
+  "@restoreSuccess": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "restoreFailed": "Restore failed: invalid backup file",
+
+  "notifReminder": "Rebalancing Reminders",
+  "notifEnableLabel": "Notifications",
+  "notifEnableDesc": "Periodic rebalancing reminders",
+  "notifEnableHint": "We'll send you a reminder at the set interval",
+  "notifFrequency": "Frequency",
+  "notifWeekly": "Every Monday at 9 AM",
+  "notifMonthly": "1st of each month at 9 AM",
+  "notifSavedOn": "Reminders enabled",
+  "notifSavedOff": "Reminders disabled",
+
+  "purchaseDateLabel": "Purchase Date",
+  "holdingsFromTransactions": "Modify via transactions",
+  "transactionHistory": "Transactions",
+  "addTransaction": "Add Transaction",
+  "transactionBuy": "Buy",
+  "transactionSell": "Sell",
+  "transactionDate": "Date",
+  "transactionQty": "Quantity",
+  "transactionPrice": "Price",
+  "deleteTransaction": "Delete",
+  "settlementWeekNum": "Week {week}",
+  "@settlementWeekNum": {
+    "placeholders": { "week": { "type": "int" } }
+  },
+  "settlementMonthNum": "{month}",
+  "@settlementMonthNum": {
+    "placeholders": { "month": { "type": "int" } }
+  },
+  "settlementQuarterNum": "Q{q}",
+  "@settlementQuarterNum": {
+    "placeholders": { "q": { "type": "int" } }
+  },
+  "settlementPeriodRange": "{start} – {end}",
+  "@settlementPeriodRange": {
+    "placeholders": { "start": { "type": "String" }, "end": { "type": "String" } }
+  },
+  "settlementCurrentPeriod": "In Progress",
+  "settlementNoHoldings": "No holdings in this period",
+  "settlementNetCashFlow": "Capital Added",
+  "settlementYearLabel": "{year}",
+  "@settlementYearLabel": {
+    "placeholders": { "year": { "type": "int" } }
+  },
+  "excelImportTitle": "Upload Transactions",
+  "excelDownloadTemplate": "Download Template",
+  "excelImportFile": "Import File",
+  "excelImportDone": "Import Complete",
+  "excelImportAdded": "{count} transactions added",
+  "@excelImportAdded": { "placeholders": { "count": { "type": "int" } } },
+  "excelImportCreated": "{count} new items created",
+  "@excelImportCreated": { "placeholders": { "count": { "type": "int" } } },
+  "excelImportSkipped": "{count} rows skipped",
+  "@excelImportSkipped": { "placeholders": { "count": { "type": "int" } } },
+  "excelTemplateHint": "Columns: Date | Name | Ticker | Market | Type | Qty | Price\nDate: 2024.01.15  Market: KR / US  Type: Buy / Sell",
+  "excelImportNothingAdded": "No transactions were added",
+
+  "settlementNotifHeader": "Settlement Reminders",
+  "settlementNotifWeekly": "Weekly Settlement",
+  "settlementNotifMonthly": "Monthly Settlement",
+  "settlementNotifQuarterly": "Quarterly Settlement",
+  "settlementNotifYearly": "Yearly Settlement",
+
+  "rebalancingThresholdLabel": "Rebalancing Threshold",
+  "rebalancingThresholdHint": "No trade recommended below this deviation",
+
+  "rebalanceTransactionTitle": "Confirm Trades",
+  "rebalanceTransactionDesc": "Edit qty/price to match your actual trades.\nItems with qty 0 will be skipped."
 }

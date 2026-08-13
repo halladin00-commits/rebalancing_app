@@ -38,9 +38,13 @@
   },
   "updateSuccess": "업데이트 완료",
   "portfolioNotFound": "포트폴리오를 찾을 수 없습니다",
-  "additionalInvestment": "추가 투자금",
-  "currentAssets": "현재 자산",
-  "rebalancingBase": "리밸런싱 기준",
+  "additionalInvestment": "투자금 추가 or 출금",
+  "additionalInvestmentHint": "예: 1000000 또는 -500000",
+  "priceDelayNote": "※ 주가 ~20분, 환율 ~1일까지 지연 가능",
+  "totalAssetsLabel": "전체 자산 합계 (원 환산)",
+  "evaluationAmount": "평가금액",
+  "currentAssets": "현재 평가금액",
+  "rebalancingBase": "리밸런싱 기준금액",
   "remainingCash": "잔여 현금",
   "estimatedFee": "예상 수수료: {fee}",
   "@estimatedFee": {
@@ -66,6 +70,8 @@
   "rebalanceApplyTitle": "리밸런싱 적용",
   "rebalanceBullet1": "리밸런싱 결과를 보유 수량에 반영",
   "rebalanceBullet2": "잔여 현금은 추가 투자금으로 변환",
+  "rebalanceBullet3": "매수 종목 평단가 자동 업데이트",
+  "rebalanceBullet3Note": "* 현재가 기준 계산 — 실제 체결가와 다를 수 있음",
 
   "savePermissionRequired": "저장 권한이 필요합니다",
   "captureFailed": "캡처 실패",
@@ -85,6 +91,12 @@
   "editTooltip": "편집",
   "editCompleteBeforeSave": "편집 완료 후 저장 가능",
   "saveImage": "이미지 저장",
+  "shareImage": "이미지 공유",
+  "capture": "캡처",
+  "portfolio": "포트폴리오",
+  "settlementTab": "결산",
+  "duplicatePortfolio": "포트폴리오 복사",
+  "notifPermissionDenied": "알림 권한이 거부됐습니다. 설정에서 허용해 주세요.",
   "targetWeight": "목표 비중",
   "currentWeight": "현재 비중",
   "noPriceInfo": "현재가 정보가 없습니다. 새로고침 후 다시 시도해주세요.",
@@ -93,9 +105,9 @@
 
   "disclaimerTitle": "서비스 이용 안내 및 면책고지",
   "disclaimerSectionPurpose": "목적",
-  "disclaimerTextPurpose": "본 앱(Rebalancing)은 개인 투자자의 포트폴리오 리밸런싱 계산을 돕기 위한 참고용 도구입니다. 어떠한 경우에도 금융투자 조언, 투자 권유, 자산 운용 서비스를 제공하지 않습니다.",
+  "disclaimerTextPurpose": "본 앱(Rebalancing)은 개인 투자자의 포트폴리오 리밸런싱 계산 및 거래 내역 기반 기간별 수익률 분석을 돕기 위한 참고용 도구입니다. 어떠한 경우에도 금융투자 조언, 투자 권유, 자산 운용 서비스를 제공하지 않습니다.",
   "disclaimerSectionData": "데이터 정확성",
-  "disclaimerTextData": "앱이 제공하는 다음 정보는 외부 공개 API 및 데이터 소스를 기반으로 하며, 지연·오류·누락이 발생할 수 있습니다.\n\n• 종목 정보 (종목명, 티커, 시장 구분)\n• 실시간 주가 (Yahoo Finance 기반)\n• 실시간 환율 (공개 환율 API 기반)\n• ETF 분류 및 관련 정보\n• 리밸런싱 계산 결과 (수량, 비중, 잔여 현금 등)\n• 예상 수수료 계산값\n\n실제 시장 데이터 및 금융기관 정보와 다를 수 있으므로, 반드시 직접 확인하시기 바랍니다.",
+  "disclaimerTextData": "앱이 제공하는 다음 정보는 외부 공개 API 및 데이터 소스를 기반으로 하며, 지연·오류·누락이 발생할 수 있습니다.\n\n• 종목 정보 (종목명, 티커, 시장 구분)\n• 실시간 주가 (Yahoo Finance 기반)\n• 실시간 환율 (공개 환율 API 기반)\n• ETF 분류 및 관련 정보\n• 리밸런싱 계산 결과 (수량, 비중, 잔여 현금 등)\n• 예상 수수료 계산값\n• 결산 기간 수익률 및 종목별 기여도 (사용자 입력 거래 내역 및 과거 주가 데이터 기반)\n\n실제 시장 데이터 및 금융기관 정보와 다를 수 있으므로, 반드시 직접 확인하시기 바랍니다.",
   "disclaimerSectionRisk": "투자 손실 책임",
   "disclaimerTextRisk": "본 앱의 정보를 바탕으로 내린 투자 결정 및 그로 인한 손실·손해에 대해 개발자는 어떠한 법적 책임도 지지 않습니다. 모든 투자 결정은 사용자 본인의 판단과 책임 하에 이루어져야 합니다.",
   "disclaimerSectionTax": "세금 및 법적 사항",
@@ -115,6 +127,9 @@
   "cashNameHint": "예: 예수금",
   "autoFillHint": "검색으로 자동 입력",
   "stockCodeTicker": "종목 코드 / 티커",
+  "avgCost": "평균 매수단가",
+  "profitLoss": "평가손익",
+  "returnRate": "수익률",
   "currentPrice": "현재가",
   "autoUpdate": "자동 업데이트",
   "autoUpdateHint": "새로고침 시 자동으로 업데이트",
@@ -134,8 +149,8 @@
 
   "settings": "설정",
   "baseCurrency": "기준 통화",
-  "currencyKRW": "₩ 원화",
-  "currencyUSD": "$ 달러",
+  "currencyKRW": "KRW (₩)",
+  "currencyUSD": "USD ($)",
   "amountDisplay": "금액 표시",
   "amountDisplayHint": "현재 자산 / 리밸런싱 기준",
   "fullDisplay": "전체 표시",
@@ -177,5 +192,116 @@
 
   "unitKrwSuffix": "억",
   "unitKrwMan": "만",
-  "etfBadge": "ETF"
+  "etfBadge": "ETF",
+
+  "totalPnl": "종합손익",
+  "dayChange": "전일대비",
+
+  "disclaimerAgreeCheckbox": "위 내용을 전부 확인하였으며\n동의합니다.",
+  "validationNonNegative": "0 이상의 값을 입력해주세요.",
+  "validationPositive": "0보다 큰 값을 입력해주세요.",
+  "validationExchangeRatePositive": "환율은 0보다 큰 값이어야 합니다.",
+
+  "tabAssets": "자산현황",
+  "tabRebalancing": "리밸런싱",
+  "tabSettlement": "결산",
+
+  "settlementWeekly": "주간",
+  "settlementMonthly": "월간",
+  "settlementQuarterly": "분기",
+  "settlementYearly": "연간",
+  "settlementBasedOn": "기준일: {date}",
+  "@settlementBasedOn": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "settlementStartValue": "기준 평가금액",
+  "settlementEndValue": "현재 평가금액",
+  "settlementReturn": "기간 수익률",
+  "settlementNoData": "데이터 수집 중",
+  "settlementNoDataDesc": "새로고침 시 자동으로 스냅샷이 저장됩니다.",
+  "settlementViewWithApi": "API 데이터로 대체 보기",
+  "settlementApiFallbackWarning": "Yahoo Finance 과거 데이터 기준 (수량 변동 미반영)",
+  "settlementContribution": "기여도",
+
+  "backupData": "백업",
+  "restoreData": "복원",
+  "backupFailed": "백업 실패",
+  "restoreConfirmTitle": "데이터 복원",
+  "restoreConfirmContent": "포트폴리오 {count}개를 복원합니다.\n현재 데이터는 모두 교체됩니다.",
+  "@restoreConfirmContent": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "restoreSuccess": "복원 완료: 포트폴리오 {count}개",
+  "@restoreSuccess": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "restoreFailed": "복원 실패: 올바른 백업 파일이 아닙니다",
+
+  "notifReminder": "리밸런싱 알림",
+  "notifEnableLabel": "알림",
+  "notifEnableDesc": "정기 리밸런싱 점검 알림",
+  "notifEnableHint": "지정한 주기마다 앱 알림을 보내드립니다",
+  "notifFrequency": "알림 주기",
+  "notifWeekly": "매주 월요일 오전 9시",
+  "notifMonthly": "매월 1일 오전 9시",
+  "notifSavedOn": "알림이 설정됐습니다",
+  "notifSavedOff": "알림이 꺼졌습니다",
+
+  "purchaseDateLabel": "매수 일자",
+  "holdingsFromTransactions": "거래 내역에서 수정",
+  "transactionHistory": "거래 내역",
+  "addTransaction": "거래 추가",
+  "transactionBuy": "매수",
+  "transactionSell": "매도",
+  "transactionDate": "거래 일자",
+  "transactionQty": "수량",
+  "transactionPrice": "단가",
+  "deleteTransaction": "거래 삭제",
+  "settlementWeekNum": "{week}주차",
+  "@settlementWeekNum": {
+    "placeholders": { "week": { "type": "int" } }
+  },
+  "settlementMonthNum": "{month}월",
+  "@settlementMonthNum": {
+    "placeholders": { "month": { "type": "int" } }
+  },
+  "settlementQuarterNum": "{q}분기",
+  "@settlementQuarterNum": {
+    "placeholders": { "q": { "type": "int" } }
+  },
+  "settlementPeriodRange": "{start} ~ {end}",
+  "@settlementPeriodRange": {
+    "placeholders": { "start": { "type": "String" }, "end": { "type": "String" } }
+  },
+  "settlementCurrentPeriod": "진행 중",
+  "settlementNoHoldings": "해당 기간 보유 종목 없음",
+  "settlementNetCashFlow": "추가 투자금",
+  "settlementYearLabel": "{year}년",
+  "@settlementYearLabel": {
+    "placeholders": { "year": { "type": "int" } }
+  },
+  "excelImportTitle": "거래내역 업로드",
+  "excelDownloadTemplate": "양식 다운로드",
+  "excelImportFile": "파일 가져오기",
+  "excelImportDone": "가져오기 완료",
+  "excelImportAdded": "{count}건 거래 추가됨",
+  "@excelImportAdded": { "placeholders": { "count": { "type": "int" } } },
+  "excelImportCreated": "신규 종목 {count}개 생성됨",
+  "@excelImportCreated": { "placeholders": { "count": { "type": "int" } } },
+  "excelImportSkipped": "{count}행 건너뜀",
+  "@excelImportSkipped": { "placeholders": { "count": { "type": "int" } } },
+  "excelTemplateHint": "컬럼: 날짜 | 종목명 | 티커 | 시장 | 유형 | 수량 | 단가\n날짜: 2024.01.15  시장: KR / US  유형: 매수 / 매도",
+  "excelImportNothingAdded": "추가된 거래내역이 없습니다",
+
+  "settlementNotifHeader": "결산 알림",
+  "settlementNotifWeekly": "주간 결산",
+  "settlementNotifMonthly": "월간 결산",
+  "settlementNotifQuarterly": "분기 결산",
+  "settlementNotifYearly": "연간 결산",
+
+  "rebalancingThresholdLabel": "리밸런싱 임계값",
+  "rebalancingThresholdHint": "편차가 이 값 미만이면 거래 권고 안 함",
+
+  "rebalanceTransactionTitle": "리밸런싱 거래 확인",
+  "rebalanceTransactionDesc": "실제 거래 수량·가격으로 수정 후 완료를 누르세요.\n수량이 0이면 거래내역에 추가되지 않습니다."
 }

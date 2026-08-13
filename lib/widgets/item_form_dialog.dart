@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../main.dart';
 import '../models/portfolio.dart';
 import '../services/stock_search_service.dart';
+import 'custom_date_picker.dart';
 
 class ItemFormDialog extends StatefulWidget {
   final PortfolioItem? item;
@@ -26,16 +27,23 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
   late TextEditingController _searchCtl;
   late TextEditingController _nameCtl;
   late TextEditingController _priceCtl;
+  late TextEditingController _avgPriceCtl;
   late TextEditingController _weightCtl;
   late TextEditingController _sharesCtl;
   late bool _isCash;
   String _detectedMarket = 'KR';
   String _ticker = '';
+  DateTime _purchaseDate = DateTime.now();
+
+  final _avgPriceFocus = FocusNode();
+  final _weightFocus = FocusNode();
+  final _sharesFocus = FocusNode();
 
   List<StockSearchResult> _searchResults = [];
   bool _searching = false;
   bool _showResults = false;
   Timer? _debounce;
+  String? _errorText;
 
   String _uid() =>
       DateTime.now().millisecondsSinceEpoch.toRadixString(36) +
@@ -57,6 +65,8 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
     _ticker = item?.ticker ?? '';
     _priceCtl = TextEditingController(
         text: item != null && !item.isCash ? _cleanNum(item.currentPrice) : '');
+    _avgPriceCtl = TextEditingController(
+        text: item != null && !item.isCash && item.avgPrice > 0 ? _cleanNum(item.avgPrice) : '');
     _weightCtl = TextEditingController(
         text: item != null ? _cleanNum(item.targetWeight) : '');
     _sharesCtl = TextEditingController(
@@ -73,8 +83,12 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
     _searchCtl.dispose();
     _nameCtl.dispose();
     _priceCtl.dispose();
+    _avgPriceCtl.dispose();
     _weightCtl.dispose();
     _sharesCtl.dispose();
+    _avgPriceFocus.dispose();
+    _weightFocus.dispose();
+    _sharesFocus.dispose();
     super.dispose();
   }
 
@@ -121,15 +135,51 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
 
   void _save() {
     if (_nameCtl.text.trim().isEmpty) return;
+    final l10n = context.l10n;
+
+    final weight = double.tryParse(_weightCtl.text);
+    final shares = double.tryParse(_sharesCtl.text);
+    final price = _isCash ? 1.0 : double.tryParse(_priceCtl.text);
+
+    if (weight == null || weight < 0) {
+      setState(() => _errorText = l10n.validationNonNegative);
+      return;
+    }
+    if (shares == null || shares < 0) {
+      setState(() => _errorText = l10n.validationNonNegative);
+      return;
+    }
+    if (!_isCash && !widget.priceAuto && (price == null || price <= 0)) {
+      setState(() => _errorText = l10n.validationPositive);
+      return;
+    }
+
+    final avgPrice = _isCash ? 0.0 : (double.tryParse(_avgPriceCtl.text) ?? 0.0);
+    final isAdd = widget.item == null;
+
+    List<StockTransaction> transactions = widget.item?.transactions ?? [];
+    if (isAdd && !_isCash && shares > 0) {
+      transactions = [
+        StockTransaction(
+          id: _uid(),
+          date: _purchaseDate,
+          quantity: shares,
+          price: avgPrice,
+        ),
+      ];
+    }
+
     widget.onSave(PortfolioItem(
       id: widget.item?.id ?? _uid(),
       name: _nameCtl.text.trim(),
       ticker: _isCash ? '' : _ticker,
       market: _isCash ? 'CASH' : _detectedMarket,
       isCash: _isCash,
-      targetWeight: double.tryParse(_weightCtl.text) ?? 0,
-      shares: double.tryParse(_sharesCtl.text) ?? 0,
-      currentPrice: _isCash ? 1 : (double.tryParse(_priceCtl.text) ?? 0),
+      targetWeight: weight,
+      shares: shares,
+      currentPrice: _isCash ? 1.0 : (price ?? 0.0),
+      avgPrice: avgPrice < 0 ? 0.0 : avgPrice,
+      transactions: transactions,
     ));
     Navigator.pop(context);
   }
@@ -148,11 +198,17 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
           style: TextStyle(color: context.textPrimary)),
       content: SizedBox(
         width: double.maxFinite,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Flexible(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -347,21 +403,60 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
                     child: Text(l10n.autoUpdateHint,
                         style: TextStyle(fontSize: 12, color: Colors.blue[400])),
                   ),
+
+                _label(context, l10n.avgCost),
+                _textField(context, _avgPriceCtl, '0',
+                    suffix: priceSuffix, number: true,
+                    focusNode: _avgPriceFocus,
+                    textInputAction: TextInputAction.next,
+                    onSubmitted: () => _weightFocus.requestFocus()),
               ],
 
               _label(context, l10n.targetWeightLabel),
-              _textField(context, _weightCtl, '0', suffix: '%', number: true),
+              _textField(context, _weightCtl, '0', suffix: '%', number: true,
+                  focusNode: _weightFocus,
+                  textInputAction: TextInputAction.next,
+                  onSubmitted: () => _sharesFocus.requestFocus()),
+
+              if (!_isCash && widget.item == null) ...[
+                _label(context, l10n.purchaseDateLabel),
+                _datePicker(context),
+              ],
 
               _label(context, _isCash ? l10n.holdingsAmount : l10n.holdingsShares),
-              _textField(context, _sharesCtl, '0',
-                  suffix: _isCash
-                      ? (widget.currency == 'USD' ? l10n.unitUSD : l10n.unitKRW)
-                      : l10n.unitShares,
-                  number: true),
+              if (!_isCash && widget.item != null) ...[
+                _textField(context, _sharesCtl, '0',
+                    suffix: l10n.unitShares,
+                    number: true,
+                    enabled: false),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8, top: 2),
+                  child: Text(l10n.holdingsFromTransactions,
+                      style: TextStyle(fontSize: 12, color: Colors.blue[400])),
+                ),
+              ] else
+                _textField(context, _sharesCtl, '0',
+                    suffix: _isCash
+                        ? (widget.currency == 'USD' ? l10n.unitUSD : l10n.unitKRW)
+                        : l10n.unitShares,
+                    number: true,
+                    focusNode: _sharesFocus,
+                    textInputAction: TextInputAction.done),
             ],
           ),
         ),
       ),
+      if (_errorText != null)
+        Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Text(
+            _errorText!,
+            style: const TextStyle(fontSize: 12, color: Colors.red),
+          ),
+        ),
+    ],
+  ),
+),
       actions: [
         TextButton(
             onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
@@ -369,6 +464,39 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
             onPressed: _nameCtl.text.trim().isEmpty ? null : _save,
             child: Text(isEdit ? l10n.saveChanges : l10n.add)),
       ],
+    );
+  }
+
+  Widget _datePicker(BuildContext context) {
+    final fmt = '${_purchaseDate.year}.${_purchaseDate.month.toString().padLeft(2, '0')}.${_purchaseDate.day.toString().padLeft(2, '0')}';
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: InkWell(
+        onTap: () async {
+          final picked = await showCustomDatePicker(
+            context,
+            initialDate: _purchaseDate,
+            firstDate: DateTime(2000),
+            lastDate: DateTime.now(),
+          );
+          if (picked != null) setState(() => _purchaseDate = picked);
+        },
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          decoration: BoxDecoration(
+            color: context.fieldFill,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: context.borderColor),
+          ),
+          child: Row(children: [
+            Icon(Icons.calendar_today_outlined, size: 16, color: context.textHint),
+            const SizedBox(width: 8),
+            Text(fmt, style: TextStyle(fontSize: 15, color: context.textPrimary)),
+          ]),
+        ),
+      ),
     );
   }
 
@@ -382,13 +510,16 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
 
   Widget _textField(
       BuildContext context, TextEditingController ctl, String hint,
-      {String? suffix, bool number = false, bool enabled = true}) {
+      {String? suffix, bool number = false, bool enabled = true,
+      FocusNode? focusNode, TextInputAction? textInputAction, VoidCallback? onSubmitted}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
       child: TextField(
         controller: ctl,
         enabled: enabled,
+        focusNode: focusNode,
         keyboardType: number ? TextInputType.number : TextInputType.text,
+        textInputAction: textInputAction,
         style: TextStyle(
             color: enabled ? context.textPrimary : context.textSecondary),
         decoration: InputDecoration(
@@ -409,6 +540,7 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
           isDense: true,
         ),
         onChanged: (_) => setState(() {}),
+        onSubmitted: onSubmitted != null ? (_) => onSubmitted() : null,
       ),
     );
   }

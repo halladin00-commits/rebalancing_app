@@ -1,12 +1,15 @@
+import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
-import 'package:permission_handler/permission_handler.dart';
 import '../main.dart';
 import '../models/portfolio.dart';
+import '../widgets/app_logo.dart';
 import '../widgets/bottom_banner_ad.dart';
 
 const _kDefaultColors = [
@@ -91,6 +94,7 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
   bool _showCurrent = false;
   bool _noticeNoData = false;
   bool _saving = false;
+  bool _sharing = false;
   final ScreenshotController _screenshotCtrl = ScreenshotController();
 
   @override
@@ -147,15 +151,6 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
     final l10n = context.l10n;
     setState(() => _saving = true);
     try {
-      var status = await Permission.photos.request();
-      if (!status.isGranted) {
-        status = await Permission.storage.request();
-        if (!status.isGranted && mounted) {
-          _showToast(l10n.savePermissionRequired, Colors.red);
-          setState(() => _saving = false);
-          return;
-        }
-      }
       final Uint8List? imageBytes = await _screenshotCtrl.capture(pixelRatio: 3.0);
       if (imageBytes == null) {
         if (mounted) _showToast(l10n.captureFailed, Colors.red);
@@ -175,6 +170,29 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
       if (mounted) _showToast(l10n.saveFailedError(e.toString()), Colors.red);
     } finally {
       if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _shareImage(Portfolio pf) async {
+    if (_sharing) return;
+    final l10n = context.l10n;
+    setState(() => _sharing = true);
+    try {
+      final Uint8List? imageBytes = await _screenshotCtrl.capture(pixelRatio: 3.0);
+      if (imageBytes == null) {
+        if (mounted) _showToast(l10n.captureFailed, Colors.red);
+        return;
+      }
+      final dir = await getTemporaryDirectory();
+      final file = File(
+        '${dir.path}/rebalancing_${DateTime.now().millisecondsSinceEpoch}.png',
+      );
+      await file.writeAsBytes(imageBytes);
+      await Share.shareXFiles([XFile(file.path)]);
+    } catch (e) {
+      if (mounted) _showToast(l10n.saveFailedError(e.toString()), Colors.red);
+    } finally {
+      if (mounted) setState(() => _sharing = false);
     }
   }
 
@@ -367,6 +385,16 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
                   onPressed: _enterEdit,
                 ),
               IconButton(
+                icon: _sharing
+                    ? const SizedBox(
+                        width: 20, height: 20,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : Icon(Icons.share_outlined,
+                        color: _editMode ? Colors.grey[600] : Colors.white),
+                tooltip: _editMode ? l10n.editCompleteBeforeSave : l10n.shareImage,
+                onPressed: _editMode ? null : () => _shareImage(pf),
+              ),
+              IconButton(
                 icon: _saving
                     ? const SizedBox(
                         width: 20, height: 20,
@@ -458,6 +486,13 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
                     _editMode
                         ? _buildReorderableLegend(context, pf, displayItems, displayTotal)
                         : _buildStaticLegend(context, pf, displayItems, displayTotal),
+                    const SizedBox(height: 14),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        AppLogo(iconSize: 14, textColor: context.textSecondary),
+                      ],
+                    ),
                   ]),
                 ),
               ),

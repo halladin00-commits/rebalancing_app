@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
 import '../models/portfolio.dart';
+import 'transaction_bottom_sheet.dart';
 
 class ItemBottomSheet extends StatefulWidget {
   final PortfolioItem item;
@@ -17,8 +18,14 @@ class ItemBottomSheet extends StatefulWidget {
 class _ItemBottomSheetState extends State<ItemBottomSheet> {
   bool _editMode = false;
   late TextEditingController _priceCtl;
+  late TextEditingController _avgPriceCtl;
   late TextEditingController _sharesCtl;
   late TextEditingController _weightCtl;
+
+  final _priceFocus = FocusNode();
+  final _avgPriceFocus = FocusNode();
+  final _sharesFocus = FocusNode();
+  final _weightFocus = FocusNode();
 
   @override
   void initState() {
@@ -27,6 +34,8 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
         text: widget.item.currentPrice > 0
             ? _cleanNum(widget.item.currentPrice)
             : '');
+    _avgPriceCtl = TextEditingController(
+        text: widget.item.avgPrice > 0 ? _cleanNum(widget.item.avgPrice) : '');
     _sharesCtl = TextEditingController(text: _cleanNum(widget.item.shares));
     _weightCtl =
         TextEditingController(text: _cleanNum(widget.item.targetWeight));
@@ -35,8 +44,13 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
   @override
   void dispose() {
     _priceCtl.dispose();
+    _avgPriceCtl.dispose();
     _sharesCtl.dispose();
     _weightCtl.dispose();
+    _priceFocus.dispose();
+    _avgPriceFocus.dispose();
+    _sharesFocus.dispose();
+    _weightFocus.dispose();
     super.dispose();
   }
 
@@ -61,10 +75,12 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
 
   void _save() {
     final provider = context.read<PortfolioProvider>();
+    final parsedAvg = double.tryParse(_avgPriceCtl.text) ?? 0.0;
     final newItem = widget.item.copyWith(
       currentPrice: widget.portfolio.priceAuto
           ? widget.item.currentPrice
           : (double.tryParse(_priceCtl.text) ?? widget.item.currentPrice),
+      avgPrice: parsedAvg < 0 ? 0.0 : parsedAvg,
       shares: double.tryParse(_sharesCtl.text) ?? widget.item.shares,
       targetWeight: double.tryParse(_weightCtl.text) ?? widget.item.targetWeight,
     );
@@ -91,7 +107,11 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
           '${delta > 0 ? "${l10n.buy} " : "${l10n.sell} "}${item.isCash ? _fmt(delta.abs().toDouble(), portfolio.currency) : "${delta.abs()}${l10n.unitShares}"}';
     }
 
-    return DraggableScrollableSheet(
+    return AnimatedPadding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      duration: const Duration(milliseconds: 150),
+      curve: Curves.easeOut,
+      child: DraggableScrollableSheet(
       initialChildSize: 0.55,
       minChildSize: 0.3,
       maxChildSize: 0.92,
@@ -137,7 +157,7 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
               Expanded(
                 child: SingleChildScrollView(
                   controller: scrollController,
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                  padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).viewInsets.bottom + 8),
                   child: _editMode
                       ? _buildEditContent(context, item, portfolio)
                       : _buildViewContent(context, item, portfolio, tradeText),
@@ -156,6 +176,7 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
           ),
         );
       },
+      ),
     );
   }
 
@@ -163,11 +184,38 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
       Portfolio portfolio, String tradeText) {
     final l10n = context.l10n;
     final r = widget.rb?.results.where((x) => x.id == item.id).firstOrNull;
+
+    // 수익률 계산
+    final hasPnl = !item.isCash && item.avgPrice > 0 && item.currentPrice > 0;
+    double pnl = 0;
+    double returnRate = 0;
+    if (hasPnl) {
+      pnl = (item.currentPrice - item.avgPrice) * item.shares;
+      if (item.market == 'US' && portfolio.currency == 'KRW') pnl *= portfolio.exchangeRate;
+      if (item.market == 'KR' && portfolio.currency == 'USD') pnl /= portfolio.exchangeRate;
+      returnRate = (item.currentPrice - item.avgPrice) / item.avgPrice * 100;
+    }
+    final pnlColor = pnl >= 0 ? const Color(0xFF16A34A) : const Color(0xFFDC2626);
+    final sign = pnl >= 0 ? '+' : '';
+
+    // 평가금액 계산 (포트폴리오 기준통화)
+    double evalValue = 0;
+    if (!item.isCash && item.currentPrice > 0 && item.shares > 0) {
+      evalValue = item.currentPrice * item.shares;
+      if (item.market == 'US' && portfolio.currency == 'KRW') {
+        evalValue *= portfolio.exchangeRate;
+      } else if (item.market == 'KR' && portfolio.currency == 'USD') {
+        evalValue /= portfolio.exchangeRate;
+      }
+    }
+
     return Column(children: [
       _infoRow(context, l10n.currentPriceLabel,
           item.isCash ? '—' : _fmtPrice(item.currentPrice, item.market)),
       _infoRow(context, l10n.holdingsLabel,
           item.isCash ? _fmt(item.shares, portfolio.currency) : '${item.shares.toInt()}${l10n.unitShares}'),
+      if (!item.isCash && evalValue > 0)
+        _infoRow(context, l10n.evaluationAmount, _fmt(evalValue, portfolio.currency)),
       _infoRow(context, l10n.targetWeightRow, _pct(item.targetWeight)),
       _infoRow(context, l10n.currentWeightRow, r != null ? _pct(r.currentWeight) : '—'),
       _infoRow(context, l10n.finalWeightRow, r != null ? _pct(r.finalWeight) : '—'),
@@ -182,6 +230,39 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
           child: Text(
               l10n.wonEquivalent(_fmt(item.currentPrice * portfolio.exchangeRate, 'KRW')),
               style: TextStyle(fontSize: 13, color: context.textSecondary)),
+        ),
+      ],
+      if (hasPnl) ...[
+        const SizedBox(height: 10),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+              color: pnlColor.withValues(alpha: 0.07),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: pnlColor.withValues(alpha: 0.25))),
+          child: Column(children: [
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Text(l10n.avgCost,
+                  style: TextStyle(fontSize: 13, color: context.textSecondary)),
+              Text(_fmtPrice(item.avgPrice, item.market),
+                  style: TextStyle(fontSize: 13, color: context.textPrimary)),
+            ]),
+            const SizedBox(height: 4),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Text(l10n.profitLoss,
+                  style: TextStyle(fontSize: 13, color: context.textSecondary)),
+              Text('$sign${_fmt(pnl, portfolio.currency)}',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: pnlColor)),
+            ]),
+            const SizedBox(height: 4),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Text(l10n.returnRate,
+                  style: TextStyle(fontSize: 13, color: context.textSecondary)),
+              Text('$sign${returnRate.toStringAsFixed(2)}%',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: pnlColor)),
+            ]),
+          ]),
         ),
       ],
     ]);
@@ -200,6 +281,9 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
           hint: portfolio.priceAuto ? l10n.autoUpdate : '0',
           suffix: priceSuffix,
           enabled: priceEditable,
+          focusNode: priceEditable ? _priceFocus : null,
+          textInputAction: priceEditable ? TextInputAction.next : null,
+          onSubmitted: priceEditable ? () => _avgPriceFocus.requestFocus() : null,
         ),
         if (portfolio.priceAuto)
           Padding(
@@ -207,15 +291,32 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
             child: Text(l10n.autoPriceUpdateInfo,
                 style: TextStyle(fontSize: 11, color: Colors.blue[400])),
           ),
+        _editLabel(context, l10n.avgCost),
+        _editField(context, _avgPriceCtl, hint: '0', suffix: priceSuffix,
+            focusNode: _avgPriceFocus,
+            textInputAction: TextInputAction.next,
+            onSubmitted: () => _sharesFocus.requestFocus()),
       ],
       _editLabel(context, item.isCash ? l10n.holdingsAmount : l10n.holdingsShares),
       _editField(context, _sharesCtl,
           hint: '0',
           suffix: item.isCash
               ? (portfolio.currency == 'USD' ? l10n.unitUSD : l10n.unitKRW)
-              : l10n.unitShares),
+              : l10n.unitShares,
+          enabled: item.isCash,
+          focusNode: item.isCash ? _sharesFocus : null,
+          textInputAction: item.isCash ? TextInputAction.next : null,
+          onSubmitted: item.isCash ? () => _weightFocus.requestFocus() : null),
+      if (!item.isCash)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8, top: 2),
+          child: Text(l10n.holdingsFromTransactions,
+              style: TextStyle(fontSize: 12, color: Colors.blue[400])),
+        ),
       _editLabel(context, l10n.targetWeightLabel),
-      _editField(context, _weightCtl, hint: '0', suffix: '%'),
+      _editField(context, _weightCtl, hint: '0', suffix: '%',
+          focusNode: _weightFocus,
+          textInputAction: TextInputAction.done),
     ]);
   }
 
@@ -244,6 +345,34 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
           ),
         ),
       ),
+      if (!item.isCash) ...[
+        const SizedBox(width: 10),
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (_) => TransactionBottomSheet(
+                    item: item, portfolio: portfolio),
+              );
+            },
+            icon: Icon(Icons.receipt_long_outlined, size: 16,
+                color: context.textSecondary),
+            label: Text(l10n.transactionHistory,
+                style: TextStyle(
+                    color: context.textSecondary,
+                    fontWeight: FontWeight.w600)),
+            style: OutlinedButton.styleFrom(
+              side: BorderSide(color: context.borderColor),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+            ),
+          ),
+        ),
+      ],
       const SizedBox(width: 10),
       Expanded(
         child: OutlinedButton(
@@ -328,13 +457,16 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
       );
 
   Widget _editField(BuildContext context, TextEditingController ctl,
-      {required String hint, String? suffix, bool enabled = true}) {
+      {required String hint, String? suffix, bool enabled = true,
+      FocusNode? focusNode, TextInputAction? textInputAction, VoidCallback? onSubmitted}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
       child: TextField(
         controller: ctl,
         enabled: enabled,
+        focusNode: focusNode,
         keyboardType: TextInputType.number,
+        textInputAction: textInputAction,
         style: TextStyle(
             color: enabled ? context.textPrimary : context.textSecondary),
         decoration: InputDecoration(
@@ -353,6 +485,7 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
           contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           isDense: true,
         ),
+        onSubmitted: onSubmitted != null ? (_) => onSubmitted() : null,
       ),
     );
   }

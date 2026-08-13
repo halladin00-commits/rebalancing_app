@@ -57,7 +57,7 @@ class Rebalancer {
     final stocks = data.where((d) => !d.item.isCash).toList()..sort((a, b) => b.remainder.compareTo(a.remainder));
     double allocated = data.fold(0.0, (sum, d) => d.item.isCash ? sum + d.baseShares : sum + d.baseShares * d.price);
     double budget = total - allocated;
-    for (final d in stocks) { if (budget >= d.price) { d.baseShares += 1; budget -= d.price; } }
+    for (final d in stocks) { if (d.item.targetWeight > 0 && budget >= d.price) { d.baseShares += 1; budget -= d.price; } }
 
     double commission = data.fold(0.0, (sum, d) => d.item.isCash ? sum : sum + (d.baseShares - d.item.shares).abs() * d.price * cr / 100);
     allocated = data.fold(0.0, (sum, d) => d.item.isCash ? sum + d.baseShares : sum + d.baseShares * d.price);

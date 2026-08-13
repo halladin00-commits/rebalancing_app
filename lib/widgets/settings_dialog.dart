@@ -23,7 +23,8 @@ class _SettingsDialogState extends State<SettingsDialog> {
   late bool _exAuto;
   late TextEditingController _exRateCtl;
   late bool _prAuto;
-  late bool _compactAmount;
+  late TextEditingController _thresholdCtl;
+  String? _errorText;
 
   @override
   void initState() {
@@ -35,25 +36,42 @@ class _SettingsDialogState extends State<SettingsDialog> {
     _exAuto = pf.exchangeAuto;
     _exRateCtl = TextEditingController(text: pf.exchangeRate.toString());
     _prAuto = pf.priceAuto;
-    _compactAmount = pf.compactAmount;
+    _thresholdCtl = TextEditingController(text: pf.rebalancingThreshold.toString());
   }
 
   @override
   void dispose() {
     _commRateCtl.dispose();
     _exRateCtl.dispose();
+    _thresholdCtl.dispose();
     super.dispose();
   }
 
   void _save() {
+    final l10n = context.l10n;
+
+    final commRate = double.tryParse(_commRateCtl.text);
+    if (_commEnabled && (commRate == null || commRate < 0)) {
+      setState(() => _errorText = l10n.validationNonNegative);
+      return;
+    }
+
+    if (!_exAuto) {
+      final exRate = double.tryParse(_exRateCtl.text);
+      if (exRate == null || exRate <= 0) {
+        setState(() => _errorText = l10n.validationExchangeRatePositive);
+        return;
+      }
+    }
+
     widget.onSave({
       'currency': _currency,
       'commissionEnabled': _commEnabled,
-      'commissionRate': double.tryParse(_commRateCtl.text) ?? 0,
+      'commissionRate': commRate ?? 0,
       'exchangeAuto': _exAuto,
       'exchangeRate': double.tryParse(_exRateCtl.text) ?? 0,
       'priceAuto': _prAuto,
-      'compactAmount': _compactAmount,
+      'rebalancingThreshold': double.tryParse(_thresholdCtl.text) ?? 0.0,
     });
     Navigator.pop(context);
   }
@@ -75,7 +93,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
               // ── 기준 통화 ──
               _sectionHeader(context, l10n.baseCurrency),
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                 child: Container(
                   decoration: BoxDecoration(
                     color: context.rowBg,
@@ -91,29 +109,21 @@ class _SettingsDialogState extends State<SettingsDialog> {
                 ),
               ),
 
-              // ── 금액 표시 ──
-              _sectionHeader(context, l10n.amountDisplay),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-                child: Text(l10n.amountDisplayHint,
-                    style: TextStyle(fontSize: 12, color: context.textSecondary)),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: context.rowBg,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: context.borderColor),
-                  ),
-                  child: Row(children: [
-                    _segBtn(context, l10n.fullDisplay, !_compactAmount,
-                        () => setState(() => _compactAmount = false)),
-                    _segBtn(context, l10n.compactDisplay, _compactAmount,
-                        () => setState(() => _compactAmount = true)),
-                  ]),
-                ),
-              ),
+              // ── 주가 ──
+              _sectionHeader(context, l10n.stockPriceSetting),
+              _toggleRow(context, l10n.autoRealtime, _prAuto,
+                  (v) => setState(() => _prAuto = v)),
+
+              // ── 환율 ──
+              _sectionHeader(context, l10n.exchangeRateSetting),
+              _toggleRow(context, l10n.autoRealtime, _exAuto,
+                  (v) => setState(() => _exAuto = v)),
+              if (!_exAuto)
+                _inputField(context, l10n.exchangeRateInput, _exRateCtl, l10n.unitKRW),
+
+              // ── 리밸런싱 임계값 ──
+              _sectionHeader(context, l10n.rebalancingThresholdLabel),
+              _inputField(context, l10n.rebalancingThresholdHint, _thresholdCtl, '%'),
 
               // ── 거래 수수료 ──
               _sectionHeader(context, l10n.tradingFee),
@@ -122,21 +132,14 @@ class _SettingsDialogState extends State<SettingsDialog> {
               if (_commEnabled)
                 _inputField(context, l10n.feeRate, _commRateCtl, '%'),
 
-              // ── 환율 ──
-              _sectionHeader(context, l10n.exchangeRateSetting),
-              _toggleRow(context, l10n.autoRealtime, _exAuto,
-                  (v) => setState(() => _exAuto = v)),
-              if (!_exAuto)
-                _inputField(context, l10n.exchangeRateInput, _exRateCtl, l10n.unitKRW)
-              else
-                _hintText(context, l10n.autoRateHint),
-
-              // ── 주가 ──
-              _sectionHeader(context, l10n.stockPriceSetting),
-              _toggleRow(context, l10n.autoRealtime, _prAuto,
-                  (v) => setState(() => _prAuto = v)),
-              if (_prAuto)
-                _hintText(context, l10n.autoPriceHint),
+              if (_errorText != null)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+                  child: Text(
+                    _errorText!,
+                    style: const TextStyle(fontSize: 12, color: Colors.red),
+                  ),
+                ),
               const SizedBox(height: 8),
             ],
           ),
@@ -215,14 +218,6 @@ class _SettingsDialogState extends State<SettingsDialog> {
           ),
         ),
       ]),
-    );
-  }
-
-  Widget _hintText(BuildContext context, String text) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 2, 16, 8),
-      child: Text(text,
-          style: const TextStyle(fontSize: 12, color: Color(0xFF3B82F6))),
     );
   }
 

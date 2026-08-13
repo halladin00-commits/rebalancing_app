@@ -6,7 +6,9 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'models/portfolio.dart';
 import 'services/storage_service.dart';
 import 'screens/portfolio_list_screen.dart';
+import 'screens/onboarding_screen.dart';
 import 'services/stock_search_service.dart';
+import 'services/notification_service.dart';
 import 'widgets/disclaimer_dialog.dart';
 import 'widgets/app_logo.dart';
 import 'l10n/app_localizations.dart';
@@ -15,12 +17,15 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
   MobileAds.instance.initialize();
   StockSearchService.initialize();
+  NotificationService.initialize();
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => PortfolioProvider()),
         ChangeNotifierProvider(create: (_) => ThemeNotifier()),
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
+        ChangeNotifierProvider(create: (_) => PnlColorNotifier()),
+        ChangeNotifierProvider(create: (_) => MainCurrencyNotifier()),
       ],
       child: const RebalancingApp(),
     ),
@@ -103,6 +108,63 @@ class ThemeNotifier extends ChangeNotifier {
   void toggle(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     setMode(isDark ? ThemeMode.light : ThemeMode.dark);
+  }
+}
+
+// ── 손익 색상 관리 ──
+
+enum PnlColorScheme { greenRed, redBlue }
+
+class PnlColorNotifier extends ChangeNotifier {
+  PnlColorScheme _scheme = PnlColorScheme.greenRed;
+  PnlColorScheme get scheme => _scheme;
+
+  PnlColorNotifier() { _load(); }
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getString('pnlColorScheme') == 'redBlue') {
+      _scheme = PnlColorScheme.redBlue;
+      notifyListeners();
+    }
+  }
+
+  Future<void> setScheme(PnlColorScheme scheme) async {
+    _scheme = scheme;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('pnlColorScheme', scheme == PnlColorScheme.redBlue ? 'redBlue' : 'greenRed');
+    notifyListeners();
+  }
+
+  Color get positiveColor => _scheme == PnlColorScheme.redBlue
+      ? const Color(0xFFDC2626)
+      : const Color(0xFF16A34A);
+
+  Color get negativeColor => _scheme == PnlColorScheme.redBlue
+      ? const Color(0xFF2563EB)
+      : const Color(0xFFDC2626);
+}
+
+// ── 메인페이지 기준 통화 관리 ──
+
+class MainCurrencyNotifier extends ChangeNotifier {
+  static const _key = 'main_currency';
+  String _currency = 'KRW';
+  String get currency => _currency;
+
+  MainCurrencyNotifier() { _load(); }
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    _currency = prefs.getString(_key) ?? 'KRW';
+    notifyListeners();
+  }
+
+  Future<void> setCurrency(String c) async {
+    _currency = c;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_key, c);
   }
 }
 
@@ -267,6 +329,7 @@ class _AppEntryPoint extends StatefulWidget {
 
 class _AppEntryPointState extends State<_AppEntryPoint> {
   bool _timerDone = false;
+  bool? _onboardingDone; // null = 아직 로딩 중
 
   @override
   void initState() {
@@ -275,17 +338,29 @@ class _AppEntryPointState extends State<_AppEntryPoint> {
       if (!mounted) return;
       setState(() => _timerDone = true);
     });
+    _checkOnboarding();
+  }
+
+  Future<void> _checkOnboarding() async {
+    final prefs = await SharedPreferences.getInstance();
+    final done = prefs.getBool('onboarding_done') ?? false;
+    if (mounted) setState(() => _onboardingDone = done);
   }
 
   @override
   Widget build(BuildContext context) {
     final loaded = context.watch<PortfolioProvider>().loaded;
 
-    // 타이머 완료 AND 데이터 로드 완료 둘 다 충족돼야 메인 화면으로 전환
-    if (!_timerDone || !loaded) {
+    if (!_timerDone || !loaded || _onboardingDone == null) {
       return const Scaffold(
         backgroundColor: Color(0xFF0F172A),
         body: Center(child: AppLogo(iconSize: 38)),
+      );
+    }
+
+    if (!_onboardingDone!) {
+      return OnboardingScreen(
+        onComplete: () => setState(() => _onboardingDone = true),
       );
     }
 
@@ -345,6 +420,11 @@ class PortfolioProvider extends ChangeNotifier {
     await _save();
   }
 
+  Future<void> replaceAll(List<Portfolio> portfolios) async {
+    _portfolios = portfolios;
+    await _save();
+  }
+
   Portfolio? getPortfolio(String id) {
     try {
       return _portfolios.firstWhere((p) => p.id == id);
@@ -380,6 +460,57 @@ class PortfolioProvider extends ChangeNotifier {
     }
   }
 
+  // ── 거래 내역 관리 ──
+
+  static double _recalcAvgPrice(List<StockTransaction> txs) {
+    double totalCost = 0;
+    double totalQty = 0;
+    for (final t in txs) {
+      if (t.quantity > 0) {
+        totalCost += t.quantity * t.price;
+        totalQty += t.quantity;
+      }
+    }
+    return totalQty > 0 ? totalCost / totalQty : 0;
+  }
+
+  Future<void> upsertTransaction(
+      String pfId, String itemId, StockTransaction tx) async {
+    final pf = getPortfolio(pfId);
+    if (pf == null) return;
+    final idx = pf.items.indexWhere((i) => i.id == itemId);
+    if (idx == -1) return;
+    final item = pf.items[idx];
+    final txs = List<StockTransaction>.from(item.transactions);
+    final existing = txs.indexWhere((t) => t.id == tx.id);
+    if (existing != -1) {
+      txs[existing] = tx;
+    } else {
+      txs.add(tx);
+    }
+    txs.sort((a, b) => a.date.compareTo(b.date));
+    final newShares = txs.fold(0.0, (s, t) => s + t.quantity);
+    final newAvg = _recalcAvgPrice(txs);
+    pf.items[idx] = item.copyWith(
+        transactions: txs, shares: newShares, avgPrice: newAvg);
+    await _save();
+  }
+
+  Future<void> deleteTransaction(
+      String pfId, String itemId, String txId) async {
+    final pf = getPortfolio(pfId);
+    if (pf == null) return;
+    final idx = pf.items.indexWhere((i) => i.id == itemId);
+    if (idx == -1) return;
+    final item = pf.items[idx];
+    final txs = item.transactions.where((t) => t.id != txId).toList();
+    final newShares = txs.fold(0.0, (s, t) => s + t.quantity);
+    final newAvg = _recalcAvgPrice(txs);
+    pf.items[idx] = item.copyWith(
+        transactions: txs, shares: newShares, avgPrice: newAvg);
+    await _save();
+  }
+
   Future<void> reorderItems(String pfId, List<PortfolioItem> newOrder) async {
     final pf = getPortfolio(pfId);
     if (pf != null) {
@@ -396,7 +527,7 @@ class PortfolioProvider extends ChangeNotifier {
     double? exchangeRate,
     bool? exchangeAuto,
     bool? priceAuto,
-    bool? compactAmount,
+    double? rebalancingThreshold,
   }) async {
     final pf = getPortfolio(pfId);
     if (pf != null) {
@@ -406,7 +537,7 @@ class PortfolioProvider extends ChangeNotifier {
       if (exchangeRate != null) pf.exchangeRate = exchangeRate;
       if (exchangeAuto != null) pf.exchangeAuto = exchangeAuto;
       if (priceAuto != null) pf.priceAuto = priceAuto;
-      if (compactAmount != null) pf.compactAmount = compactAmount;
+      if (rebalancingThreshold != null) pf.rebalancingThreshold = rebalancingThreshold;
       await _save();
     }
   }
@@ -429,10 +560,29 @@ class PortfolioProvider extends ChangeNotifier {
       for (final r in results) {
         final item = pf.items.firstWhere((i) => i.id == r['id']);
         item.shares = (r['newShares'] as num).toDouble();
+        if (r['newAvgPrice'] != null) {
+          item.avgPrice = (r['newAvgPrice'] as num).toDouble();
+        }
       }
       pf.additionalInvestment = residualCash;
       await _save();
     }
+  }
+
+  Future<void> updateCashAndResidual(
+    String pfId,
+    List<Map<String, dynamic>> cashItems,
+    double residualCash,
+  ) async {
+    final pf = getPortfolio(pfId);
+    if (pf == null) return;
+    for (final r in cashItems) {
+      final idx = pf.items.indexWhere((i) => i.id == r['id']);
+      if (idx == -1) continue;
+      pf.items[idx].shares = (r['newShares'] as num).toDouble();
+    }
+    pf.additionalInvestment = residualCash;
+    await _save();
   }
 
   Future<void> updateLastRefreshed(String pfId) async {

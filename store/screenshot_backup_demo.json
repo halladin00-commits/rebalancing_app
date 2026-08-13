@@ -1,0 +1,193 @@
+[
+  {
+    "id": "demo_001",
+    "name": "위탁계좌",
+    "emoji": "📈",
+    "currency": "KRW",
+    "commissionRate": 0.015,
+    "commissionEnabled": false,
+    "exchangeRate": 1430.0,
+    "exchangeAuto": true,
+    "priceAuto": true,
+    "additionalInvestment": 0.0,
+    "lastUpdated": null,
+    "graphTitle": "",
+    "graphColors": {},
+    "graphNames": {},
+    "graphOrder": [],
+    "items": [
+      {
+        "id": "item_001",
+        "name": "KODEX 200",
+        "ticker": "069500",
+        "market": "KR",
+        "isCash": false,
+        "targetWeight": 40.0,
+        "shares": 160.0,
+        "currentPrice": 0.0,
+        "avgPrice": 101875.0,
+        "previousClose": 0.0,
+        "createdAt": "2026-01-15",
+        "transactions": [
+          {
+            "id": "tx_001a",
+            "date": 1768435200000,
+            "quantity": 150.0,
+            "price": 100000.0
+          },
+          {
+            "id": "tx_001b",
+            "date": 1778371200000,
+            "quantity": 10.0,
+            "price": 113000.0
+          }
+        ]
+      },
+      {
+        "id": "item_002",
+        "name": "삼성전자",
+        "ticker": "005930",
+        "market": "KR",
+        "isCash": false,
+        "targetWeight": 30.0,
+        "shares": 45.0,
+        "currentPrice": 0.0,
+        "avgPrice": 232000.0,
+        "previousClose": 0.0,
+        "createdAt": "2026-02-10",
+        "transactions": [
+          {
+            "id": "tx_002a",
+            "date": 1770681600000,
+            "quantity": 45.0,
+            "price": 232000.0
+          }
+        ]
+      },
+      {
+        "id": "item_003",
+        "name": "SK하이닉스",
+        "ticker": "000660",
+        "market": "KR",
+        "isCash": false,
+        "targetWeight": 30.0,
+        "shares": 10.0,
+        "currentPrice": 0.0,
+        "avgPrice": 1650000.0,
+        "previousClose": 0.0,
+        "createdAt": "2026-03-05",
+        "transactions": [
+          {
+            "id": "tx_003a",
+            "date": 1772668800000,
+            "quantity": 10.0,
+            "price": 1650000.0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "demo_002",
+    "name": "ISA계좌",
+    "emoji": "💰",
+    "currency": "KRW",
+    "commissionRate": 0.015,
+    "commissionEnabled": false,
+    "exchangeRate": 1430.0,
+    "exchangeAuto": true,
+    "priceAuto": true,
+    "additionalInvestment": 0.0,
+    "lastUpdated": null,
+    "graphTitle": "",
+    "graphColors": {},
+    "graphNames": {},
+    "graphOrder": [],
+    "items": [
+      {
+        "id": "item_011",
+        "name": "SOL 미국S&P500",
+        "ticker": "433330",
+        "market": "KR",
+        "isCash": false,
+        "targetWeight": 40.0,
+        "shares": 200.0,
+        "currentPrice": 0.0,
+        "avgPrice": 14200.0,
+        "previousClose": 0.0,
+        "createdAt": "2026-01-10",
+        "transactions": [
+          {
+            "id": "tx_011a",
+            "date": 1768003200000,
+            "quantity": 200.0,
+            "price": 14200.0
+          }
+        ]
+      },
+      {
+        "id": "item_012",
+        "name": "TIGER 미국나스닥100",
+        "ticker": "133690",
+        "market": "KR",
+        "isCash": false,
+        "targetWeight": 35.0,
+        "shares": 80.0,
+        "currentPrice": 0.0,
+        "avgPrice": 103500.0,
+        "previousClose": 0.0,
+        "createdAt": "2026-01-10",
+        "transactions": [
+          {
+            "id": "tx_012a",
+            "date": 1768003200000,
+            "quantity": 80.0,
+            "price": 103500.0
+          }
+        ]
+      },
+      {
+        "id": "item_013",
+        "name": "KODEX 골드선물(H)",
+        "ticker": "132030",
+        "market": "KR",
+        "isCash": false,
+        "targetWeight": 15.0,
+        "shares": 50.0,
+        "currentPrice": 0.0,
+        "avgPrice": 17800.0,
+        "previousClose": 0.0,
+        "createdAt": "2026-01-10",
+        "transactions": [
+          {
+            "id": "tx_013a",
+            "date": 1768003200000,
+            "quantity": 50.0,
+            "price": 17800.0
+          }
+        ]
+      },
+      {
+        "id": "item_014",
+        "name": "TIGER 미국채10년선물",
+        "ticker": "305080",
+        "market": "KR",
+        "isCash": false,
+        "targetWeight": 10.0,
+        "shares": 100.0,
+        "currentPrice": 0.0,
+        "avgPrice": 9850.0,
+        "previousClose": 0.0,
+        "createdAt": "2026-01-10",
+        "transactions": [
+          {
+            "id": "tx_014a",
+            "date": 1768003200000,
+            "quantity": 100.0,
+            "price": 9850.0
+          }
+        ]
+      }
+    ]
+  }
+]

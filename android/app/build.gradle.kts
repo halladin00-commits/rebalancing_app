@@ -22,6 +22,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
@@ -30,7 +31,7 @@ android {
 
     defaultConfig {
         applicationId = "com.xaxavoo.rebalancing"
-        minSdk = 23                      // google_mobile_ads 7.x 요구사항
+        minSdk = flutter.minSdkVersion                      // google_mobile_ads 7.x 요구사항
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -63,6 +64,10 @@ android {
             )
         }
     }
+}
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
 
 flutter {

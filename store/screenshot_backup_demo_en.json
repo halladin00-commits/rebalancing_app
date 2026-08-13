@@ -1,0 +1,193 @@
+[
+  {
+    "id": "demo_en_001",
+    "name": "Brokerage Account",
+    "emoji": "📈",
+    "currency": "USD",
+    "commissionRate": 0.015,
+    "commissionEnabled": false,
+    "exchangeRate": 1430.0,
+    "exchangeAuto": true,
+    "priceAuto": true,
+    "additionalInvestment": 0.0,
+    "lastUpdated": null,
+    "graphTitle": "",
+    "graphColors": {},
+    "graphNames": {},
+    "graphOrder": [],
+    "items": [
+      {
+        "id": "item_en_001",
+        "name": "Vanguard S&P 500 ETF",
+        "ticker": "VOO",
+        "market": "US",
+        "isCash": false,
+        "targetWeight": 40.0,
+        "shares": 100.0,
+        "currentPrice": 0.0,
+        "avgPrice": 580.0,
+        "previousClose": 0.0,
+        "createdAt": "2026-01-15",
+        "transactions": [
+          {
+            "id": "tx_en_001a",
+            "date": 1768435200000,
+            "quantity": 77.0,
+            "price": 548.0
+          },
+          {
+            "id": "tx_en_001b",
+            "date": 1772668800000,
+            "quantity": 23.0,
+            "price": 645.0
+          }
+        ]
+      },
+      {
+        "id": "item_en_002",
+        "name": "NVIDIA Corporation",
+        "ticker": "NVDA",
+        "market": "US",
+        "isCash": false,
+        "targetWeight": 30.0,
+        "shares": 300.0,
+        "currentPrice": 0.0,
+        "avgPrice": 135.0,
+        "previousClose": 0.0,
+        "createdAt": "2026-01-15",
+        "transactions": [
+          {
+            "id": "tx_en_002a",
+            "date": 1768435200000,
+            "quantity": 300.0,
+            "price": 135.0
+          }
+        ]
+      },
+      {
+        "id": "item_en_003",
+        "name": "Tesla, Inc.",
+        "ticker": "TSLA",
+        "market": "US",
+        "isCash": false,
+        "targetWeight": 30.0,
+        "shares": 200.0,
+        "currentPrice": 0.0,
+        "avgPrice": 315.0,
+        "previousClose": 0.0,
+        "createdAt": "2026-02-10",
+        "transactions": [
+          {
+            "id": "tx_en_003a",
+            "date": 1770681600000,
+            "quantity": 200.0,
+            "price": 315.0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "demo_en_002",
+    "name": "IRA",
+    "emoji": "💰",
+    "currency": "USD",
+    "commissionRate": 0.015,
+    "commissionEnabled": false,
+    "exchangeRate": 1430.0,
+    "exchangeAuto": true,
+    "priceAuto": true,
+    "additionalInvestment": 0.0,
+    "lastUpdated": null,
+    "graphTitle": "",
+    "graphColors": {},
+    "graphNames": {},
+    "graphOrder": [],
+    "items": [
+      {
+        "id": "item_en_011",
+        "name": "Invesco QQQ Trust",
+        "ticker": "QQQ",
+        "market": "US",
+        "isCash": false,
+        "targetWeight": 35.0,
+        "shares": 50.0,
+        "currentPrice": 0.0,
+        "avgPrice": 445.0,
+        "previousClose": 0.0,
+        "createdAt": "2026-01-10",
+        "transactions": [
+          {
+            "id": "tx_en_011a",
+            "date": 1768003200000,
+            "quantity": 50.0,
+            "price": 445.0
+          }
+        ]
+      },
+      {
+        "id": "item_en_012",
+        "name": "Berkshire Hathaway B",
+        "ticker": "BRK-B",
+        "market": "US",
+        "isCash": false,
+        "targetWeight": 25.0,
+        "shares": 80.0,
+        "currentPrice": 0.0,
+        "avgPrice": 440.0,
+        "previousClose": 0.0,
+        "createdAt": "2026-01-10",
+        "transactions": [
+          {
+            "id": "tx_en_012a",
+            "date": 1768003200000,
+            "quantity": 80.0,
+            "price": 440.0
+          }
+        ]
+      },
+      {
+        "id": "item_en_013",
+        "name": "Schwab US Dividend ETF",
+        "ticker": "SCHD",
+        "market": "US",
+        "isCash": false,
+        "targetWeight": 25.0,
+        "shares": 300.0,
+        "currentPrice": 0.0,
+        "avgPrice": 26.5,
+        "previousClose": 0.0,
+        "createdAt": "2026-01-10",
+        "transactions": [
+          {
+            "id": "tx_en_013a",
+            "date": 1768003200000,
+            "quantity": 300.0,
+            "price": 26.5
+          }
+        ]
+      },
+      {
+        "id": "item_en_014",
+        "name": "iShares 20+ Year Treasury",
+        "ticker": "TLT",
+        "market": "US",
+        "isCash": false,
+        "targetWeight": 15.0,
+        "shares": 150.0,
+        "currentPrice": 0.0,
+        "avgPrice": 88.0,
+        "previousClose": 0.0,
+        "createdAt": "2026-01-10",
+        "transactions": [
+          {
+            "id": "tx_en_014a",
+            "date": 1768003200000,
+            "quantity": 150.0,
+            "price": 88.0
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 /// 미니 도넛 (슬림 링) + REBALANCING 텍스트 로고
 class AppLogo extends StatelessWidget {
   final double iconSize;
-  const AppLogo({super.key, this.iconSize = 26});
+  final Color? textColor;
+  const AppLogo({super.key, this.iconSize = 26, this.textColor});
 
   @override
   Widget build(BuildContext context) {
@@ -21,10 +22,10 @@ class AppLogo extends StatelessWidget {
         Text(
           'REBALANCING',
           style: TextStyle(
-            fontSize: iconSize * 0.70,   // 이전 0.58 → 0.70 (더 크게)
+            fontSize: iconSize * 0.70,
             fontWeight: FontWeight.w700,
-            color: Colors.white,
-            letterSpacing: iconSize * 0.08, // 이전 0.13 → 0.08 (자간 줄임)
+            color: textColor ?? Colors.white,
+            letterSpacing: iconSize * 0.08,
           ),
         ),
       ],

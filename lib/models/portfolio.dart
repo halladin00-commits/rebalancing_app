@@ -1,4 +1,35 @@
-import 'dart:convert';
+/// 매수/매도 거래 내역
+class StockTransaction {
+  final String id;
+  final DateTime date;
+  final double quantity; // 양수 = 매수, 음수 = 매도
+  final double price;   // 종목 통화 기준 주당 단가
+
+  StockTransaction({
+    required this.id,
+    required this.date,
+    required this.quantity,
+    required this.price,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'date': date.millisecondsSinceEpoch,
+    'quantity': quantity,
+    'price': price,
+  };
+
+  factory StockTransaction.fromJson(Map<String, dynamic> json) => StockTransaction(
+    id: json['id'] ?? '',
+    date: DateTime.fromMillisecondsSinceEpoch(json['date'] ?? 0),
+    quantity: (json['quantity'] ?? 0).toDouble(),
+    price: (json['price'] ?? 0).toDouble(),
+  );
+
+  StockTransaction copyWith({DateTime? date, double? quantity, double? price}) =>
+      StockTransaction(id: id, date: date ?? this.date,
+          quantity: quantity ?? this.quantity, price: price ?? this.price);
+}
 
 /// 종목 항목
 class PortfolioItem {
@@ -10,6 +41,10 @@ class PortfolioItem {
   double targetWeight;
   double shares;
   double currentPrice;
+  double avgPrice;
+  double previousClose;
+  String createdAt;               // 'yyyy-MM-dd'
+  List<StockTransaction> transactions;
 
   PortfolioItem({
     required this.id,
@@ -20,7 +55,17 @@ class PortfolioItem {
     this.targetWeight = 0,
     this.shares = 0,
     this.currentPrice = 0,
-  });
+    this.avgPrice = 0,
+    this.previousClose = 0,
+    String? createdAt,
+    List<StockTransaction>? transactions,
+  })  : createdAt = createdAt ?? _todayKey(),
+        transactions = transactions ?? [];
+
+  static String _todayKey() {
+    final now = DateTime.now();
+    return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+  }
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -31,18 +76,48 @@ class PortfolioItem {
     'targetWeight': targetWeight,
     'shares': shares,
     'currentPrice': currentPrice,
+    'avgPrice': avgPrice,
+    'previousClose': previousClose,
+    'createdAt': createdAt,
+    'transactions': transactions.map((t) => t.toJson()).toList(),
   };
 
-  factory PortfolioItem.fromJson(Map<String, dynamic> json) => PortfolioItem(
-    id: json['id'] ?? '',
-    name: json['name'] ?? '',
-    ticker: json['ticker'] ?? '',
-    market: json['market'] ?? 'KR',
-    isCash: json['isCash'] ?? false,
-    targetWeight: (json['targetWeight'] ?? 0).toDouble(),
-    shares: (json['shares'] ?? 0).toDouble(),
-    currentPrice: (json['currentPrice'] ?? 0).toDouble(),
-  );
+  factory PortfolioItem.fromJson(Map<String, dynamic> json) {
+    final shares = (json['shares'] ?? 0).toDouble();
+    final avgPrice = (json['avgPrice'] ?? 0).toDouble();
+    final today = _todayKey();
+
+    final txList = (json['transactions'] as List<dynamic>?)
+            ?.map((e) => StockTransaction.fromJson(e))
+            .toList() ??
+        [];
+
+    // 마이그레이션: 거래 내역 없고 수량 있으면 합성 거래 생성
+    if (txList.isEmpty && shares > 0 && !(json['isCash'] ?? false)) {
+      final uid = DateTime.now().millisecondsSinceEpoch.toRadixString(36);
+      txList.add(StockTransaction(
+        id: 'migrated_$uid',
+        date: DateTime.now(),
+        quantity: shares,
+        price: avgPrice,
+      ));
+    }
+
+    return PortfolioItem(
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      ticker: json['ticker'] ?? '',
+      market: json['market'] ?? 'KR',
+      isCash: json['isCash'] ?? false,
+      targetWeight: (json['targetWeight'] ?? 0).toDouble(),
+      shares: shares,
+      currentPrice: (json['currentPrice'] ?? 0).toDouble(),
+      avgPrice: avgPrice,
+      previousClose: (json['previousClose'] ?? 0).toDouble(),
+      createdAt: json['createdAt'] ?? today,
+      transactions: txList,
+    );
+  }
 
   PortfolioItem copyWith({
     String? id,
@@ -53,6 +128,10 @@ class PortfolioItem {
     double? targetWeight,
     double? shares,
     double? currentPrice,
+    double? avgPrice,
+    double? previousClose,
+    String? createdAt,
+    List<StockTransaction>? transactions,
   }) => PortfolioItem(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -62,6 +141,10 @@ class PortfolioItem {
     targetWeight: targetWeight ?? this.targetWeight,
     shares: shares ?? this.shares,
     currentPrice: currentPrice ?? this.currentPrice,
+    avgPrice: avgPrice ?? this.avgPrice,
+    previousClose: previousClose ?? this.previousClose,
+    createdAt: createdAt ?? this.createdAt,
+    transactions: transactions ?? List.from(this.transactions),
   );
 }
 
@@ -77,11 +160,9 @@ class Portfolio {
   bool exchangeAuto;
   bool priceAuto;
   double additionalInvestment;
+  double rebalancingThreshold;
   int? lastUpdated;
   List<PortfolioItem> items;
-
-  // 금액 표시 방식: false=전체표시, true=축약표시
-  bool compactAmount;
 
   // 그래프 커스터마이즈
   String graphTitle;                   // 도넛 중앙 텍스트
@@ -100,9 +181,9 @@ class Portfolio {
     this.exchangeAuto = true,
     this.priceAuto = true,
     this.additionalInvestment = 0,
+    this.rebalancingThreshold = 0.0,
     this.lastUpdated,
     List<PortfolioItem>? items,
-    this.compactAmount = false,
     String? graphTitle,
     Map<String, String>? graphColors,
     Map<String, String>? graphNames,
@@ -122,6 +203,26 @@ class Portfolio {
     });
   }
 
+  /// 미실현 손익 (기준통화, avgPrice > 0인 종목만)
+  double get unrealizedPnL {
+    return items.fold(0.0, (sum, item) {
+      if (item.isCash || item.avgPrice <= 0 || item.shares <= 0) return sum;
+      return sum + (_priceInBase(item) - _avgInBase(item)) * item.shares;
+    });
+  }
+
+  /// 전일대비 손익 (기준통화, previousClose > 0인 종목만)
+  double get dayPnL {
+    return items.fold(0.0, (sum, item) {
+      if (item.isCash || item.previousClose <= 0 || item.shares <= 0) return sum;
+      return sum + (_priceInBase(item) - _prevCloseInBase(item)) * item.shares;
+    });
+  }
+
+  bool get hasPriceData => items.any((i) => !i.isCash && i.currentPrice > 0);
+  bool get hasAvgData => items.any((i) => !i.isCash && i.avgPrice > 0);
+  bool get hasDayData => items.any((i) => !i.isCash && i.previousClose > 0);
+
   /// 목표비중 합계
   double get weightSum =>
       items.fold(0.0, (sum, item) => sum + item.targetWeight);
@@ -136,6 +237,26 @@ class Portfolio {
       return item.currentPrice / exchangeRate;
     }
     return item.currentPrice;
+  }
+
+  double _avgInBase(PortfolioItem item) {
+    if (item.market == 'US' && currency == 'KRW') {
+      return item.avgPrice * exchangeRate;
+    }
+    if (item.market == 'KR' && currency == 'USD') {
+      return item.avgPrice / exchangeRate;
+    }
+    return item.avgPrice;
+  }
+
+  double _prevCloseInBase(PortfolioItem item) {
+    if (item.market == 'US' && currency == 'KRW') {
+      return item.previousClose * exchangeRate;
+    }
+    if (item.market == 'KR' && currency == 'USD') {
+      return item.previousClose / exchangeRate;
+    }
+    return item.previousClose;
   }
 
   /// 그래프 표시용 정렬된 종목 목록 (비중 내림차순, 또는 graphOrder 순)
@@ -167,9 +288,9 @@ class Portfolio {
     'exchangeAuto': exchangeAuto,
     'priceAuto': priceAuto,
     'additionalInvestment': additionalInvestment,
+    'rebalancingThreshold': rebalancingThreshold,
     'lastUpdated': lastUpdated,
     'items': items.map((e) => e.toJson()).toList(),
-    'compactAmount': compactAmount,
     'graphTitle': graphTitle,
     'graphColors': graphColors,
     'graphNames': graphNames,
@@ -187,12 +308,12 @@ class Portfolio {
     exchangeAuto: json['exchangeAuto'] ?? true,
     priceAuto: json['priceAuto'] ?? true,
     additionalInvestment: (json['additionalInvestment'] ?? 0).toDouble(),
+    rebalancingThreshold: (json['rebalancingThreshold'] ?? 0.0).toDouble(),
     lastUpdated: json['lastUpdated'],
     items: (json['items'] as List<dynamic>?)
             ?.map((e) => PortfolioItem.fromJson(e))
             .toList() ??
         [],
-    compactAmount: json['compactAmount'] ?? false,
     graphTitle: json['graphTitle'] ?? '',
     graphColors: (json['graphColors'] as Map<String, dynamic>?)
             ?.map((k, v) => MapEntry(k, v.toString())) ??
@@ -217,9 +338,9 @@ class Portfolio {
     bool? exchangeAuto,
     bool? priceAuto,
     double? additionalInvestment,
+    double? rebalancingThreshold,
     int? lastUpdated,
     List<PortfolioItem>? items,
-    bool? compactAmount,
     String? graphTitle,
     Map<String, String>? graphColors,
     Map<String, String>? graphNames,
@@ -235,9 +356,9 @@ class Portfolio {
     exchangeAuto: exchangeAuto ?? this.exchangeAuto,
     priceAuto: priceAuto ?? this.priceAuto,
     additionalInvestment: additionalInvestment ?? this.additionalInvestment,
+    rebalancingThreshold: rebalancingThreshold ?? this.rebalancingThreshold,
     lastUpdated: lastUpdated ?? this.lastUpdated,
     items: items ?? this.items.map((e) => e.copyWith()).toList(),
-    compactAmount: compactAmount ?? this.compactAmount,
     graphTitle: graphTitle ?? this.graphTitle,
     graphColors: graphColors ?? Map.from(this.graphColors),
     graphNames: graphNames ?? Map.from(this.graphNames),
@@ -283,3 +404,4 @@ class RebalanceItemResult {
     this.isCash = false,
   });
 }
+

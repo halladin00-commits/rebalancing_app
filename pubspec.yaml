@@ -1,7 +1,7 @@
 name: rebalancing_app
 description: 포트폴리오 리밸런싱 계산 앱
 publish_to: 'none'
-version: 1.0.0+2
+version: 1.0.0+13
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
@@ -21,7 +21,13 @@ dependencies:
   screenshot: ^3.0.0
   google_mobile_ads: ^6.0.0
   image_gallery_saver_plus: ^4.0.1
-  permission_handler: ^11.3.0
+  share_plus: ^10.1.4
+  file_picker: ^8.1.2
+  in_app_review: ^2.0.9
+  flutter_local_notifications: ^18.0.0
+  timezone: ^0.9.4
+  flutter_timezone: ^5.0.0
+  excel: ^4.0.6
 
 dev_dependencies:
   flutter_test:
