@@ -65,6 +65,65 @@ class SettlementResult {
   });
 }
 
+/// 전체 결산에서 포트폴리오 하나가 차지하는 몫.
+///
+/// 기존 `SettlementItemContribution`은 **종목별**이다. 전체 결산 화면은
+/// 포트폴리오 단위로 봐야 하므로 별도로 둔다.
+class PortfolioContribution {
+  final String portfolioId;
+  final String name;
+  final String emoji;
+  final double startValue;
+  final double endValue;
+  final double absoluteReturn;
+
+  /// 이 포트 자체의 수익률 (%)
+  final double returnRate;
+
+  /// 전체 수익률에 기여한 정도 (%p)
+  final double contribution;
+
+  const PortfolioContribution({
+    required this.portfolioId,
+    required this.name,
+    required this.emoji,
+    required this.startValue,
+    required this.endValue,
+    required this.absoluteReturn,
+    required this.returnRate,
+    required this.contribution,
+  });
+}
+
+/// 여러 포트폴리오를 원화 기준으로 합산한 결산.
+class CombinedSettlement {
+  final SettlementPeriod period;
+  final PeriodKey key;
+  final DateTime periodStart;
+  final DateTime periodEnd;
+  final double startValue;
+  final double endValue;
+  final double absoluteReturn;
+  final double returnRate;
+  final double netCashFlow;
+  final bool isCurrentPeriod;
+  final List<PortfolioContribution> contributions;
+
+  const CombinedSettlement({
+    required this.period,
+    required this.key,
+    required this.periodStart,
+    required this.periodEnd,
+    required this.startValue,
+    required this.endValue,
+    required this.absoluteReturn,
+    required this.returnRate,
+    required this.netCashFlow,
+    required this.isCurrentPeriod,
+    required this.contributions,
+  });
+}
+
 class SettlementService {
   // ── ISO 주차 헬퍼 ──
 
@@ -139,21 +198,26 @@ class SettlementService {
 
     final cache = <String, ({double first, double last})>{};
 
-    // 비현금 종목 API 조회
-    for (final item in pf.items) {
-      if (item.isCash || item.ticker.isEmpty) continue;
-      final startShares = holdingsAt(item, range.start.subtract(const Duration(days: 1)));
+    // 비현금 종목 시세 조회.
+    //
+    // 결산 차트가 기간 6개를 한 번에 계산하므로 종목 수만큼 순차로 기다리면
+    // 조회가 수십 번 직렬로 쌓인다. 종목 단위로는 동시에 받는다.
+    await Future.wait(pf.items.map((item) async {
+      if (item.isCash || item.ticker.isEmpty) return;
+      final startShares =
+          holdingsAt(item, range.start.subtract(const Duration(days: 1)));
       final endShares = holdingsAt(item, effectiveEnd);
-      if (startShares == 0 && endShares == 0) continue;
+      if (startShares == 0 && endShares == 0) return;
 
       if (isCurrentPeriod) {
-        // 현재 기간: start 가격만 API 조회, end 가격은 현재가 사용
-        final r = await ApiService.fetchWeekPrices(
-            item.ticker, item.market, range.start, range.start.add(const Duration(days: 5)));
+        // 현재 기간: start 가격만 조회하고 end는 현재가를 쓴다
+        final r = await ApiService.fetchWeekPrices(item.ticker, item.market,
+            range.start, range.start.add(const Duration(days: 5)));
         if (r.ok && r.data != null) {
           cache[item.id] = (first: r.data!.first, last: item.currentPrice);
         } else if (item.currentPrice > 0) {
-          // API 실패 시 현재가를 start/end 모두 사용 (수익률 0)
+          // 조회 실패 시 현재가를 양끝에 써서 수익률 0으로 둔다.
+          // 숫자를 비우는 것보다 "변화 없음"이 정직하다.
           cache[item.id] = (first: item.currentPrice, last: item.currentPrice);
         }
       } else {
@@ -161,7 +225,7 @@ class SettlementService {
             item.ticker, item.market, range.start, effectiveEnd);
         if (r.ok && r.data != null) cache[item.id] = r.data!;
       }
-    }
+    }));
 
     // 현금 가치
     double cashValue = 0;
@@ -256,6 +320,183 @@ class SettlementService {
       isCurrentPeriod: isCurrentPeriod,
       contributions: contributions,
     );
+  }
+
+  // ── 기간 이동 ──
+
+  /// [key]에서 [offset]만큼 옮긴 기간 키. 음수면 과거.
+  ///
+  /// 결산 차트가 막대 6칸을 채우고 좌우로 넘길 때 쓴다.
+  static PeriodKey shiftKey(SettlementPeriod p, PeriodKey key, int offset) {
+    switch (p) {
+      case SettlementPeriod.weekly:
+        // 주차는 연도 경계에서 어긋나므로 날짜로 옮긴 뒤 다시 ISO 주차를 구한다.
+        // 그 주의 목요일이 속한 해가 ISO 연도다.
+        final monday =
+            isoWeekMonday(key.year, key.sub).add(Duration(days: offset * 7));
+        final thursday = monday.add(const Duration(days: 3));
+        return PeriodKey(thursday.year, isoWeekNumber(thursday));
+      case SettlementPeriod.monthly:
+        final m = key.year * 12 + (key.sub - 1) + offset;
+        return PeriodKey(m ~/ 12, m % 12 + 1);
+      case SettlementPeriod.quarterly:
+        final q = key.year * 4 + (key.sub - 1) + offset;
+        return PeriodKey(q ~/ 4, q % 4 + 1);
+      case SettlementPeriod.yearly:
+        return PeriodKey(key.year + offset, 0);
+    }
+  }
+
+  /// 지금 진행 중인 기간의 키
+  static PeriodKey currentKey(SettlementPeriod p) =>
+      PeriodKey(DateTime.now().year, currentSub(p));
+
+  /// [key]가 미래(아직 시작하지 않은) 기간인가
+  static bool isFuture(SettlementPeriod p, PeriodKey key) =>
+      periodRange(p, key).start.isAfter(DateTime.now());
+
+  // ── 과거 기간 계산 결과 캐시 ──
+  //
+  // 확정된 기간은 과거 시세로 계산하므로 값이 변하지 않는다.
+  // 진행 중인 기간은 현재가에 따라 바뀌므로 캐시하지 않는다.
+  // 거래 내역이 바뀌면 [clearCache]로 통째로 비운다.
+
+  static final Map<String, SettlementResult?> _cache = {};
+  static final Map<String, CombinedSettlement?> _combinedCache = {};
+
+  static void clearCache() {
+    _cache.clear();
+    _combinedCache.clear();
+  }
+
+  static String _ck(String scope, SettlementPeriod p, PeriodKey k) =>
+      '$scope|${p.index}|${k.year}|${k.sub}';
+
+  /// 캐시를 거치는 단일 포트 결산
+  static Future<SettlementResult?> calculateCached(
+      Portfolio pf, SettlementPeriod period, PeriodKey key) async {
+    final ck = _ck(pf.id, period, key);
+    if (_cache.containsKey(ck)) return _cache[ck];
+
+    final r = await calculate(pf, period, key);
+    // 진행 중인 기간은 현재가에 따라 바뀌므로 남기지 않는다
+    if (r != null && !r.isCurrentPeriod) _cache[ck] = r;
+    return r;
+  }
+
+  // ── 여러 기간 한 번에 ──
+
+  /// [endKey]를 마지막으로 하는 최근 [count]개 기간을 오래된 순으로 계산한다.
+  ///
+  /// 결산 차트의 막대 6칸용. 미래 기간은 계산하지 않고 null로 둔다.
+  static Future<List<SettlementResult?>> calculateSeries(
+    Portfolio pf,
+    SettlementPeriod period,
+    PeriodKey endKey, {
+    int count = 6,
+  }) async {
+    final keys = [
+      for (var i = count - 1; i >= 0; i--) shiftKey(period, endKey, -i),
+    ];
+    return Future.wait(keys.map((k) async {
+      if (isFuture(period, k)) return null;
+      return calculateCached(pf, period, k);
+    }));
+  }
+
+  // ── 전체 합산 ──
+
+  /// 여러 포트폴리오를 원화 기준으로 합산한다.
+  ///
+  /// 포트마다 통화가 다를 수 있어 각자의 환율로 환산한 뒤 더한다.
+  static Future<CombinedSettlement?> calculateCombined(
+    List<Portfolio> portfolios,
+    SettlementPeriod period,
+    PeriodKey key, {
+    bool useCache = true,
+  }) async {
+    if (portfolios.isEmpty) return null;
+
+    final ck = _ck('__all__', period, key);
+    if (useCache && _combinedCache.containsKey(ck)) return _combinedCache[ck];
+
+    final results = await Future.wait(portfolios.map((pf) async =>
+        (pf: pf, r: await calculateCached(pf, period, key))));
+
+    double start = 0, end = 0, abs = 0, netCF = 0;
+    bool isCurrent = false;
+    DateTime? periodStart, periodEnd;
+
+    final rows = <({Portfolio pf, SettlementResult r, double fx})>[];
+    for (final e in results) {
+      final r = e.r;
+      if (r == null) continue;
+      final fx = e.pf.currency == 'USD' ? e.pf.exchangeRate : 1.0;
+      start += r.startValue * fx;
+      end += r.endValue * fx;
+      abs += r.absoluteReturn * fx;
+      netCF += r.netCashFlow * fx;
+      if (r.isCurrentPeriod) isCurrent = true;
+      periodStart ??= r.periodStart;
+      periodEnd ??= r.periodEnd;
+      rows.add((pf: e.pf, r: r, fx: fx));
+    }
+
+    if (rows.isEmpty) return null;
+
+    final contributions = rows.map((e) {
+      final pfStart = e.r.startValue * e.fx;
+      final pfAbs = e.r.absoluteReturn * e.fx;
+      return PortfolioContribution(
+        portfolioId: e.pf.id,
+        name: e.pf.name,
+        emoji: e.pf.emoji,
+        startValue: pfStart,
+        endValue: e.r.endValue * e.fx,
+        absoluteReturn: pfAbs,
+        returnRate: e.r.returnRate,
+        // 전체 분모로 나눠 %p로 만든다
+        contribution: start > 0 ? pfAbs / start * 100 : 0.0,
+      );
+    }).toList()
+      ..sort((a, b) => b.absoluteReturn.abs().compareTo(a.absoluteReturn.abs()));
+
+    final range = periodRange(period, key);
+    final combined = CombinedSettlement(
+      period: period,
+      key: key,
+      periodStart: periodStart ?? range.start,
+      periodEnd: periodEnd ?? range.end,
+      startValue: start,
+      endValue: end,
+      absoluteReturn: abs,
+      returnRate: start > 0 ? abs / start * 100 : 0.0,
+      netCashFlow: netCF,
+      isCurrentPeriod: isCurrent,
+      contributions: contributions,
+    );
+
+    if (!isCurrent) _combinedCache[ck] = combined;
+    return combined;
+  }
+
+  /// 전체 합산의 최근 [count]개 기간 (차트용)
+  static Future<List<CombinedSettlement?>> calculateCombinedSeries(
+    List<Portfolio> portfolios,
+    SettlementPeriod period,
+    PeriodKey endKey, {
+    int count = 6,
+  }) async {
+    final keys = [
+      for (var i = count - 1; i >= 0; i--) shiftKey(period, endKey, -i),
+    ];
+    final out = <CombinedSettlement?>[];
+    for (final k in keys) {
+      out.add(isFuture(period, k)
+          ? null
+          : await calculateCombined(portfolios, period, k));
+    }
+    return out;
   }
 
   // ── 헬퍼 ──

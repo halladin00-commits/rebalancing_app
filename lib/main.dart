@@ -7,6 +7,7 @@ import 'models/portfolio.dart';
 import 'services/storage_service.dart';
 import 'services/api_service.dart';
 import 'services/asset_history_service.dart';
+import 'services/settlement_service.dart';
 import 'screens/main_shell.dart';
 import 'screens/onboarding_screen.dart';
 import 'services/stock_search_service.dart';
@@ -421,6 +422,8 @@ class PortfolioProvider extends ChangeNotifier {
 
   Future<void> _save() async {
     await StorageService.savePortfolios(_portfolios);
+    // 거래·시세가 바뀌면 결산 계산 결과가 달라진다
+    SettlementService.clearCache();
     notifyListeners();
   }
 
