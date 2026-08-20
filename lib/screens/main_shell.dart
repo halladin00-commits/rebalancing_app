@@ -162,7 +162,10 @@ class _MainShellState extends State<MainShell> {
         body: IndexedStack(
           index: _index,
           children: [
-            PortfolioListScreen(key: _listKey),
+            PortfolioListScreen(
+              key: _listKey,
+              onNavigateToTab: (i) => setState(() => _index = i),
+            ),
             // 3단계에서 채운다 — 허용 편차 연동이 선행되어야 한다.
             _PlaceholderTab(title: l10n.tabRebalancing),
             AllSettlementScreen(portfolios: portfolios),

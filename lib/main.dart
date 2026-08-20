@@ -94,13 +94,29 @@ class PnlColorNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
-  Color get positiveColor => _scheme == PnlColorScheme.redBlue
+  /// 스킴별 색 — 설정 화면 미리보기도 이 값을 쓴다(정의는 여기 한 곳).
+  static Color positiveOf(PnlColorScheme s) => s == PnlColorScheme.redBlue
       ? const Color(0xFFB85127)
       : const Color(0xFF0E7A52);
 
-  Color get negativeColor => _scheme == PnlColorScheme.redBlue
+  static Color negativeOf(PnlColorScheme s) => s == PnlColorScheme.redBlue
       ? const Color(0xFF2A5C8A)
       : const Color(0xFFB85127);
+
+  Color get positiveColor => positiveOf(_scheme);
+  Color get negativeColor => negativeOf(_scheme);
+
+  // ── 딥그린 헤더 위에서 쓰는 손익색 ──
+  // 위 값들은 밝은 배경 기준이라 딥그린(#0E4F49) 위에서는 대비가 나온다.
+  // 같은 색상 계열을 명도만 올려 대응시킨다.
+
+  Color get onBrandPositive => _scheme == PnlColorScheme.redBlue
+      ? const Color(0xFFE88C6A)
+      : const Color(0xFF8FE7B0);
+
+  Color get onBrandNegative => _scheme == PnlColorScheme.redBlue
+      ? const Color(0xFF7FB5E0)
+      : const Color(0xFFE88C6A);
 }
 
 // ── 메인페이지 기준 통화 관리 ──

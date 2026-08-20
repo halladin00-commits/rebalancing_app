@@ -179,8 +179,8 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
                   icon: const Icon(Icons.share_rounded, size: 16),
                   label: Text(l10n.shareImage),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF3B82F6),
-                    side: const BorderSide(color: Color(0xFF3B82F6)),
+                    foregroundColor: context.brand,
+                    side: BorderSide(color: context.brand),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
@@ -418,11 +418,11 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.blue.withValues(alpha: 0.12),
+                color: context.brand.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(l10n.settlementCurrentPeriod,
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.blue)),
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: context.brand)),
             ),
           ],
         ]),

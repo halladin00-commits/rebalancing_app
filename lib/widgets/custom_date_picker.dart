@@ -183,7 +183,7 @@ List<Widget> _dayGrid(
                     height: 32,
                     margin: const EdgeInsets.all(1),
                     decoration: BoxDecoration(
-                      color: selected ? const Color(0xFF3B82F6) : Colors.transparent,
+                      color: selected ? ctx.brand : Colors.transparent,
                       shape: BoxShape.circle,
                     ),
                     child: Center(

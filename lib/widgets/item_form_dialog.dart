@@ -401,7 +401,7 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Text(l10n.autoUpdateHint,
-                        style: TextStyle(fontSize: 12, color: Colors.blue[400])),
+                        style: TextStyle(fontSize: 12, color: context.brandOnLight)),
                   ),
 
                 _label(context, l10n.avgCost),
@@ -432,7 +432,7 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8, top: 2),
                   child: Text(l10n.holdingsFromTransactions,
-                      style: TextStyle(fontSize: 12, color: Colors.blue[400])),
+                      style: TextStyle(fontSize: 12, color: context.brandOnLight)),
                 ),
               ] else
                 _textField(context, _sharesCtl, '0',

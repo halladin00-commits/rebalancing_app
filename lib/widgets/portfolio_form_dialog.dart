@@ -102,12 +102,12 @@ class _PortfolioFormDialogState extends State<PortfolioFormDialog> {
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
                         color: selected
-                            ? const Color(0xFF3B82F6)
+                            ? context.brand
                             : context.borderColor,
                         width: selected ? 2 : 1,
                       ),
                       color: selected
-                          ? const Color(0xFF3B82F6).withValues(alpha: 0.12)
+                          ? context.brand.withValues(alpha: 0.12)
                           : context.fieldFill,
                     ),
                     child: Center(

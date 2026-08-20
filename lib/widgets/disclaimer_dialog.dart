@@ -84,11 +84,11 @@ class _DisclaimerDialogState extends State<DisclaimerDialog> {
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: _checked
-                        ? const Color(0xFF1D4ED8).withValues(alpha: 0.15)
+                        ? context.brand.withValues(alpha: 0.15)
                         : context.rowBg,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: _checked ? const Color(0xFF3B82F6) : context.borderColor,
+                      color: _checked ? context.brand : context.borderColor,
                     ),
                   ),
                   child: Row(children: [
@@ -97,10 +97,10 @@ class _DisclaimerDialogState extends State<DisclaimerDialog> {
                       width: 18,
                       height: 18,
                       decoration: BoxDecoration(
-                        color: _checked ? const Color(0xFF3B82F6) : Colors.transparent,
+                        color: _checked ? context.brand : Colors.transparent,
                         borderRadius: BorderRadius.circular(4),
                         border: Border.all(
-                          color: _checked ? const Color(0xFF3B82F6) : context.borderColor,
+                          color: _checked ? context.brand : context.borderColor,
                           width: 2,
                         ),
                       ),
@@ -115,7 +115,7 @@ class _DisclaimerDialogState extends State<DisclaimerDialog> {
                         style: TextStyle(
                             fontSize: 13,
                             color: _checked
-                                ? const Color(0xFF93C5FD)
+                                ? context.brandOnLight
                                 : context.textSecondary),
                       ),
                     ),
@@ -132,7 +132,7 @@ class _DisclaimerDialogState extends State<DisclaimerDialog> {
           child: ElevatedButton(
             onPressed: canConfirm ? _confirm : null,
             style: ElevatedButton.styleFrom(
-              backgroundColor: canConfirm ? const Color(0xFF3B82F6) : context.disabledFill,
+              backgroundColor: canConfirm ? context.brand : context.disabledFill,
               foregroundColor: Colors.white,
               elevation: 0,
               padding: const EdgeInsets.symmetric(vertical: 12),
@@ -154,10 +154,10 @@ class _DisclaimerDialogState extends State<DisclaimerDialog> {
   Widget _section(BuildContext context, String title) => Padding(
         padding: const EdgeInsets.only(top: 12, bottom: 4),
         child: Text(title,
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF3B82F6))),
+                color: context.brand)),
       );
 
   Widget _body(BuildContext context, String text) => Text(

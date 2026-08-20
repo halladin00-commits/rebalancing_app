@@ -167,14 +167,18 @@ class _AppSettingsDialogState extends State<AppSettingsDialog> {
                   child: Row(children: [
                     _pnlSegBtn(
                       context, pnlNotifier, PnlColorScheme.greenRed,
-                      posColor: const Color(0xFF16A34A),
-                      negColor: const Color(0xFFDC2626),
+                      posColor:
+                          PnlColorNotifier.positiveOf(PnlColorScheme.greenRed),
+                      negColor:
+                          PnlColorNotifier.negativeOf(PnlColorScheme.greenRed),
                       isKo: isKo,
                     ),
                     _pnlSegBtn(
                       context, pnlNotifier, PnlColorScheme.redBlue,
-                      posColor: const Color(0xFFDC2626),
-                      negColor: const Color(0xFF2563EB),
+                      posColor:
+                          PnlColorNotifier.positiveOf(PnlColorScheme.redBlue),
+                      negColor:
+                          PnlColorNotifier.negativeOf(PnlColorScheme.redBlue),
                       isKo: isKo,
                     ),
                   ]),
@@ -410,10 +414,10 @@ class _AppSettingsDialogState extends State<AppSettingsDialog> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w700,
-          color: Color(0xFF3B82F6),
+          color: context.brand,
           letterSpacing: 0.4,
         ),
       ),
@@ -462,7 +466,7 @@ class _AppSettingsDialogState extends State<AppSettingsDialog> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: active ? const Color(0xFF1D4ED8) : Colors.transparent,
+            color: active ? context.brand : Colors.transparent,
             borderRadius: BorderRadius.circular(7),
           ),
           child: Text(label,
@@ -471,7 +475,7 @@ class _AppSettingsDialogState extends State<AppSettingsDialog> {
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                   color: active
-                      ? const Color(0xFF93C5FD)
+                      ? context.brandOnLight
                       : context.textSecondary)),
         ),
       ),
@@ -495,7 +499,7 @@ class _AppSettingsDialogState extends State<AppSettingsDialog> {
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
             color: selected
-                ? const Color(0xFF1D4ED8).withValues(alpha: 0.2)
+                ? context.brand.withValues(alpha: 0.2)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(7),
           ),

@@ -160,10 +160,10 @@ class _SettingsDialogState extends State<SettingsDialog> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w700,
-          color: Color(0xFF3B82F6),
+          color: context.brand,
           letterSpacing: 0.4,
         ),
       ),
@@ -228,7 +228,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: active ? const Color(0xFF1D4ED8) : Colors.transparent,
+            color: active ? context.brand : Colors.transparent,
             borderRadius: BorderRadius.circular(7),
           ),
           child: Text(label,
@@ -237,7 +237,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                   color: active
-                      ? const Color(0xFF93C5FD)
+                      ? context.brandOnLight
                       : context.textSecondary)),
         ),
       ),

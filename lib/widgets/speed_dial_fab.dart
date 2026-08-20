@@ -166,7 +166,7 @@ class _SpeedDialFabState extends State<SpeedDialFab>
                 FloatingActionButton(
                   heroTag: 'speed_dial_${widget.key}',
                   onPressed: _toggle,
-                  backgroundColor: const Color(0xFF3B82F6),
+                  backgroundColor: context.brand,
                   elevation: 4,
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 150),

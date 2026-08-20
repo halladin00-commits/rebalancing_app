@@ -160,14 +160,14 @@ class _TransactionBottomSheetState extends State<TransactionBottomSheet> {
                       width: double.infinity,
                       child: OutlinedButton.icon(
                         onPressed: () => _openForm(),
-                        icon: const Icon(Icons.add, size: 16,
-                            color: Color(0xFF3B82F6)),
+                        icon: Icon(Icons.add, size: 16,
+                            color: context.brand),
                         label: Text(l10n.addTransaction,
-                            style: const TextStyle(
-                                color: Color(0xFF3B82F6),
+                            style: TextStyle(
+                                color: context.brand,
                                 fontWeight: FontWeight.w600)),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFF3B82F6)),
+                          side: BorderSide(color: context.brand),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10)),
@@ -204,11 +204,11 @@ class _TransactionBottomSheetState extends State<TransactionBottomSheet> {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
           decoration: BoxDecoration(
             color: isEditing
-                ? const Color(0xFF3B82F6).withValues(alpha: 0.08)
+                ? context.brand.withValues(alpha: 0.08)
                 : context.infoBoxBg,
             borderRadius: BorderRadius.circular(8),
             border: isEditing
-                ? Border.all(color: const Color(0xFF3B82F6).withValues(alpha: 0.4))
+                ? Border.all(color: context.brand.withValues(alpha: 0.4))
                 : null,
           ),
           child: Row(children: [
@@ -352,14 +352,14 @@ class _TransactionBottomSheetState extends State<TransactionBottomSheet> {
             child: OutlinedButton(
               onPressed: _saveForm,
               style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Color(0xFF3B82F6)),
+                side: BorderSide(color: context.brand),
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8)),
               ),
               child: Text(l10n.save,
-                  style: const TextStyle(
-                      color: Color(0xFF3B82F6),
+                  style: TextStyle(
+                      color: context.brand,
                       fontWeight: FontWeight.w600,
                       fontSize: 13)),
             ),

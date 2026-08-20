@@ -289,7 +289,7 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Text(l10n.autoPriceUpdateInfo,
-                style: TextStyle(fontSize: 11, color: Colors.blue[400])),
+                style: TextStyle(fontSize: 11, color: context.brandOnLight)),
           ),
         _editLabel(context, l10n.avgCost),
         _editField(context, _avgPriceCtl, hint: '0', suffix: priceSuffix,
@@ -311,7 +311,7 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
         Padding(
           padding: const EdgeInsets.only(bottom: 8, top: 2),
           child: Text(l10n.holdingsFromTransactions,
-              style: TextStyle(fontSize: 12, color: Colors.blue[400])),
+              style: TextStyle(fontSize: 12, color: context.brandOnLight)),
         ),
       _editLabel(context, l10n.targetWeightLabel),
       _editField(context, _weightCtl, hint: '0', suffix: '%',
@@ -330,16 +330,16 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
               ? null
               : () => setState(() => _editMode = true),
           icon: Icon(Icons.edit_outlined, size: 16,
-              color: item.isCash ? context.textHint : const Color(0xFF3B82F6)),
+              color: item.isCash ? context.textHint : context.brand),
           label: Text(l10n.edit,
               style: TextStyle(
-                  color: item.isCash ? context.textHint : const Color(0xFF3B82F6),
+                  color: item.isCash ? context.textHint : context.brand,
                   fontWeight: FontWeight.w600)),
           style: OutlinedButton.styleFrom(
             side: BorderSide(
                 color: item.isCash
                     ? context.borderColor
-                    : const Color(0xFF3B82F6)),
+                    : context.brand),
             padding: const EdgeInsets.symmetric(vertical: 12),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
@@ -414,14 +414,14 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
       Expanded(
         child: OutlinedButton.icon(
           onPressed: _save,
-          icon: const Icon(Icons.check, size: 16, color: Color(0xFF3B82F6)),
+          icon: Icon(Icons.check, size: 16, color: context.brand),
           label: Text(l10n.save,
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF3B82F6))),
+                  color: context.brand)),
           style: OutlinedButton.styleFrom(
-            side: const BorderSide(color: Color(0xFF3B82F6)),
+            side: BorderSide(color: context.brand),
             padding: const EdgeInsets.symmetric(vertical: 12),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),

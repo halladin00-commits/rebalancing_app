@@ -413,7 +413,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
                   const SizedBox(height: 4),
                   Row(children: [
                     Text(_pct(item.targetWeight),
-                        style: const TextStyle(color: Color(0xFF3B82F6), fontWeight: FontWeight.w600, fontSize: 11)),
+                        style: TextStyle(color: context.brand, fontWeight: FontWeight.w600, fontSize: 11)),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 3),
                       child: Icon(Icons.arrow_forward, size: 10, color: context.textHint),
@@ -488,8 +488,8 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
                   icon: const Icon(Icons.share_rounded, size: 16),
                   label: Text(l10n.shareImage),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF3B82F6),
-                    side: const BorderSide(color: Color(0xFF3B82F6)),
+                    foregroundColor: context.brand,
+                    side: BorderSide(color: context.brand),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
@@ -631,8 +631,8 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
                         : const Icon(Icons.upload_outlined, size: 16),
                     label: Text(l10n.excelImportFile),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF3B82F6),
-                      side: const BorderSide(color: Color(0xFF3B82F6)),
+                      foregroundColor: context.brand,
+                      side: BorderSide(color: context.brand),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
@@ -663,7 +663,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
             if (result.addedCount > 0)
               _resultLine('✓', l10n.excelImportAdded(result.addedCount), const Color(0xFF16A34A)),
             if (result.createdItems.isNotEmpty)
-              _resultLine('+', l10n.excelImportCreated(result.createdItems.length), const Color(0xFF3B82F6)),
+              _resultLine('+', l10n.excelImportCreated(result.createdItems.length), context.brand),
             if (result.skippedRows.isNotEmpty)
               _resultLine('⚠', l10n.excelImportSkipped(result.skippedRows.length), const Color(0xFFF59E0B)),
             if (result.addedCount == 0 && result.createdItems.isEmpty)
@@ -929,8 +929,8 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
                 SpeedDialItem(
                   icon: Icons.pie_chart_outline,
                   label: l10n.labelGraph,
-                  iconColor: const Color(0xFF93C5FD),
-                  bgColor: const Color(0xFF1D4ED8),
+                  iconColor: context.brandOnLight,
+                  bgColor: context.brand,
                   onTap: () => _openGraph(pf),
                 ),
                 SpeedDialItem(
@@ -1085,8 +1085,8 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
                 SpeedDialItem(
                   icon: Icons.pie_chart_outline,
                   label: l10n.labelGraph,
-                  iconColor: const Color(0xFF93C5FD),
-                  bgColor: const Color(0xFF1D4ED8),
+                  iconColor: context.brandOnLight,
+                  bgColor: context.brand,
                   onTap: () => _openGraph(pf),
                 ),
                 if (rb != null && hasChanges)
@@ -1220,7 +1220,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(_pct(item.targetWeight),
-                      style: const TextStyle(color: Color(0xFF3B82F6), fontWeight: FontWeight.w600, fontSize: 12)),
+                      style: TextStyle(color: context.brand, fontWeight: FontWeight.w600, fontSize: 12)),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 3),
                     child: Icon(Icons.arrow_forward, size: 10, color: context.textHint),
@@ -1288,10 +1288,10 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
             icon: Container(
               width: 28, height: 28,
               decoration: BoxDecoration(
-                  color: const Color(0xFF3B82F6).withValues(alpha: 0.15),
+                  color: context.brand.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFF3B82F6).withValues(alpha: 0.4))),
-              child: const Icon(Icons.edit_outlined, color: Color(0xFF3B82F6), size: 16),
+                  border: Border.all(color: context.brand.withValues(alpha: 0.4))),
+              child: Icon(Icons.edit_outlined, color: context.brand, size: 16),
             ),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
@@ -1364,12 +1364,12 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
           child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
             Container(
               width: 20, height: 20,
-              decoration: BoxDecoration(color: const Color(0xFF3B82F6), borderRadius: BorderRadius.circular(5)),
+              decoration: BoxDecoration(color: context.brand, borderRadius: BorderRadius.circular(5)),
               child: const Icon(Icons.add, color: Colors.white, size: 14),
             ),
             const SizedBox(width: 8),
             Text(context.l10n.addStock,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFF3B82F6))),
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: context.brand)),
           ]),
         ),
       ),
@@ -1753,8 +1753,8 @@ class _SettlementTabState extends State<_SettlementTab> {
                   icon: const Icon(Icons.share_rounded, size: 16),
                   label: Text(l10n.shareImage),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF3B82F6),
-                    side: const BorderSide(color: Color(0xFF3B82F6)),
+                    foregroundColor: context.brand,
+                    side: BorderSide(color: context.brand),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
@@ -1865,12 +1865,12 @@ class _SettlementTabState extends State<_SettlementTab> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: Colors.blue.withValues(alpha: 0.12),
+              color: context.brand.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(l10n.settlementCurrentPeriod,
-                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600,
-                    color: Colors.blue)),
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600,
+                    color: context.brand)),
           ),
         ],
       ]),
@@ -2257,7 +2257,7 @@ class _RebalanceTransactionDialogState extends State<_RebalanceTransactionDialog
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _segmentBtn(id, true, isBuy, l10n.transactionBuy, const Color(0xFF2563EB)),
+          _segmentBtn(id, true, isBuy, l10n.transactionBuy, context.brand),
           Container(width: 1, color: context.borderColor),
           _segmentBtn(id, false, isBuy, l10n.transactionSell, Colors.red),
         ],

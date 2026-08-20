@@ -474,8 +474,8 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
                               if (_editMode) ...[
                                 const SizedBox(height: 4),
                                 Text(l10n.tapToEdit,
-                                    style: const TextStyle(
-                                        fontSize: 11, color: Color(0xFF3B82F6))),
+                                    style: TextStyle(
+                                        fontSize: 11, color: context.brand)),
                               ],
                             ],
                           ),

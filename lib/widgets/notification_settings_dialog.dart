@@ -118,15 +118,15 @@ class _NotificationSettingsDialogState
   Widget _sectionHeader(BuildContext context, String title) {
     return Container(
       width: double.infinity,
-      color: const Color(0xFF3B82F6)
+      color: context.brand
           .withValues(alpha: 0.08),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w700,
-          color: Color(0xFF3B82F6),
+          color: context.brand,
           letterSpacing: 0.4,
         ),
       ),
@@ -147,7 +147,7 @@ class _NotificationSettingsDialogState
                   ? Icons.radio_button_checked
                   : Icons.radio_button_unchecked,
               color: selected
-                  ? const Color(0xFF3B82F6)
+                  ? context.brand
                   : context.textHint,
               size: 20,
             ),

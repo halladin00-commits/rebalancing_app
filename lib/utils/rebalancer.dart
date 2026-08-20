@@ -1,7 +1,69 @@
 import 'dart:math';
 import '../models/portfolio.dart';
 
+/// 목표 비중에서 벗어난 정도.
+class ItemDrift {
+  final PortfolioItem item;
+  final double currentWeight; // 현재 비중 (%)
+  final double drift;         // 현재 − 목표 (%p). 양수면 과다 보유
+
+  const ItemDrift({
+    required this.item,
+    required this.currentWeight,
+    required this.drift,
+  });
+}
+
 class Rebalancer {
+  /// 허용 편차(`Portfolio.rebalancingThreshold`)를 넘어선 종목을 편차 큰 순으로 반환한다.
+  ///
+  /// 추가 투자금은 아직 집행 전 현금이므로 분모에서 제외한다 —
+  /// 포함하면 모든 종목의 현재 비중이 희석돼 없는 편차가 생긴다.
+  ///
+  /// 임계값이 0이면 편차가 있는 종목이 모두 걸린다.
+  static List<ItemDrift> driftExceeding(Portfolio portfolio) {
+    final all = allDrifts(portfolio);
+    final threshold = portfolio.rebalancingThreshold;
+    return all.where((d) => d.drift.abs() >= threshold && d.drift.abs() > 0).toList();
+  }
+
+  /// 전 종목의 현재 비중과 편차. 편차 절댓값 내림차순.
+  static List<ItemDrift> allDrifts(Portfolio portfolio) {
+    final items = portfolio.items;
+    if (items.isEmpty) return const [];
+    if (items.any((i) => !i.isCash && i.currentPrice <= 0)) return const [];
+
+    double priceInBase(PortfolioItem item) {
+      if (item.isCash) return 1;
+      if (item.market == 'US' && portfolio.currency == 'KRW') {
+        return item.currentPrice * portfolio.exchangeRate;
+      }
+      if (item.market == 'KR' && portfolio.currency == 'USD') {
+        return item.currentPrice / portfolio.exchangeRate;
+      }
+      return item.currentPrice;
+    }
+
+    final total = items.fold(0.0, (sum, item) {
+      if (item.isCash) return sum + item.shares;
+      return sum + item.shares * priceInBase(item);
+    });
+    if (total <= 0) return const [];
+
+    final result = items.map((item) {
+      final value = item.isCash ? item.shares : item.shares * priceInBase(item);
+      final cw = value / total * 100;
+      return ItemDrift(
+        item: item,
+        currentWeight: cw,
+        drift: cw - item.targetWeight,
+      );
+    }).toList();
+
+    result.sort((a, b) => b.drift.abs().compareTo(a.drift.abs()));
+    return result;
+  }
+
   static RebalanceResult? calculate(Portfolio portfolio) {
     final items = portfolio.items;
     if (items.isEmpty) return null;
