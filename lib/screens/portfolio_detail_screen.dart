@@ -22,7 +22,12 @@ import 'portfolio_graph_screen.dart';
 
 class PortfolioDetailScreen extends StatefulWidget {
   final String portfolioId;
-  const PortfolioDetailScreen({super.key, required this.portfolioId});
+  /// 진입 시 열어둘 탭 (0 자산 · 1 리밸런싱 · 2 결산).
+  /// 리밸런싱 탭에서 조정 제안으로 바로 들어올 때 쓴다.
+  final int initialTab;
+
+  const PortfolioDetailScreen(
+      {super.key, required this.portfolioId, this.initialTab = 0});
   @override
   State<PortfolioDetailScreen> createState() => _PortfolioDetailScreenState();
 }
@@ -42,7 +47,8 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController =
+        TabController(length: 3, vsync: this, initialIndex: widget.initialTab);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) setState(() {});
     });

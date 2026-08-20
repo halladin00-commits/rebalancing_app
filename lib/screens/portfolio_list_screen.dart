@@ -8,7 +8,6 @@ import 'package:path_provider/path_provider.dart';
 import '../main.dart';
 import '../models/portfolio.dart';
 import '../services/storage_service.dart';
-import '../services/api_service.dart';
 import '../services/notification_service.dart';
 import '../services/asset_history_service.dart';
 import '../theme/design_system.dart';
@@ -39,7 +38,6 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
   Future<void> confirmExitEdit() => _showEditExitConfirm();
 
   bool _editMode = false;
-  bool _refreshing = false;
   bool _savingMain = false;
   bool _sharingMain = false;
   final _screenshotCtrl = ScreenshotController();
@@ -83,39 +81,10 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
   }
 
   Future<void> _doRefreshAll() async {
-    if (_refreshing) return;
-    setState(() => _refreshing = true);
     final provider = context.read<PortfolioProvider>();
-    final portfolios = List<Portfolio>.from(provider.portfolios);
-    double? cachedRate;
-    for (final pf in portfolios) {
-      if (pf.exchangeAuto) {
-        cachedRate ??= await ApiService.fetchExchangeRate()
-            .then((r) => r.ok ? r.data : null);
-        if (cachedRate != null) {
-          await provider.updateSettings(pf.id, exchangeRate: cachedRate);
-        }
-      }
-      if (pf.priceAuto) {
-        for (final item in pf.items) {
-          if (item.isCash || item.ticker.isEmpty) continue;
-          final r = await ApiService.fetchStockPrice(item.ticker, item.market);
-          if (r.ok && r.data != null) {
-            await provider.updateItem(
-              pf.id,
-              item.copyWith(
-                currentPrice: r.data!.currentPrice,
-                previousClose: r.data!.previousClose,
-              ),
-            );
-          }
-        }
-      }
-      await provider.updateLastRefreshed(pf.id);
-    }
-    await _recordTotalAssets();
+    await provider.refreshAll();
+    await _loadHistory();
     if (!mounted) return;
-    setState(() => _refreshing = false);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(context.l10n.updateSuccess)),
     );
@@ -125,17 +94,6 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
     final h = await AssetHistoryService.loadRecent();
     if (!mounted) return;
     setState(() => _history = h);
-  }
-
-  /// 갱신 직후의 총자산을 하루 한 점 남긴다 — 헤더 추이 그래프의 재료.
-  Future<void> _recordTotalAssets() async {
-    if (!mounted) return;
-    final portfolios = context.read<PortfolioProvider>().portfolios;
-    if (!portfolios.any((p) => p.hasPriceData)) return;
-    final totalKrw =
-        portfolios.fold(0.0, (sum, pf) => sum + _toKrw(pf.totalValue, pf));
-    await AssetHistoryService.record(totalKrw);
-    await _loadHistory();
   }
 
   String _fmt(double n, String cur) {
@@ -626,14 +584,14 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                 actions: [
                   if (!_editMode)
                     IconButton(
-                      icon: _refreshing
+                      icon: provider.refreshing
                           ? const SizedBox(
                               width: 20,
                               height: 20,
                               child: CircularProgressIndicator(
                                   color: Colors.white, strokeWidth: 2))
                           : const Icon(Icons.refresh, color: Colors.white),
-                      onPressed: _refreshing ? null : _doRefreshAll,
+                      onPressed: provider.refreshing ? null : _doRefreshAll,
                     ),
                   if (_editMode)
                     TextButton.icon(

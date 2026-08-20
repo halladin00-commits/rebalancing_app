@@ -10,6 +10,7 @@ import '../widgets/bottom_banner_ad.dart';
 import '../widgets/brand_header.dart';
 import 'portfolio_list_screen.dart';
 import 'all_settlement_screen.dart';
+import 'rebalance_tab_screen.dart';
 
 /// 앱의 최상위 셸 — 하단 4탭(자산 / 리밸런싱 / 결산 / 더보기).
 ///
@@ -166,8 +167,7 @@ class _MainShellState extends State<MainShell> {
               key: _listKey,
               onNavigateToTab: (i) => setState(() => _index = i),
             ),
-            // 3단계에서 채운다 — 허용 편차 연동이 선행되어야 한다.
-            _PlaceholderTab(title: l10n.tabRebalancing),
+            const RebalanceTabScreen(),
             AllSettlementScreen(portfolios: portfolios),
             // 5단계에서 채운다.
             _PlaceholderTab(title: l10n.tabMore),
@@ -177,14 +177,16 @@ class _MainShellState extends State<MainShell> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const BottomBannerAd(),
-            _buildNavBar(context, l10n),
+            _buildNavBar(context, l10n,
+                RebalanceTabScreen.needsAdjustingCount(portfolios)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildNavBar(BuildContext context, AppLocalizations l10n) {
+  Widget _buildNavBar(
+      BuildContext context, AppLocalizations l10n, int adjustBadge) {
     const icons = [
       Icons.account_balance_wallet_outlined,
       Icons.balance_outlined,
@@ -217,7 +219,22 @@ class _MainShellState extends State<MainShell> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(icons[i], size: DS.navIcon, color: color),
+                      // 리밸런싱 탭에만 조정 필요 개수를 띄운다
+                      (i == 1 && adjustBadge > 0)
+                          ? Badge(
+                              backgroundColor: context.danger,
+                              offset: const Offset(8, -1),
+                              label: Text(
+                                '$adjustBadge',
+                                style: const TextStyle(
+                                    fontSize: DS.caption,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white),
+                              ),
+                              child:
+                                  Icon(icons[i], size: DS.navIcon, color: color),
+                            )
+                          : Icon(icons[i], size: DS.navIcon, color: color),
                       const SizedBox(height: 3),
                       Text(
                         labels[i],

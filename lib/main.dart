@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'models/portfolio.dart';
 import 'services/storage_service.dart';
+import 'services/api_service.dart';
+import 'services/asset_history_service.dart';
 import 'screens/main_shell.dart';
 import 'screens/onboarding_screen.dart';
 import 'services/stock_search_service.dart';
@@ -347,8 +349,65 @@ class PortfolioProvider extends ChangeNotifier {
   List<Portfolio> _portfolios = [];
   bool _loaded = false;
 
+  bool _refreshing = false;
+
   List<Portfolio> get portfolios => _portfolios;
   bool get loaded => _loaded;
+
+  /// 시세 갱신 중 여부. 자산 탭과 리밸런싱 탭이 같은 상태를 본다.
+  bool get refreshing => _refreshing;
+
+  /// 자동 설정된 환율·주가를 모두 갱신하고, 끝나면 총자산을 하루 한 점 기록한다.
+  ///
+  /// 두 탭이 같은 동작을 하므로 화면이 아니라 여기에 둔다.
+  /// 실패한 종목은 건너뛰고 마지막 값을 유지한다 — 화면의 숫자를 비우지 않는다.
+  Future<void> refreshAll() async {
+    if (_refreshing) return;
+    _refreshing = true;
+    notifyListeners();
+
+    double? cachedRate;
+    for (final pf in List<Portfolio>.from(_portfolios)) {
+      if (pf.exchangeAuto) {
+        cachedRate ??= await ApiService.fetchExchangeRate()
+            .then((r) => r.ok ? r.data : null);
+        if (cachedRate != null) {
+          await updateSettings(pf.id, exchangeRate: cachedRate);
+        }
+      }
+      if (pf.priceAuto) {
+        for (final item in pf.items) {
+          if (item.isCash || item.ticker.isEmpty) continue;
+          final r = await ApiService.fetchStockPrice(item.ticker, item.market);
+          if (r.ok && r.data != null) {
+            await updateItem(
+              pf.id,
+              item.copyWith(
+                currentPrice: r.data!.currentPrice,
+                previousClose: r.data!.previousClose,
+              ),
+            );
+          }
+        }
+      }
+      await updateLastRefreshed(pf.id);
+    }
+
+    await _recordTotalAssets();
+
+    _refreshing = false;
+    notifyListeners();
+  }
+
+  /// 갱신 직후의 총자산(원화 환산)을 자산 추이 그래프의 재료로 남긴다.
+  Future<void> _recordTotalAssets() async {
+    if (!_portfolios.any((p) => p.hasPriceData)) return;
+    final totalKrw = _portfolios.fold(0.0, (sum, pf) {
+      final v = pf.totalValue;
+      return sum + (pf.currency == 'USD' ? v * pf.exchangeRate : v);
+    });
+    await AssetHistoryService.record(totalKrw);
+  }
 
   PortfolioProvider() {
     _loadData();

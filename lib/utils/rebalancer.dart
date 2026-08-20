@@ -100,26 +100,57 @@ class Rebalancer {
       );
     }
 
+    // ── 허용 편차 안에 있는 종목은 건드리지 않는다 ──
+    //
+    // 추가 투자금이 있으면 어차피 전 종목의 비중이 바뀌므로 잠그지 않는다.
+    // 임계값이 0이면 기존 동작(전 종목 재배분) 그대로다.
+    final lockedIds = <String>{};
+    if (portfolio.rebalancingThreshold > 0 && portfolio.additionalInvestment == 0) {
+      final exceeding =
+          Rebalancer.driftExceeding(portfolio).map((d) => d.item.id).toSet();
+      for (final item in items) {
+        if (!exceeding.contains(item.id)) lockedIds.add(item.id);
+      }
+    }
+
     final data = <_CalcItem>[];
     for (final item in items) {
       final p = priceInBase(item);
       final cv = item.isCash ? item.shares : item.shares * p;
       final cw = (cv / total) * 100;
       final tv = total * (item.targetWeight / 100);
+      final locked = lockedIds.contains(item.id);
       if (item.isCash) {
-        data.add(_CalcItem(item: item, price: p, currentValue: cv, currentWeight: cw, targetValue: tv, baseShares: tv.round(), remainder: 0));
+        data.add(_CalcItem(
+            item: item, price: p, currentValue: cv, currentWeight: cw,
+            targetValue: tv,
+            baseShares: locked ? item.shares.round() : tv.round(),
+            remainder: 0, locked: locked));
       } else {
         if (p <= 0) continue; // 안전장치
         final ideal = tv / p;
-        final base = ideal.floor();
-        data.add(_CalcItem(item: item, price: p, currentValue: cv, currentWeight: cw, targetValue: tv, ideal: ideal, baseShares: base, remainder: ideal - base));
+        final base = locked ? item.shares.toInt() : ideal.floor();
+        data.add(_CalcItem(
+            item: item, price: p, currentValue: cv, currentWeight: cw,
+            targetValue: tv, ideal: ideal, baseShares: base,
+            remainder: locked ? 0 : ideal - base, locked: locked));
       }
     }
 
-    final stocks = data.where((d) => !d.item.isCash).toList()..sort((a, b) => b.remainder.compareTo(a.remainder));
+    // 잠긴 종목은 잔여 예산 배분에서 빠진다
+    final stocks = data.where((d) => !d.item.isCash && !d.locked).toList()
+      ..sort((a, b) => b.remainder.compareTo(a.remainder));
     double allocated = data.fold(0.0, (sum, d) => d.item.isCash ? sum + d.baseShares : sum + d.baseShares * d.price);
     double budget = total - allocated;
-    for (final d in stocks) { if (d.item.targetWeight > 0 && budget >= d.price) { d.baseShares += 1; budget -= d.price; } }
+    // 최대잉여법: 소수점이 남은 종목에만 한 주씩 더 준다.
+    // remainder가 0인 종목은 이미 목표에 정확히 맞아 있으므로 더하면 목표를 넘는다
+    // (잠긴 종목의 편차 때문에 생긴 잔여 예산이 엉뚱한 종목을 밀어올리는 걸 막는다).
+    for (final d in stocks) {
+      if (d.item.targetWeight > 0 && d.remainder > 0 && budget >= d.price) {
+        d.baseShares += 1;
+        budget -= d.price;
+      }
+    }
 
     double commission = data.fold(0.0, (sum, d) => d.item.isCash ? sum : sum + (d.baseShares - d.item.shares).abs() * d.price * cr / 100);
     allocated = data.fold(0.0, (sum, d) => d.item.isCash ? sum + d.baseShares : sum + d.baseShares * d.price);
@@ -164,5 +195,7 @@ class _CalcItem {
   final double? ideal;
   int baseShares;
   final double remainder;
-  _CalcItem({required this.item, required this.price, required this.currentValue, required this.currentWeight, required this.targetValue, this.ideal, required this.baseShares, required this.remainder});
+  /// 허용 편차 안이라 거래하지 않는 종목
+  final bool locked;
+  _CalcItem({required this.item, required this.price, required this.currentValue, required this.currentWeight, required this.targetValue, this.ideal, required this.baseShares, required this.remainder, this.locked = false});
 }
