@@ -512,13 +512,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String get validationExchangeRatePositive => '환율은 0보다 큰 값이어야 합니다.';
 
   @override
-  String get tabAssets => '자산현황';
+  String get tabAssets => '자산';
 
   @override
   String get tabRebalancing => '리밸런싱';
 
   @override
   String get tabSettlement => '결산';
+
+  @override
+  String get tabMore => '더보기';
 
   @override
   String get settlementWeekly => '주간';

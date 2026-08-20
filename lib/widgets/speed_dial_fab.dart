@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../main.dart';
-import '../widgets/bottom_banner_ad.dart';
 
 class SpeedDialItem {
   final IconData icon;

@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'models/portfolio.dart';
 import 'services/storage_service.dart';
-import 'screens/portfolio_list_screen.dart';
+import 'screens/main_shell.dart';
 import 'screens/onboarding_screen.dart';
 import 'services/stock_search_service.dart';
 import 'services/notification_service.dart';
@@ -22,7 +22,6 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => PortfolioProvider()),
-        ChangeNotifierProvider(create: (_) => ThemeNotifier()),
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
         ChangeNotifierProvider(create: (_) => PnlColorNotifier()),
         ChangeNotifierProvider(create: (_) => MainCurrencyNotifier()),
@@ -70,47 +69,6 @@ extension L10nExt on BuildContext {
   AppLocalizations get l10n => AppLocalizations.of(this);
 }
 
-// ── 테마 관리 ──
-
-class ThemeNotifier extends ChangeNotifier {
-  ThemeMode _mode = ThemeMode.system;
-  ThemeMode get mode => _mode;
-
-  ThemeNotifier() {
-    _load();
-  }
-
-  Future<void> _load() async {
-    final prefs = await SharedPreferences.getInstance();
-    final v = prefs.getString('themeMode') ?? 'system';
-    _mode = v == 'dark'
-        ? ThemeMode.dark
-        : v == 'light'
-            ? ThemeMode.light
-            : ThemeMode.system;
-    notifyListeners();
-  }
-
-  Future<void> setMode(ThemeMode mode) async {
-    _mode = mode;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-      'themeMode',
-      mode == ThemeMode.dark
-          ? 'dark'
-          : mode == ThemeMode.light
-              ? 'light'
-              : 'system',
-    );
-    notifyListeners();
-  }
-
-  void toggle(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    setMode(isDark ? ThemeMode.light : ThemeMode.dark);
-  }
-}
-
 // ── 손익 색상 관리 ──
 
 enum PnlColorScheme { greenRed, redBlue }
@@ -137,12 +95,12 @@ class PnlColorNotifier extends ChangeNotifier {
   }
 
   Color get positiveColor => _scheme == PnlColorScheme.redBlue
-      ? const Color(0xFFDC2626)
-      : const Color(0xFF16A34A);
+      ? const Color(0xFFB85127)
+      : const Color(0xFF0E7A52);
 
   Color get negativeColor => _scheme == PnlColorScheme.redBlue
-      ? const Color(0xFF2563EB)
-      : const Color(0xFFDC2626);
+      ? const Color(0xFF2A5C8A)
+      : const Color(0xFFB85127);
 }
 
 // ── 메인페이지 기준 통화 관리 ──
@@ -169,49 +127,70 @@ class MainCurrencyNotifier extends ChangeNotifier {
 }
 
 // ── 앱 색상 확장 ──
+// 라이트 전용. 다크 모드는 제공하지 않는다.
 
 extension AppColors on BuildContext {
-  bool get isDark => Theme.of(this).brightness == Brightness.dark;
+  // ── 배경 · 표면 ──
+  Color get scaffoldBg => const Color(0xFFFBF8F1);   // 크림 배경
+  Color get cardBg => Colors.white;
+  Color get panelBg => Colors.white;
+  Color get rowBg => const Color(0xFFF7F3EA);
+  Color get fieldFill => const Color(0xFFF7F3EA);
+  Color get infoBoxBg => const Color(0xFFF7F3EA);
+  Color get subtleFill => const Color(0xFFF7F3EA);
+  Color get trackBg => const Color(0xFFF2EDE1);      // 진행 막대 트랙 · 세그먼트
+  Color get disabledFill => const Color(0xFFEFEADC);
 
-  Color get scaffoldBg =>
-      isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9);
-  Color get cardBg => isDark ? const Color(0xFF1E293B) : Colors.white;
-  Color get panelBg => isDark ? const Color(0xFF1E293B) : Colors.white;
-  Color get rowBg =>
-      isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
-  Color get fieldFill =>
-      isDark ? const Color(0xFF0F172A) : const Color(0xFFF9FAFB);
-  Color get disabledFill =>
-      isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB);
-  Color get infoBoxBg =>
-      isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
+  // ── 텍스트 ──
+  Color get textPrimary => const Color(0xFF16130F);
+  Color get textStrong => const Color(0xFF4A443B);   // 표 라벨 등 강한 보조
+  Color get textSecondary => const Color(0xFF726B5F);
+  Color get textTertiary => const Color(0xFF8A8478); // 기여도 · 부가 수치
+  Color get textHint => const Color(0xFFA39B8C);
+  Color get textDisabled => const Color(0xFFC3BCAC); // 비활성 · 미래 기간
+  Color get sectionLabel => const Color(0xFF8A8478);
 
-  Color get textPrimary =>
-      isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B);
-  Color get textSecondary =>
-      isDark ? const Color(0xFF94A3B8) : Colors.grey.shade600;
-  Color get textHint =>
-      isDark ? const Color(0xFF475569) : Colors.grey.shade400;
+  // ── 선 ──
+  Color get dividerColor => const Color(0xFFEFEADC); // 카드 안 행 구분선
+  Color get borderColor => const Color(0xFFE4DECF);  // 카드 밖 경계
+  Color get cardBorder => const Color(0xFFE4DECF);   // 카드 테두리 (크림 배경 대비 보강)
 
-  Color get borderColor =>
-      isDark ? const Color(0xFF334155) : Colors.grey.shade300;
-  Color get dividerColor =>
-      isDark ? const Color(0xFF334155) : Colors.grey.shade200;
-  Color get sectionLabel =>
-      isDark ? const Color(0xFF64748B) : Colors.grey.shade400;
+  // ── 브랜드 (딥 그린) ──
+  Color get brand => const Color(0xFF0E4F49);        // AppBar · CTA · 선택
+  Color get appBarBg => const Color(0xFF0E4F49);
+  Color get brandOnLight => const Color(0xFF3D5C58); // 밝은 배경 위 브랜드 텍스트
+  Color get brandTint => const Color(0xFFE6EEEC);    // 브랜드 옅은 배경
+  Color get onBrandAccent => const Color(0xFF8FE7B0); // 딥그린 위 강조 숫자
+  Color get onBrandSecondary => Colors.white.withValues(alpha: 0.72);
+  Color get onBrandWarning => const Color(0xFFF2C36B);
+  Color get highlightBg => const Color(0xFFE6EEEC);
+  Color get highlightText => const Color(0xFF3D5C58);
 
-  Color get appBarBg =>
-      isDark ? const Color(0xFF0F172A) : const Color(0xFF1E293B);
+  // ── 손익 배지 배경 (색 자체는 PnlColorNotifier를 통과시킬 것) ──
+  Color get pnlUpTint => const Color(0xFFE6EEEC);
+  Color get pnlDownTint => const Color(0xFFF7E4DA);
 
-  Color get warningBg =>
-      isDark ? const Color(0xFF451A03) : const Color(0xFFFEF3C7);
-  Color get warningText =>
-      isDark ? const Color(0xFFFBBF24) : const Color(0xFF92400E);
+  // ── 주의 · 진행중 ──
+  Color get warningBg => const Color(0xFFF5EEDF);
+  Color get warningText => const Color(0xFF9C4A16);
+  Color get progressAccent => const Color(0xFFC08A3E); // 진행 중 기간 점 · 테두리
+  /// 파괴적 액션 (앱 종료 · 삭제) 버튼 채움
+  Color get danger => const Color(0xFFB85127);
 
-  Color get highlightBg =>
-      isDark ? const Color(0xFF052E16) : const Color(0xFFF0FDF4);
-  Color get highlightText =>
-      isDark ? const Color(0xFF4ADE80) : const Color(0xFF16A34A);
+  // ── 시장 칩 ──
+  Color get chipKrText => const Color(0xFF1E4E6B);
+  Color get chipKrBg => const Color(0xFFDCE9F0);
+  Color get chipUsText => const Color(0xFF4C2A72);
+  Color get chipUsBg => const Color(0xFFEBE4F3);
+  Color get chipCashText => const Color(0xFF3F5218);
+  Color get chipCashBg => const Color(0xFFE9EFDC);
+
+  // ── 결산 차트 ──
+  Color get barSettled => const Color(0xFFBFE3CF);    // 확정 기간
+  Color get barSelected => const Color(0xFF0E4F49);   // 선택된 기간
+  Color get barNegative => const Color(0xFFEED4C6);   // 손실 기간
+  Color get barInProgress => const Color(0xFFA9CBBB); // 진행 중 (점선 테두리)
+  Color get chartBaseline => const Color(0xFFE4DECF);
 }
 
 // ── 앱 ──
@@ -221,12 +200,11 @@ class RebalancingApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<ThemeNotifier, LocaleProvider>(
-      builder: (context, themeNotifier, localeProvider, _) {
+    return Consumer<LocaleProvider>(
+      builder: (context, localeProvider, _) {
         return MaterialApp(
           title: 'Rebalancing',
           debugShowCheckedModeBanner: false,
-          themeMode: themeNotifier.mode,
           locale: localeProvider.locale,
           localizationsDelegates: const [
             AppLocalizations.delegate,
@@ -240,76 +218,50 @@ class RebalancingApp extends StatelessWidget {
           ],
           theme: ThemeData(
             colorScheme: ColorScheme.fromSeed(
-              seedColor: const Color(0xFF3B82F6),
+              seedColor: const Color(0xFF0E4F49),
               brightness: Brightness.light,
             ),
-            scaffoldBackgroundColor: const Color(0xFFF1F5F9),
+            scaffoldBackgroundColor: const Color(0xFFFBF8F1),
             fontFamily: 'Pretendard',
             useMaterial3: true,
             appBarTheme: const AppBarTheme(
-              backgroundColor: Color(0xFF1E293B),
+              backgroundColor: Color(0xFF0E4F49),
               foregroundColor: Colors.white,
               elevation: 0,
             ),
             cardTheme: const CardThemeData(
               color: Colors.white,
-              elevation: 1,
-              shadowColor: Color(0x18000000),
+              elevation: 0,
+              shadowColor: Color(0x0D16130F),
             ),
             dialogTheme: const DialogThemeData(backgroundColor: Colors.white),
-          ),
-          darkTheme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: const Color(0xFF3B82F6),
-              brightness: Brightness.dark,
-            ),
-            scaffoldBackgroundColor: const Color(0xFF0F172A),
-            fontFamily: 'Pretendard',
-            useMaterial3: true,
-            appBarTheme: const AppBarTheme(
-              backgroundColor: Color(0xFF0F172A),
-              foregroundColor: Colors.white,
-              elevation: 0,
-            ),
-            cardTheme: const CardThemeData(
-              color: Color(0xFF1E293B),
-              elevation: 0,
-              shadowColor: Colors.transparent,
-            ),
-            dialogTheme:
-                const DialogThemeData(backgroundColor: Color(0xFF1E293B)),
-            dividerTheme:
-                const DividerThemeData(color: Color(0xFF334155)),
+            dividerTheme: const DividerThemeData(color: Color(0xFFEFEADC)),
             switchTheme: SwitchThemeData(
-              thumbColor: WidgetStateProperty.resolveWith((states) {
-                if (states.contains(WidgetState.selected)) {
-                  return const Color(0xFF3B82F6);
-                }
-                return const Color(0xFF64748B);
-              }),
-              trackColor: WidgetStateProperty.resolveWith((states) {
-                if (states.contains(WidgetState.selected)) {
-                  return const Color(0xFF1D4ED8);
-                }
-                return const Color(0xFF334155);
-              }),
+              thumbColor: WidgetStateProperty.resolveWith((states) =>
+                  states.contains(WidgetState.selected)
+                      ? Colors.white
+                      : const Color(0xFFFBF8F1)),
+              trackColor: WidgetStateProperty.resolveWith((states) =>
+                  states.contains(WidgetState.selected)
+                      ? const Color(0xFF0E4F49)
+                      : const Color(0xFFEFEADC)),
             ),
             textButtonTheme: TextButtonThemeData(
               style: TextButton.styleFrom(
-                  foregroundColor: const Color(0xFF60A5FA)),
+                  foregroundColor: const Color(0xFF0E4F49)),
             ),
             inputDecorationTheme: InputDecorationTheme(
               filled: true,
-              fillColor: const Color(0xFF0F172A),
+              fillColor: const Color(0xFFF7F3EA),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFF334155)),
+                borderSide: const BorderSide(color: Color(0xFFE4DECF)),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFF334155)),
+                borderSide: const BorderSide(color: Color(0xFFE4DECF)),
               ),
-              hintStyle: const TextStyle(color: Color(0xFF475569)),
+              hintStyle: const TextStyle(color: Color(0xFFA39B8C)),
             ),
           ),
           home: const _AppEntryPoint(),
@@ -353,7 +305,7 @@ class _AppEntryPointState extends State<_AppEntryPoint> {
 
     if (!_timerDone || !loaded || _onboardingDone == null) {
       return const Scaffold(
-        backgroundColor: Color(0xFF0F172A),
+        backgroundColor: Color(0xFF0E4F49),
         body: Center(child: AppLogo(iconSize: 38)),
       );
     }
@@ -369,7 +321,7 @@ class _AppEntryPointState extends State<_AppEntryPoint> {
       DisclaimerDialog.showIfNeeded(context);
     });
 
-    return const PortfolioListScreen();
+    return const MainShell();
   }
 }
 

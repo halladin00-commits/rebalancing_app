@@ -521,10 +521,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabAssets => 'Assets';
 
   @override
-  String get tabRebalancing => 'Rebalancing';
+  String get tabRebalancing => 'Rebalance';
 
   @override
-  String get tabSettlement => 'Settlement';
+  String get tabSettlement => 'Returns';
+
+  @override
+  String get tabMore => 'More';
 
   @override
   String get settlementWeekly => 'Weekly';

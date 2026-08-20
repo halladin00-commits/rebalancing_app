@@ -282,8 +282,8 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
                                     horizontal: 5, vertical: 2),
                                 decoration: BoxDecoration(
                                   color: isUSStock
-                                      ? const Color(0xFF7C3AED).withValues(alpha: context.isDark ? 0.25 : 0.08)
-                                      : const Color(0xFF0369A1).withValues(alpha: context.isDark ? 0.25 : 0.08),
+                                      ? const Color(0xFF7C3AED).withValues(alpha: 0.08)
+                                      : const Color(0xFF0369A1).withValues(alpha: 0.08),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(s.market,

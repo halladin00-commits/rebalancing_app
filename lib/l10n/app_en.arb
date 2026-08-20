@@ -203,8 +203,9 @@
   "validationExchangeRatePositive": "Exchange rate must be greater than 0.",
 
   "tabAssets": "Assets",
-  "tabRebalancing": "Rebalancing",
-  "tabSettlement": "Settlement",
+  "tabRebalancing": "Rebalance",
+  "tabSettlement": "Returns",
+  "tabMore": "More",
 
   "settlementWeekly": "Weekly",
   "settlementMonthly": "Monthly",

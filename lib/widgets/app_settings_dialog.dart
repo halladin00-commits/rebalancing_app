@@ -111,7 +111,6 @@ class _AppSettingsDialogState extends State<AppSettingsDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final themeNotifier = context.watch<ThemeNotifier>();
     final localeProvider = context.watch<LocaleProvider>();
     final pnlNotifier = context.watch<PnlColorNotifier>();
     final mainCurrency = context.watch<MainCurrencyNotifier>();
@@ -128,37 +127,6 @@ class _AppSettingsDialogState extends State<AppSettingsDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── 테마 ──
-              _sectionHeader(context, isKo ? '테마' : 'Theme'),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: context.rowBg,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: context.borderColor),
-                  ),
-                  child: Builder(builder: (ctx) {
-                    final effectiveDark = themeNotifier.mode == ThemeMode.dark ||
-                        (themeNotifier.mode == ThemeMode.system && ctx.isDark);
-                    return Row(children: [
-                      _segBtn(
-                        context,
-                        isKo ? '라이트' : 'Light',
-                        !effectiveDark,
-                        () => themeNotifier.setMode(ThemeMode.light),
-                      ),
-                      _segBtn(
-                        context,
-                        isKo ? '다크' : 'Dark',
-                        effectiveDark,
-                        () => themeNotifier.setMode(ThemeMode.dark),
-                      ),
-                    ]);
-                  }),
-                ),
-              ),
-
               // ── 언어 ──
               _sectionHeader(context, l10n.language),
               Padding(
@@ -438,7 +406,7 @@ class _AppSettingsDialogState extends State<AppSettingsDialog> {
   Widget _sectionHeader(BuildContext context, String title) {
     return Container(
       width: double.infinity,
-      color: const Color(0xFF3B82F6).withValues(alpha: context.isDark ? 0.15 : 0.08),
+      color: context.brandTint,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: Text(
         title,
@@ -559,7 +527,7 @@ class _AppSettingsDialogState extends State<AppSettingsDialog> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: context.isDark ? const Color(0xFF1E293B) : Colors.grey.shade100,
+        color: context.rowBg,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: context.borderColor),
       ),
@@ -569,7 +537,7 @@ class _AppSettingsDialogState extends State<AppSettingsDialog> {
           value: value,
           isExpanded: true,
           isDense: true,
-          dropdownColor: context.isDark ? const Color(0xFF1E293B) : Colors.white,
+          dropdownColor: context.cardBg,
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,

@@ -119,7 +119,7 @@ class _NotificationSettingsDialogState
     return Container(
       width: double.infinity,
       color: const Color(0xFF3B82F6)
-          .withValues(alpha: context.isDark ? 0.15 : 0.08),
+          .withValues(alpha: 0.08),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: Text(
         title,

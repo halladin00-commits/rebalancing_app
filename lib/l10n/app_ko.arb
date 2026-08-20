@@ -202,9 +202,10 @@
   "validationPositive": "0보다 큰 값을 입력해주세요.",
   "validationExchangeRatePositive": "환율은 0보다 큰 값이어야 합니다.",
 
-  "tabAssets": "자산현황",
+  "tabAssets": "자산",
   "tabRebalancing": "리밸런싱",
   "tabSettlement": "결산",
+  "tabMore": "더보기",
 
   "settlementWeekly": "주간",
   "settlementMonthly": "월간",

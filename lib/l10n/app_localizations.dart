@@ -1061,7 +1061,7 @@ abstract class AppLocalizations {
   /// No description provided for @tabAssets.
   ///
   /// In ko, this message translates to:
-  /// **'자산현황'**
+  /// **'자산'**
   String get tabAssets;
 
   /// No description provided for @tabRebalancing.
@@ -1075,6 +1075,12 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'결산'**
   String get tabSettlement;
+
+  /// No description provided for @tabMore.
+  ///
+  /// In ko, this message translates to:
+  /// **'더보기'**
+  String get tabMore;
 
   /// No description provided for @settlementWeekly.
   ///

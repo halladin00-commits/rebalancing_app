@@ -500,7 +500,7 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-          color: color.withValues(alpha: context.isDark ? 0.2 : 0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(4)),
       child: Text(text,
           style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color)),
