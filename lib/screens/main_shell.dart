@@ -7,10 +7,10 @@ import '../l10n/app_localizations.dart';
 import '../services/ad_service.dart';
 import '../theme/design_system.dart';
 import '../widgets/bottom_banner_ad.dart';
-import '../widgets/brand_header.dart';
 import 'portfolio_list_screen.dart';
 import 'all_settlement_screen.dart';
 import 'rebalance_tab_screen.dart';
+import 'more_screen.dart';
 
 /// 앱의 최상위 셸 — 하단 4탭(자산 / 리밸런싱 / 결산 / 더보기).
 ///
@@ -169,8 +169,9 @@ class _MainShellState extends State<MainShell> {
             ),
             const RebalanceTabScreen(),
             AllSettlementScreen(portfolios: portfolios),
-            // 5단계에서 채운다.
-            _PlaceholderTab(title: l10n.tabMore),
+            MoreScreen(
+              onNavigateToTab: (i) => setState(() => _index = i),
+            ),
           ],
         ),
         bottomNavigationBar: Column(
@@ -252,37 +253,6 @@ class _MainShellState extends State<MainShell> {
             }),
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// 아직 구현하지 않은 탭 자리. 3·5단계에서 실제 화면으로 교체한다.
-class _PlaceholderTab extends StatelessWidget {
-  final String title;
-  const _PlaceholderTab({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: context.scaffoldBg,
-      body: Column(
-        children: [
-          BrandHeader(title: title),
-          Expanded(
-            child: Center(
-              child: Text(
-                Localizations.localeOf(context).languageCode == 'ko'
-                    ? '준비 중'
-                    : 'Coming soon',
-                style: TextStyle(
-                    fontSize: DS.rowName,
-                    fontWeight: FontWeight.w600,
-                    color: context.textHint),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

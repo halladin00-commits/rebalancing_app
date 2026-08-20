@@ -7,15 +7,12 @@ import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import '../main.dart';
 import '../models/portfolio.dart';
-import '../services/storage_service.dart';
 import '../services/notification_service.dart';
 import '../services/asset_history_service.dart';
 import '../theme/design_system.dart';
 import '../utils/rebalancer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/portfolio_form_dialog.dart';
-import '../widgets/disclaimer_dialog.dart';
-import '../widgets/app_settings_dialog.dart';
 import '../widgets/speed_dial_fab.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/brand_header.dart';
@@ -510,60 +507,6 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
     );
   }
 
-  Future<void> _backupData(BuildContext context) async {
-    final l10n = context.l10n;
-    try {
-      final portfolios = context.read<PortfolioProvider>().portfolios;
-      await StorageService.exportPortfolios(portfolios);
-    } catch (e) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${l10n.backupFailed}: $e')),
-      );
-    }
-  }
-
-  Future<void> _restoreData(BuildContext context) async {
-    final l10n = context.l10n;
-    try {
-      final portfolios = await StorageService.importPortfolios();
-      if (portfolios == null) return;
-      if (!context.mounted) return;
-
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (_) => AlertDialog(
-          backgroundColor: context.cardBg,
-          title: Text(l10n.restoreConfirmTitle,
-              style: TextStyle(color: context.textPrimary)),
-          content: Text(l10n.restoreConfirmContent(portfolios.length),
-              style: TextStyle(color: context.textSecondary)),
-          actions: [
-            TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: Text(l10n.cancel)),
-            TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                child:
-                    Text(l10n.confirm, style: TextStyle(color: context.brand))),
-          ],
-        ),
-      );
-
-      if (confirmed != true || !context.mounted) return;
-      await context.read<PortfolioProvider>().replaceAll(portfolios);
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.restoreSuccess(portfolios.length))),
-      );
-    } catch (e) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.restoreFailed)),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -653,28 +596,12 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                               label: l10n.edit,
                               onTap: () => setState(() => _editMode = true),
                             ),
-                            SpeedDialItem(
-                              icon: Icons.settings_outlined,
-                              label: l10n.settings,
-                              onTap: () => showDialog(
-                                context: context,
-                                builder: (_) => AppSettingsDialog(
-                                  onBackup: () => _backupData(context),
-                                  onRestore: () => _restoreData(context),
-                                ),
-                              ),
-                            ),
                             if (portfolios.isNotEmpty)
                               SpeedDialItem(
                                 icon: Icons.camera_alt_outlined,
                                 label: l10n.capture,
                                 onTap: () => _showMainCaptureSheet(portfolios),
                               ),
-                            SpeedDialItem(
-                              icon: Icons.info_outline,
-                              label: l10n.notice,
-                              onTap: () => DisclaimerDialog.showAlways(context),
-                            ),
                           ],
                         ),
                       ),
