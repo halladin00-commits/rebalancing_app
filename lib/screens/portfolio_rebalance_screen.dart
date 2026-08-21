@@ -7,7 +7,7 @@ import '../utils/rebalancer.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/settings_dialog.dart';
 import '../widgets/weight_bar.dart';
-import 'portfolio_detail_screen.dart';
+import 'rebalance_proposal_screen.dart';
 
 /// 포트폴리오 하나의 편차 진단 (v18b).
 ///
@@ -245,8 +245,8 @@ class PortfolioRebalanceScreen extends StatelessWidget {
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => PortfolioDetailScreen(
-                    portfolioId: pf.id, initialTab: 1),
+                builder: (_) =>
+                    RebalanceProposalScreen(portfolioId: pf.id),
               ),
             ),
             style: ElevatedButton.styleFrom(

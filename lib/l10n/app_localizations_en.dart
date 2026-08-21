@@ -9,6 +9,60 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get proposalTitle => 'Adjustment';
+
+  @override
+  String get modeHoldings => 'Within holdings';
+
+  @override
+  String get modeAddCash => 'With new cash';
+
+  @override
+  String atCurrentPrice(String price) {
+    return 'at $price';
+  }
+
+  @override
+  String get driftAfterAdjust => 'Drift after adjusting';
+
+  @override
+  String toleranceLabel(String value) {
+    return '±${value}pp allowed';
+  }
+
+  @override
+  String get withinTolerance => 'Within';
+
+  @override
+  String get roundingWholeShares => 'Whole shares only';
+
+  @override
+  String get roundingWholeSharesDesc =>
+      'Quantities stay in whole shares, picked to land closest to the target weight.';
+
+  @override
+  String get roundingFractional => 'Fractional shares';
+
+  @override
+  String roundingFractionalDesc(int digits) {
+    return 'Rounded down at $digits decimal places so the total never exceeds your budget, leaving a tiny remainder.';
+  }
+
+  @override
+  String get proposalDisclaimer =>
+      'This does not place any orders. Record your trades below once you have actually executed them.';
+
+  @override
+  String get noAdjustmentNeeded => 'Nothing to adjust right now';
+
+  @override
+  String get cannotCalculate =>
+      'Cannot calculate. Check whether any holding is missing a current price.';
+
+  @override
+  String get recordAsTransactions => 'Record as transactions';
+
+  @override
   String get cancel => 'Cancel';
 
   @override

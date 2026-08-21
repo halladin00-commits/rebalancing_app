@@ -98,6 +98,96 @@ abstract class AppLocalizations {
     Locale('ko')
   ];
 
+  /// No description provided for @proposalTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'조정 제안'**
+  String get proposalTitle;
+
+  /// No description provided for @modeHoldings.
+  ///
+  /// In ko, this message translates to:
+  /// **'보유 안에서'**
+  String get modeHoldings;
+
+  /// No description provided for @modeAddCash.
+  ///
+  /// In ko, this message translates to:
+  /// **'추가 입금으로'**
+  String get modeAddCash;
+
+  /// No description provided for @atCurrentPrice.
+  ///
+  /// In ko, this message translates to:
+  /// **'현재가 {price} 기준'**
+  String atCurrentPrice(String price);
+
+  /// No description provided for @driftAfterAdjust.
+  ///
+  /// In ko, this message translates to:
+  /// **'조정 후 남는 편차'**
+  String get driftAfterAdjust;
+
+  /// No description provided for @toleranceLabel.
+  ///
+  /// In ko, this message translates to:
+  /// **'허용 ±{value}%p'**
+  String toleranceLabel(String value);
+
+  /// No description provided for @withinTolerance.
+  ///
+  /// In ko, this message translates to:
+  /// **'허용 안'**
+  String get withinTolerance;
+
+  /// No description provided for @roundingWholeShares.
+  ///
+  /// In ko, this message translates to:
+  /// **'단주는 반올림'**
+  String get roundingWholeShares;
+
+  /// No description provided for @roundingWholeSharesDesc.
+  ///
+  /// In ko, this message translates to:
+  /// **'1주 단위로만 계산합니다. 목표 비중에 0에 가장 가까운 수량으로 맞춥니다.'**
+  String get roundingWholeSharesDesc;
+
+  /// No description provided for @roundingFractional.
+  ///
+  /// In ko, this message translates to:
+  /// **'소수점 거래'**
+  String get roundingFractional;
+
+  /// No description provided for @roundingFractionalDesc.
+  ///
+  /// In ko, this message translates to:
+  /// **'소수점 {digits}자리에서 버립니다. 예산을 넘지 않게 하려는 것이라 아주 적은 금액이 남습니다.'**
+  String roundingFractionalDesc(int digits);
+
+  /// No description provided for @proposalDisclaimer.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 제안은 주문을 내지 않습니다. 실제로 매매하신 뒤 아래 버튼으로 기록하세요.'**
+  String get proposalDisclaimer;
+
+  /// No description provided for @noAdjustmentNeeded.
+  ///
+  /// In ko, this message translates to:
+  /// **'지금은 조정할 것이 없습니다'**
+  String get noAdjustmentNeeded;
+
+  /// No description provided for @cannotCalculate.
+  ///
+  /// In ko, this message translates to:
+  /// **'계산할 수 없습니다. 현재가가 없는 종목이 있는지 확인해 주세요.'**
+  String get cannotCalculate;
+
+  /// No description provided for @recordAsTransactions.
+  ///
+  /// In ko, this message translates to:
+  /// **'거래 내역으로 기록'**
+  String get recordAsTransactions;
+
   /// No description provided for @cancel.
   ///
   /// In ko, this message translates to:

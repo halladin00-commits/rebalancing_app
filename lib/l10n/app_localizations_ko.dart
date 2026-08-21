@@ -9,6 +9,59 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
+  String get proposalTitle => '조정 제안';
+
+  @override
+  String get modeHoldings => '보유 안에서';
+
+  @override
+  String get modeAddCash => '추가 입금으로';
+
+  @override
+  String atCurrentPrice(String price) {
+    return '현재가 $price 기준';
+  }
+
+  @override
+  String get driftAfterAdjust => '조정 후 남는 편차';
+
+  @override
+  String toleranceLabel(String value) {
+    return '허용 ±$value%p';
+  }
+
+  @override
+  String get withinTolerance => '허용 안';
+
+  @override
+  String get roundingWholeShares => '단주는 반올림';
+
+  @override
+  String get roundingWholeSharesDesc =>
+      '1주 단위로만 계산합니다. 목표 비중에 0에 가장 가까운 수량으로 맞춥니다.';
+
+  @override
+  String get roundingFractional => '소수점 거래';
+
+  @override
+  String roundingFractionalDesc(int digits) {
+    return '소수점 $digits자리에서 버립니다. 예산을 넘지 않게 하려는 것이라 아주 적은 금액이 남습니다.';
+  }
+
+  @override
+  String get proposalDisclaimer =>
+      '이 제안은 주문을 내지 않습니다. 실제로 매매하신 뒤 아래 버튼으로 기록하세요.';
+
+  @override
+  String get noAdjustmentNeeded => '지금은 조정할 것이 없습니다';
+
+  @override
+  String get cannotCalculate => '계산할 수 없습니다. 현재가가 없는 종목이 있는지 확인해 주세요.';
+
+  @override
+  String get recordAsTransactions => '거래 내역으로 기록';
+
+  @override
   String get cancel => '취소';
 
   @override
