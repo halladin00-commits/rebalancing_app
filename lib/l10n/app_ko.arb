@@ -37,6 +37,10 @@
     "placeholders": { "msg": { "type": "String" } }
   },
   "updateSuccess": "업데이트 완료",
+  "updateSuccessCount": "{count}건 업데이트 완료",
+  "@updateSuccessCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
   "portfolioNotFound": "포트폴리오를 찾을 수 없습니다",
   "additionalInvestment": "투자금 추가 or 출금",
   "additionalInvestmentHint": "예: 1000000 또는 -500000",

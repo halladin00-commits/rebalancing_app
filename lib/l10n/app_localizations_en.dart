@@ -91,6 +91,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get updateSuccess => 'Updated';
 
   @override
+  String updateSuccessCount(int count) {
+    return '$count updated';
+  }
+
+  @override
   String get portfolioNotFound => 'Portfolio not found';
 
   @override

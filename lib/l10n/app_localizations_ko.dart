@@ -90,6 +90,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String get updateSuccess => '업데이트 완료';
 
   @override
+  String updateSuccessCount(int count) {
+    return '$count건 업데이트 완료';
+  }
+
+  @override
   String get portfolioNotFound => '포트폴리오를 찾을 수 없습니다';
 
   @override

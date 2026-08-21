@@ -248,6 +248,12 @@ abstract class AppLocalizations {
   /// **'업데이트 완료'**
   String get updateSuccess;
 
+  /// No description provided for @updateSuccessCount.
+  ///
+  /// In ko, this message translates to:
+  /// **'{count}건 업데이트 완료'**
+  String updateSuccessCount(int count);
+
   /// No description provided for @portfolioNotFound.
   ///
   /// In ko, this message translates to:

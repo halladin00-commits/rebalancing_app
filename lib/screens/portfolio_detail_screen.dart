@@ -141,7 +141,9 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
     await provider.updatePortfolio(pf.id, pf);
     setState(() => _refreshing = false);
 
-    if (errors.isEmpty) _showToast('$successCount${l10n.updateSuccess}', Colors.green);
+    if (errors.isEmpty) {
+      _showToast(l10n.updateSuccessCount(successCount), context.brand);
+    }
     else if (successCount > 0) _showToast('$successCount건 성공, ${errors.length}건 실패', Colors.orange);
     else _showToast(l10n.updateFailed(errors.first), Colors.red);
   }
