@@ -17,6 +17,9 @@ import '../widgets/item_bottom_sheet.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/speed_dial_fab.dart';
 import '../widgets/bottom_banner_ad.dart';
+import '../widgets/brand_header.dart';
+import '../widgets/dashed_border_box.dart';
+import '../theme/design_system.dart';
 import 'portfolio_graph_screen.dart';
 
 class PortfolioDetailScreen extends StatefulWidget {
@@ -82,6 +85,14 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
     if (ts == null) return context.l10n.neverUpdated;
     final d = DateTime.fromMillisecondsSinceEpoch(ts);
     return '${d.year}.${d.month.toString().padLeft(2, '0')}.${d.day.toString().padLeft(2, '0')} '
+        '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+  }
+
+  /// 헤더 한 줄에 들어갈 짧은 형태 (`08.21 12:40`).
+  String _fmtTimeShort(int? ts) {
+    if (ts == null) return context.l10n.neverUpdated;
+    final d = DateTime.fromMillisecondsSinceEpoch(ts);
+    return '${d.month.toString().padLeft(2, '0')}.${d.day.toString().padLeft(2, '0')} '
         '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
   }
 
@@ -743,60 +754,54 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
           },
           child: Scaffold(
             backgroundColor: context.scaffoldBg,
-            appBar: AppBar(
-              backgroundColor: context.appBarBg,
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () async {
-                  if (_editMode) {
-                    final ok = await _confirmExitEdit();
-                    if (ok) setState(() => _editMode = false);
-                  } else {
-                    Navigator.pop(context);
-                  }
-                },
-              ),
-              title: Text('${pf.emoji} ${pf.name}',
-                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 17)),
-              bottom: TabBar(
-                controller: _tabController,
-                labelColor: Colors.white,
-                unselectedLabelColor: Colors.white54,
-                indicatorColor: Colors.white,
-                indicatorWeight: 2,
-                tabs: [
-                  Tab(text: l10n.tabAssets),
-                  Tab(text: l10n.tabRebalancing),
-                ],
-              ),
-              actions: [
-                if (_editMode)
-                  TextButton.icon(
-                    onPressed: () => setState(() => _editMode = false),
-                    icon: const Icon(Icons.check, color: Colors.white, size: 18),
-                    label: Text(l10n.done,
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-                  )
-                else
-                  IconButton(
-                    icon: _refreshing
-                        ? const SizedBox(width: 20, height: 20,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                        : Icon(Icons.refresh,
-                            color: (pf.exchangeAuto || pf.priceAuto) ? Colors.white : Colors.grey[600]),
-                    onPressed: () => _doRefresh(pf),
-                  ),
-              ],
-            ),
             body: Column(
               children: [
+                BrandHeader(
+                  title: '${pf.emoji} ${pf.name}',
+                  titleSize: 17,
+                  titleWeight: FontWeight.w700,
+                  childPadding: const EdgeInsets.fromLTRB(0, 2, 0, 16),
+                  leading: IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    onPressed: () async {
+                      if (_editMode) {
+                        final ok = await _confirmExitEdit();
+                        if (ok) setState(() => _editMode = false);
+                      } else {
+                        Navigator.pop(context);
+                      }
+                    },
+                  ),
+                  actions: [
+                    if (_editMode)
+                      TextButton.icon(
+                        onPressed: () => setState(() => _editMode = false),
+                        icon: const Icon(Icons.check, color: Colors.white, size: 18),
+                        label: Text(l10n.done,
+                            style: const TextStyle(
+                                color: Colors.white, fontWeight: FontWeight.w600)),
+                      )
+                    else
+                      IconButton(
+                        icon: _refreshing
+                            ? const SizedBox(width: 20, height: 20,
+                                child: CircularProgressIndicator(
+                                    color: Colors.white, strokeWidth: 2))
+                            : Icon(Icons.refresh,
+                                color: (pf.exchangeAuto || pf.priceAuto)
+                                    ? Colors.white
+                                    : context.onBrandSecondary),
+                        onPressed: () => _doRefresh(pf),
+                      ),
+                  ],
+                  child: _buildHeaderBody(context, pf, rb, hasPnl, hasDayChange,
+                      totalPnl, totalCost, totalDayChange, totalPrevValue),
+                ),
                 Expanded(
                   child: TabBarView(
                     controller: _tabController,
                     children: [
-                      _buildAssetView(context, pf, rb,
-                          hasPnl, hasDayChange,
-                          totalPnl, totalCost, totalDayChange, totalPrevValue),
+                      _buildAssetView(context, pf, rb),
                       _buildRebalancingView(context, pf, rb, weightSum, hasChanges),
                     ],
                   ),
@@ -810,102 +815,301 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
     );
   }
 
-  // ── Tab: 자산현황 ──
+  // ── 딥그린 헤더 안쪽 ──
 
-  Widget _buildAssetView(BuildContext context, Portfolio pf, RebalanceResult? rb,
+  /// 헤더 = [자산 · 리밸런싱] 탭 + 선택된 탭의 요약.
+  ///
+  /// 두 탭 모두 `큰 금액 + 타일 2개 + 하단 한 줄`이라는 같은 골격을 써서
+  /// 탭을 오갈 때 헤더 높이가 흔들리지 않게 한다. 값이 없는 칸은 감추지 않고
+  /// `—`로 남겨 자리를 지킨다.
+  Widget _buildHeaderBody(BuildContext context, Portfolio pf, RebalanceResult? rb,
       bool hasPnl, bool hasDayChange,
       double totalPnl, double totalCost, double totalDayChange, double totalPrevValue) {
     final l10n = context.l10n;
-    return Stack(
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final onRebalance = _tabController.index == 1;
+    final hasForeign = pf.currency == 'USD' || pf.items.any((i) => i.market == 'US');
+
+    // 큰 금액 — 자산 탭은 평가금액, 리밸런싱 탭은 기준금액
+    final bigLabel = onRebalance ? l10n.rebalancingBase : l10n.evaluationAmount;
+    final bigValue = rb == null
+        ? '—'
+        : _fmt(onRebalance ? rb.total : rb.total - pf.additionalInvestment,
+            pf.currency);
+
+    final List<Widget> tiles;
+    if (onRebalance) {
+      // 기준금액과 평가금액은 추가투자가 없으면 같은 값이라 나란히 두면 군더더기다.
+      // 대신 "무엇을 몇 건 사고팔아야 하는지"와 "얼마가 남는지"를 보여준다.
+      final trades = rb?.results.where((r) => !r.isCash && r.delta != 0).toList();
+      final buys = trades?.where((r) => r.delta > 0).length ?? 0;
+      final sells = trades?.where((r) => r.delta < 0).length ?? 0;
+      final cashPct = (rb != null && rb.total > 0) ? rb.cash / rb.total * 100 : 0.0;
+      tiles = [
+        _brandTile(context,
+            label: isKo ? '조정 대상' : 'To adjust',
+            value: trades == null ? '—' : l10n.itemCountLabel(trades.length),
+            sub: trades == null
+                ? '—'
+                : (trades.isEmpty
+                    ? (isKo ? '조정 불필요' : 'Nothing to do')
+                    : '${l10n.buy} $buys · ${l10n.sell} $sells'),
+            color: Colors.white),
+        const SizedBox(width: 9),
+        _brandTile(context,
+            label: l10n.remainingCash,
+            value: rb == null ? '—' : _fmt(rb.cash, pf.currency),
+            sub: rb == null
+                ? '—'
+                : (isKo
+                    ? '기준금액의 ${cashPct.toStringAsFixed(1)}%'
+                    : '${cashPct.toStringAsFixed(1)}% of base'),
+            color: Colors.white),
+      ];
+    } else {
+      tiles = [
+        _brandPnlTile(context, pf, l10n.profitLoss,
+            hasPnl ? totalPnl : null,
+            hasPnl ? totalPnl / totalCost * 100 : null),
+        const SizedBox(width: 9),
+        _brandPnlTile(context, pf, l10n.dayChange,
+            hasDayChange ? totalDayChange : null,
+            hasDayChange ? totalDayChange / totalPrevValue * 100 : null),
+      ];
+    }
+
+    // 하단 한 줄 — 리밸런싱 탭에서 수수료가 잡히면 그쪽을 우선한다.
+    // 오른쪽 시각과 한 줄을 나눠 쓰므로 짧은 문구만 넣는다.
+    final footerLeft = (onRebalance &&
+            pf.commissionEnabled &&
+            rb != null &&
+            rb.commission > 0)
+        ? l10n.estimatedFee(_fmt(rb.commission, pf.currency))
+        : l10n.itemCountLabel(pf.items.length);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Column(
-          children: [
-            if (!_editMode)
-              Container(
-                color: context.panelBg,
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 현재 자산(좌) + 환율·시간(우)
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(l10n.evaluationAmount,
-                                  style: TextStyle(fontSize: 11, color: context.textHint)),
-                              const SizedBox(height: 1),
-                              Text(
-                                rb != null
-                                    ? _fmt(rb.total - pf.additionalInvestment, pf.currency)
-                                    : '—',
-                                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: context.textPrimary),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(l10n.exchangeRateLabel(pf.exchangeRate.toStringAsFixed(0)),
-                                style: TextStyle(fontSize: 11, color: context.textHint)),
-                            const SizedBox(height: 1),
-                            Text(_fmtTime(pf.lastUpdated),
-                                style: TextStyle(fontSize: 11, color: context.textHint),
-                                overflow: TextOverflow.ellipsis),
-                          ],
-                        ),
-                      ],
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 22),
+          child: Row(children: [
+            _headerTab(context, 0, l10n.tabAssets),
+            const SizedBox(width: 20),
+            _headerTab(context, 1, l10n.tabRebalancing),
+          ]),
+        ),
+        // 편집 중에는 요약을 접어 목록에 집중시킨다
+        if (!_editMode) ...[
+          const SizedBox(height: 14),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 22),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(children: [
+                  Text(bigLabel,
+                      style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                          color: context.onBrandSecondary)),
+                  const Spacer(),
+                  if (hasForeign)
+                    Container(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.16),
+                        borderRadius: BorderRadius.circular(DS.chipRadius),
+                      ),
+                      child: Text(
+                        '1 USD = ₩${pf.exchangeRate.toStringAsFixed(0)}',
+                        style: const TextStyle(
+                            fontSize: DS.caption,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white),
+                      ),
                     ),
-                    // 종합손익·전일대비 칩 (2열)
-                    if (hasPnl || hasDayChange) ...[
-                      const SizedBox(height: 10),
-                      Row(children: [
-                        if (hasPnl)
-                          Expanded(child: _pnlChip(context, pf, l10n.profitLoss,
-                              totalPnl, totalPnl / totalCost * 100)),
-                        if (hasPnl && hasDayChange) const SizedBox(width: 8),
-                        if (hasDayChange)
-                          Expanded(child: _pnlChip(context, pf, l10n.dayChange,
-                              totalDayChange, totalDayChange / totalPrevValue * 100)),
-                      ]),
-                    ],
+                ]),
+                const SizedBox(height: 4),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    bigValue,
+                    style: const TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: -1.2,
+                      height: 1.08,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(children: tiles),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Flexible(
+                      child: Text(footerLeft,
+                          style: TextStyle(
+                              fontSize: DS.caption,
+                              fontWeight: FontWeight.w500,
+                              color: context.onBrandSecondary),
+                          overflow: TextOverflow.ellipsis),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      isKo
+                          ? '${_fmtTimeShort(pf.lastUpdated)} 기준'
+                          : 'as of ${_fmtTimeShort(pf.lastUpdated)}',
+                      style: TextStyle(
+                          fontSize: DS.caption,
+                          fontWeight: FontWeight.w500,
+                          color: context.onBrandSecondary),
+                    ),
                   ],
                 ),
-              ),
-            Expanded(
-              child: pf.items.isEmpty
-                  ? _buildEmptyState(context, pf)
-                  : _editMode
-                      ? ReorderableListView.builder(
-                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
-                          itemCount: pf.items.length,
-                          onReorder: (o, n) {
-                            if (n > o) n--;
-                            final list = List<PortfolioItem>.from(pf.items);
-                            final item = list.removeAt(o);
-                            list.insert(n, item);
-                            context.read<PortfolioProvider>().reorderItems(pf.id, list);
-                          },
-                          itemBuilder: (ctx, idx) => _buildEditCard(
-                              context, pf, pf.items[idx],
-                              key: ValueKey(pf.items[idx].id)),
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                          itemCount: pf.items.length + 1,
-                          itemBuilder: (ctx, idx) {
-                            if (idx == pf.items.length) return _buildSlimAddCard(context, pf);
-                            return _buildAssetCard(context, pf, pf.items[idx], rb);
-                          },
-                        ),
+              ],
             ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  /// 딥그린 위 탭 하나. 밑줄은 `Container`의 아래 테두리로 그린다 —
+  /// 빈 `Container`를 세로로 쌓으면 가로폭이 0이 되어 사라진다.
+  Widget _headerTab(BuildContext context, int index, String label) {
+    final active = _tabController.index == index;
+    return GestureDetector(
+      onTap: () {
+        if (_tabController.index == index) return;
+        // animateTo는 index를 즉시 바꾸고 화면만 애니메이션한다.
+        // 곧바로 setState해야 밑줄이 300ms 늦게 따라오지 않는다.
+        _tabController.animateTo(index);
+        setState(() {});
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 7),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: active ? Colors.white : Colors.transparent,
+              width: 2.5,
+            ),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13.5,
+            fontWeight: active ? FontWeight.w800 : FontWeight.w700,
+            color: active ? Colors.white : context.onBrandSecondary,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 딥그린 위 요약 타일.
+  Widget _brandTile(BuildContext context,
+      {required String label,
+      required String value,
+      required String sub,
+      required Color color}) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.10),
+          borderRadius: BorderRadius.circular(13),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label,
+                style: TextStyle(
+                    fontSize: DS.body,
+                    fontWeight: FontWeight.w600,
+                    color: context.onBrandSecondary)),
+            const SizedBox(height: 4),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(value,
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.3,
+                      color: color)),
+            ),
+            const SizedBox(height: 2),
+            Text(sub,
+                style: TextStyle(
+                    fontSize: DS.body,
+                    fontWeight: FontWeight.w600,
+                    color: color == Colors.white
+                        ? context.onBrandSecondary
+                        : color),
+                overflow: TextOverflow.ellipsis),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// 손익 타일 — 값이 없으면(`amount == null`) 자리만 지킨다.
+  Widget _brandPnlTile(BuildContext context, Portfolio pf, String label,
+      double? amount, double? pct) {
+    final pnlColors = context.watch<PnlColorNotifier>();
+    if (amount == null || pct == null) {
+      return _brandTile(context,
+          label: label, value: '—', sub: '—', color: Colors.white);
+    }
+    final isPos = amount >= 0;
+    final sign = isPos ? '+' : '−';
+    return _brandTile(context,
+        label: label,
+        value: '$sign${_fmt(amount.abs(), pf.currency)}',
+        sub: '$sign${pct.abs().toStringAsFixed(2)}%',
+        color: isPos ? pnlColors.onBrandPositive : pnlColors.onBrandNegative);
+  }
+
+  // ── Tab: 자산현황 ──
+
+  Widget _buildAssetView(BuildContext context, Portfolio pf, RebalanceResult? rb) {
+    final l10n = context.l10n;
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: pf.items.isEmpty
+            ? _buildEmptyState(context, pf)
+            : _editMode
+                ? ReorderableListView.builder(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
+                    itemCount: pf.items.length,
+                    onReorder: (o, n) {
+                      if (n > o) n--;
+                      final list = List<PortfolioItem>.from(pf.items);
+                      final item = list.removeAt(o);
+                      list.insert(n, item);
+                      context.read<PortfolioProvider>().reorderItems(pf.id, list);
+                    },
+                    itemBuilder: (ctx, idx) => _buildEditCard(
+                        context, pf, pf.items[idx],
+                        key: ValueKey(pf.items[idx].id)),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 100),
+                    itemCount: pf.items.length + 1,
+                    itemBuilder: (ctx, idx) {
+                      if (idx == pf.items.length) return _buildSlimAddCard(context, pf);
+                      return _buildAssetCard(context, pf, pf.items[idx], rb);
+                    },
+                  ),
         ),
         if (!_editMode)
           Positioned.fill(
@@ -954,114 +1158,43 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
   Widget _buildRebalancingView(BuildContext context, Portfolio pf, RebalanceResult? rb,
       double weightSum, bool hasChanges) {
     final l10n = context.l10n;
-    final commOn = pf.commissionEnabled;
-    final curSym = pf.currency == 'USD' ? '\$' : '₩';
+    // 입력 필드와 경고는 헤더가 아니라 본문 맨 위 카드로 둔다 —
+    // 키보드가 올라와도 스크롤로 피할 수 있고, 딥그린 헤더가 깔끔해진다.
+    final headers = <Widget>[
+      _buildInvestCard(context, pf),
+      if (pf.items.isNotEmpty && (weightSum - 100).abs() > 0.01)
+        _buildWeightWarning(context, weightSum),
+    ];
     return Stack(
       children: [
-        Column(
-          children: [
-            if (!_editMode)
-              Container(
-                color: context.panelBg,
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(l10n.additionalInvestment,
-                        style: TextStyle(fontSize: 12, color: context.textSecondary, fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 4),
-                    TextField(
-                      controller: _investController,
-                      keyboardType: const TextInputType.numberWithOptions(signed: true),
-                      style: TextStyle(color: context.textPrimary),
-                      decoration: InputDecoration(
-                        prefixText: '$curSym ',
-                        prefixStyle: TextStyle(color: context.textPrimary),
-                        hintText: l10n.additionalInvestmentHint,
-                        filled: true,
-                        fillColor: context.fieldFill,
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: context.borderColor)),
-                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: context.borderColor)),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      ),
-                      onChanged: (v) {
-                        final parsed = double.tryParse(v) ?? 0;
-                        context.read<PortfolioProvider>()
-                            .setAdditionalInvestment(pf.id, parsed);
-                      },
-                    ),
-                    const SizedBox(height: 10),
-                    Row(children: [
-                      _infoBox(context, l10n.currentAssets,
-                          rb != null ? _fmt(rb.total - pf.additionalInvestment, pf.currency) : '—'),
-                      const SizedBox(width: 8),
-                      _infoBox(context, l10n.rebalancingBase,
-                          rb != null ? _fmt(rb.total, pf.currency) : '—'),
-                      const SizedBox(width: 8),
-                      _infoBox(context, l10n.remainingCash,
-                          rb != null ? _fmt(rb.cash, pf.currency) : '—', highlight: true),
-                    ]),
-                    if (rb != null && commOn && rb.commission > 0)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 6),
-                        child: Text(l10n.estimatedFee(_fmt(rb.commission, pf.currency)),
-                            style: TextStyle(fontSize: 12, color: context.textHint)),
-                      ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 6),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(l10n.exchangeRateLabel(pf.exchangeRate.toStringAsFixed(0)),
-                              style: TextStyle(fontSize: 12, color: context.textHint)),
-                          Text(_fmtTime(pf.lastUpdated),
-                              style: TextStyle(fontSize: 12, color: context.textHint)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            if (pf.items.isNotEmpty && (weightSum - 100).abs() > 0.01)
-              Container(
-                width: double.infinity,
-                color: context.warningBg,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                child: Row(children: [
-                  const Text('⚠️', style: TextStyle(fontSize: 16)),
-                  const SizedBox(width: 8),
-                  Text(l10n.weightWarning(_pct(weightSum)),
-                      style: TextStyle(fontSize: 13, color: context.warningText)),
-                ]),
-              ),
-            Expanded(
-              child: pf.items.isEmpty
-                  ? _buildEmptyState(context, pf)
-                  : _editMode
-                      ? ReorderableListView.builder(
-                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
-                          itemCount: pf.items.length,
-                          onReorder: (o, n) {
-                            if (n > o) n--;
-                            final list = List<PortfolioItem>.from(pf.items);
-                            final item = list.removeAt(o);
-                            list.insert(n, item);
-                            context.read<PortfolioProvider>().reorderItems(pf.id, list);
-                          },
-                          itemBuilder: (ctx, idx) => _buildEditCard(
-                              context, pf, pf.items[idx],
-                              key: ValueKey(pf.items[idx].id)),
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                          itemCount: pf.items.length + 1,
-                          itemBuilder: (ctx, idx) {
-                            if (idx == pf.items.length) return _buildSlimAddCard(context, pf);
-                            return _buildRebalancingCard(context, pf, pf.items[idx], rb);
-                          },
-                        ),
-            ),
-          ],
+        Positioned.fill(
+          child: pf.items.isEmpty
+            ? _buildEmptyState(context, pf)
+            : _editMode
+                ? ReorderableListView.builder(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
+                    itemCount: pf.items.length,
+                    onReorder: (o, n) {
+                      if (n > o) n--;
+                      final list = List<PortfolioItem>.from(pf.items);
+                      final item = list.removeAt(o);
+                      list.insert(n, item);
+                      context.read<PortfolioProvider>().reorderItems(pf.id, list);
+                    },
+                    itemBuilder: (ctx, idx) => _buildEditCard(
+                        context, pf, pf.items[idx],
+                        key: ValueKey(pf.items[idx].id)),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 100),
+                    itemCount: headers.length + pf.items.length + 1,
+                    itemBuilder: (ctx, idx) {
+                      if (idx < headers.length) return headers[idx];
+                      final i = idx - headers.length;
+                      if (i == pf.items.length) return _buildSlimAddCard(context, pf);
+                      return _buildRebalancingCard(context, pf, pf.items[i], rb);
+                    },
+                  ),
         ),
         if (!_editMode)
           Positioned.fill(
@@ -1108,16 +1241,102 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
     );
   }
 
+  /// 투자금 추가·출금 입력 카드 (리밸런싱 탭 본문 맨 위).
+  Widget _buildInvestCard(BuildContext context, Portfolio pf) {
+    final l10n = context.l10n;
+    final curSym = pf.currency == 'USD' ? '\$' : '₩';
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+      decoration: BoxDecoration(
+        color: context.cardBg,
+        borderRadius: BorderRadius.circular(DS.cardRadius),
+        border: Border.all(color: context.cardBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l10n.additionalInvestment,
+              style: TextStyle(
+                  fontSize: DS.sectionTitle,
+                  fontWeight: FontWeight.w700,
+                  color: context.textStrong)),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _investController,
+            keyboardType: const TextInputType.numberWithOptions(signed: true),
+            style: TextStyle(
+                color: context.textPrimary, fontWeight: FontWeight.w600),
+            decoration: InputDecoration(
+              prefixText: '$curSym ',
+              prefixStyle: TextStyle(
+                  color: context.textPrimary, fontWeight: FontWeight.w600),
+              hintText: l10n.additionalInvestmentHint,
+              hintStyle: TextStyle(color: context.textHint),
+              filled: true,
+              fillColor: context.fieldFill,
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(DS.tileRadius),
+                  borderSide: BorderSide(color: context.borderColor)),
+              enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(DS.tileRadius),
+                  borderSide: BorderSide(color: context.borderColor)),
+              focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(DS.tileRadius),
+                  borderSide: BorderSide(color: context.brand, width: 1.5)),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            ),
+            onChanged: (v) {
+              final parsed = double.tryParse(v) ?? 0;
+              context
+                  .read<PortfolioProvider>()
+                  .setAdditionalInvestment(pf.id, parsed);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 목표 비중 합계가 100%가 아닐 때 띄우는 경고 카드.
+  Widget _buildWeightWarning(BuildContext context, double weightSum) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: context.warningBg,
+        borderRadius: BorderRadius.circular(DS.tileRadius),
+      ),
+      child: Row(children: [
+        const Text('⚠️', style: TextStyle(fontSize: 15)),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(context.l10n.weightWarning(_pct(weightSum)),
+              style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: context.warningText,
+                  height: 1.4)),
+        ),
+      ]),
+    );
+  }
+
   // ── Cards ──
 
   Widget _buildAssetCard(BuildContext context, Portfolio pf, PortfolioItem item,
       RebalanceResult? rb) {
-    return Card(
-      color: context.cardBg,
-      margin: const EdgeInsets.only(bottom: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 9),
+      decoration: BoxDecoration(
+        color: context.cardBg,
+        borderRadius: BorderRadius.circular(DS.listCardRadius),
+        border: Border.all(color: context.cardBorder),
+      ),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(DS.listCardRadius),
         onTap: () => _showItemSheet(pf, item, rb),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -1190,12 +1409,16 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
     final delta = r?.isCash == true ? r!.cashDelta.round() : (r?.delta ?? 0);
     final isBuy = delta > 0;
 
-    return Card(
-      color: context.cardBg,
-      margin: const EdgeInsets.only(bottom: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 9),
+      decoration: BoxDecoration(
+        color: context.cardBg,
+        borderRadius: BorderRadius.circular(DS.listCardRadius),
+        border: Border.all(color: context.cardBorder),
+      ),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(DS.listCardRadius),
         onTap: () => _showItemSheet(pf, item, rb),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -1267,11 +1490,14 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
   }
 
   Widget _buildEditCard(BuildContext context, Portfolio pf, PortfolioItem item, {Key? key}) {
-    return Card(
+    return Container(
       key: key,
-      color: context.cardBg,
-      margin: const EdgeInsets.only(bottom: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.only(bottom: 9),
+      decoration: BoxDecoration(
+        color: context.cardBg,
+        borderRadius: BorderRadius.circular(DS.listCardRadius),
+        border: Border.all(color: context.cardBorder),
+      ),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
         child: Row(children: [
@@ -1357,24 +1583,22 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
       padding: const EdgeInsets.only(bottom: 10),
       child: InkWell(
         onTap: () => _showItemForm(pf),
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          decoration: BoxDecoration(
-            border: Border.all(color: context.borderColor),
-            borderRadius: BorderRadius.circular(12),
-            color: context.cardBg.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(DS.tileRadius),
+        child: DashedBorderBox(
+          color: const Color(0xFFD6CFBC),
+          radius: DS.tileRadius,
+          child: SizedBox(
+            height: 46,
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Icon(Icons.add, size: 19, color: context.brand),
+              const SizedBox(width: 8),
+              Text(context.l10n.addStock,
+                  style: TextStyle(
+                      fontSize: DS.sectionTitle,
+                      fontWeight: FontWeight.w700,
+                      color: context.brand)),
+            ]),
           ),
-          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Container(
-              width: 20, height: 20,
-              decoration: BoxDecoration(color: context.brand, borderRadius: BorderRadius.circular(5)),
-              child: const Icon(Icons.add, color: Colors.white, size: 14),
-            ),
-            const SizedBox(width: 8),
-            Text(context.l10n.addStock,
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: context.brand)),
-          ]),
         ),
       ),
     );
@@ -1426,45 +1650,6 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
     }
 
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: rows);
-  }
-
-  Widget _pnlChip(BuildContext context, Portfolio pf, String label, double amount, double rate) {
-    final isPos = amount >= 0;
-    final pnlColors = context.read<PnlColorNotifier>();
-    final color = isPos ? pnlColors.positiveColor : pnlColors.negativeColor;
-    final sign = isPos ? '+' : '';
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
-      decoration: BoxDecoration(
-        color: context.infoBoxBg,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(children: [
-            Text(label, style: TextStyle(fontSize: 11, color: context.textHint)),
-            const Spacer(),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text('$sign${rate.toStringAsFixed(1)}%',
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: color)),
-            ),
-          ]),
-          const SizedBox(height: 3),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text('$sign${_fmt(amount, pf.currency)}',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: color)),
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _marketBadge(BuildContext context, PortfolioItem item) {

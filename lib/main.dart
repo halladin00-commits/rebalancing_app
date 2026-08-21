@@ -152,7 +152,6 @@ extension AppColors on BuildContext {
   // ── 배경 · 표면 ──
   Color get scaffoldBg => const Color(0xFFFBF8F1);   // 크림 배경
   Color get cardBg => Colors.white;
-  Color get panelBg => Colors.white;
   Color get rowBg => const Color(0xFFF7F3EA);
   Color get fieldFill => const Color(0xFFF7F3EA);
   Color get infoBoxBg => const Color(0xFFF7F3EA);
