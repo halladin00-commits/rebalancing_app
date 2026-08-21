@@ -1,4 +1,8 @@
 {
+  "holdingQty": "보유 수량",
+  "basedOnTransactions": "거래 기준",
+  "enteredDirectly": "직접 입력",
+  "noTransactionsYet": "아직 거래 내역이 없습니다",
   "proposalTitle": "조정 제안",
   "modeHoldings": "보유 안에서",
   "modeAddCash": "추가 입금으로",

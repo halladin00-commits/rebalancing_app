@@ -9,6 +9,18 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get holdingQty => 'Quantity';
+
+  @override
+  String get basedOnTransactions => 'from transactions';
+
+  @override
+  String get enteredDirectly => 'entered directly';
+
+  @override
+  String get noTransactionsYet => 'No transactions yet';
+
+  @override
   String get proposalTitle => 'Adjustment';
 
   @override

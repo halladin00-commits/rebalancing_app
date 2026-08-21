@@ -9,6 +9,18 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
+  String get holdingQty => '보유 수량';
+
+  @override
+  String get basedOnTransactions => '거래 기준';
+
+  @override
+  String get enteredDirectly => '직접 입력';
+
+  @override
+  String get noTransactionsYet => '아직 거래 내역이 없습니다';
+
+  @override
   String get proposalTitle => '조정 제안';
 
   @override

@@ -98,6 +98,30 @@ abstract class AppLocalizations {
     Locale('ko')
   ];
 
+  /// No description provided for @holdingQty.
+  ///
+  /// In ko, this message translates to:
+  /// **'보유 수량'**
+  String get holdingQty;
+
+  /// No description provided for @basedOnTransactions.
+  ///
+  /// In ko, this message translates to:
+  /// **'거래 기준'**
+  String get basedOnTransactions;
+
+  /// No description provided for @enteredDirectly.
+  ///
+  /// In ko, this message translates to:
+  /// **'직접 입력'**
+  String get enteredDirectly;
+
+  /// No description provided for @noTransactionsYet.
+  ///
+  /// In ko, this message translates to:
+  /// **'아직 거래 내역이 없습니다'**
+  String get noTransactionsYet;
+
   /// No description provided for @proposalTitle.
   ///
   /// In ko, this message translates to:

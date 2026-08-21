@@ -1,4 +1,8 @@
 {
+  "holdingQty": "Quantity",
+  "basedOnTransactions": "from transactions",
+  "enteredDirectly": "entered directly",
+  "noTransactionsYet": "No transactions yet",
   "proposalTitle": "Adjustment",
   "modeHoldings": "Within holdings",
   "modeAddCash": "With new cash",

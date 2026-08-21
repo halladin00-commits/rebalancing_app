@@ -14,7 +14,7 @@ import '../services/excel_import_service.dart';
 import '../services/review_service.dart';
 import '../widgets/item_form_dialog.dart';
 import '../widgets/settings_dialog.dart';
-import '../widgets/item_bottom_sheet.dart';
+import 'item_detail_screen.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/speed_dial_fab.dart';
 import '../widgets/bottom_banner_ad.dart';
@@ -533,14 +533,14 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     );
   }
 
+  /// 종목 상세는 시안 v12c에서 바텀시트가 아니라 전용 화면이다.
   void _showItemSheet(Portfolio pf, PortfolioItem item, RebalanceResult? rb) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: context.cardBg,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (_) => ItemBottomSheet(item: item, portfolio: pf, rb: rb),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) =>
+            ItemDetailScreen(portfolioId: pf.id, itemId: item.id),
+      ),
     );
   }
 
