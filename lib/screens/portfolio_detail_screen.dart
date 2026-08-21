@@ -27,19 +27,12 @@ import 'portfolio_graph_screen.dart';
 
 class PortfolioDetailScreen extends StatefulWidget {
   final String portfolioId;
-  /// 진입 시 열어둘 탭 (0 자산 · 1 리밸런싱).
-  /// 결산은 PortfolioSettlementScreen이 따로 맡는다.
-  /// 리밸런싱 탭에서 조정 제안으로 바로 들어올 때 쓴다.
-  final int initialTab;
-
-  const PortfolioDetailScreen(
-      {super.key, required this.portfolioId, this.initialTab = 0});
+  const PortfolioDetailScreen({super.key, required this.portfolioId});
   @override
   State<PortfolioDetailScreen> createState() => _PortfolioDetailScreenState();
 }
 
-class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
-    with SingleTickerProviderStateMixin {
+class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
   bool _editMode = false;
   bool _refreshing = false;
   bool _savingAsset = false;
@@ -47,23 +40,16 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
   bool _savingRebalancing = false;
   bool _sharingRebalancing = false;
   final _investController = TextEditingController();
-  late final TabController _tabController;
   final _screenshotCtrl = ScreenshotController();
 
   @override
   void initState() {
     super.initState();
-    _tabController =
-        TabController(length: 2, vsync: this, initialIndex: widget.initialTab);
-    _tabController.addListener(() {
-      if (!_tabController.indexIsChanging) setState(() {});
-    });
     WidgetsBinding.instance.addPostFrameCallback((_) => _autoRefreshIfStale());
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
     _investController.dispose();
     super.dispose();
   }
@@ -547,16 +533,6 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
     );
   }
 
-  void _showRebalanceTransactionDialog(Portfolio pf, RebalanceResult rb) async {
-    final applied = await showDialog<bool>(
-      context: context,
-      builder: (_) => RebalanceTransactionDialog(pf: pf, rb: rb),
-    );
-    if (applied == true) {
-      _investController.text = rb.cash > 0 ? rb.cash.toStringAsFixed(0) : '';
-    }
-  }
-
   void _showItemSheet(Portfolio pf, PortfolioItem item, RebalanceResult? rb) {
     showModalBottomSheet(
       context: context,
@@ -729,8 +705,6 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
         }
 
         final rb = Rebalancer.calculate(pf);
-        final weightSum = pf.weightSum;
-        final hasChanges = rb?.hasChanges ?? false;
 
         double totalPnl = 0, totalCost = 0, totalDayChange = 0, totalPrevValue = 0;
         for (final item in pf.items) {
@@ -804,13 +778,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
                       totalPnl, totalCost, totalDayChange, totalPrevValue),
                 ),
                 Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      _buildAssetView(context, pf, rb),
-                      _buildRebalancingView(context, pf, rb, weightSum, hasChanges),
-                    ],
-                  ),
+                  child: _buildAssetView(context, pf, rb),
                 ),
                 const BottomBannerAd(),
               ],
@@ -833,85 +801,30 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
       double totalPnl, double totalCost, double totalDayChange, double totalPrevValue) {
     final l10n = context.l10n;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final onRebalance = _tabController.index == 1;
     final hasForeign = pf.currency == 'USD' || pf.items.any((i) => i.market == 'US');
 
-    // 큰 금액 — 자산 탭은 평가금액, 리밸런싱 탭은 기준금액
-    final bigLabel = onRebalance ? l10n.rebalancingBase : l10n.evaluationAmount;
+    final bigLabel = l10n.evaluationAmount;
     final bigValue = rb == null
         ? '—'
-        : _fmt(onRebalance ? rb.total : rb.total - pf.additionalInvestment,
-            pf.currency);
+        : _fmt(rb.total - pf.additionalInvestment, pf.currency);
 
-    final List<Widget> tiles;
-    if (onRebalance) {
-      // 기준금액과 평가금액은 추가투자가 없으면 같은 값이라 나란히 두면 군더더기다.
-      // 대신 "무엇을 몇 건 사고팔아야 하는지"와 "얼마가 남는지"를 보여준다.
-      final trades = rb?.results.where((r) => !r.isCash && r.delta != 0).toList();
-      final buys = trades?.where((r) => r.delta > 0).length ?? 0;
-      final sells = trades?.where((r) => r.delta < 0).length ?? 0;
-      final cashPct = (rb != null && rb.total > 0) ? rb.cash / rb.total * 100 : 0.0;
-      tiles = [
-        _brandTile(context,
-            label: isKo ? '조정 대상' : 'To adjust',
-            value: trades == null ? '—' : l10n.itemCountLabel(trades.length),
-            sub: trades == null
-                ? '—'
-                : (trades.isEmpty
-                    ? (isKo ? '조정 불필요' : 'Nothing to do')
-                    : '${l10n.buy} $buys · ${l10n.sell} $sells'),
-            color: Colors.white),
-        const SizedBox(width: 9),
-        _brandTile(context,
-            label: l10n.remainingCash,
-            value: rb == null ? '—' : _fmt(rb.cash, pf.currency),
-            sub: rb == null
-                ? '—'
-                : (isKo
-                    ? '기준금액의 ${cashPct.toStringAsFixed(1)}%'
-                    : '${cashPct.toStringAsFixed(1)}% of base'),
-            color: Colors.white),
-      ];
-    } else {
-      tiles = [
-        _brandPnlTile(context, pf, l10n.profitLoss,
-            hasPnl ? totalPnl : null,
-            hasPnl ? totalPnl / totalCost * 100 : null),
-        const SizedBox(width: 9),
-        _brandPnlTile(context, pf, l10n.dayChange,
-            hasDayChange ? totalDayChange : null,
-            hasDayChange ? totalDayChange / totalPrevValue * 100 : null),
-      ];
-    }
+    final tiles = <Widget>[
+      _brandPnlTile(context, pf, l10n.profitLoss, hasPnl ? totalPnl : null,
+          hasPnl ? totalPnl / totalCost * 100 : null),
+      const SizedBox(width: 9),
+      _brandPnlTile(context, pf, l10n.dayChange,
+          hasDayChange ? totalDayChange : null,
+          hasDayChange ? totalDayChange / totalPrevValue * 100 : null),
+    ];
 
-    // 하단 한 줄 — 리밸런싱 탭에서 수수료가 잡히면 그쪽을 우선한다.
-    // 오른쪽 시각과 한 줄을 나눠 쓰므로 짧은 문구만 넣는다.
-    var footerLeft = (onRebalance &&
-            pf.commissionEnabled &&
-            rb != null &&
-            rb.commission > 0)
-        ? l10n.estimatedFee(_fmt(rb.commission, pf.currency))
-        : l10n.itemCountLabel(pf.items.length);
-    // 소수점 수량이 왜 나오는지 눌러보지 않아도 알 수 있게, 계산 결과를
-    // 보는 자리에서 한 번만 알려준다.
-    if (onRebalance && pf.fractionalEnabled) {
-      footerLeft = '$footerLeft · ${isKo ? '소수점 거래' : 'fractional'}';
-    }
+    // 하단 한 줄 — 오른쪽 시각과 나눠 쓰므로 짧은 문구만.
+    final footerLeft = l10n.itemCountLabel(pf.items.length);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 22),
-          child: Row(children: [
-            _headerTab(context, 0, l10n.tabAssets),
-            const SizedBox(width: 20),
-            _headerTab(context, 1, l10n.tabRebalancing),
-          ]),
-        ),
         // 편집 중에는 요약을 접어 목록에 집중시킨다
         if (!_editMode) ...[
-          const SizedBox(height: 14),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 22),
             child: Column(
@@ -987,41 +900,6 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
           ),
         ],
       ],
-    );
-  }
-
-  /// 딥그린 위 탭 하나. 밑줄은 `Container`의 아래 테두리로 그린다 —
-  /// 빈 `Container`를 세로로 쌓으면 가로폭이 0이 되어 사라진다.
-  Widget _headerTab(BuildContext context, int index, String label) {
-    final active = _tabController.index == index;
-    return GestureDetector(
-      onTap: () {
-        if (_tabController.index == index) return;
-        // animateTo는 index를 즉시 바꾸고 화면만 애니메이션한다.
-        // 곧바로 setState해야 밑줄이 300ms 늦게 따라오지 않는다.
-        _tabController.animateTo(index);
-        setState(() {});
-      },
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 7),
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: active ? Colors.white : Colors.transparent,
-              width: 2.5,
-            ),
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 13.5,
-            fontWeight: active ? FontWeight.w800 : FontWeight.w700,
-            color: active ? Colors.white : context.onBrandSecondary,
-          ),
-        ),
-      ),
     );
   }
 
@@ -1174,176 +1052,6 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
     );
   }
 
-  // ── Tab: 리밸런싱 ──
-
-  Widget _buildRebalancingView(BuildContext context, Portfolio pf, RebalanceResult? rb,
-      double weightSum, bool hasChanges) {
-    final l10n = context.l10n;
-    // 입력 필드와 경고는 헤더가 아니라 본문 맨 위 카드로 둔다 —
-    // 키보드가 올라와도 스크롤로 피할 수 있고, 딥그린 헤더가 깔끔해진다.
-    final headers = <Widget>[
-      _buildInvestCard(context, pf),
-      if (pf.items.isNotEmpty && (weightSum - 100).abs() > 0.01)
-        _buildWeightWarning(context, weightSum),
-    ];
-    return Stack(
-      children: [
-        Positioned.fill(
-          child: pf.items.isEmpty
-            ? _buildEmptyState(context, pf)
-            : _editMode
-                ? ReorderableListView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
-                    itemCount: pf.items.length,
-                    onReorder: (o, n) {
-                      if (n > o) n--;
-                      final list = List<PortfolioItem>.from(pf.items);
-                      final item = list.removeAt(o);
-                      list.insert(n, item);
-                      context.read<PortfolioProvider>().reorderItems(pf.id, list);
-                    },
-                    itemBuilder: (ctx, idx) => _buildEditCard(
-                        context, pf, pf.items[idx],
-                        key: ValueKey(pf.items[idx].id)),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 100),
-                    itemCount: headers.length + pf.items.length + 1,
-                    itemBuilder: (ctx, idx) {
-                      if (idx < headers.length) return headers[idx];
-                      final i = idx - headers.length;
-                      if (i == pf.items.length) return _buildSlimAddCard(context, pf);
-                      return _buildRebalancingCard(context, pf, pf.items[i], rb);
-                    },
-                  ),
-        ),
-        if (!_editMode)
-          Positioned.fill(
-            child: SpeedDialFab(
-              key: const ValueKey('rebalancing_fab'),
-              items: [
-                SpeedDialItem(
-                  icon: Icons.edit_outlined,
-                  label: l10n.labelEdit,
-                  onTap: () => setState(() => _editMode = true),
-                ),
-                SpeedDialItem(
-                  icon: Icons.settings_outlined,
-                  label: l10n.labelSettings,
-                  onTap: () => _showSettings(pf),
-                ),
-                SpeedDialItem(
-                  icon: Icons.camera_alt_outlined,
-                  label: l10n.capture,
-                  onTap: () => _showCaptureSheet(
-                    () => _saveRebalancingImage(pf, rb),
-                    () => _shareRebalancingImage(pf, rb),
-                  ),
-                ),
-                SpeedDialItem(
-                  icon: Icons.pie_chart_outline,
-                  label: l10n.labelGraph,
-                  iconColor: context.brandOnLight,
-                  bgColor: context.brand,
-                  onTap: () => _openGraph(pf),
-                ),
-                if (rb != null && hasChanges)
-                  SpeedDialItem(
-                    icon: Icons.check_circle_outline,
-                    label: l10n.labelRebalanceApply,
-                    iconColor: const Color(0xFF4ADE80),
-                    bgColor: const Color(0xFF052E16),
-                    onTap: () => _showRebalanceTransactionDialog(pf, rb),
-                  ),
-              ],
-            ),
-          ),
-      ],
-    );
-  }
-
-  /// 투자금 추가·출금 입력 카드 (리밸런싱 탭 본문 맨 위).
-  Widget _buildInvestCard(BuildContext context, Portfolio pf) {
-    final l10n = context.l10n;
-    final curSym = pf.currency == 'USD' ? '\$' : '₩';
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-      decoration: BoxDecoration(
-        color: context.cardBg,
-        borderRadius: BorderRadius.circular(DS.cardRadius),
-        border: Border.all(color: context.cardBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(l10n.additionalInvestment,
-              style: TextStyle(
-                  fontSize: DS.sectionTitle,
-                  fontWeight: FontWeight.w700,
-                  color: context.textStrong)),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _investController,
-            keyboardType: const TextInputType.numberWithOptions(signed: true),
-            style: TextStyle(
-                color: context.textPrimary, fontWeight: FontWeight.w600),
-            decoration: InputDecoration(
-              prefixText: '$curSym ',
-              prefixStyle: TextStyle(
-                  color: context.textPrimary, fontWeight: FontWeight.w600),
-              hintText: l10n.additionalInvestmentHint,
-              hintStyle: TextStyle(color: context.textHint),
-              filled: true,
-              fillColor: context.fieldFill,
-              border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(DS.tileRadius),
-                  borderSide: BorderSide(color: context.borderColor)),
-              enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(DS.tileRadius),
-                  borderSide: BorderSide(color: context.borderColor)),
-              focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(DS.tileRadius),
-                  borderSide: BorderSide(color: context.brand, width: 1.5)),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-            ),
-            onChanged: (v) {
-              final parsed = double.tryParse(v) ?? 0;
-              context
-                  .read<PortfolioProvider>()
-                  .setAdditionalInvestment(pf.id, parsed);
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 목표 비중 합계가 100%가 아닐 때 띄우는 경고 카드.
-  Widget _buildWeightWarning(BuildContext context, double weightSum) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: context.warningBg,
-        borderRadius: BorderRadius.circular(DS.tileRadius),
-      ),
-      child: Row(children: [
-        const Text('⚠️', style: TextStyle(fontSize: 15)),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(context.l10n.weightWarning(_pct(weightSum)),
-              style: TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: context.warningText,
-                  height: 1.4)),
-        ),
-      ]),
-    );
-  }
-
   /// `3종목 · 예수금 포함` — 섹션 제목 우측 부가.
   String _holdingsSummary(BuildContext context, Portfolio pf) {
     final l10n = context.l10n;
@@ -1411,93 +1119,6 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
       returnColor: returnColor,
       padding: const EdgeInsets.symmetric(vertical: 12),
       onTap: () => _showItemSheet(pf, item, rb),
-    );
-  }
-
-  Widget _buildRebalancingCard(BuildContext context, Portfolio pf, PortfolioItem item,
-      RebalanceResult? rb) {
-    final l10n = context.l10n;
-    final r = rb?.results.where((x) => x.id == item.id).firstOrNull;
-    final delta = r?.isCash == true ? r!.cashDelta : (r?.delta ?? 0.0);
-    final isBuy = delta > 0;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 9),
-      decoration: BoxDecoration(
-        color: context.cardBg,
-        borderRadius: BorderRadius.circular(DS.listCardRadius),
-        border: Border.all(color: context.cardBorder),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(DS.listCardRadius),
-        onTap: () => _showItemSheet(pf, item, rb),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          child: Column(children: [
-            Row(children: [
-              _marketBadge(context, item), const SizedBox(width: 6),
-              Expanded(child: RichText(
-                overflow: TextOverflow.ellipsis,
-                text: TextSpan(
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: context.textPrimary),
-                  children: [
-                    TextSpan(text: item.name),
-                    if (item.ticker.isNotEmpty)
-                      TextSpan(text: ' ${item.ticker}',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: context.textHint)),
-                  ],
-                ),
-              )),
-              Text(item.isCash ? _fmt(item.shares, pf.currency)
-                      : '${_fmtPrice(item.currentPrice, item.market)} × ${formatShares(item.shares)}',
-                  style: TextStyle(fontSize: 13, color: context.textSecondary)),
-            ]),
-            const SizedBox(height: 4),
-            Row(children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(_pct(item.targetWeight),
-                      style: TextStyle(color: context.brand, fontWeight: FontWeight.w600, fontSize: 12)),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 3),
-                    child: Icon(Icons.arrow_forward, size: 10, color: context.textHint),
-                  ),
-                  Text(r != null ? _pct(r.currentWeight) : '—',
-                      style: TextStyle(color: context.textSecondary, fontSize: 12)),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 3),
-                    child: Icon(Icons.arrow_forward, size: 10, color: context.textHint),
-                  ),
-                  Text(r != null ? _pct(r.finalWeight) : '—',
-                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12,
-                          color: r != null ? context.textPrimary : context.textHint)),
-                ],
-              ),
-              const Spacer(),
-              if (r != null && delta != 0 && (pf.rebalancingThreshold <= 0 ||
-                  (r.currentWeight - item.targetWeight).abs() >= pf.rebalancingThreshold)) ...[
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                      color: isBuy ? const Color(0xFF22C55E) : const Color(0xFFEF4444),
-                      borderRadius: BorderRadius.circular(4)),
-                  child: Text(isBuy ? l10n.buy : l10n.sell,
-                      style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
-                ),
-                const SizedBox(width: 4),
-                Text(item.isCash ? _fmt(delta.abs(), pf.currency) : '${formatShares(delta.abs())}${l10n.unitShares}',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700,
-                        color: isBuy ? const Color(0xFF16A34A) : const Color(0xFFDC2626))),
-              ],
-              if (r != null && (delta == 0 || (pf.rebalancingThreshold > 0 &&
-                  (r.currentWeight - item.targetWeight).abs() < pf.rebalancingThreshold)))
-                Text(l10n.hold, style: TextStyle(fontSize: 12, color: context.textHint)),
-            ]),
-          ]),
-        ),
-      ),
     );
   }
 
