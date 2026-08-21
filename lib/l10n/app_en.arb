@@ -170,6 +170,8 @@
   "langEnglish": "English",
 
   "portfolioAddBtn": "Add Portfolio",
+  "holdingsSection": "Holdings",
+  "cashIncluded": "incl. cash",
   "itemCountLabel": "{count} stocks",
   "@itemCountLabel": {
     "placeholders": { "count": { "type": "int" } }

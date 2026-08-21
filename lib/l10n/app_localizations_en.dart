@@ -449,6 +449,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get portfolioAddBtn => 'Add Portfolio';
 
   @override
+  String get holdingsSection => 'Holdings';
+
+  @override
+  String get cashIncluded => 'incl. cash';
+
+  @override
   String itemCountLabel(int count) {
     return '$count stocks';
   }

@@ -20,6 +20,7 @@ import '../widgets/speed_dial_fab.dart';
 import '../widgets/bottom_banner_ad.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/dashed_border_box.dart';
+import '../widgets/list_card.dart';
 import '../theme/design_system.dart';
 import 'portfolio_graph_screen.dart';
 
@@ -1109,13 +1110,23 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
                         context, pf, pf.items[idx],
                         key: ValueKey(pf.items[idx].id)),
                   )
-                : ListView.builder(
+                : ListView(
                     padding: const EdgeInsets.fromLTRB(16, 14, 16, 100),
-                    itemCount: pf.items.length + 1,
-                    itemBuilder: (ctx, idx) {
-                      if (idx == pf.items.length) return _buildSlimAddCard(context, pf);
-                      return _buildAssetCard(context, pf, pf.items[idx], rb);
-                    },
+                    children: [
+                      SectionTitle(
+                        title: l10n.holdingsSection,
+                        trailing: _holdingsSummary(context, pf),
+                      ),
+                      const SizedBox(height: DS.cardGap),
+                      ListCard(
+                        rows: [
+                          for (final item in pf.items)
+                            _buildHoldingRow(context, pf, item, rb),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      _buildSlimAddCard(context, pf),
+                    ],
                   ),
         ),
         if (!_editMode)
@@ -1330,82 +1341,73 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
     );
   }
 
-  // ── Cards ──
+  /// `3종목 · 예수금 포함` — 섹션 제목 우측 부가.
+  String _holdingsSummary(BuildContext context, Portfolio pf) {
+    final l10n = context.l10n;
+    final stocks = pf.items.where((i) => !i.isCash).length;
+    final hasCash = pf.items.any((i) => i.isCash);
+    final count = l10n.itemCountLabel(stocks);
+    return hasCash ? '$count · ${l10n.cashIncluded}' : count;
+  }
 
-  Widget _buildAssetCard(BuildContext context, Portfolio pf, PortfolioItem item,
-      RebalanceResult? rb) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 9),
-      decoration: BoxDecoration(
-        color: context.cardBg,
-        borderRadius: BorderRadius.circular(DS.listCardRadius),
-        border: Border.all(color: context.cardBorder),
+  /// 구성 종목 한 행 (시안 v12b).
+  ///
+  /// 좌: [시장 칩] 이름 14.5/700 / 보조 줄 `₩21,450 · 220주`
+  /// 우: 평가금액 15/700 / 전일대비 11/600 무채색 + 누적 12.5/700 손익색
+  Widget _buildHoldingRow(BuildContext context, Portfolio pf,
+      PortfolioItem item, RebalanceResult? rb) {
+    final pnlColors = context.watch<PnlColorNotifier>();
+
+    // 기준통화 환산 (US 종목을 원화 포트에 담는 경우 등)
+    double fx = 1.0;
+    if (item.market == 'US' && pf.currency == 'KRW') {
+      fx = pf.exchangeRate;
+    } else if (item.market == 'KR' && pf.currency == 'USD') {
+      fx = 1.0 / pf.exchangeRate;
+    }
+    final value = item.isCash ? item.shares : item.shares * item.currentPrice * fx;
+
+    String? dayText;
+    if (!item.isCash && item.previousClose > 0 && item.currentPrice > 0) {
+      final pct =
+          (item.currentPrice - item.previousClose) / item.previousClose * 100;
+      dayText = '${pct >= 0 ? '▲' : '▼'}${pct.abs().toStringAsFixed(2)}%';
+    }
+
+    String? returnText;
+    Color? returnColor;
+    if (!item.isCash && item.avgPrice > 0 && item.currentPrice > 0) {
+      final pct = (item.currentPrice - item.avgPrice) / item.avgPrice * 100;
+      returnText = '${pct >= 0 ? '+' : '−'}${pct.abs().toStringAsFixed(2)}%';
+      returnColor =
+          pct >= 0 ? pnlColors.positiveColor : pnlColors.negativeColor;
+    }
+
+    return ListRow(
+      leading: MarketChip(
+        market: item.isCash ? 'CASH' : item.market,
+        label: item.isCash
+            ? context.l10n.cash
+            : (item.market == 'US' ? 'US' : 'KR'),
       ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(DS.listCardRadius),
-        onTap: () => _showItemSheet(pf, item, rb),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          child: Column(children: [
-            // Row1: badge + 종목명/ticker
-            Row(children: [
-              _marketBadge(context, item), const SizedBox(width: 6),
-              Expanded(child: RichText(
-                overflow: TextOverflow.ellipsis,
-                text: TextSpan(
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: context.textPrimary),
-                  children: [
-                    TextSpan(text: item.name),
-                    if (item.ticker.isNotEmpty)
-                      TextSpan(text: ' ${item.ticker}',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: context.textHint)),
-                  ],
-                ),
-              )),
-            ]),
-            // Row2: 현재가×수량(좌) + 평가금액·현재비중(우)
-            if (!item.isCash) ...[
-              const SizedBox(height: 6),
-              Row(children: [
-                Text('${_fmtPrice(item.currentPrice, item.market)} × ${formatShares(item.shares)}',
-                    style: TextStyle(fontSize: 12, color: context.textSecondary)),
-                const Spacer(),
-                Builder(builder: (ctx) {
-                  double evalVal = item.currentPrice * item.shares;
-                  if (item.market == 'US' && pf.currency == 'KRW') {
-                    evalVal *= pf.exchangeRate;
-                  } else if (item.market == 'KR' && pf.currency == 'USD') {
-                    evalVal /= pf.exchangeRate;
-                  }
-                  final curWeight = rb?.results.where((r) => r.id == item.id).firstOrNull?.currentWeight;
-                  return Row(children: [
-                    if (evalVal > 0)
-                      Text(_fmt(evalVal, pf.currency),
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: context.textPrimary)),
-                    if (evalVal > 0 && curWeight != null) ...[
-                      const SizedBox(width: 4),
-                      Text('(${_pct(curWeight)})',
-                          style: TextStyle(fontSize: 11, color: context.textHint)),
-                    ],
-                  ]);
-                }),
-              ]),
-            ] else ...[
-              const SizedBox(height: 6),
-              Row(children: [
-                const Spacer(),
-                Text(_fmt(item.shares, pf.currency),
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: context.textPrimary)),
-              ]),
-            ],
-            if (!item.isCash && (item.avgPrice > 0 || item.previousClose > 0)) ...[
-              const SizedBox(height: 6),
-              _buildPnlRow(context, pf, item),
-            ],
-          ]),
-        ),
-      ),
+      title: item.name,
+      titleSize: 14.5,
+      // 시안은 `가격 · 수량` 순서 — 곱셈 기호가 아니라 점 구분자다
+      subtitle: item.isCash
+          ? null
+          : Text(
+              '${_fmtPrice(item.currentPrice, item.market)} · ${formatShares(item.shares)}${context.l10n.unitShares}',
+              style: TextStyle(
+                  fontSize: DS.body,
+                  fontWeight: FontWeight.w600,
+                  color: context.textSecondary),
+            ),
+      amount: _fmt(value, pf.currency),
+      dayText: dayText,
+      returnText: returnText,
+      returnColor: returnColor,
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      onTap: () => _showItemSheet(pf, item, rb),
     );
   }
 

@@ -170,6 +170,8 @@
   "langEnglish": "English",
 
   "portfolioAddBtn": "포트폴리오 추가",
+  "holdingsSection": "구성 종목",
+  "cashIncluded": "예수금 포함",
   "itemCountLabel": "{count}개 종목",
   "@itemCountLabel": {
     "placeholders": { "count": { "type": "int" } }

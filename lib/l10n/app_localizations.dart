@@ -932,6 +932,18 @@ abstract class AppLocalizations {
   /// **'포트폴리오 추가'**
   String get portfolioAddBtn;
 
+  /// No description provided for @holdingsSection.
+  ///
+  /// In ko, this message translates to:
+  /// **'구성 종목'**
+  String get holdingsSection;
+
+  /// No description provided for @cashIncluded.
+  ///
+  /// In ko, this message translates to:
+  /// **'예수금 포함'**
+  String get cashIncluded;
+
   /// No description provided for @itemCountLabel.
   ///
   /// In ko, this message translates to:

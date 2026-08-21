@@ -445,6 +445,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get portfolioAddBtn => '포트폴리오 추가';
 
   @override
+  String get holdingsSection => '구성 종목';
+
+  @override
+  String get cashIncluded => '예수금 포함';
+
+  @override
   String itemCountLabel(int count) {
     return '$count개 종목';
   }
