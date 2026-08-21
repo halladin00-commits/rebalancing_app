@@ -577,6 +577,7 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
       padding: EdgeInsets.fromLTRB(
           16, 10, 16, 16 + MediaQuery.of(context).padding.bottom),
       child: SizedBox(
+        width: double.infinity,
         height: 50,
         child: ElevatedButton(
           onPressed: () async {
