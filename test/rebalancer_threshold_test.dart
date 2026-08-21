@@ -36,10 +36,10 @@ void main() {
       );
 
   /// id → delta 로 정리
-  Map<String, int> deltas(RebalanceResult r) =>
+  Map<String, double> deltas(RebalanceResult r) =>
       {for (final x in r.results) x.id: x.delta};
 
-  Map<String, int> shares(RebalanceResult r) =>
+  Map<String, double> shares(RebalanceResult r) =>
       {for (final x in r.results) x.id: x.newShares};
 
   // a 52%, b 48% / 목표 50:50 → 편차 ±2%p

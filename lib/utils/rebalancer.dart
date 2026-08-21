@@ -1,5 +1,6 @@
 import 'dart:math';
 import '../models/portfolio.dart';
+import 'share_format.dart';
 
 /// 목표 비중에서 벗어난 정도.
 class ItemDrift {
@@ -92,7 +93,7 @@ class Rebalancer {
       return RebalanceResult(
         results: items.map((item) => RebalanceItemResult(
           id: item.id, currentWeight: 0, finalWeight: 0,
-          newShares: item.isCash ? 0 : item.shares.toInt(),
+          newShares: item.isCash ? 0 : item.shares,
           newCashAmount: item.isCash ? item.shares : 0,
           isCash: item.isCash,
         )).toList(),
@@ -113,71 +114,101 @@ class Rebalancer {
       }
     }
 
-    final data = <_CalcItem>[];
-    for (final item in items) {
-      final p = priceInBase(item);
-      final cv = item.isCash ? item.shares : item.shares * p;
-      final cw = (cv / total) * 100;
-      final tv = total * (item.targetWeight / 100);
-      final locked = lockedIds.contains(item.id);
-      if (item.isCash) {
-        data.add(_CalcItem(
-            item: item, price: p, currentValue: cv, currentWeight: cw,
-            targetValue: tv,
-            baseShares: locked ? item.shares.round() : tv.round(),
-            remainder: 0, locked: locked));
-      } else {
-        if (p <= 0) continue; // 안전장치
-        final ideal = tv / p;
-        final base = locked ? item.shares.toInt() : ideal.floor();
-        data.add(_CalcItem(
-            item: item, price: p, currentValue: cv, currentWeight: cw,
-            targetValue: tv, ideal: ideal, baseShares: base,
-            remainder: locked ? 0 : ideal - base, locked: locked));
+    // 소수점 거래는 목표 금액을 그대로 나눠 떨어뜨릴 수 있어 최대잉여법이
+    // 필요 없다. 대신 수수료만큼 예산을 미리 빼 둬야 한다 —
+    // 온주 거래는 내림에서 남는 돈이 수수료를 덮지만, 소수점 거래는
+    // 남는 돈이 0이라 그냥 두면 잔여 현금이 음수가 된다.
+    final fractional = portfolio.fractionalEnabled;
+
+    /// [base]를 목표 금액의 기준으로 삼아 각 종목의 목표 수량을 잡는다.
+    /// 현재 비중(currentWeight)은 언제나 실제 총액 기준으로 둔다.
+    List<_CalcItem> allocate(double base) {
+      final out = <_CalcItem>[];
+      for (final item in items) {
+        final p = priceInBase(item);
+        final cv = item.isCash ? item.shares : item.shares * p;
+        final cw = (cv / total) * 100;
+        final tv = base * (item.targetWeight / 100);
+        final locked = lockedIds.contains(item.id);
+        // 잠긴 종목은 "거래하지 않는다"는 뜻이므로 현재 수량을 그대로 둔다.
+        if (item.isCash) {
+          out.add(_CalcItem(
+              item: item, price: p, currentValue: cv, currentWeight: cw,
+              targetValue: tv,
+              baseShares: locked ? item.shares : tv.roundToDouble(),
+              remainder: 0, locked: locked));
+        } else {
+          if (p <= 0) continue; // 안전장치
+          final ideal = tv / p;
+          final assigned = locked
+              ? item.shares
+              : (fractional ? floorShares(ideal) : ideal.floorToDouble());
+          out.add(_CalcItem(
+              item: item, price: p, currentValue: cv, currentWeight: cw,
+              targetValue: tv, ideal: ideal, baseShares: assigned,
+              remainder: (locked || fractional) ? 0 : ideal - assigned,
+              locked: locked));
+        }
+      }
+      return out;
+    }
+
+    double commissionOf(List<_CalcItem> d) => d.fold(
+        0.0,
+        (sum, x) => x.item.isCash
+            ? sum
+            : sum + (x.baseShares - x.item.shares).abs() * x.price * cr / 100);
+
+    var data = allocate(total);
+
+    if (fractional) {
+      // 1차 배분으로 수수료를 어림한 뒤 그만큼 예산을 줄여 다시 배분한다.
+      // 수수료율이 0.015% 수준이라 한 번이면 충분히 수렴한다.
+      if (cr > 0) {
+        final est = commissionOf(data);
+        if (est > 0 && est < total) data = allocate(total - est);
+      }
+    } else {
+      // 잠긴 종목은 잔여 예산 배분에서 빠진다
+      final stocks = data.where((d) => !d.item.isCash && !d.locked).toList()
+        ..sort((a, b) => b.remainder.compareTo(a.remainder));
+      final allocated0 = data.fold(0.0, (sum, d) => d.item.isCash ? sum + d.baseShares : sum + d.baseShares * d.price);
+      double budget = total - allocated0;
+      // 최대잉여법: 소수점이 남은 종목에만 한 주씩 더 준다.
+      // remainder가 0인 종목은 이미 목표에 정확히 맞아 있으므로 더하면 목표를 넘는다
+      // (잠긴 종목의 편차 때문에 생긴 잔여 예산이 엉뚱한 종목을 밀어올리는 걸 막는다).
+      for (final d in stocks) {
+        if (d.item.targetWeight > 0 && d.remainder > 0 && budget >= d.price) {
+          d.baseShares += 1;
+          budget -= d.price;
+        }
+      }
+
+      final allocated = data.fold(0.0, (sum, d) => d.item.isCash ? sum + d.baseShares : sum + d.baseShares * d.price);
+      if (total - allocated < commissionOf(data) && stocks.isNotEmpty) {
+        final removable = stocks
+            .where((d) => d.remainder > 0 && d.baseShares > (d.ideal ?? 0).floorToDouble())
+            .toList();
+        if (removable.isNotEmpty) removable.last.baseShares -= 1;
       }
     }
 
-    // 잠긴 종목은 잔여 예산 배분에서 빠진다
-    final stocks = data.where((d) => !d.item.isCash && !d.locked).toList()
-      ..sort((a, b) => b.remainder.compareTo(a.remainder));
-    double allocated = data.fold(0.0, (sum, d) => d.item.isCash ? sum + d.baseShares : sum + d.baseShares * d.price);
-    double budget = total - allocated;
-    // 최대잉여법: 소수점이 남은 종목에만 한 주씩 더 준다.
-    // remainder가 0인 종목은 이미 목표에 정확히 맞아 있으므로 더하면 목표를 넘는다
-    // (잠긴 종목의 편차 때문에 생긴 잔여 예산이 엉뚱한 종목을 밀어올리는 걸 막는다).
-    for (final d in stocks) {
-      if (d.item.targetWeight > 0 && d.remainder > 0 && budget >= d.price) {
-        d.baseShares += 1;
-        budget -= d.price;
-      }
-    }
-
-    double commission = data.fold(0.0, (sum, d) => d.item.isCash ? sum : sum + (d.baseShares - d.item.shares).abs() * d.price * cr / 100);
-    allocated = data.fold(0.0, (sum, d) => d.item.isCash ? sum + d.baseShares : sum + d.baseShares * d.price);
-    double cash = total - allocated;
-
-    if (cash < commission && stocks.isNotEmpty) {
-      final removable = stocks.where((d) => d.remainder > 0 && d.baseShares > (d.ideal ?? 0).floor()).toList();
-      if (removable.isNotEmpty) {
-        removable.last.baseShares -= 1;
-        commission = data.fold(0.0, (sum, d) => d.item.isCash ? sum : sum + (d.baseShares - d.item.shares).abs() * d.price * cr / 100);
-      }
-    }
-
+    final commission = commissionOf(data);
     final ta = data.fold(0.0, (sum, d) => d.item.isCash ? sum + d.baseShares : sum + d.baseShares * d.price);
     final fc = max(0.0, total - ta - commission).roundToDouble();
 
     final results = data.map((d) {
       final ns = d.baseShares;
-      final delta = ns - d.item.shares.toInt();
-      final fv = d.item.isCash ? ns.toDouble() : ns * d.price;
+      var delta = ns - d.item.shares;
+      if (delta.abs() < sharesEpsilon) delta = 0; // 부동소수 찌꺼기는 거래가 아니다
+      final fv = d.item.isCash ? ns : ns * d.price;
       final fw = total > 0 ? (fv / total) * 100 : 0.0;
       return RebalanceItemResult(
         id: d.item.id, currentWeight: d.currentWeight, finalWeight: fw,
         newShares: d.item.isCash ? 0 : ns,
-        newCashAmount: d.item.isCash ? ns.toDouble() : 0,
+        newCashAmount: d.item.isCash ? ns : 0,
         delta: d.item.isCash ? 0 : delta,
-        cashDelta: d.item.isCash ? ns.toDouble() - d.item.shares : 0,
+        cashDelta: d.item.isCash ? ns - d.item.shares : 0,
         isCash: d.item.isCash,
       );
     }).toList();
@@ -193,7 +224,7 @@ class _CalcItem {
   final double currentWeight;
   final double targetValue;
   final double? ideal;
-  int baseShares;
+  double baseShares;
   final double remainder;
   /// 허용 편차 안이라 거래하지 않는 종목
   final bool locked;

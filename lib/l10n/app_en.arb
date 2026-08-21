@@ -303,6 +303,10 @@
   "rebalancingThresholdLabel": "Rebalancing Threshold",
   "rebalancingThresholdHint": "No trade recommended below this deviation",
 
+  "fractionalTrading": "Fractional Shares",
+  "fractionalTradingToggle": "Allow fractional quantities",
+  "fractionalTradingHint": "Turn on only if your broker supports fractional trading.\nOtherwise quantities stay in whole shares.",
+
   "rebalanceTransactionTitle": "Confirm Trades",
   "rebalanceTransactionDesc": "Edit qty/price to match your actual trades.\nItems with qty 0 will be skipped."
 }

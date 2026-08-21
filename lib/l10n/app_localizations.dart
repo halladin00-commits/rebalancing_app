@@ -1460,6 +1460,24 @@ abstract class AppLocalizations {
   /// **'편차가 이 값 미만이면 거래 권고 안 함'**
   String get rebalancingThresholdHint;
 
+  /// No description provided for @fractionalTrading.
+  ///
+  /// In ko, this message translates to:
+  /// **'소수점 거래'**
+  String get fractionalTrading;
+
+  /// No description provided for @fractionalTradingToggle.
+  ///
+  /// In ko, this message translates to:
+  /// **'소수점 단위로 매매'**
+  String get fractionalTradingToggle;
+
+  /// No description provided for @fractionalTradingHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'소수점 매매가 되는 계좌에서만 켜세요.\n끄면 1주 단위로만 계산합니다.'**
+  String get fractionalTradingHint;
+
   /// No description provided for @rebalanceTransactionTitle.
   ///
   /// In ko, this message translates to:

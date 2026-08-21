@@ -737,6 +737,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String get rebalancingThresholdHint => '편차가 이 값 미만이면 거래 권고 안 함';
 
   @override
+  String get fractionalTrading => '소수점 거래';
+
+  @override
+  String get fractionalTradingToggle => '소수점 단위로 매매';
+
+  @override
+  String get fractionalTradingHint =>
+      '소수점 매매가 되는 계좌에서만 켜세요.\n끄면 1주 단위로만 계산합니다.';
+
+  @override
   String get rebalanceTransactionTitle => '리밸런싱 거래 확인';
 
   @override

@@ -161,6 +161,11 @@ class Portfolio {
   bool priceAuto;
   double additionalInvestment;
   double rebalancingThreshold;
+
+  /// 소수점 단위 매매 허용 여부. 기본은 온주(1주 단위) 거래다.
+  /// 증권사·계좌에 따라 소수점 매매가 되는 곳만 켠다.
+  bool fractionalEnabled;
+
   int? lastUpdated;
   List<PortfolioItem> items;
 
@@ -182,6 +187,7 @@ class Portfolio {
     this.priceAuto = true,
     this.additionalInvestment = 0,
     this.rebalancingThreshold = 0.0,
+    this.fractionalEnabled = false,
     this.lastUpdated,
     List<PortfolioItem>? items,
     String? graphTitle,
@@ -289,6 +295,7 @@ class Portfolio {
     'priceAuto': priceAuto,
     'additionalInvestment': additionalInvestment,
     'rebalancingThreshold': rebalancingThreshold,
+    'fractionalEnabled': fractionalEnabled,
     'lastUpdated': lastUpdated,
     'items': items.map((e) => e.toJson()).toList(),
     'graphTitle': graphTitle,
@@ -309,6 +316,7 @@ class Portfolio {
     priceAuto: json['priceAuto'] ?? true,
     additionalInvestment: (json['additionalInvestment'] ?? 0).toDouble(),
     rebalancingThreshold: (json['rebalancingThreshold'] ?? 0.0).toDouble(),
+    fractionalEnabled: json['fractionalEnabled'] ?? false,
     lastUpdated: json['lastUpdated'],
     items: (json['items'] as List<dynamic>?)
             ?.map((e) => PortfolioItem.fromJson(e))
@@ -339,6 +347,7 @@ class Portfolio {
     bool? priceAuto,
     double? additionalInvestment,
     double? rebalancingThreshold,
+    bool? fractionalEnabled,
     int? lastUpdated,
     List<PortfolioItem>? items,
     String? graphTitle,
@@ -357,6 +366,7 @@ class Portfolio {
     priceAuto: priceAuto ?? this.priceAuto,
     additionalInvestment: additionalInvestment ?? this.additionalInvestment,
     rebalancingThreshold: rebalancingThreshold ?? this.rebalancingThreshold,
+    fractionalEnabled: fractionalEnabled ?? this.fractionalEnabled,
     lastUpdated: lastUpdated ?? this.lastUpdated,
     items: items ?? this.items.map((e) => e.copyWith()).toList(),
     graphTitle: graphTitle ?? this.graphTitle,
@@ -387,9 +397,12 @@ class RebalanceItemResult {
   final String id;
   final double currentWeight;
   final double finalWeight;
-  final int newShares;
+  /// 목표 수량. 소수점 거래가 꺼져 있으면 항상 정수값이다.
+  final double newShares;
   final double newCashAmount;
-  final int delta;
+
+  /// 목표 − 현재. 양수면 매수, 음수면 매도.
+  final double delta;
   final double cashDelta;
   final bool isCash;
 

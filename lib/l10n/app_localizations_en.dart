@@ -746,6 +746,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'No trade recommended below this deviation';
 
   @override
+  String get fractionalTrading => 'Fractional Shares';
+
+  @override
+  String get fractionalTradingToggle => 'Allow fractional quantities';
+
+  @override
+  String get fractionalTradingHint =>
+      'Turn on only if your broker supports fractional trading.\nOtherwise quantities stay in whole shares.';
+
+  @override
   String get rebalanceTransactionTitle => 'Confirm Trades';
 
   @override

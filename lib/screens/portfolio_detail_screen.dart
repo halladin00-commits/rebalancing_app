@@ -8,6 +8,7 @@ import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import '../main.dart';
 import '../models/portfolio.dart';
 import '../utils/rebalancer.dart';
+import '../utils/share_format.dart';
 import '../services/api_service.dart';
 import '../services/excel_import_service.dart';
 import '../services/review_service.dart';
@@ -174,7 +175,8 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
             currency: s['currency'], commissionEnabled: s['commissionEnabled'],
             commissionRate: s['commissionRate'], exchangeAuto: s['exchangeAuto'],
             exchangeRate: s['exchangeRate'], priceAuto: s['priceAuto'],
-            rebalancingThreshold: s['rebalancingThreshold']);
+            rebalancingThreshold: s['rebalancingThreshold'],
+            fractionalEnabled: s['fractionalEnabled']);
         },
       ),
     );
@@ -339,7 +341,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
                 if (!item.isCash) ...[
                   const SizedBox(height: 4),
                   Row(children: [
-                    Text('${_fmtPrice(item.currentPrice, item.market)} × ${item.shares.toInt()}',
+                    Text('${_fmtPrice(item.currentPrice, item.market)} × ${formatShares(item.shares)}',
                         style: TextStyle(fontSize: 11, color: context.textSecondary)),
                     const Spacer(),
                     if (evalVal > 0)
@@ -391,7 +393,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
           const SizedBox(height: 12),
           ...pf.items.map((item) {
             final r = rb?.results.where((x) => x.id == item.id).firstOrNull;
-            final delta = r?.isCash == true ? r!.cashDelta.round() : (r?.delta ?? 0);
+            final delta = r?.isCash == true ? r!.cashDelta : (r?.delta ?? 0.0);
             final isBuy = delta > 0;
             final showAction = r != null && delta != 0 && (pf.rebalancingThreshold <= 0 ||
                 (r.currentWeight - item.targetWeight).abs() >= pf.rebalancingThreshold);
@@ -420,7 +422,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
                           style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
                     ),
                     const SizedBox(width: 4),
-                    Text(item.isCash ? _fmt(delta.abs().toDouble(), pf.currency) : '${delta.abs()}${l10n.unitShares}',
+                    Text(item.isCash ? _fmt(delta.abs(), pf.currency) : '${formatShares(delta.abs())}${l10n.unitShares}',
                         style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700,
                             color: isBuy ? const Color(0xFF16A34A) : const Color(0xFFDC2626))),
                   ] else if (r != null)
@@ -880,12 +882,17 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
 
     // 하단 한 줄 — 리밸런싱 탭에서 수수료가 잡히면 그쪽을 우선한다.
     // 오른쪽 시각과 한 줄을 나눠 쓰므로 짧은 문구만 넣는다.
-    final footerLeft = (onRebalance &&
+    var footerLeft = (onRebalance &&
             pf.commissionEnabled &&
             rb != null &&
             rb.commission > 0)
         ? l10n.estimatedFee(_fmt(rb.commission, pf.currency))
         : l10n.itemCountLabel(pf.items.length);
+    // 소수점 수량이 왜 나오는지 눌러보지 않아도 알 수 있게, 계산 결과를
+    // 보는 자리에서 한 번만 알려준다.
+    if (onRebalance && pf.fractionalEnabled) {
+      footerLeft = '$footerLeft · ${isKo ? '소수점 거래' : 'fractional'}';
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1361,7 +1368,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
             if (!item.isCash) ...[
               const SizedBox(height: 6),
               Row(children: [
-                Text('${_fmtPrice(item.currentPrice, item.market)} × ${item.shares.toInt()}',
+                Text('${_fmtPrice(item.currentPrice, item.market)} × ${formatShares(item.shares)}',
                     style: TextStyle(fontSize: 12, color: context.textSecondary)),
                 const Spacer(),
                 Builder(builder: (ctx) {
@@ -1406,7 +1413,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
       RebalanceResult? rb) {
     final l10n = context.l10n;
     final r = rb?.results.where((x) => x.id == item.id).firstOrNull;
-    final delta = r?.isCash == true ? r!.cashDelta.round() : (r?.delta ?? 0);
+    final delta = r?.isCash == true ? r!.cashDelta : (r?.delta ?? 0.0);
     final isBuy = delta > 0;
 
     return Container(
@@ -1438,7 +1445,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
                 ),
               )),
               Text(item.isCash ? _fmt(item.shares, pf.currency)
-                      : '${_fmtPrice(item.currentPrice, item.market)} × ${item.shares.toInt()}',
+                      : '${_fmtPrice(item.currentPrice, item.market)} × ${formatShares(item.shares)}',
                   style: TextStyle(fontSize: 13, color: context.textSecondary)),
             ]),
             const SizedBox(height: 4),
@@ -1475,7 +1482,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
                       style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
                 ),
                 const SizedBox(width: 4),
-                Text(item.isCash ? _fmt(delta.abs().toDouble(), pf.currency) : '${delta.abs()}${l10n.unitShares}',
+                Text(item.isCash ? _fmt(delta.abs(), pf.currency) : '${formatShares(delta.abs())}${l10n.unitShares}',
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700,
                         color: isBuy ? const Color(0xFF16A34A) : const Color(0xFFDC2626))),
               ],
@@ -1510,7 +1517,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen>
             ]),
             const SizedBox(height: 2),
             Text(item.isCash ? _fmt(item.shares, pf.currency)
-                    : '${_fmtPrice(item.currentPrice, item.market)} × ${item.shares.toInt()}',
+                    : '${_fmtPrice(item.currentPrice, item.market)} × ${formatShares(item.shares)}',
                 style: TextStyle(fontSize: 12, color: context.textSecondary)),
           ])),
           IconButton(
@@ -1690,7 +1697,7 @@ class _RebalanceTransactionDialogState extends State<_RebalanceTransactionDialog
     _tradeable = widget.rb.results.where((r) => !r.isCash && r.delta != 0).toList();
     _qtyCtrl = {
       for (final r in _tradeable)
-        r.id: TextEditingController(text: r.delta.abs().toString())
+        r.id: TextEditingController(text: formatShares(r.delta.abs()))
     };
     _priceCtrl = {
       for (final r in _tradeable)
@@ -1767,7 +1774,8 @@ class _RebalanceTransactionDialogState extends State<_RebalanceTransactionDialog
                             ]),
                             const SizedBox(height: 8),
                             Row(children: [
-                              Expanded(child: _field(l10n.transactionQty, _qtyCtrl[r.id]!, isInt: true)),
+                              Expanded(child: _field(l10n.transactionQty, _qtyCtrl[r.id]!,
+                                  isInt: !widget.pf.fractionalEnabled)),
                               const SizedBox(width: 8),
                               Expanded(child: _field(l10n.transactionPrice, _priceCtrl[r.id]!)),
                             ]),

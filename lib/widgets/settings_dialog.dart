@@ -24,6 +24,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
   late TextEditingController _exRateCtl;
   late bool _prAuto;
   late TextEditingController _thresholdCtl;
+  late bool _fractional;
   String? _errorText;
 
   @override
@@ -37,6 +38,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
     _exRateCtl = TextEditingController(text: pf.exchangeRate.toString());
     _prAuto = pf.priceAuto;
     _thresholdCtl = TextEditingController(text: pf.rebalancingThreshold.toString());
+    _fractional = pf.fractionalEnabled;
   }
 
   @override
@@ -72,6 +74,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
       'exchangeRate': double.tryParse(_exRateCtl.text) ?? 0,
       'priceAuto': _prAuto,
       'rebalancingThreshold': double.tryParse(_thresholdCtl.text) ?? 0.0,
+      'fractionalEnabled': _fractional,
     });
     Navigator.pop(context);
   }
@@ -124,6 +127,17 @@ class _SettingsDialogState extends State<SettingsDialog> {
               // ── 리밸런싱 임계값 ──
               _sectionHeader(context, l10n.rebalancingThresholdLabel),
               _inputField(context, l10n.rebalancingThresholdHint, _thresholdCtl, '%'),
+
+              // ── 소수점 거래 ──
+              _sectionHeader(context, l10n.fractionalTrading),
+              _toggleRow(context, l10n.fractionalTradingToggle, _fractional,
+                  (v) => setState(() => _fractional = v)),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                child: Text(l10n.fractionalTradingHint,
+                    style: TextStyle(
+                        fontSize: 11, height: 1.5, color: context.textHint)),
+              ),
 
               // ── 거래 수수료 ──
               _sectionHeader(context, l10n.tradingFee),

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../main.dart';
 import '../models/portfolio.dart';
 import 'transaction_bottom_sheet.dart';
+import '../utils/share_format.dart';
 
 class ItemBottomSheet extends StatefulWidget {
   final PortfolioItem item;
@@ -96,7 +97,7 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
     final rb = widget.rb;
 
     final r = rb?.results.where((x) => x.id == item.id).firstOrNull;
-    final delta = r?.isCash == true ? r!.cashDelta.round() : (r?.delta ?? 0);
+    final delta = r?.isCash == true ? r!.cashDelta : (r?.delta ?? 0.0);
     String tradeText;
     if (r == null) {
       tradeText = '—';
@@ -104,7 +105,7 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
       tradeText = l10n.hold;
     } else {
       tradeText =
-          '${delta > 0 ? "${l10n.buy} " : "${l10n.sell} "}${item.isCash ? _fmt(delta.abs().toDouble(), portfolio.currency) : "${delta.abs()}${l10n.unitShares}"}';
+          '${delta > 0 ? "${l10n.buy} " : "${l10n.sell} "}${item.isCash ? _fmt(delta.abs(), portfolio.currency) : "${formatShares(delta.abs())}${l10n.unitShares}"}';
     }
 
     return AnimatedPadding(
