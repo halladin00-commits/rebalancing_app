@@ -46,6 +46,14 @@ class SettlementResult {
   final double endValue;
   final double absoluteReturn;
   final double returnRate;
+  /// 수익률을 낼 수 있는가.
+  ///
+  /// Modified Dietz의 분모(기초 평가액 + 가중 현금흐름)가 0 이하이면
+  /// 수익률은 **정의되지 않는다**. 예: 기간 안에서 처음 사서 그대로 들고 있는
+  /// 경우 — 기초가 0이고 매수가 기간 끝에 몰려 가중치도 0이다.
+  /// 이때 0%로 적으면 "정말 0%"와 구분되지 않아 거짓말이 된다.
+  final bool rateAvailable;
+
   final double netCashFlow; // 기간 중 순 투자금 (매수 양수, 매도 음수)
   final bool isCurrentPeriod;
   final List<SettlementItemContribution> contributions;
@@ -59,6 +67,7 @@ class SettlementResult {
     required this.endValue,
     required this.absoluteReturn,
     required this.returnRate,
+    this.rateAvailable = true,
     required this.netCashFlow,
     required this.isCurrentPeriod,
     required this.contributions,
@@ -105,6 +114,14 @@ class CombinedSettlement {
   final double endValue;
   final double absoluteReturn;
   final double returnRate;
+  /// 수익률을 낼 수 있는가.
+  ///
+  /// Modified Dietz의 분모(기초 평가액 + 가중 현금흐름)가 0 이하이면
+  /// 수익률은 **정의되지 않는다**. 예: 기간 안에서 처음 사서 그대로 들고 있는
+  /// 경우 — 기초가 0이고 매수가 기간 끝에 몰려 가중치도 0이다.
+  /// 이때 0%로 적으면 "정말 0%"와 구분되지 않아 거짓말이 된다.
+  final bool rateAvailable;
+
   final double netCashFlow;
   final bool isCurrentPeriod;
   final List<PortfolioContribution> contributions;
@@ -118,6 +135,7 @@ class CombinedSettlement {
     required this.endValue,
     required this.absoluteReturn,
     required this.returnRate,
+    this.rateAvailable = true,
     required this.netCashFlow,
     required this.isCurrentPeriod,
     required this.contributions,
@@ -313,7 +331,8 @@ class SettlementService {
 
     final absoluteReturn = (totalEnd - totalStart) - totalNetCashFlow;
     final denominator = totalStart + totalWeightedCashFlow;
-    final returnRate = denominator > 0 ? absoluteReturn / denominator * 100 : 0.0;
+    final rateAvailable = denominator > 0;
+    final returnRate = rateAvailable ? absoluteReturn / denominator * 100 : 0.0;
 
     final contributions = rawItems.map((e) {
       double itemNetCF = 0;
@@ -351,6 +370,7 @@ class SettlementService {
       endValue: totalEnd,
       absoluteReturn: absoluteReturn,
       returnRate: returnRate,
+      rateAvailable: rateAvailable,
       netCashFlow: totalNetCashFlow,
       isCurrentPeriod: isCurrentPeriod,
       contributions: contributions,
@@ -506,6 +526,7 @@ class SettlementService {
       endValue: end,
       absoluteReturn: abs,
       returnRate: start > 0 ? abs / start * 100 : 0.0,
+      rateAvailable: start > 0,
       netCashFlow: netCF,
       isCurrentPeriod: isCurrent,
       contributions: contributions,

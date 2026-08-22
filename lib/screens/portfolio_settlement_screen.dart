@@ -242,7 +242,9 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
                 children: [
                   if (r != null)
                     Text(
-                      '${r.returnRate >= 0 ? '+' : '−'}${r.returnRate.abs().toStringAsFixed(2)}%',
+                      r.rateAvailable
+                          ? '${r.returnRate >= 0 ? '+' : '−'}${r.returnRate.abs().toStringAsFixed(2)}%'
+                          : '—',
                       style: TextStyle(
                         fontSize: DS.sectionTitle,
                         fontWeight: FontWeight.w700,
@@ -744,7 +746,9 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
                 if (r != null) ...[
                   const SizedBox(height: 2),
                   Text(
-                    '${r.returnRate >= 0 ? '+' : '−'}${r.returnRate.abs().toStringAsFixed(2)}%',
+                    r.rateAvailable
+                          ? '${r.returnRate >= 0 ? '+' : '−'}${r.returnRate.abs().toStringAsFixed(2)}%'
+                          : '—',
                     style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
