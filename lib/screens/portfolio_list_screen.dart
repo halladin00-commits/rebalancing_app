@@ -608,7 +608,9 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
           body: Column(
             children: [
               BrandHeader(
-                titleWidget: const AppLogo(iconSize: 26),
+                // 시안 기준 21px · 글자는 흰색 78% — 로고가 총자산 금액을 이기지 않게 한다
+                titleWidget: AppLogo(
+                    iconSize: 21, textColor: context.onBrandSecondary),
                 childPadding: const EdgeInsets.fromLTRB(22, 4, 22, 16),
                 actions: [
                   if (!_editMode)

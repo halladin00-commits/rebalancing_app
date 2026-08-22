@@ -19,6 +19,7 @@ class BrandHeader extends StatelessWidget {
   final Widget? titleWidget;
 
   /// 제목 글자 크기. 탭 루트는 19/w800, 상세 화면은 17/w700.
+  /// 시안 기준 타이틀 행 높이는 48이다.
   final double titleSize;
   final FontWeight titleWeight;
 
@@ -68,7 +69,7 @@ class BrandHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               SizedBox(
-                height: 46,
+                height: 48,
                 child: Row(
                   children: [
                     if (leading != null)
