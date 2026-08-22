@@ -191,6 +191,13 @@ extension AppColors on BuildContext {
   // ── 주의 · 진행중 ──
   Color get warningBg => const Color(0xFFF5EEDF);
   Color get warningText => const Color(0xFF9C4A16);
+
+  // 액션 카드 안쪽 글자 — 배경(warningBg · brandTint) 위에서 읽히도록
+  // 시안이 따로 잡아 둔 값이다. textPrimary/textSecondary보다 배경에 가깝다.
+  Color get onWarningTitle => const Color(0xFF4A3512);
+  Color get onWarningBody => const Color(0xFF7A5F22);
+  Color get onTintTitle => const Color(0xFF123D39);
+  Color get onTintBody => const Color(0xFF3D5C58);
   Color get progressAccent => const Color(0xFFC08A3E); // 진행 중 기간 점 · 테두리
   /// 파괴적 액션 (앱 종료 · 삭제) 버튼 채움
   Color get danger => const Color(0xFFB85127);

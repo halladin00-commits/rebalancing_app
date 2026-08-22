@@ -946,6 +946,8 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                     sub: isKo
                         ? '$worstCount종목 · 최대 $driftSign$driftAbs%p'
                         : '$worstCount holdings · max $driftSign$driftAbs' 'pp',
+                    titleFg: context.onWarningTitle,
+                    bodyFg: context.onWarningBody,
                     onTap: () => widget.onNavigateToTab?.call(1),
                   )
                 : _actionCard(
@@ -956,6 +958,8 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                     label: isKo ? '비중 유지' : 'On target',
                     title: isKo ? '조정할 종목 없음' : 'Nothing to adjust',
                     sub: isKo ? '모두 허용 편차 안' : 'All within tolerance',
+                    titleFg: context.onTintTitle,
+                    bodyFg: context.onTintBody,
                     onTap: () => widget.onNavigateToTab?.call(1),
                   ),
           ),
@@ -969,6 +973,8 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
               label: isKo ? '결산 준비' : 'Returns ready',
               title: isKo ? '$lastMonth월 월간' : 'Monthly · $lastMonth',
               sub: isKo ? '결산 탭에서 보기' : 'Open Returns tab',
+              titleFg: context.onTintTitle,
+              bodyFg: context.onTintBody,
               onTap: () => widget.onNavigateToTab?.call(2),
             ),
           ),
@@ -986,6 +992,8 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
     required String title,
     required String sub,
     required VoidCallback onTap,
+    required Color titleFg,
+    required Color bodyFg,
   }) {
     return InkWell(
       onTap: onTap,
@@ -1021,7 +1029,7 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                 style: TextStyle(
                     fontSize: DS.sectionTitle,
                     fontWeight: FontWeight.w700,
-                    color: context.textPrimary),
+                    color: titleFg),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis),
             const SizedBox(height: 3),
@@ -1029,7 +1037,7 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                 style: TextStyle(
                     fontSize: DS.body,
                     fontWeight: FontWeight.w500,
-                    color: context.textSecondary),
+                    color: bodyFg),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis),
           ],
