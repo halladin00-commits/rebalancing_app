@@ -175,8 +175,7 @@ class StockSearchService {
       final cacheFile = File('${dir.path}/$_cacheFileName');
       if (await cacheFile.exists()) {
         final jsonStr = await cacheFile.readAsString();
-        final list = json.decode(jsonStr) as List<dynamic>;
-        _stocks = list.cast<Map<String, dynamic>>();
+        _stocks = await compute(_parseStocks, jsonStr);
         _buildKrNameMap();
         if (kDebugMode) print('종목 데이터 로드: 캐시 (${_stocks!.length}건)');
         return;
@@ -187,14 +186,22 @@ class StockSearchService {
 
     try {
       final jsonStr = await rootBundle.loadString('assets/kr_stocks.json');
-      final list = json.decode(jsonStr) as List<dynamic>;
-      _stocks = list.cast<Map<String, dynamic>>();
+      _stocks = await compute(_parseStocks, jsonStr);
       _buildKrNameMap();
       if (kDebugMode) print('종목 데이터 로드: 번들 (${_stocks!.length}건)');
     } catch (e) {
       if (kDebugMode) print('번들 로드 실패: $e');
       _stocks = [];
     }
+  }
+
+  /// 14,000건짜리 JSON 파싱은 메인 스레드에서 하면 앱이 그동안 멈춘다.
+  /// 스플래시가 몇 초씩 머무는 원인이었다. 별도 아이솔레이트로 넘긴다.
+  ///
+  /// `compute`에 넘기려면 최상위 또는 static 함수여야 한다.
+  static List<Map<String, dynamic>> _parseStocks(String jsonStr) {
+    final list = json.decode(jsonStr) as List<dynamic>;
+    return list.cast<Map<String, dynamic>>();
   }
 
   /// 로컬 데이터에서 한글 이름 맵 빌드
@@ -240,7 +247,8 @@ class StockSearchService {
           .timeout(const Duration(seconds: 30));
       if (dataResp.statusCode != 200) return;
 
-      final list = json.decode(dataResp.body) as List<dynamic>;
+      // 서버에서 받은 것도 같은 크기다 — 메인 스레드에서 파싱하지 않는다
+      final list = await compute(_parseStocks, dataResp.body);
       if (list.length < 100) return;
 
       final cacheFile = File('${dir.path}/$_cacheFileName');
