@@ -13,6 +13,7 @@ import '../widgets/app_logo.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/period_jump_sheet.dart';
 import '../widgets/settlement_chart.dart';
+import '../widgets/excluded_banner.dart';
 import 'portfolio_settlement_screen.dart';
 
 /// 결산 탭 — 전체 포트폴리오 합산 (v22a).
@@ -183,6 +184,7 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
                 : ListView(
                     padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
                     children: [
+                      _buildExcluded(context),
                       _buildChartCard(context, l10n),
                       const SizedBox(height: 14),
                       _buildContributions(context),
@@ -304,6 +306,30 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
   }
 
   // ── 차트 카드 (기간 선택 컨트롤) ──
+
+  /// 결산에서 빠진 종목을 밝힌다 — 전 포트를 합쳐서 센다.
+  Widget _buildExcluded(BuildContext context) {
+    final excluded = <PortfolioItem>[];
+    double value = 0;
+    for (final pf in widget.portfolios) {
+      final e = SettlementService.excludedItems(pf, _period, _selected);
+      if (e.isEmpty) continue;
+      excluded.addAll(e);
+      // 포트 통화가 섞일 수 있으므로 원화로 모은다
+      final v = SettlementService.excludedValue(pf, e);
+      value += pf.currency == 'USD' ? v * pf.exchangeRate : v;
+    }
+    if (excluded.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: ExcludedBanner(
+        items: excluded,
+        amountText: _fmt(value),
+        onFix: () => showExcludedSheet(context, items: excluded),
+      ),
+    );
+  }
 
   Widget _buildChartCard(BuildContext context, dynamic l10n) {
     final r = _current;

@@ -9,6 +9,24 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
+  String excludedFromSettlement(int count, String amount) {
+    return '$count종목 결산 제외 · $amount';
+  }
+
+  @override
+  String get excludedFixLink => '자세히';
+
+  @override
+  String get excludedSheetTitle => '결산에서 빠진 종목';
+
+  @override
+  String get excludedSheetBody =>
+      '아래 종목은 지금 보유 중이지만, 이 기간까지의 거래 기록이 없어 결산 계산에 잡히지 않습니다.\n\n자산과 리밸런싱에는 아무 영향이 없습니다 — 결산만 계산할 수 없습니다. 늘어난 금액이 매수 때문인지 주가 상승 때문인지 구분할 방법이 없어서입니다.\n\n종목 상세에서 실제 매수 거래를 넣으면 그때부터 결산에 포함됩니다.';
+
+  @override
+  String get excludedNoHistory => '거래 기록 없음';
+
+  @override
   String lastMonthReturn(String rate) {
     return '전월 $rate';
   }

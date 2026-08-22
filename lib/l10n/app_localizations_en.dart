@@ -9,6 +9,24 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String excludedFromSettlement(int count, String amount) {
+    return '$count excluded · $amount';
+  }
+
+  @override
+  String get excludedFixLink => 'Details';
+
+  @override
+  String get excludedSheetTitle => 'Excluded from returns';
+
+  @override
+  String get excludedSheetBody =>
+      'You hold these now, but there are no transactions covering this period, so they are not counted in returns.\n\nYour assets and rebalancing are unaffected — only returns cannot be computed, because there is no way to tell a purchase apart from a price rise.\n\nAdd the actual buy transaction on the holding page and it will be included from then on.';
+
+  @override
+  String get excludedNoHistory => 'no transactions';
+
+  @override
   String lastMonthReturn(String rate) {
     return 'Last month $rate';
   }

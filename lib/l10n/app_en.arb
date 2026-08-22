@@ -1,4 +1,10 @@
 {
+  "excludedFromSettlement": "{count} excluded · {amount}",
+  "@excludedFromSettlement": { "placeholders": { "count": { "type": "int" }, "amount": { "type": "String" } } },
+  "excludedFixLink": "Details",
+  "excludedSheetTitle": "Excluded from returns",
+  "excludedSheetBody": "You hold these now, but there are no transactions covering this period, so they are not counted in returns.\n\nYour assets and rebalancing are unaffected — only returns cannot be computed, because there is no way to tell a purchase apart from a price rise.\n\nAdd the actual buy transaction on the holding page and it will be included from then on.",
+  "excludedNoHistory": "no transactions",
   "lastMonthReturn": "Last month {rate}",
   "@lastMonthReturn": { "placeholders": { "rate": { "type": "String" } } },
   "spark1w": "1W",

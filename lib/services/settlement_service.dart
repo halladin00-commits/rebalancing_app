@@ -184,6 +184,41 @@ class SettlementService {
         .fold(0.0, (sum, t) => sum + t.quantity);
   }
 
+  /// 결산에서 빠지는 종목.
+  ///
+  /// `holdingsAt`은 거래 내역을 더해 그 시점 보유량을 구한다. 그래서 지금
+  /// 보유 중이더라도 **그 기간까지의 거래 기록이 없으면 0으로 잡힌다** —
+  /// 간편 입력으로 수량만 넣었거나, 옛 데이터가 오늘 날짜 거래 하나로
+  /// 마이그레이션된 경우가 그렇다.
+  ///
+  /// 문제는 이게 조용히 일어난다는 것이다. 결산 숫자가 일부 종목을 뺀
+  /// 값인데 사용자는 그 사실을 모른다. 화면에서 알려주려고 뽑아 둔다.
+  static List<PortfolioItem> excludedItems(
+      Portfolio pf, SettlementPeriod period, PeriodKey key) {
+    final range = periodRange(period, key);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final effectiveEnd = range.end.isBefore(today) ? range.end : today;
+
+    return pf.items
+        .where((i) =>
+            !i.isCash && i.shares > 0 && holdingsAt(i, effectiveEnd) <= 0)
+        .toList();
+  }
+
+  /// 제외된 종목의 현재 평가액 합계 (포트 기준통화).
+  static double excludedValue(Portfolio pf, List<PortfolioItem> items) {
+    return items.fold(0.0, (sum, i) {
+      var p = i.currentPrice;
+      if (i.market == 'US' && pf.currency == 'KRW') {
+        p *= pf.exchangeRate;
+      } else if (i.market == 'KR' && pf.currency == 'USD') {
+        p /= pf.exchangeRate;
+      }
+      return sum + i.shares * p;
+    });
+  }
+
   // ── 메인 결산 계산 ──
 
   static Future<SettlementResult?> calculate(

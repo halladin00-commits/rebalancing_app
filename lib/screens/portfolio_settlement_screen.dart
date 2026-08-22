@@ -12,6 +12,7 @@ import '../widgets/app_logo.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/period_jump_sheet.dart';
 import '../widgets/settlement_chart.dart';
+import '../widgets/excluded_banner.dart';
 
 /// 포트폴리오 하나의 결산 (v22b).
 ///
@@ -180,6 +181,7 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
                   children: [
+                    _buildExcluded(context, pf),
                     _buildChartCard(context, pf),
                     const SizedBox(height: 14),
                     _buildItemContributions(context, pf),
@@ -308,6 +310,20 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
   }
 
   // ── 차트 ──
+
+  /// 이 포트에서 결산에 안 잡히는 종목.
+  Widget _buildExcluded(BuildContext context, Portfolio pf) {
+    final excluded = SettlementService.excludedItems(pf, _period, _selected);
+    if (excluded.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: ExcludedBanner(
+        items: excluded,
+        amountText: _fmt(SettlementService.excludedValue(pf, excluded), pf.currency),
+        onFix: () => showExcludedSheet(context, items: excluded),
+      ),
+    );
+  }
 
   Widget _buildChartCard(BuildContext context, Portfolio pf) {
     final r = _current;

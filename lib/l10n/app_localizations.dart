@@ -98,6 +98,36 @@ abstract class AppLocalizations {
     Locale('ko')
   ];
 
+  /// No description provided for @excludedFromSettlement.
+  ///
+  /// In ko, this message translates to:
+  /// **'{count}종목 결산 제외 · {amount}'**
+  String excludedFromSettlement(int count, String amount);
+
+  /// No description provided for @excludedFixLink.
+  ///
+  /// In ko, this message translates to:
+  /// **'자세히'**
+  String get excludedFixLink;
+
+  /// No description provided for @excludedSheetTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'결산에서 빠진 종목'**
+  String get excludedSheetTitle;
+
+  /// No description provided for @excludedSheetBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'아래 종목은 지금 보유 중이지만, 이 기간까지의 거래 기록이 없어 결산 계산에 잡히지 않습니다.\n\n자산과 리밸런싱에는 아무 영향이 없습니다 — 결산만 계산할 수 없습니다. 늘어난 금액이 매수 때문인지 주가 상승 때문인지 구분할 방법이 없어서입니다.\n\n종목 상세에서 실제 매수 거래를 넣으면 그때부터 결산에 포함됩니다.'**
+  String get excludedSheetBody;
+
+  /// No description provided for @excludedNoHistory.
+  ///
+  /// In ko, this message translates to:
+  /// **'거래 기록 없음'**
+  String get excludedNoHistory;
+
   /// No description provided for @lastMonthReturn.
   ///
   /// In ko, this message translates to:
