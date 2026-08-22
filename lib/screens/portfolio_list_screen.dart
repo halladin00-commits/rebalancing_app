@@ -13,7 +13,6 @@ import '../theme/design_system.dart';
 import '../utils/rebalancer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/portfolio_form_dialog.dart';
-import '../widgets/speed_dial_fab.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/asset_sparkline.dart';
@@ -196,6 +195,60 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
   }
 
   // ── Main image save/share ──
+
+  /// 자산 탭 메뉴. 시안에 FAB는 없으므로 액션을 여기 모은다.
+  void _showListMenu(List<Portfolio> portfolios) {
+    final l10n = context.l10n;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: context.scaffoldBg,
+      shape: const RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(DS.sheetRadius)),
+      ),
+      builder: (sheetCtx) => SafeArea(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          const SizedBox(height: 8),
+          Container(
+            width: 38,
+            height: 4,
+            decoration: BoxDecoration(
+              color: const Color(0xFFD6CFBC),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 8),
+          ListTile(
+            leading: Icon(Icons.swap_vert, color: context.textStrong, size: 21),
+            title: Text(l10n.reorderPortfolios,
+                style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: context.textPrimary)),
+            onTap: () {
+              Navigator.pop(sheetCtx);
+              setState(() => _editMode = true);
+            },
+          ),
+          if (portfolios.isNotEmpty)
+            ListTile(
+              leading:
+                  Icon(Icons.ios_share, color: context.textStrong, size: 21),
+              title: Text(l10n.capture,
+                  style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: context.textPrimary)),
+              onTap: () {
+                Navigator.pop(sheetCtx);
+                _showMainCaptureSheet(portfolios);
+              },
+            ),
+          const SizedBox(height: 8),
+        ]),
+      ),
+    );
+  }
 
   void _showMainCaptureSheet(List<Portfolio> portfolios) {
     final l10n = context.l10n;
@@ -536,6 +589,11 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                           : const Icon(Icons.refresh, color: Colors.white),
                       onPressed: provider.refreshing ? null : _doRefreshAll,
                     ),
+                  if (!_editMode)
+                    IconButton(
+                      icon: const Icon(Icons.more_vert, color: Colors.white),
+                      onPressed: () => _showListMenu(portfolios),
+                    ),
                   if (_editMode)
                     TextButton.icon(
                       onPressed: () => setState(() => _editMode = false),
@@ -586,25 +644,6 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                               ],
                             ),
                     ),
-                    if (!_editMode)
-                      Positioned.fill(
-                        child: SpeedDialFab(
-                          key: const ValueKey('list_fab'),
-                          items: [
-                            SpeedDialItem(
-                              icon: Icons.edit_outlined,
-                              label: l10n.edit,
-                              onTap: () => setState(() => _editMode = true),
-                            ),
-                            if (portfolios.isNotEmpty)
-                              SpeedDialItem(
-                                icon: Icons.camera_alt_outlined,
-                                label: l10n.capture,
-                                onTap: () => _showMainCaptureSheet(portfolios),
-                              ),
-                          ],
-                        ),
-                      ),
                   ],
                 ),
               ),

@@ -1,4 +1,6 @@
 {
+  "reorderPortfolios": "포트폴리오 순서 변경",
+  "reorderItems": "종목 순서 변경",
   "holdingQty": "보유 수량",
   "basedOnTransactions": "거래 기준",
   "enteredDirectly": "직접 입력",

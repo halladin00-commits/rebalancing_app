@@ -16,7 +16,6 @@ import '../widgets/item_form_dialog.dart';
 import '../widgets/settings_dialog.dart';
 import 'item_detail_screen.dart';
 import '../widgets/app_logo.dart';
-import '../widgets/speed_dial_fab.dart';
 import '../widgets/bottom_banner_ad.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/dashed_border_box.dart';
@@ -533,6 +532,70 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     );
   }
 
+  /// 포트 메뉴 (시안 v13d). 시안에 FAB는 없다 — 액션은 이 시트에 모은다.
+  void _showPortfolioMenu(Portfolio pf, RebalanceResult? rb) {
+    final l10n = context.l10n;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: context.scaffoldBg,
+      shape: const RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(DS.sheetRadius)),
+      ),
+      builder: (sheetCtx) {
+        Widget row(IconData icon, String label, VoidCallback onTap,
+            {String? hint, bool danger = false}) {
+          final fg = danger ? context.danger : context.textPrimary;
+          return ListTile(
+            leading: Icon(icon,
+                color: danger ? context.danger : context.textStrong, size: 21),
+            title: Text(label,
+                style: TextStyle(
+                    fontSize: 14, fontWeight: FontWeight.w600, color: fg)),
+            trailing: hint == null
+                ? null
+                : Text(hint,
+                    style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: context.textTertiary)),
+            onTap: () {
+              Navigator.pop(sheetCtx);
+              onTap();
+            },
+          );
+        }
+
+        return SafeArea(
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 38,
+              height: 4,
+              decoration: BoxDecoration(
+                color: const Color(0xFFD6CFBC),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 8),
+            row(Icons.swap_vert, l10n.reorderItems,
+                () => setState(() => _editMode = true)),
+            row(Icons.tune, l10n.labelSettings, () => _showSettings(pf)),
+            row(Icons.pie_chart_outline, l10n.labelGraph, () => _openGraph(pf)),
+            row(Icons.ios_share, l10n.capture,
+                () => _showCaptureSheet(
+                      () => _saveAssetImage(pf, rb),
+                      () => _shareAssetImage(pf, rb),
+                    )),
+            row(Icons.upload_file, l10n.excelImportTitle,
+                () => _showExcelSheet(context, pf)),
+            const SizedBox(height: 8),
+          ]),
+        );
+      },
+    );
+  }
+
   /// 종목 상세는 시안 v12c에서 바텀시트가 아니라 전용 화면이다.
   void _showItemSheet(Portfolio pf, PortfolioItem item, RebalanceResult? rb) {
     Navigator.push(
@@ -773,6 +836,11 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                                     : context.onBrandSecondary),
                         onPressed: () => _doRefresh(pf),
                       ),
+                    if (!_editMode)
+                      IconButton(
+                        icon: const Icon(Icons.more_vert, color: Colors.white),
+                        onPressed: () => _showPortfolioMenu(pf, rb),
+                      ),
                   ],
                   child: _buildHeaderBody(context, pf, rb, hasPnl, hasDayChange,
                       totalPnl, totalCost, totalDayChange, totalPrevValue),
@@ -971,10 +1039,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
 
   Widget _buildAssetView(BuildContext context, Portfolio pf, RebalanceResult? rb) {
     final l10n = context.l10n;
-    return Stack(
-      children: [
-        Positioned.fill(
-          child: pf.items.isEmpty
+    return pf.items.isEmpty
             ? _buildEmptyState(context, pf)
             : _editMode
                 ? ReorderableListView.builder(
@@ -1008,48 +1073,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                       const SizedBox(height: 10),
                       _buildSlimAddCard(context, pf),
                     ],
-                  ),
-        ),
-        if (!_editMode)
-          Positioned.fill(
-            child: SpeedDialFab(
-              key: const ValueKey('asset_fab'),
-              items: [
-                SpeedDialItem(
-                  icon: Icons.edit_outlined,
-                  label: l10n.labelEdit,
-                  onTap: () => setState(() => _editMode = true),
-                ),
-                SpeedDialItem(
-                  icon: Icons.settings_outlined,
-                  label: l10n.labelSettings,
-                  onTap: () => _showSettings(pf),
-                ),
-                SpeedDialItem(
-                  icon: Icons.camera_alt_outlined,
-                  label: l10n.capture,
-                  onTap: () => _showCaptureSheet(
-                    () => _saveAssetImage(pf, rb),
-                    () => _shareAssetImage(pf, rb),
-                  ),
-                ),
-                SpeedDialItem(
-                  icon: Icons.pie_chart_outline,
-                  label: l10n.labelGraph,
-                  iconColor: context.brandOnLight,
-                  bgColor: context.brand,
-                  onTap: () => _openGraph(pf),
-                ),
-                SpeedDialItem(
-                  icon: Icons.table_chart_outlined,
-                  label: l10n.excelImportTitle,
-                  onTap: () => _showExcelSheet(context, pf),
-                ),
-              ],
-            ),
-          ),
-      ],
-    );
+                  );
   }
 
   /// `3종목 · 예수금 포함` — 섹션 제목 우측 부가.

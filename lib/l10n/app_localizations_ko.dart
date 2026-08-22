@@ -9,6 +9,12 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
+  String get reorderPortfolios => '포트폴리오 순서 변경';
+
+  @override
+  String get reorderItems => '종목 순서 변경';
+
+  @override
   String get holdingQty => '보유 수량';
 
   @override

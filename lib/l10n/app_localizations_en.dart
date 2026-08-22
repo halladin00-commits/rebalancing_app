@@ -9,6 +9,12 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get reorderPortfolios => 'Reorder portfolios';
+
+  @override
+  String get reorderItems => 'Reorder holdings';
+
+  @override
   String get holdingQty => 'Quantity';
 
   @override

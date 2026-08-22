@@ -1,4 +1,6 @@
 {
+  "reorderPortfolios": "Reorder portfolios",
+  "reorderItems": "Reorder holdings",
   "holdingQty": "Quantity",
   "basedOnTransactions": "from transactions",
   "enteredDirectly": "entered directly",

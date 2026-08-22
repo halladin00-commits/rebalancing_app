@@ -98,6 +98,18 @@ abstract class AppLocalizations {
     Locale('ko')
   ];
 
+  /// No description provided for @reorderPortfolios.
+  ///
+  /// In ko, this message translates to:
+  /// **'포트폴리오 순서 변경'**
+  String get reorderPortfolios;
+
+  /// No description provided for @reorderItems.
+  ///
+  /// In ko, this message translates to:
+  /// **'종목 순서 변경'**
+  String get reorderItems;
+
   /// No description provided for @holdingQty.
   ///
   /// In ko, this message translates to:
