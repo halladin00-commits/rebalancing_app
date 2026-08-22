@@ -1,4 +1,12 @@
 {
+  "editTransaction": "Edit transaction",
+  "transactionAmount": "Amount",
+  "saveTransaction": "Save transaction",
+  "transactionAffectsAvg": "Saving recalculates your quantity and average cost from this transaction.",
+  "validationQtyPositive": "Enter a quantity greater than 0",
+  "validationPricePositive": "Enter a price greater than 0",
+  "validationSellExceeds": "You cannot sell more than you hold ({owned})",
+  "@validationSellExceeds": { "placeholders": { "owned": { "type": "String" } } },
   "reorderPortfolios": "Reorder portfolios",
   "reorderItems": "Reorder holdings",
   "holdingQty": "Quantity",

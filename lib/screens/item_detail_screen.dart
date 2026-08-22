@@ -8,7 +8,7 @@ import '../utils/share_format.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/list_card.dart';
 import '../widgets/item_form_dialog.dart';
-import '../widgets/transaction_bottom_sheet.dart';
+import 'transaction_form_screen.dart';
 
 /// 종목 상세 (시안 v12c).
 ///
@@ -313,11 +313,12 @@ class ItemDetailScreen extends StatelessWidget {
     final amount = qty * t.price;
 
     return InkWell(
-      onTap: () => showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
-        builder: (_) => TransactionBottomSheet(portfolio: pf, item: item),
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => TransactionFormScreen(
+              portfolio: pf, item: item, transaction: t),
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 11),
@@ -437,12 +438,12 @@ class ItemDetailScreen extends StatelessWidget {
                       color: context.textPrimary)),
               onTap: () {
                 Navigator.pop(sheetCtx);
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (_) =>
-                      TransactionBottomSheet(portfolio: pf, item: item),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        TransactionFormScreen(portfolio: pf, item: item),
+                  ),
                 );
               },
             ),

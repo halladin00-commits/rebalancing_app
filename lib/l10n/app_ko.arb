@@ -1,4 +1,12 @@
 {
+  "editTransaction": "거래 수정",
+  "transactionAmount": "거래금액",
+  "saveTransaction": "거래 저장",
+  "transactionAffectsAvg": "저장하면 보유 수량과 평균 매수단가가 이 거래를 반영해 다시 계산됩니다.",
+  "validationQtyPositive": "수량을 0보다 크게 입력해 주세요",
+  "validationPricePositive": "단가를 0보다 크게 입력해 주세요",
+  "validationSellExceeds": "보유 수량({owned})보다 많이 팔 수 없습니다",
+  "@validationSellExceeds": { "placeholders": { "owned": { "type": "String" } } },
   "reorderPortfolios": "포트폴리오 순서 변경",
   "reorderItems": "종목 순서 변경",
   "holdingQty": "보유 수량",

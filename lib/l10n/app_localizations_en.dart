@@ -9,6 +9,30 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get editTransaction => 'Edit transaction';
+
+  @override
+  String get transactionAmount => 'Amount';
+
+  @override
+  String get saveTransaction => 'Save transaction';
+
+  @override
+  String get transactionAffectsAvg =>
+      'Saving recalculates your quantity and average cost from this transaction.';
+
+  @override
+  String get validationQtyPositive => 'Enter a quantity greater than 0';
+
+  @override
+  String get validationPricePositive => 'Enter a price greater than 0';
+
+  @override
+  String validationSellExceeds(String owned) {
+    return 'You cannot sell more than you hold ($owned)';
+  }
+
+  @override
   String get reorderPortfolios => 'Reorder portfolios';
 
   @override

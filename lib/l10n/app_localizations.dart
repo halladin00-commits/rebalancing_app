@@ -98,6 +98,48 @@ abstract class AppLocalizations {
     Locale('ko')
   ];
 
+  /// No description provided for @editTransaction.
+  ///
+  /// In ko, this message translates to:
+  /// **'거래 수정'**
+  String get editTransaction;
+
+  /// No description provided for @transactionAmount.
+  ///
+  /// In ko, this message translates to:
+  /// **'거래금액'**
+  String get transactionAmount;
+
+  /// No description provided for @saveTransaction.
+  ///
+  /// In ko, this message translates to:
+  /// **'거래 저장'**
+  String get saveTransaction;
+
+  /// No description provided for @transactionAffectsAvg.
+  ///
+  /// In ko, this message translates to:
+  /// **'저장하면 보유 수량과 평균 매수단가가 이 거래를 반영해 다시 계산됩니다.'**
+  String get transactionAffectsAvg;
+
+  /// No description provided for @validationQtyPositive.
+  ///
+  /// In ko, this message translates to:
+  /// **'수량을 0보다 크게 입력해 주세요'**
+  String get validationQtyPositive;
+
+  /// No description provided for @validationPricePositive.
+  ///
+  /// In ko, this message translates to:
+  /// **'단가를 0보다 크게 입력해 주세요'**
+  String get validationPricePositive;
+
+  /// No description provided for @validationSellExceeds.
+  ///
+  /// In ko, this message translates to:
+  /// **'보유 수량({owned})보다 많이 팔 수 없습니다'**
+  String validationSellExceeds(String owned);
+
   /// No description provided for @reorderPortfolios.
   ///
   /// In ko, this message translates to:

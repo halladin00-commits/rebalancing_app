@@ -9,6 +9,30 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
+  String get editTransaction => '거래 수정';
+
+  @override
+  String get transactionAmount => '거래금액';
+
+  @override
+  String get saveTransaction => '거래 저장';
+
+  @override
+  String get transactionAffectsAvg =>
+      '저장하면 보유 수량과 평균 매수단가가 이 거래를 반영해 다시 계산됩니다.';
+
+  @override
+  String get validationQtyPositive => '수량을 0보다 크게 입력해 주세요';
+
+  @override
+  String get validationPricePositive => '단가를 0보다 크게 입력해 주세요';
+
+  @override
+  String validationSellExceeds(String owned) {
+    return '보유 수량($owned)보다 많이 팔 수 없습니다';
+  }
+
+  @override
   String get reorderPortfolios => '포트폴리오 순서 변경';
 
   @override
