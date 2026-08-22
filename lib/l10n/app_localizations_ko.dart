@@ -9,6 +9,26 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
+  String get spark1w => '1주';
+
+  @override
+  String get spark1m => '1개월';
+
+  @override
+  String get spark3m => '3개월';
+
+  @override
+  String get spark6m => '6개월';
+
+  @override
+  String get spark1y => '1년';
+
+  @override
+  String sparklinePending(int count) {
+    return '새로고침 $count일치가 모이면\n여기에 자산 추이가 그려집니다';
+  }
+
+  @override
   String get searchPrompt => '종목명이나 티커를 입력해 주세요';
 
   @override

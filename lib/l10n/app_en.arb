@@ -1,4 +1,11 @@
 {
+  "spark1w": "1W",
+  "spark1m": "1M",
+  "spark3m": "3M",
+  "spark6m": "6M",
+  "spark1y": "1Y",
+  "sparklinePending": "Your trend appears here once\n{count} days of refreshes are recorded",
+  "@sparklinePending": { "placeholders": { "count": { "type": "int" } } },
   "searchPrompt": "Type a name or ticker to search",
   "searchNoResult": "No results.\nTry the ticker or stock code",
   "filterAll": "All",

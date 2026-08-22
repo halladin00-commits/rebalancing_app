@@ -1,4 +1,11 @@
 {
+  "spark1w": "1주",
+  "spark1m": "1개월",
+  "spark3m": "3개월",
+  "spark6m": "6개월",
+  "spark1y": "1년",
+  "sparklinePending": "새로고침 {count}일치가 모이면\n여기에 자산 추이가 그려집니다",
+  "@sparklinePending": { "placeholders": { "count": { "type": "int" } } },
   "searchPrompt": "종목명이나 티커를 입력해 주세요",
   "searchNoResult": "검색 결과가 없습니다.\n티커나 종목코드로도 찾아보세요",
   "filterAll": "전체",

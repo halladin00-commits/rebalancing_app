@@ -15,7 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/portfolio_form_dialog.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/brand_header.dart';
-import '../widgets/asset_sparkline.dart';
+import '../widgets/sparkline_panel.dart';
 import '../widgets/dashed_border_box.dart';
 import 'portfolio_detail_screen.dart';
 
@@ -86,8 +86,10 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
     );
   }
 
+  SparkPeriod _sparkPeriod = SparkPeriod.month;
+
   Future<void> _loadHistory() async {
-    final h = await AssetHistoryService.loadRecent();
+    final h = await AssetHistoryService.loadRecent(days: _sparkPeriod.days);
     if (!mounted) return;
     setState(() => _history = h);
   }
@@ -711,8 +713,6 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                 '${d.minute.toString().padLeft(2, '0')}';
           }();
 
-    final showChart = _history.length >= AssetHistoryService.minPointsForChart;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -772,39 +772,19 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
             ],
           ),
         ],
-        if (showChart) ...[
-          const SizedBox(height: 14),
-          AssetSparkline(
-            points: _history,
-            color: _history.last.totalKrw >= _history.first.totalKrw
-                ? pnlColors.onBrandPositive
-                : pnlColors.onBrandNegative,
-          ),
-          const SizedBox(height: 4),
-        ] else
-          const SizedBox(height: 10),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              showChart
-                  ? (isKo
-                      ? '최근 ${_history.length}일'
-                      : 'Last ${_history.length} days')
-                  : l10n.priceDelayNote,
-              style: TextStyle(
-                  fontSize: DS.caption,
-                  fontWeight: FontWeight.w500,
-                  color: context.onBrandSecondary),
-            ),
-            Text(
-              isKo ? '$timeStr 기준' : 'as of $timeStr',
-              style: TextStyle(
-                  fontSize: DS.caption,
-                  fontWeight: FontWeight.w500,
-                  color: context.onBrandSecondary),
-            ),
-          ],
+        const SizedBox(height: 14),
+        SparklinePanel(
+          points: _history,
+          period: _sparkPeriod,
+          onPeriodChanged: (p) {
+            setState(() => _sparkPeriod = p);
+            _loadHistory();
+          },
+          asOf: isKo ? '$timeStr 기준' : 'as of $timeStr',
+          color: _history.length >= 2 &&
+                  _history.last.totalKrw >= _history.first.totalKrw
+              ? pnlColors.onBrandPositive
+              : pnlColors.onBrandNegative,
         ),
       ],
     );

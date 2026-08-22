@@ -21,6 +21,8 @@ import '../widgets/bottom_banner_ad.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/dashed_border_box.dart';
 import '../widgets/list_card.dart';
+import '../widgets/sparkline_panel.dart';
+import '../services/asset_history_service.dart';
 import '../widgets/rebalance_transaction_dialog.dart';
 import '../theme/design_system.dart';
 import 'portfolio_graph_screen.dart';
@@ -42,10 +44,21 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
   final _investController = TextEditingController();
   final _screenshotCtrl = ScreenshotController();
 
+  SparkPeriod _sparkPeriod = SparkPeriod.month;
+  List<AssetPoint> _history = [];
+
+  Future<void> _loadHistory() async {
+    final h = await AssetHistoryService.loadPortfolio(widget.portfolioId,
+        days: _sparkPeriod.days);
+    if (!mounted) return;
+    setState(() => _history = h);
+  }
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _autoRefreshIfStale());
+    _loadHistory();
   }
 
   @override
@@ -871,6 +884,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     final l10n = context.l10n;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final hasForeign = pf.currency == 'USD' || pf.items.any((i) => i.market == 'US');
+    final pnlColors = context.watch<PnlColorNotifier>();
 
     final bigLabel = l10n.evaluationAmount;
     final bigValue = rb == null
@@ -940,29 +954,21 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                 ),
                 const SizedBox(height: 12),
                 Row(children: tiles),
-                const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Flexible(
-                      child: Text(footerLeft,
-                          style: TextStyle(
-                              fontSize: DS.caption,
-                              fontWeight: FontWeight.w500,
-                              color: context.onBrandSecondary),
-                          overflow: TextOverflow.ellipsis),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      isKo
-                          ? '${_fmtTimeShort(pf.lastUpdated)} 기준'
-                          : 'as of ${_fmtTimeShort(pf.lastUpdated)}',
-                      style: TextStyle(
-                          fontSize: DS.caption,
-                          fontWeight: FontWeight.w500,
-                          color: context.onBrandSecondary),
-                    ),
-                  ],
+                const SizedBox(height: 12),
+                SparklinePanel(
+                  points: _history,
+                  period: _sparkPeriod,
+                  onPeriodChanged: (p) {
+                    setState(() => _sparkPeriod = p);
+                    _loadHistory();
+                  },
+                  asOf: isKo
+                      ? '${_fmtTimeShort(pf.lastUpdated)} 기준'
+                      : 'as of ${_fmtTimeShort(pf.lastUpdated)}',
+                  color: _history.length >= 2 &&
+                          _history.last.totalKrw >= _history.first.totalKrw
+                      ? pnlColors.onBrandPositive
+                      : pnlColors.onBrandNegative,
                 ),
               ],
             ),

@@ -19,6 +19,9 @@ class AssetHistoryService {
 
   static const _key = 'asset_history_v1';
 
+  /// 포트폴리오별 기록. `{ 'yyyy-MM-dd': { pfId: krw } }`
+  static const _pfKey = 'portfolio_history_v1';
+
   /// 보관 기간. 이보다 오래된 점은 저장 시 버린다.
   static const _retentionDays = 400;
 
@@ -67,10 +70,67 @@ class AssetHistoryService {
     return all.where((p) => !p.date.isBefore(cutoff)).toList();
   }
 
+  // ── 포트폴리오별 ──
+
+  /// 포트별 오늘 평가금액을 기록한다. 총자산과 같은 규칙(하루 한 점, 덮어쓰기).
+  ///
+  /// 총자산과 따로 두는 이유: 포트가 지워지거나 새로 생겨도 총자산 기록은
+  /// 이어져야 하고, 반대로 포트 기록만 지울 일도 있다.
+  static Future<void> recordPortfolios(Map<String, double> byId) async {
+    final valid = Map<String, double>.fromEntries(
+        byId.entries.where((e) => e.value > 0));
+    if (valid.isEmpty) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final map = _decodeNested(prefs.getString(_pfKey));
+    map[_dayKey(DateTime.now())] = valid;
+
+    final cutoff = DateTime.now().subtract(const Duration(days: _retentionDays));
+    map.removeWhere((k, _) {
+      final d = DateTime.tryParse(k);
+      return d == null || d.isBefore(cutoff);
+    });
+
+    await prefs.setString(_pfKey, json.encode(map));
+  }
+
+  /// 한 포트의 기록을 날짜 오름차순으로. 그날 그 포트가 없었으면 건너뛴다.
+  static Future<List<AssetPoint>> loadPortfolio(String pfId,
+      {int days = 365}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final map = _decodeNested(prefs.getString(_pfKey));
+    final cutoff = DateTime.now().subtract(Duration(days: days));
+
+    final points = <AssetPoint>[];
+    for (final e in map.entries) {
+      final d = DateTime.tryParse(e.key);
+      if (d == null || d.isBefore(cutoff)) continue;
+      final v = e.value[pfId];
+      if (v != null && v > 0) points.add(AssetPoint(d, v));
+    }
+    points.sort((a, b) => a.date.compareTo(b.date));
+    return points;
+  }
+
   /// 기록 전체 삭제 (백업 복원 등으로 자산이 완전히 바뀔 때).
   static Future<void> clear() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_key);
+    await prefs.remove(_pfKey);
+  }
+
+  static Map<String, Map<String, double>> _decodeNested(String? raw) {
+    if (raw == null) return {};
+    try {
+      final decoded = json.decode(raw) as Map<String, dynamic>;
+      return decoded.map((k, v) => MapEntry(
+            k,
+            (v as Map<String, dynamic>)
+                .map((k2, v2) => MapEntry(k2, (v2 as num).toDouble())),
+          ));
+    } catch (_) {
+      return {};
+    }
   }
 
   static Map<String, double> _decode(String? raw) {

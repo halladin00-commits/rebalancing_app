@@ -98,6 +98,42 @@ abstract class AppLocalizations {
     Locale('ko')
   ];
 
+  /// No description provided for @spark1w.
+  ///
+  /// In ko, this message translates to:
+  /// **'1주'**
+  String get spark1w;
+
+  /// No description provided for @spark1m.
+  ///
+  /// In ko, this message translates to:
+  /// **'1개월'**
+  String get spark1m;
+
+  /// No description provided for @spark3m.
+  ///
+  /// In ko, this message translates to:
+  /// **'3개월'**
+  String get spark3m;
+
+  /// No description provided for @spark6m.
+  ///
+  /// In ko, this message translates to:
+  /// **'6개월'**
+  String get spark6m;
+
+  /// No description provided for @spark1y.
+  ///
+  /// In ko, this message translates to:
+  /// **'1년'**
+  String get spark1y;
+
+  /// No description provided for @sparklinePending.
+  ///
+  /// In ko, this message translates to:
+  /// **'새로고침 {count}일치가 모이면\n여기에 자산 추이가 그려집니다'**
+  String sparklinePending(int count);
+
   /// No description provided for @searchPrompt.
   ///
   /// In ko, this message translates to:

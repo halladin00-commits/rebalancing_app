@@ -414,6 +414,15 @@ class PortfolioProvider extends ChangeNotifier {
       return sum + (pf.currency == 'USD' ? v * pf.exchangeRate : v);
     });
     await AssetHistoryService.record(totalKrw);
+
+    // 포트별로도 남긴다 — 포트 상세 헤더의 추이가 이 기록을 쓴다
+    final byId = <String, double>{};
+    for (final pf in _portfolios) {
+      if (!pf.hasPriceData) continue;
+      final v = pf.totalValue;
+      byId[pf.id] = pf.currency == 'USD' ? v * pf.exchangeRate : v;
+    }
+    await AssetHistoryService.recordPortfolios(byId);
   }
 
   PortfolioProvider() {

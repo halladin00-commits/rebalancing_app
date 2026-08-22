@@ -9,6 +9,26 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get spark1w => '1W';
+
+  @override
+  String get spark1m => '1M';
+
+  @override
+  String get spark3m => '3M';
+
+  @override
+  String get spark6m => '6M';
+
+  @override
+  String get spark1y => '1Y';
+
+  @override
+  String sparklinePending(int count) {
+    return 'Your trend appears here once\n$count days of refreshes are recorded';
+  }
+
+  @override
   String get searchPrompt => 'Type a name or ticker to search';
 
   @override
