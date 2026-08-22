@@ -20,6 +20,13 @@ double floorShares(double n) {
   return (n * f).floorToDouble() / f;
 }
 
+/// 목표에 가장 가까운 수량 — [sharesDecimals] 자리에서 반올림한다.
+/// 편차는 최소가 되지만 합계가 예산을 아주 조금 넘을 수 있다.
+double roundShares(double n) {
+  const f = 10000.0;
+  return (n * f).roundToDouble() / f;
+}
+
 /// 자잘한 부동소수 오차를 0으로 본다. 이 값보다 작은 차이는 거래가 아니다.
 const double sharesEpsilon = 0.00005;
 

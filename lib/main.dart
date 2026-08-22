@@ -596,6 +596,7 @@ class PortfolioProvider extends ChangeNotifier {
     bool? priceAuto,
     double? rebalancingThreshold,
     bool? fractionalEnabled,
+    FractionalRounding? fractionalRounding,
   }) async {
     final pf = getPortfolio(pfId);
     if (pf != null) {
@@ -607,6 +608,7 @@ class PortfolioProvider extends ChangeNotifier {
       if (priceAuto != null) pf.priceAuto = priceAuto;
       if (rebalancingThreshold != null) pf.rebalancingThreshold = rebalancingThreshold;
       if (fractionalEnabled != null) pf.fractionalEnabled = fractionalEnabled;
+      if (fractionalRounding != null) pf.fractionalRounding = fractionalRounding;
       await _save();
     }
   }

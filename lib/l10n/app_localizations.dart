@@ -98,6 +98,96 @@ abstract class AppLocalizations {
     Locale('ko')
   ];
 
+  /// No description provided for @fractionalIntro.
+  ///
+  /// In ko, this message translates to:
+  /// **'소수점 매매 가능 여부는 증권사·계좌마다 다릅니다. 되는 계좌만 켜세요.'**
+  String get fractionalIntro;
+
+  /// No description provided for @fractionalPerAccount.
+  ///
+  /// In ko, this message translates to:
+  /// **'계좌별 설정'**
+  String get fractionalPerAccount;
+
+  /// No description provided for @fractionalReasonOverseas.
+  ///
+  /// In ko, this message translates to:
+  /// **'해외주식 · 소수점 매매 가능'**
+  String get fractionalReasonOverseas;
+
+  /// No description provided for @fractionalReasonPartial.
+  ///
+  /// In ko, this message translates to:
+  /// **'해외 종목 {count}개만 해당'**
+  String fractionalReasonPartial(int count);
+
+  /// No description provided for @fractionalReasonKrOnly.
+  ///
+  /// In ko, this message translates to:
+  /// **'국내 종목만 있음 · 증권사에 따라 안 될 수 있습니다'**
+  String get fractionalReasonKrOnly;
+
+  /// No description provided for @fractionalRoundingTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'수량 반올림'**
+  String get fractionalRoundingTitle;
+
+  /// No description provided for @fractionalRoundingDisabled.
+  ///
+  /// In ko, this message translates to:
+  /// **'소수점 거래를 켠 계좌가 없습니다. 계좌를 먼저 켜면 반올림 규칙을 고를 수 있습니다.'**
+  String get fractionalRoundingDisabled;
+
+  /// No description provided for @roundingMinDeviation.
+  ///
+  /// In ko, this message translates to:
+  /// **'편차가 가장 작아지는 수량'**
+  String get roundingMinDeviation;
+
+  /// No description provided for @roundingMinDeviationDesc.
+  ///
+  /// In ko, this message translates to:
+  /// **'소수점 {digits}째 자리까지 반올림합니다. 목표에 가장 가깝지만 예산을 아주 조금 넘을 수 있습니다.'**
+  String roundingMinDeviationDesc(int digits);
+
+  /// No description provided for @roundingFloorCash.
+  ///
+  /// In ko, this message translates to:
+  /// **'현금이 남는 쪽으로 내림'**
+  String get roundingFloorCash;
+
+  /// No description provided for @roundingFloorCashDesc.
+  ///
+  /// In ko, this message translates to:
+  /// **'예산을 넘지 않습니다. 대신 아주 적은 현금이 남습니다.'**
+  String get roundingFloorCashDesc;
+
+  /// No description provided for @fractionalPreviewTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'지금 조정 제안이 이렇게 바뀝니다'**
+  String get fractionalPreviewTitle;
+
+  /// No description provided for @previewWholeShares.
+  ///
+  /// In ko, this message translates to:
+  /// **'주 단위'**
+  String get previewWholeShares;
+
+  /// No description provided for @previewFractional.
+  ///
+  /// In ko, this message translates to:
+  /// **'소수점'**
+  String get previewFractional;
+
+  /// No description provided for @noPortfolios.
+  ///
+  /// In ko, this message translates to:
+  /// **'포트폴리오가 없습니다'**
+  String get noPortfolios;
+
   /// No description provided for @refreshPartialFail.
   ///
   /// In ko, this message translates to:

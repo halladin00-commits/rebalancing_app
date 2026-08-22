@@ -9,6 +9,58 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get fractionalIntro =>
+      'Fractional trading depends on your broker and account. Turn it on only where it works.';
+
+  @override
+  String get fractionalPerAccount => 'Per account';
+
+  @override
+  String get fractionalReasonOverseas => 'Overseas · fractional supported';
+
+  @override
+  String fractionalReasonPartial(int count) {
+    return 'Applies to $count overseas holdings';
+  }
+
+  @override
+  String get fractionalReasonKrOnly => 'Domestic only · may not be supported';
+
+  @override
+  String get fractionalRoundingTitle => 'Quantity rounding';
+
+  @override
+  String get fractionalRoundingDisabled =>
+      'No account has fractional trading on yet. Turn one on to choose a rounding rule.';
+
+  @override
+  String get roundingMinDeviation => 'Closest to target';
+
+  @override
+  String roundingMinDeviationDesc(int digits) {
+    return 'Rounds at $digits decimal places. Closest to target, but may exceed your budget slightly.';
+  }
+
+  @override
+  String get roundingFloorCash => 'Round down, keep cash';
+
+  @override
+  String get roundingFloorCashDesc =>
+      'Never exceeds your budget. A tiny amount of cash is left over.';
+
+  @override
+  String get fractionalPreviewTitle => 'How your proposal changes';
+
+  @override
+  String get previewWholeShares => 'Whole shares';
+
+  @override
+  String get previewFractional => 'Fractional';
+
+  @override
+  String get noPortfolios => 'No portfolios yet';
+
+  @override
   String refreshPartialFail(int count) {
     return 'Could not update $count holdings · last prices kept';
   }

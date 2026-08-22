@@ -8,6 +8,7 @@ import '../theme/design_system.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/disclaimer_dialog.dart';
 import '../widgets/notification_settings_dialog.dart';
+import 'fractional_settings_screen.dart';
 
 /// 더보기 탭 (v23a).
 ///
@@ -84,6 +85,18 @@ class _MoreScreenState extends State<MoreScreen> {
                         label: _isKo ? '목표 비중 · 허용 편차' : 'Targets & tolerance',
                         value: _toleranceSummary(portfolios),
                         onTap: () => widget.onNavigateToTab?.call(1),
+                      ),
+                      // 계좌별 설정이라는 게 목록에서 드러나야 한다 (시안 v23a)
+                      _row(
+                        context,
+                        label: context.l10n.fractionalTrading,
+                        value: _fractionalSummary(portfolios),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const FractionalSettingsScreen(),
+                          ),
+                        ),
                       ),
                     ]),
 
@@ -176,6 +189,13 @@ class _MoreScreenState extends State<MoreScreen> {
   }
 
   // ── 값 요약 ──
+
+  /// `2개 계좌` — 켜진 계좌 수. 꺼져 있으면 `사용 안 함`.
+  String _fractionalSummary(List<Portfolio> portfolios) {
+    final on = portfolios.where((p) => p.fractionalEnabled).length;
+    if (on == 0) return _isKo ? '사용 안 함' : 'Off';
+    return _isKo ? '$on개 계좌' : '$on accounts';
+  }
 
   /// 허용 편차는 포트별 설정이라 값이 다르면 대표값을 쓰지 않는다
   String _toleranceSummary(List<Portfolio> portfolios) {

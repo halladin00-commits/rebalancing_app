@@ -9,6 +9,56 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
+  String get fractionalIntro => '소수점 매매 가능 여부는 증권사·계좌마다 다릅니다. 되는 계좌만 켜세요.';
+
+  @override
+  String get fractionalPerAccount => '계좌별 설정';
+
+  @override
+  String get fractionalReasonOverseas => '해외주식 · 소수점 매매 가능';
+
+  @override
+  String fractionalReasonPartial(int count) {
+    return '해외 종목 $count개만 해당';
+  }
+
+  @override
+  String get fractionalReasonKrOnly => '국내 종목만 있음 · 증권사에 따라 안 될 수 있습니다';
+
+  @override
+  String get fractionalRoundingTitle => '수량 반올림';
+
+  @override
+  String get fractionalRoundingDisabled =>
+      '소수점 거래를 켠 계좌가 없습니다. 계좌를 먼저 켜면 반올림 규칙을 고를 수 있습니다.';
+
+  @override
+  String get roundingMinDeviation => '편차가 가장 작아지는 수량';
+
+  @override
+  String roundingMinDeviationDesc(int digits) {
+    return '소수점 $digits째 자리까지 반올림합니다. 목표에 가장 가깝지만 예산을 아주 조금 넘을 수 있습니다.';
+  }
+
+  @override
+  String get roundingFloorCash => '현금이 남는 쪽으로 내림';
+
+  @override
+  String get roundingFloorCashDesc => '예산을 넘지 않습니다. 대신 아주 적은 현금이 남습니다.';
+
+  @override
+  String get fractionalPreviewTitle => '지금 조정 제안이 이렇게 바뀝니다';
+
+  @override
+  String get previewWholeShares => '주 단위';
+
+  @override
+  String get previewFractional => '소수점';
+
+  @override
+  String get noPortfolios => '포트폴리오가 없습니다';
+
+  @override
   String refreshPartialFail(int count) {
     return '$count종목 시세를 못 받았습니다 · 마지막 값 유지';
   }

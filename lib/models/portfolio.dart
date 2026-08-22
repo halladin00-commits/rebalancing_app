@@ -148,6 +148,16 @@ class PortfolioItem {
   );
 }
 
+/// 소수점 거래에서 수량을 어떻게 맞출지.
+enum FractionalRounding {
+  /// 목표 비중에 가장 가까운 수량 (넷째 자리 반올림).
+  /// 편차는 최소가 되지만 배분 합계가 예산을 아주 조금 넘을 수 있다.
+  minDeviation,
+
+  /// 예산을 넘지 않는 쪽으로 내림. 현금이 조금 남는다.
+  floorCash,
+}
+
 /// 포트폴리오
 class Portfolio {
   String id;
@@ -165,6 +175,9 @@ class Portfolio {
   /// 소수점 단위 매매 허용 여부. 기본은 온주(1주 단위) 거래다.
   /// 증권사·계좌에 따라 소수점 매매가 되는 곳만 켠다.
   bool fractionalEnabled;
+
+  /// 소수점 수량을 맞추는 규칙. 기본은 예산을 넘지 않는 내림.
+  FractionalRounding fractionalRounding;
 
   int? lastUpdated;
   List<PortfolioItem> items;
@@ -188,6 +201,7 @@ class Portfolio {
     this.additionalInvestment = 0,
     this.rebalancingThreshold = 0.0,
     this.fractionalEnabled = false,
+    this.fractionalRounding = FractionalRounding.floorCash,
     this.lastUpdated,
     List<PortfolioItem>? items,
     String? graphTitle,
@@ -296,6 +310,7 @@ class Portfolio {
     'additionalInvestment': additionalInvestment,
     'rebalancingThreshold': rebalancingThreshold,
     'fractionalEnabled': fractionalEnabled,
+    'fractionalRounding': fractionalRounding.name,
     'lastUpdated': lastUpdated,
     'items': items.map((e) => e.toJson()).toList(),
     'graphTitle': graphTitle,
@@ -317,6 +332,10 @@ class Portfolio {
     additionalInvestment: (json['additionalInvestment'] ?? 0).toDouble(),
     rebalancingThreshold: (json['rebalancingThreshold'] ?? 0.0).toDouble(),
     fractionalEnabled: json['fractionalEnabled'] ?? false,
+    fractionalRounding: FractionalRounding.values.firstWhere(
+      (e) => e.name == json['fractionalRounding'],
+      orElse: () => FractionalRounding.floorCash,
+    ),
     lastUpdated: json['lastUpdated'],
     items: (json['items'] as List<dynamic>?)
             ?.map((e) => PortfolioItem.fromJson(e))
@@ -348,6 +367,7 @@ class Portfolio {
     double? additionalInvestment,
     double? rebalancingThreshold,
     bool? fractionalEnabled,
+    FractionalRounding? fractionalRounding,
     int? lastUpdated,
     List<PortfolioItem>? items,
     String? graphTitle,
@@ -367,6 +387,7 @@ class Portfolio {
     additionalInvestment: additionalInvestment ?? this.additionalInvestment,
     rebalancingThreshold: rebalancingThreshold ?? this.rebalancingThreshold,
     fractionalEnabled: fractionalEnabled ?? this.fractionalEnabled,
+    fractionalRounding: fractionalRounding ?? this.fractionalRounding,
     lastUpdated: lastUpdated ?? this.lastUpdated,
     items: items ?? this.items.map((e) => e.copyWith()).toList(),
     graphTitle: graphTitle ?? this.graphTitle,

@@ -142,7 +142,12 @@ class Rebalancer {
           final ideal = tv / p;
           final assigned = locked
               ? item.shares
-              : (fractional ? floorShares(ideal) : ideal.floorToDouble());
+              : (fractional
+                  ? (portfolio.fractionalRounding ==
+                          FractionalRounding.minDeviation
+                      ? roundShares(ideal)
+                      : floorShares(ideal))
+                  : ideal.floorToDouble());
           out.add(_CalcItem(
               item: item, price: p, currentValue: cv, currentWeight: cw,
               targetValue: tv, ideal: ideal, baseShares: assigned,
