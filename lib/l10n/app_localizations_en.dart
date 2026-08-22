@@ -9,6 +9,19 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String refreshPartialFail(int count) {
+    return 'Could not update $count holdings · last prices kept';
+  }
+
+  @override
+  String refreshFailedNote(String time) {
+    return 'Update failed · prices from $time';
+  }
+
+  @override
+  String get refreshRetry => 'Retry';
+
+  @override
   String excludedFromSettlement(int count, String amount) {
     return '$count excluded · $amount';
   }

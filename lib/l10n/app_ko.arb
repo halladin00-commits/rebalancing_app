@@ -1,4 +1,9 @@
 {
+  "refreshPartialFail": "{count}종목 시세를 못 받았습니다 · 마지막 값 유지",
+  "@refreshPartialFail": { "placeholders": { "count": { "type": "int" } } },
+  "refreshFailedNote": "갱신 실패 · {time} 시세",
+  "@refreshFailedNote": { "placeholders": { "time": { "type": "String" } } },
+  "refreshRetry": "다시 시도",
   "excludedFromSettlement": "{count}종목 결산 제외 · {amount}",
   "@excludedFromSettlement": { "placeholders": { "count": { "type": "int" }, "amount": { "type": "String" } } },
   "excludedFixLink": "자세히",

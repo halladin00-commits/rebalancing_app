@@ -9,6 +9,19 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
+  String refreshPartialFail(int count) {
+    return '$count종목 시세를 못 받았습니다 · 마지막 값 유지';
+  }
+
+  @override
+  String refreshFailedNote(String time) {
+    return '갱신 실패 · $time 시세';
+  }
+
+  @override
+  String get refreshRetry => '다시 시도';
+
+  @override
   String excludedFromSettlement(int count, String amount) {
     return '$count종목 결산 제외 · $amount';
   }

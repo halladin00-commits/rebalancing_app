@@ -98,6 +98,24 @@ abstract class AppLocalizations {
     Locale('ko')
   ];
 
+  /// No description provided for @refreshPartialFail.
+  ///
+  /// In ko, this message translates to:
+  /// **'{count}종목 시세를 못 받았습니다 · 마지막 값 유지'**
+  String refreshPartialFail(int count);
+
+  /// No description provided for @refreshFailedNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'갱신 실패 · {time} 시세'**
+  String refreshFailedNote(String time);
+
+  /// No description provided for @refreshRetry.
+  ///
+  /// In ko, this message translates to:
+  /// **'다시 시도'**
+  String get refreshRetry;
+
   /// No description provided for @excludedFromSettlement.
   ///
   /// In ko, this message translates to:

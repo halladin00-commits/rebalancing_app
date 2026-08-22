@@ -1,4 +1,9 @@
 {
+  "refreshPartialFail": "Could not update {count} holdings · last prices kept",
+  "@refreshPartialFail": { "placeholders": { "count": { "type": "int" } } },
+  "refreshFailedNote": "Update failed · prices from {time}",
+  "@refreshFailedNote": { "placeholders": { "time": { "type": "String" } } },
+  "refreshRetry": "Retry",
   "excludedFromSettlement": "{count} excluded · {amount}",
   "@excludedFromSettlement": { "placeholders": { "count": { "type": "int" }, "amount": { "type": "String" } } },
   "excludedFixLink": "Details",

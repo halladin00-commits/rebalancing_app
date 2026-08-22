@@ -87,8 +87,16 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
     await provider.refreshAll();
     await _loadHistory();
     if (!mounted) return;
+    // 실패해도 마지막 값을 유지하므로 화면은 멀쩡해 보인다.
+    // 실패 사실을 말해주지 않으면 낡은 시세를 최신인 줄 알고 판단하게 된다.
+    final failed = provider.lastRefreshFailed;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.l10n.updateSuccess)),
+      SnackBar(
+        content: Text(failed == 0
+            ? context.l10n.updateSuccessCount(provider.lastRefreshTried)
+            : context.l10n.refreshPartialFail(failed)),
+        backgroundColor: failed == 0 ? null : context.warningText,
+      ),
     );
   }
 
@@ -803,7 +811,10 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
             setState(() => _sparkPeriod = p);
             _loadHistory();
           },
-          asOf: isKo ? '$timeStr 기준' : 'as of $timeStr',
+          // 갱신에 실패했으면 시각만 적지 않고 실패 사실을 함께 적는다
+          asOf: context.watch<PortfolioProvider>().lastRefreshFailed > 0
+              ? l10n.refreshFailedNote(timeStr)
+              : (isKo ? '$timeStr 기준' : 'as of $timeStr'),
           color: _history.length >= 2 &&
                   _history.last.totalKrw >= _history.first.totalKrw
               ? pnlColors.onBrandPositive

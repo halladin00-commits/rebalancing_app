@@ -364,6 +364,19 @@ class PortfolioProvider extends ChangeNotifier {
   /// 시세 갱신 중 여부. 자산 탭과 리밸런싱 탭이 같은 상태를 본다.
   bool get refreshing => _refreshing;
 
+  int _lastFailed = 0;
+  int _lastTried = 0;
+
+  /// 마지막 갱신에서 시세를 못 받은 종목 수.
+  ///
+  /// 실패해도 마지막 값을 유지하므로 화면의 숫자는 그대로 보인다.
+  /// 그래서 **실패했다는 사실을 따로 알리지 않으면** 사용자는 낡은 시세를
+  /// 최신인 줄 알고 판단한다. 돈이 걸린 화면에서 그건 그냥 거짓말이다.
+  int get lastRefreshFailed => _lastFailed;
+
+  /// 마지막 갱신에서 시도한 종목 수. 0이면 아직 갱신한 적이 없다.
+  int get lastRefreshTried => _lastTried;
+
   /// 자동 설정된 환율·주가를 모두 갱신하고, 끝나면 총자산을 하루 한 점 기록한다.
   ///
   /// 두 탭이 같은 동작을 하므로 화면이 아니라 여기에 둔다.
@@ -372,6 +385,9 @@ class PortfolioProvider extends ChangeNotifier {
     if (_refreshing) return;
     _refreshing = true;
     notifyListeners();
+
+    var failed = 0;
+    var tried = 0;
 
     double? cachedRate;
     for (final pf in List<Portfolio>.from(_portfolios)) {
@@ -385,6 +401,7 @@ class PortfolioProvider extends ChangeNotifier {
       if (pf.priceAuto) {
         for (final item in pf.items) {
           if (item.isCash || item.ticker.isEmpty) continue;
+          tried++;
           final r = await ApiService.fetchStockPrice(item.ticker, item.market);
           if (r.ok && r.data != null) {
             await updateItem(
@@ -394,11 +411,16 @@ class PortfolioProvider extends ChangeNotifier {
                 previousClose: r.data!.previousClose,
               ),
             );
+          } else {
+            failed++;
           }
         }
       }
       await updateLastRefreshed(pf.id);
     }
+
+    _lastFailed = failed;
+    _lastTried = tried;
 
     await _recordTotalAssets();
 
