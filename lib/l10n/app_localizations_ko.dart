@@ -9,6 +9,11 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
+  String txCountLabel(int count) {
+    return '$count건';
+  }
+
+  @override
   String get editTransaction => '거래 수정';
 
   @override

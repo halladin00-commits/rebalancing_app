@@ -1,4 +1,6 @@
 {
+  "txCountLabel": "{count}건",
+  "@txCountLabel": { "placeholders": { "count": { "type": "int" } } },
   "editTransaction": "거래 수정",
   "transactionAmount": "거래금액",
   "saveTransaction": "거래 저장",

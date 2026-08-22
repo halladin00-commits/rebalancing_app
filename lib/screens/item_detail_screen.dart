@@ -62,7 +62,7 @@ class ItemDetailScreen extends StatelessWidget {
                       title: l10n.transactionHistory,
                       trailing: item.transactions.isEmpty
                           ? null
-                          : l10n.itemCountLabel(item.transactions.length),
+                          : l10n.txCountLabel(item.transactions.length),
                     ),
                     const SizedBox(height: DS.cardGap),
                     _buildTransactions(context, pf, item),

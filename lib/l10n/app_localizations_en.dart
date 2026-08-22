@@ -9,6 +9,11 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String txCountLabel(int count) {
+    return '$count trades';
+  }
+
+  @override
   String get editTransaction => 'Edit transaction';
 
   @override

@@ -1,4 +1,6 @@
 {
+  "txCountLabel": "{count} trades",
+  "@txCountLabel": { "placeholders": { "count": { "type": "int" } } },
   "editTransaction": "Edit transaction",
   "transactionAmount": "Amount",
   "saveTransaction": "Save transaction",

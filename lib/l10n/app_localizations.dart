@@ -98,6 +98,12 @@ abstract class AppLocalizations {
     Locale('ko')
   ];
 
+  /// No description provided for @txCountLabel.
+  ///
+  /// In ko, this message translates to:
+  /// **'{count}건'**
+  String txCountLabel(int count);
+
   /// No description provided for @editTransaction.
   ///
   /// In ko, this message translates to:
