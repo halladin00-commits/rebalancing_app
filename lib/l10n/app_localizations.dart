@@ -98,6 +98,60 @@ abstract class AppLocalizations {
     Locale('ko')
   ];
 
+  /// No description provided for @searchPrompt.
+  ///
+  /// In ko, this message translates to:
+  /// **'종목명이나 티커를 입력해 주세요'**
+  String get searchPrompt;
+
+  /// No description provided for @searchNoResult.
+  ///
+  /// In ko, this message translates to:
+  /// **'검색 결과가 없습니다.\n티커나 종목코드로도 찾아보세요'**
+  String get searchNoResult;
+
+  /// No description provided for @filterAll.
+  ///
+  /// In ko, this message translates to:
+  /// **'전체'**
+  String get filterAll;
+
+  /// No description provided for @filterKr.
+  ///
+  /// In ko, this message translates to:
+  /// **'국내'**
+  String get filterKr;
+
+  /// No description provided for @filterUs.
+  ///
+  /// In ko, this message translates to:
+  /// **'해외'**
+  String get filterUs;
+
+  /// No description provided for @cashAddHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'예수금은 검색이 아니라 바로 만듭니다.\n계좌에 남은 현금을 한 항목으로 넣어 두면\n비중 계산에 함께 잡힙니다.'**
+  String get cashAddHint;
+
+  /// No description provided for @cashAddButton.
+  ///
+  /// In ko, this message translates to:
+  /// **'예수금 추가'**
+  String get cashAddButton;
+
+  /// No description provided for @manualEntryHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'목록에 없으면 직접 등록'**
+  String get manualEntryHint;
+
+  /// No description provided for @alreadyInPortfolio.
+  ///
+  /// In ko, this message translates to:
+  /// **'{name}은(는) 이미 담겨 있습니다'**
+  String alreadyInPortfolio(String name);
+
   /// No description provided for @txCountLabel.
   ///
   /// In ko, this message translates to:

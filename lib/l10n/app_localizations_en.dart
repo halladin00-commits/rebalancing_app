@@ -9,6 +9,36 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get searchPrompt => 'Type a name or ticker to search';
+
+  @override
+  String get searchNoResult => 'No results.\nTry the ticker or stock code';
+
+  @override
+  String get filterAll => 'All';
+
+  @override
+  String get filterKr => 'Korea';
+
+  @override
+  String get filterUs => 'Overseas';
+
+  @override
+  String get cashAddHint =>
+      'Cash is not searched — you add it directly.\nRecording your account cash as one item\nlets it count toward your weights.';
+
+  @override
+  String get cashAddButton => 'Add cash';
+
+  @override
+  String get manualEntryHint => 'Not listed? Add it manually';
+
+  @override
+  String alreadyInPortfolio(String name) {
+    return '$name is already in this portfolio';
+  }
+
+  @override
   String txCountLabel(int count) {
     return '$count trades';
   }

@@ -15,6 +15,7 @@ import '../services/review_service.dart';
 import '../widgets/item_form_dialog.dart';
 import '../widgets/settings_dialog.dart';
 import 'item_detail_screen.dart';
+import 'item_search_screen.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/bottom_banner_ad.dart';
 import '../widgets/brand_header.dart';
@@ -1239,7 +1240,12 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: InkWell(
-        onTap: () => _showItemForm(pf),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ItemSearchScreen(portfolio: pf),
+          ),
+        ),
         borderRadius: BorderRadius.circular(DS.tileRadius),
         child: DashedBorderBox(
           color: const Color(0xFFD6CFBC),

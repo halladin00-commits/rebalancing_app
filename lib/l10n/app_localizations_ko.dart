@@ -9,6 +9,36 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
+  String get searchPrompt => '종목명이나 티커를 입력해 주세요';
+
+  @override
+  String get searchNoResult => '검색 결과가 없습니다.\n티커나 종목코드로도 찾아보세요';
+
+  @override
+  String get filterAll => '전체';
+
+  @override
+  String get filterKr => '국내';
+
+  @override
+  String get filterUs => '해외';
+
+  @override
+  String get cashAddHint =>
+      '예수금은 검색이 아니라 바로 만듭니다.\n계좌에 남은 현금을 한 항목으로 넣어 두면\n비중 계산에 함께 잡힙니다.';
+
+  @override
+  String get cashAddButton => '예수금 추가';
+
+  @override
+  String get manualEntryHint => '목록에 없으면 직접 등록';
+
+  @override
+  String alreadyInPortfolio(String name) {
+    return '$name은(는) 이미 담겨 있습니다';
+  }
+
+  @override
   String txCountLabel(int count) {
     return '$count건';
   }
