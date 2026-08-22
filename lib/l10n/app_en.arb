@@ -1,4 +1,6 @@
 {
+  "lastMonthReturn": "Last month {rate}",
+  "@lastMonthReturn": { "placeholders": { "rate": { "type": "String" } } },
   "spark1w": "1W",
   "spark1m": "1M",
   "spark3m": "3M",

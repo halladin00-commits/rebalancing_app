@@ -9,6 +9,11 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
+  String lastMonthReturn(String rate) {
+    return '전월 $rate';
+  }
+
+  @override
   String get spark1w => '1주';
 
   @override

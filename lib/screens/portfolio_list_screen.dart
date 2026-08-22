@@ -16,6 +16,7 @@ import '../widgets/portfolio_form_dialog.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/sparkline_panel.dart';
+import '../services/settlement_service.dart';
 import '../widgets/dashed_border_box.dart';
 import 'portfolio_detail_screen.dart';
 
@@ -52,6 +53,11 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _autoRefreshIfStale();
       await _ensureNotificationPermission();
+      // 첫 화면을 막지 않도록 맨 뒤에 붙인다
+      if (mounted) {
+        await _loadLastMonthReturn(
+            context.read<PortfolioProvider>().portfolios);
+      }
     });
   }
 
@@ -87,6 +93,23 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
   }
 
   SparkPeriod _sparkPeriod = SparkPeriod.month;
+
+  /// 전월 결산 수익률. 계산 전에는 null — 첫 화면이 이걸 기다리지 않는다.
+  double? _lastMonthReturn;
+
+  /// 결산은 종목마다 기간 시작·끝 주가를 받아야 해서 느리다.
+  /// 지난달은 이미 마감된 기간이라 캐시가 들으므로 월초에 한 번만 계산된다.
+  Future<void> _loadLastMonthReturn(List<Portfolio> portfolios) async {
+    if (portfolios.isEmpty) return;
+    final key = SettlementService.shiftKey(
+        SettlementPeriod.monthly,
+        SettlementService.currentKey(SettlementPeriod.monthly),
+        -1);
+    final r = await SettlementService.calculateCombined(
+        portfolios, SettlementPeriod.monthly, key);
+    if (!mounted || r == null) return;
+    setState(() => _lastMonthReturn = r.returnRate);
+  }
 
   Future<void> _loadHistory() async {
     final h = await AssetHistoryService.loadRecent(days: _sparkPeriod.days);
@@ -887,6 +910,7 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
 
   Widget _buildActionCards(BuildContext context, List<Portfolio> portfolios) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final l10n = context.l10n;
 
     // 허용 편차를 넘어선 포트 중 편차가 가장 큰 것
     Portfolio? worst;
@@ -952,7 +976,12 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
               icon: Icons.insights_outlined,
               label: isKo ? '결산 준비' : 'Returns ready',
               title: isKo ? '$lastMonth월 월간' : 'Monthly · $lastMonth',
-              sub: isKo ? '결산 탭에서 보기' : 'Open Returns tab',
+              sub: _lastMonthReturn == null
+                  // 아직 계산 중 — 값 대신 길 안내를 둔다
+                  ? (isKo ? '결산 탭에서 보기' : 'Open Returns tab')
+                  : l10n.lastMonthReturn(
+                      '${_lastMonthReturn! >= 0 ? '+' : '−'}'
+                      '${_lastMonthReturn!.abs().toStringAsFixed(2)}%'),
               titleFg: context.onTintTitle,
               bodyFg: context.onTintBody,
               onTap: () => widget.onNavigateToTab?.call(2),

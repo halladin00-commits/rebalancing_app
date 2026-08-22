@@ -98,6 +98,12 @@ abstract class AppLocalizations {
     Locale('ko')
   ];
 
+  /// No description provided for @lastMonthReturn.
+  ///
+  /// In ko, this message translates to:
+  /// **'전월 {rate}'**
+  String lastMonthReturn(String rate);
+
   /// No description provided for @spark1w.
   ///
   /// In ko, this message translates to:

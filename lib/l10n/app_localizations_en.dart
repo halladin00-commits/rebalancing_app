@@ -9,6 +9,11 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String lastMonthReturn(String rate) {
+    return 'Last month $rate';
+  }
+
+  @override
   String get spark1w => '1W';
 
   @override

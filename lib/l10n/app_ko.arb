@@ -1,4 +1,6 @@
 {
+  "lastMonthReturn": "전월 {rate}",
+  "@lastMonthReturn": { "placeholders": { "rate": { "type": "String" } } },
   "spark1w": "1주",
   "spark1m": "1개월",
   "spark3m": "3개월",
