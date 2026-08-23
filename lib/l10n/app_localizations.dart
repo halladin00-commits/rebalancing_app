@@ -98,6 +98,12 @@ abstract class AppLocalizations {
     Locale('ko')
   ];
 
+  /// No description provided for @itemEditNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'보유 수량은 거래 내역에서 계산됩니다. 바꾸려면 거래를 추가하거나 고치세요.'**
+  String get itemEditNote;
+
   /// No description provided for @itemName.
   ///
   /// In ko, this message translates to:

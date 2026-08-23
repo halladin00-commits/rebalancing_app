@@ -134,7 +134,13 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
                 const SizedBox(width: 7),
                 Expanded(
                   child: Text(
-                    _isCash ? l10n.cashFormNote : l10n.itemFormNote,
+                    // 편집 중에는 수량이 잠겨 있으므로 "수량을 넣으면"이라는
+                    // 말이 맞지 않는다. 왜 잠겼는지를 대신 알려준다.
+                    _isCash
+                        ? l10n.cashFormNote
+                        : (_sharesLocked
+                            ? l10n.itemEditNote
+                            : l10n.itemFormNote),
                     style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w500,

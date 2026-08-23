@@ -9,6 +9,10 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get itemEditNote =>
+      'Quantity is computed from transactions. Add or edit a transaction to change it.';
+
+  @override
   String get itemName => 'Name';
 
   @override

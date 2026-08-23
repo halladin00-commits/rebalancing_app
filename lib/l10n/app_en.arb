@@ -1,4 +1,5 @@
 {
+  "itemEditNote": "Quantity is computed from transactions. Add or edit a transaction to change it.",
   "itemName": "Name",
   "itemNameHint": "e.g. Vanguard S&P 500",
   "itemFormNote": "Entering a quantity creates one buy transaction on that date. Returns are computed from transactions.",
