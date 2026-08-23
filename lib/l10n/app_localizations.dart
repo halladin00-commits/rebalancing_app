@@ -98,6 +98,18 @@ abstract class AppLocalizations {
     Locale('ko')
   ];
 
+  /// No description provided for @autoUpdateSection.
+  ///
+  /// In ko, this message translates to:
+  /// **'자동 갱신'**
+  String get autoUpdateSection;
+
+  /// No description provided for @thresholdNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'편차가 이 값보다 작은 종목은 조정 제안에서 빠집니다. 0이면 모든 종목을 조정합니다.'**
+  String get thresholdNote;
+
   /// No description provided for @itemEditNote.
   ///
   /// In ko, this message translates to:

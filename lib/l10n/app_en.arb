@@ -1,4 +1,6 @@
 {
+  "autoUpdateSection": "Auto update",
+  "thresholdNote": "Holdings drifting less than this are left alone. Set 0 to adjust everything.",
   "itemEditNote": "Quantity is computed from transactions. Add or edit a transaction to change it.",
   "itemName": "Name",
   "itemNameHint": "e.g. Vanguard S&P 500",

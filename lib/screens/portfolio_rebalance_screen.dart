@@ -6,7 +6,7 @@ import '../models/portfolio.dart';
 import '../theme/design_system.dart';
 import '../utils/rebalancer.dart';
 import '../widgets/brand_header.dart';
-import '../widgets/settings_dialog.dart';
+import 'portfolio_settings_screen.dart';
 import '../widgets/weight_bar.dart';
 import 'rebalance_proposal_screen.dart';
 
@@ -370,9 +370,10 @@ class PortfolioRebalanceScreen extends StatelessWidget {
   }
 
   void _openSettings(BuildContext context, Portfolio pf) {
-    showDialog(
-      context: context,
-      builder: (_) => SettingsDialog(
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PortfolioSettingsScreen(
         portfolio: pf,
         onSave: (s) {
           context.read<PortfolioProvider>().updateSettings(
@@ -385,7 +386,8 @@ class PortfolioRebalanceScreen extends StatelessWidget {
                 priceAuto: s['priceAuto'],
                 rebalancingThreshold: s['rebalancingThreshold'],
               );
-        },
+          },
+        ),
       ),
     );
   }

@@ -13,7 +13,7 @@ import '../utils/share_format.dart';
 import '../services/api_service.dart';
 import '../services/excel_import_service.dart';
 import 'item_form_screen.dart';
-import '../widgets/settings_dialog.dart';
+import 'portfolio_settings_screen.dart';
 import 'item_detail_screen.dart';
 import 'item_search_screen.dart';
 import 'transaction_history_screen.dart';
@@ -163,9 +163,10 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
   }
 
   void _showSettings(Portfolio pf) {
-    showDialog(
-      context: context,
-      builder: (_) => SettingsDialog(
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PortfolioSettingsScreen(
         portfolio: pf,
         onSave: (s) {
           context.read<PortfolioProvider>().updateSettings(pf.id,
@@ -173,7 +174,8 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
             commissionRate: s['commissionRate'], exchangeAuto: s['exchangeAuto'],
             exchangeRate: s['exchangeRate'], priceAuto: s['priceAuto'],
             rebalancingThreshold: s['rebalancingThreshold']);
-        },
+          },
+        ),
       ),
     );
   }

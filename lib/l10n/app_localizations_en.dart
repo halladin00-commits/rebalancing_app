@@ -9,6 +9,13 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get autoUpdateSection => 'Auto update';
+
+  @override
+  String get thresholdNote =>
+      'Holdings drifting less than this are left alone. Set 0 to adjust everything.';
+
+  @override
   String get itemEditNote =>
       'Quantity is computed from transactions. Add or edit a transaction to change it.';
 
