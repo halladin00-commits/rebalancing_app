@@ -1,4 +1,12 @@
 {
+  "addPortfolioTitle": "New portfolio",
+  "renamePortfolio": "Rename",
+  "portfolioNameLabel": "Name",
+  "portfolioNameHint": "e.g. Retirement ETFs",
+  "chooseEmoji": "Icon",
+  "hintTargetsInRebalanceTab": "Set target weights in the Rebalance tab after adding holdings.",
+  "hintThenAddStocks": "You will go straight to stock search.",
+  "createAndAddStocks": "Create & add holdings",
   "autoUpdateSection": "Auto update",
   "thresholdNote": "Holdings drifting less than this are left alone. Set 0 to adjust everything.",
   "itemEditNote": "Quantity is computed from transactions. Add or edit a transaction to change it.",

@@ -11,7 +11,8 @@ import '../models/portfolio.dart';
 import '../services/asset_history_service.dart';
 import '../theme/design_system.dart';
 import '../utils/rebalancer.dart';
-import '../widgets/portfolio_form_dialog.dart';
+import 'portfolio_form_screen.dart';
+import 'item_search_screen.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/sparkline_panel.dart';
@@ -127,30 +128,40 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
   }
 
   void _showCreateDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => PortfolioFormDialog(
-        onSave: (name, emoji) {
-          context
-              .read<PortfolioProvider>()
-              .addPortfolio(Portfolio(id: _uid(), name: name, emoji: emoji));
-        },
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PortfolioFormScreen(
+          onSave: (name, emoji) {
+            final pf = Portfolio(id: _uid(), name: name, emoji: emoji);
+            context.read<PortfolioProvider>().addPortfolio(pf);
+            // 빈 포트만 덩그러니 남기지 않는다 — 바로 종목을 담게 이어준다
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ItemSearchScreen(portfolio: pf),
+              ),
+            );
+          },
+        ),
       ),
     );
   }
 
   void _showEditDialog(BuildContext context, Portfolio pf) {
-    showDialog(
-      context: context,
-      builder: (_) => PortfolioFormDialog(
-        initialName: pf.name,
-        initialEmoji: pf.emoji,
-        isEdit: true,
-        onSave: (name, emoji) {
-          context
-              .read<PortfolioProvider>()
-              .updatePortfolio(pf.id, pf.copyWith(name: name, emoji: emoji));
-        },
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PortfolioFormScreen(
+          initialName: pf.name,
+          initialEmoji: pf.emoji,
+          isEdit: true,
+          onSave: (name, emoji) {
+            context
+                .read<PortfolioProvider>()
+                .updatePortfolio(pf.id, pf.copyWith(name: name, emoji: emoji));
+          },
+        ),
       ),
     );
   }

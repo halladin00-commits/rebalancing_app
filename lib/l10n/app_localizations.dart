@@ -98,6 +98,54 @@ abstract class AppLocalizations {
     Locale('ko')
   ];
 
+  /// No description provided for @addPortfolioTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'포트폴리오 만들기'**
+  String get addPortfolioTitle;
+
+  /// No description provided for @renamePortfolio.
+  ///
+  /// In ko, this message translates to:
+  /// **'이름 변경'**
+  String get renamePortfolio;
+
+  /// No description provided for @portfolioNameLabel.
+  ///
+  /// In ko, this message translates to:
+  /// **'이름'**
+  String get portfolioNameLabel;
+
+  /// No description provided for @portfolioNameHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'예: 연금저축 ETF'**
+  String get portfolioNameHint;
+
+  /// No description provided for @chooseEmoji.
+  ///
+  /// In ko, this message translates to:
+  /// **'아이콘'**
+  String get chooseEmoji;
+
+  /// No description provided for @hintTargetsInRebalanceTab.
+  ///
+  /// In ko, this message translates to:
+  /// **'목표 비중은 종목을 담은 뒤 리밸런싱 탭에서 정합니다.'**
+  String get hintTargetsInRebalanceTab;
+
+  /// No description provided for @hintThenAddStocks.
+  ///
+  /// In ko, this message translates to:
+  /// **'만들면 바로 종목 검색으로 넘어갑니다.'**
+  String get hintThenAddStocks;
+
+  /// No description provided for @createAndAddStocks.
+  ///
+  /// In ko, this message translates to:
+  /// **'만들고 종목 담기'**
+  String get createAndAddStocks;
+
   /// No description provided for @autoUpdateSection.
   ///
   /// In ko, this message translates to:

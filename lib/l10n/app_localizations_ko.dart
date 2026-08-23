@@ -9,6 +9,30 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
+  String get addPortfolioTitle => '포트폴리오 만들기';
+
+  @override
+  String get renamePortfolio => '이름 변경';
+
+  @override
+  String get portfolioNameLabel => '이름';
+
+  @override
+  String get portfolioNameHint => '예: 연금저축 ETF';
+
+  @override
+  String get chooseEmoji => '아이콘';
+
+  @override
+  String get hintTargetsInRebalanceTab => '목표 비중은 종목을 담은 뒤 리밸런싱 탭에서 정합니다.';
+
+  @override
+  String get hintThenAddStocks => '만들면 바로 종목 검색으로 넘어갑니다.';
+
+  @override
+  String get createAndAddStocks => '만들고 종목 담기';
+
+  @override
   String get autoUpdateSection => '자동 갱신';
 
   @override

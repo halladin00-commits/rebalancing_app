@@ -9,6 +9,31 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get addPortfolioTitle => 'New portfolio';
+
+  @override
+  String get renamePortfolio => 'Rename';
+
+  @override
+  String get portfolioNameLabel => 'Name';
+
+  @override
+  String get portfolioNameHint => 'e.g. Retirement ETFs';
+
+  @override
+  String get chooseEmoji => 'Icon';
+
+  @override
+  String get hintTargetsInRebalanceTab =>
+      'Set target weights in the Rebalance tab after adding holdings.';
+
+  @override
+  String get hintThenAddStocks => 'You will go straight to stock search.';
+
+  @override
+  String get createAndAddStocks => 'Create & add holdings';
+
+  @override
   String get autoUpdateSection => 'Auto update';
 
   @override

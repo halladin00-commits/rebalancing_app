@@ -1,4 +1,12 @@
 {
+  "addPortfolioTitle": "포트폴리오 만들기",
+  "renamePortfolio": "이름 변경",
+  "portfolioNameLabel": "이름",
+  "portfolioNameHint": "예: 연금저축 ETF",
+  "chooseEmoji": "아이콘",
+  "hintTargetsInRebalanceTab": "목표 비중은 종목을 담은 뒤 리밸런싱 탭에서 정합니다.",
+  "hintThenAddStocks": "만들면 바로 종목 검색으로 넘어갑니다.",
+  "createAndAddStocks": "만들고 종목 담기",
   "autoUpdateSection": "자동 갱신",
   "thresholdNote": "편차가 이 값보다 작은 종목은 조정 제안에서 빠집니다. 0이면 모든 종목을 조정합니다.",
   "itemEditNote": "보유 수량은 거래 내역에서 계산됩니다. 바꾸려면 거래를 추가하거나 고치세요.",
