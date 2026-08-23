@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../theme/design_system.dart';
 import '../main.dart';
 
 /// 비중 막대 한 구간.
@@ -30,15 +32,6 @@ class WeightBar extends StatelessWidget {
     this.height = 14,
   });
 
-  /// 구간 구분용 색 (의미 없음 — 인접 구간을 구분하기 위한 것)
-  static const _palette = [
-    Color(0xFF0E4F49), // 브랜드 딥그린
-    Color(0xFF8FE7B0), // 민트
-    Color(0xFFF2C36B), // 골드
-    Color(0xFFE88C6A), // 살구
-    Color(0xFF7FB5E0), // 하늘
-    Color(0xFFB4C88A), // 올리브
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +75,7 @@ class WeightBar extends StatelessWidget {
                               .round()
                               .clamp(0, 100000),
                           child: ColoredBox(
-                              color: _palette[i % _palette.length]),
+                              color: chartPalette[i % chartPalette.length]),
                         ),
                     ],
                   ),

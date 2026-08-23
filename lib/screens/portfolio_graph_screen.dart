@@ -8,16 +8,12 @@ import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import '../main.dart';
+import '../theme/design_system.dart';
+import '../widgets/brand_header.dart';
 import '../models/portfolio.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/bottom_banner_ad.dart';
 
-const _kDefaultColors = [
-  Color(0xFF3B82F6), Color(0xFF22C55E), Color(0xFFF59E0B),
-  Color(0xFFEF4444), Color(0xFF8B5CF6), Color(0xFFEC4899),
-  Color(0xFF06B6D4), Color(0xFFF97316), Color(0xFF84CC16),
-  Color(0xFF64748B),
-];
 
 Color _colorForItem(Portfolio pf, String itemId) {
   final hex = pf.graphColors[itemId];
@@ -27,7 +23,7 @@ Color _colorForItem(Portfolio pf, String itemId) {
     } catch (_) {}
   }
   final hash = itemId.codeUnits.fold(0, (a, b) => a * 31 + b).abs();
-  return _kDefaultColors[hash % _kDefaultColors.length];
+  return chartPalette[hash % chartPalette.length];
 }
 
 String _nameForItem(Portfolio pf, PortfolioItem item) {
@@ -116,7 +112,7 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
     for (int i = 0; i < items.length; i++) {
       final item = items[i];
       if (!newColors.containsKey(item.id) || newColors[item.id]!.isEmpty) {
-        final color = _kDefaultColors[i % _kDefaultColors.length];
+        final color = chartPalette[i % chartPalette.length];
         newColors[item.id] =
             color.value.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase();
         changed = true;
@@ -153,7 +149,7 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
     try {
       final Uint8List? imageBytes = await _screenshotCtrl.capture(pixelRatio: 3.0);
       if (imageBytes == null) {
-        if (mounted) _showToast(l10n.captureFailed, Colors.red);
+        if (mounted) _showToast(l10n.captureFailed, context.danger);
         setState(() => _saving = false);
         return;
       }
@@ -164,10 +160,10 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
       if (mounted) {
         final ok = result['isSuccess'] == true || result['filePath'] != null;
         _showToast(ok ? l10n.savedToGallery : l10n.saveFailed,
-            ok ? Colors.green : Colors.red);
+            ok ? context.brand : context.danger);
       }
     } catch (e) {
-      if (mounted) _showToast(l10n.saveFailedError(e.toString()), Colors.red);
+      if (mounted) _showToast(l10n.saveFailedError(e.toString()), context.danger);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -180,7 +176,7 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
     try {
       final Uint8List? imageBytes = await _screenshotCtrl.capture(pixelRatio: 3.0);
       if (imageBytes == null) {
-        if (mounted) _showToast(l10n.captureFailed, Colors.red);
+        if (mounted) _showToast(l10n.captureFailed, context.danger);
         return;
       }
       final dir = await getTemporaryDirectory();
@@ -190,7 +186,7 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
       await file.writeAsBytes(imageBytes);
       await Share.shareXFiles([XFile(file.path)]);
     } catch (e) {
-      if (mounted) _showToast(l10n.saveFailedError(e.toString()), Colors.red);
+      if (mounted) _showToast(l10n.saveFailedError(e.toString()), context.danger);
     } finally {
       if (mounted) setState(() => _sharing = false);
     }
@@ -287,7 +283,7 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: _kDefaultColors.map((c) {
+                children: chartPalette.map((c) {
                   final isSel = selected.value == c.value;
                   return GestureDetector(
                     onTap: () => setDlg(() => selected = c),
@@ -367,47 +363,63 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
         },
         child: Scaffold(
           backgroundColor: context.scaffoldBg,
-          appBar: AppBar(
-            backgroundColor: context.appBarBg,
-            title: Text(l10n.portfolioGraph,
-                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
-            actions: [
-              if (_editMode)
-                IconButton(
-                  icon: const Icon(Icons.check, color: Color(0xFF4ADE80)),
-                  tooltip: l10n.editCompleteTooltip,
-                  onPressed: _exitEdit,
-                )
-              else
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined),
-                  tooltip: l10n.editTooltip,
-                  onPressed: _enterEdit,
-                ),
-              IconButton(
-                icon: _sharing
-                    ? const SizedBox(
-                        width: 20, height: 20,
-                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : Icon(Icons.share_outlined,
-                        color: _editMode ? Colors.grey[600] : Colors.white),
-                tooltip: _editMode ? l10n.editCompleteBeforeSave : l10n.shareImage,
-                onPressed: _editMode ? null : () => _shareImage(pf),
-              ),
-              IconButton(
-                icon: _saving
-                    ? const SizedBox(
-                        width: 20, height: 20,
-                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : Icon(Icons.download_outlined,
-                        color: _editMode ? Colors.grey[600] : Colors.white),
-                tooltip: _editMode ? l10n.editCompleteBeforeSave : l10n.saveImage,
-                onPressed: _editMode ? null : () => _saveImage(pf),
-              ),
-            ],
-          ),
           body: Column(
             children: [
+              // 다른 화면과 같은 딥그린 헤더를 쓴다. 시안은 AppBar를 쓰지 않는다.
+              BrandHeader(
+                title: l10n.portfolioGraph,
+                titleSize: 17,
+                titleWeight: FontWeight.w700,
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                actions: [
+                  if (_editMode)
+                    IconButton(
+                      icon: Icon(Icons.check, color: context.onBrandAccent),
+                      tooltip: l10n.editCompleteTooltip,
+                      onPressed: _exitEdit,
+                    )
+                  else
+                    IconButton(
+                      icon: const Icon(Icons.edit_outlined, color: Colors.white),
+                      tooltip: l10n.editTooltip,
+                      onPressed: _enterEdit,
+                    ),
+                  IconButton(
+                    icon: _sharing
+                        ? const SizedBox(
+                            width: 20, height: 20,
+                            child: CircularProgressIndicator(
+                                color: Colors.white, strokeWidth: 2))
+                        : Icon(Icons.ios_share,
+                            color: _editMode
+                                ? context.onBrandSecondary
+                                : Colors.white),
+                    tooltip: _editMode
+                        ? l10n.editCompleteBeforeSave
+                        : l10n.shareImage,
+                    onPressed: _editMode ? null : () => _shareImage(pf),
+                  ),
+                  IconButton(
+                    icon: _saving
+                        ? const SizedBox(
+                            width: 20, height: 20,
+                            child: CircularProgressIndicator(
+                                color: Colors.white, strokeWidth: 2))
+                        : Icon(Icons.download_outlined,
+                            color: _editMode
+                                ? context.onBrandSecondary
+                                : Colors.white),
+                    tooltip: _editMode
+                        ? l10n.editCompleteBeforeSave
+                        : l10n.saveImage,
+                    onPressed: _editMode ? null : () => _saveImage(pf),
+                  ),
+                ],
+              ),
+
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
@@ -445,7 +457,7 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
                         Padding(
                           padding: const EdgeInsets.only(top: 6),
                           child: Text(l10n.noPriceInfo,
-                              style: TextStyle(fontSize: 11, color: Colors.orange[400]),
+                              style: TextStyle(fontSize: 11, color: context.warningText),
                               textAlign: TextAlign.center),
                         ),
                       const SizedBox(height: 12),
@@ -521,7 +533,7 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: selected ? const Color(0xFF1D4ED8) : Colors.transparent,
+            color: selected ? context.brand : Colors.transparent,
             borderRadius: BorderRadius.circular(7),
           ),
           alignment: Alignment.center,
@@ -530,7 +542,7 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: selected
-                  ? const Color(0xFF93C5FD)
+                  ? Colors.white
                   : onTap == null ? context.textHint : context.textSecondary,
             ),
           ),
@@ -589,7 +601,7 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
           contentPadding: EdgeInsets.zero,
           dense: true,
           leading: Row(mainAxisSize: MainAxisSize.min, children: [
-            const Icon(Icons.drag_handle, size: 18, color: Color(0xFF64748B)),
+            Icon(Icons.drag_handle, size: 18, color: context.textTertiary),
             const SizedBox(width: 6),
             Container(
               width: 12, height: 12,
@@ -611,11 +623,14 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1D4ED8),
-                  borderRadius: BorderRadius.circular(4),
+                  color: context.brandTint,
+                  borderRadius: BorderRadius.circular(5),
                 ),
                 child: Text(l10n.edit,
-                    style: const TextStyle(fontSize: 11, color: Color(0xFF93C5FD))),
+                    style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: context.brandOnLight)),
               ),
             ),
           ]),
