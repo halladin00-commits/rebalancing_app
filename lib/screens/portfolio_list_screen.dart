@@ -174,8 +174,47 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text(l10n.deleteConfirmTitle),
-        content: Text(l10n.deletePortfolioContent(pf.name)),
+        backgroundColor: context.cardBg,
+        title: Text(l10n.deleteConfirmTitle,
+            style: TextStyle(color: context.textPrimary)),
+        // 무엇이 함께 사라지는지 밝힌다 — 이름만으로는 되돌릴 수 없다는 말의
+        // 무게가 전해지지 않는다 (시안 v16b)
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(pf.name,
+                style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: context.textPrimary)),
+            const SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: context.warningBg,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                l10n.deleteLosesItems(
+                  pf.items.where((i) => !i.isCash).length,
+                  pf.items.fold(0, (n, i) => n + i.transactions.length),
+                ),
+                style: TextStyle(
+                    fontSize: 12.5,
+                    height: 1.45,
+                    fontWeight: FontWeight.w600,
+                    color: context.warningText),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(l10n.deleteCannotUndo,
+                style: TextStyle(
+                    fontSize: 12.5, color: context.textSecondary)),
+          ],
+        ),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context),
@@ -185,7 +224,7 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
               context.read<PortfolioProvider>().deletePortfolio(pf.id);
               Navigator.pop(context);
             },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: context.danger),
             child: Text(l10n.delete),
           ),
         ],

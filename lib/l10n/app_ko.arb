@@ -1,4 +1,7 @@
 {
+  "deleteLosesItems": "종목 {items}개 · 거래 {txs}건이 함께 지워집니다.",
+  "@deleteLosesItems": { "placeholders": { "items": { "type": "int" }, "txs": { "type": "int" } } },
+  "deleteCannotUndo": "되돌릴 수 없습니다.",
   "yearMonth": "{year}년 {month}월",
   "@yearMonth": { "placeholders": { "year": { "type": "int" }, "month": { "type": "int" } } },
   "netBuy": "순매수",

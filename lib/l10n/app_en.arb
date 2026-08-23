@@ -1,4 +1,7 @@
 {
+  "deleteLosesItems": "{items} holdings and {txs} transactions go with it.",
+  "@deleteLosesItems": { "placeholders": { "items": { "type": "int" }, "txs": { "type": "int" } } },
+  "deleteCannotUndo": "This cannot be undone.",
   "yearMonth": "{month}/{year}",
   "@yearMonth": { "placeholders": { "year": { "type": "int" }, "month": { "type": "int" } } },
   "netBuy": "net buy",

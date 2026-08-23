@@ -98,6 +98,18 @@ abstract class AppLocalizations {
     Locale('ko')
   ];
 
+  /// No description provided for @deleteLosesItems.
+  ///
+  /// In ko, this message translates to:
+  /// **'종목 {items}개 · 거래 {txs}건이 함께 지워집니다.'**
+  String deleteLosesItems(int items, int txs);
+
+  /// No description provided for @deleteCannotUndo.
+  ///
+  /// In ko, this message translates to:
+  /// **'되돌릴 수 없습니다.'**
+  String get deleteCannotUndo;
+
   /// No description provided for @yearMonth.
   ///
   /// In ko, this message translates to:

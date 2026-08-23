@@ -9,6 +9,14 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
+  String deleteLosesItems(int items, int txs) {
+    return '종목 $items개 · 거래 $txs건이 함께 지워집니다.';
+  }
+
+  @override
+  String get deleteCannotUndo => '되돌릴 수 없습니다.';
+
+  @override
   String yearMonth(int year, int month) {
     return '$year년 $month월';
   }

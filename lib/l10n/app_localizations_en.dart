@@ -9,6 +9,14 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String deleteLosesItems(int items, int txs) {
+    return '$items holdings and $txs transactions go with it.';
+  }
+
+  @override
+  String get deleteCannotUndo => 'This cannot be undone.';
+
+  @override
   String yearMonth(int year, int month) {
     return '$month/$year';
   }
