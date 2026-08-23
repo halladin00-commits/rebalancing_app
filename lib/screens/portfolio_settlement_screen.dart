@@ -5,6 +5,7 @@ import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import '../main.dart';
+import '../utils/money_format.dart';
 import '../models/portfolio.dart';
 import '../services/settlement_service.dart';
 import '../theme/design_system.dart';
@@ -221,7 +222,7 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
                 child: Text(
                   r == null
                       ? '—'
-                      : '${r.absoluteReturn >= 0 ? '+' : '−'}${_fmt(r.absoluteReturn.abs(), pf.currency)}',
+                      : '${r.absoluteReturn >= 0 ? '+' : '−'}${fmtMoney(r.absoluteReturn.abs(), pf.currency)}',
                   style: TextStyle(
                     fontSize: DS.displayAmount,
                     fontWeight: FontWeight.w800,
@@ -263,8 +264,8 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
                                 ? '이 포트는 입출금 없음'
                                 : 'No deposits or withdrawals')
                             : (_isKo
-                                ? '순입금 ${_fmt(r.netCashFlow.abs(), pf.currency)}은 제외'
-                                : 'Excludes ${_fmt(r.netCashFlow.abs(), pf.currency)} net deposits'),
+                                ? '순입금 ${fmtMoney(r.netCashFlow.abs(), pf.currency)}은 제외'
+                                : 'Excludes ${fmtMoney(r.netCashFlow.abs(), pf.currency)} net deposits'),
                         style: TextStyle(
                             fontSize: DS.body,
                             fontWeight: FontWeight.w600,
@@ -321,7 +322,7 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
       padding: const EdgeInsets.only(bottom: 10),
       child: ExcludedBanner(
         items: excluded,
-        amountText: _fmt(SettlementService.excludedValue(pf, excluded), pf.currency),
+        amountText: fmtMoney(SettlementService.excludedValue(pf, excluded), pf.currency),
         onFix: () => showExcludedSheet(context, items: excluded),
       ),
     );
@@ -540,7 +541,7 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
               ),
               const SizedBox(width: 8),
               Text(
-                '$sign${_fmt(c.itemAbsoluteReturn.abs(), pf.currency)}',
+                '$sign${fmtMoney(c.itemAbsoluteReturn.abs(), pf.currency)}',
                 style: TextStyle(
                     fontSize: DS.rowAmount,
                     fontWeight: FontWeight.w700,
@@ -641,12 +642,6 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
       ' – '
       '${b.month.toString().padLeft(2, '0')}.${b.day.toString().padLeft(2, '0')}';
 
-  static String _fmt(double n, String cur) {
-    final prefix = n < 0 ? '−' : '';
-    final abs = n.abs();
-    if (cur == 'USD') return '$prefix\$${abs.toStringAsFixed(2)}';
-    return '$prefix₩${abs.round().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}';
-  }
 
   // ── 공유 ──
 
@@ -736,7 +731,7 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
                 Text(
                   r == null
                       ? '—'
-                      : '${r.absoluteReturn >= 0 ? '+' : '−'}${_fmt(r.absoluteReturn.abs(), cur)}',
+                      : '${r.absoluteReturn >= 0 ? '+' : '−'}${fmtMoney(r.absoluteReturn.abs(), cur)}',
                   style: TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.w800,
@@ -784,7 +779,7 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
                           overflow: TextOverflow.ellipsis),
                     ),
                     Text(
-                      '${c.itemAbsoluteReturn >= 0 ? '+' : '−'}${_fmt(c.itemAbsoluteReturn.abs(), cur)}',
+                      '${c.itemAbsoluteReturn >= 0 ? '+' : '−'}${fmtMoney(c.itemAbsoluteReturn.abs(), cur)}',
                       style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,

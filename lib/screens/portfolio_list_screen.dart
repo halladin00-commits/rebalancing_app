@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import '../main.dart';
+import '../utils/money_format.dart';
 import '../models/portfolio.dart';
 import '../services/asset_history_service.dart';
 import '../theme/design_system.dart';
@@ -111,12 +112,6 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
     setState(() => _history = h);
   }
 
-  String _fmt(double n, String cur) {
-    final prefix = n < 0 ? '-' : '';
-    final abs = n.abs();
-    if (cur == 'USD') return '$prefix\$${abs.toStringAsFixed(2)}';
-    return '$prefix₩${abs.round().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}';
-  }
 
   // 포트폴리오 손익을 KRW로 환산 (USD 포트폴리오는 exchangeRate 사용)
   double _toKrw(double value, Portfolio pf) {
@@ -495,7 +490,7 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
             AppLogo(iconSize: 22, textColor: context.textPrimary),
           ]),
           const SizedBox(height: 4),
-          Text(_fmt(total, displayCur),
+          Text(fmtMoney(total, displayCur),
               style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
@@ -564,7 +559,7 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                               style: TextStyle(
                                   fontSize: 11, color: context.textSecondary)),
                           const SizedBox(width: 8),
-                          Text(_fmt(pfVal, pfCur),
+                          Text(fmtMoney(pfVal, pfCur),
                               style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,
@@ -578,7 +573,7 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                                     fontSize: 11, color: context.textHint)),
                             Expanded(
                               child: Text(
-                                '${pfPnlIsPos ? '+' : ''}${_fmt(pfPnl, pfCur)} (${pfPnlIsPos ? '+' : ''}${pfPnlPct.toStringAsFixed(1)}%)',
+                                '${pfPnlIsPos ? '+' : ''}${fmtMoney(pfPnl, pfCur)} (${pfPnlIsPos ? '+' : ''}${pfPnlPct.toStringAsFixed(1)}%)',
                                 style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
@@ -597,7 +592,7 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                                     fontSize: 11, color: context.textHint)),
                             Expanded(
                               child: Text(
-                                '${pfDayIsPos ? '+' : ''}${_fmt(pfDay, pfCur)} (${pfDayIsPos ? '+' : ''}${pfDayPct.toStringAsFixed(1)}%)',
+                                '${pfDayIsPos ? '+' : ''}${fmtMoney(pfDay, pfCur)} (${pfDayIsPos ? '+' : ''}${pfDayPct.toStringAsFixed(1)}%)',
                                 style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
@@ -806,7 +801,7 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
           fit: BoxFit.scaleDown,
           alignment: Alignment.centerLeft,
           child: Text(
-            hasAnyPrice ? _fmt(total, displayCur) : '—',
+            hasAnyPrice ? fmtMoney(total, displayCur) : '—',
             style: const TextStyle(
               fontSize: DS.displayAmount,
               fontWeight: FontWeight.w800,
@@ -878,7 +873,7 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
               fit: BoxFit.scaleDown,
               alignment: Alignment.centerLeft,
               child: Text(
-                '$sign${_fmt(amount.abs(), currency)}',
+                '$sign${fmtMoney(amount.abs(), currency)}',
                 style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
@@ -935,7 +930,7 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
           FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
-            child: Text('$sign${_fmt(amount.abs(), currency)}',
+            child: Text('$sign${fmtMoney(amount.abs(), currency)}',
                 style: TextStyle(
                     fontSize: 14, fontWeight: FontWeight.w700, color: color)),
           ),
@@ -1155,7 +1150,7 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  _fmt(tv, pf.currency),
+                  fmtMoney(tv, pf.currency),
                   style: TextStyle(
                       fontSize: DS.rowAmount,
                       fontWeight: FontWeight.w700,
@@ -1232,7 +1227,7 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
   Widget _buildEditCard(BuildContext context, Portfolio pf, {Key? key}) {
     final l10n = context.l10n;
     final subtitle =
-        '${l10n.itemCountLabel(pf.items.length)} · ${_fmt(pf.totalValue, pf.currency)}';
+        '${l10n.itemCountLabel(pf.items.length)} · ${fmtMoney(pf.totalValue, pf.currency)}';
 
     return Container(
       key: key,

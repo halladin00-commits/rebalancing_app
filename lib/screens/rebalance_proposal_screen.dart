@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../main.dart';
+import '../utils/money_format.dart';
 import '../models/portfolio.dart';
 import '../theme/design_system.dart';
 import '../utils/rebalancer.dart';
@@ -47,12 +48,6 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
 
   // ── 서식 ──
 
-  String _fmt(double n, String cur) {
-    final prefix = n < 0 ? '−' : '';
-    final abs = n.abs();
-    if (cur == 'USD') return '$prefix\$${abs.toStringAsFixed(2)}';
-    return '$prefix₩${abs.round().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}';
-  }
 
   String _pct(double n) => '${n.toStringAsFixed(2)}%';
   String _pp(double n) =>
@@ -343,7 +338,7 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
                       color: context.textPrimary)),
               const SizedBox(height: 4),
               Text(
-                l10n.atCurrentPrice(_fmtPrice(item.currentPrice, item.market)),
+                l10n.atCurrentPrice(fmtPrice(item.currentPrice, item.market)),
                 style: TextStyle(
                     fontSize: DS.body,
                     fontWeight: FontWeight.w600,
@@ -353,7 +348,7 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
           ),
           const SizedBox(width: 10),
           Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-            Text(_fmt(amount, pf.currency),
+            Text(fmtMoney(amount, pf.currency),
                 style: TextStyle(
                     fontSize: DS.rowAmount,
                     fontWeight: FontWeight.w700,
@@ -371,10 +366,6 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
     );
   }
 
-  String _fmtPrice(double n, String market) {
-    if (market == 'US') return '\$${n.toStringAsFixed(2)}';
-    return '₩${n.round().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}';
-  }
 
   /// 조정 후 남는 편차 — 지금 최대 편차와 조정 뒤 최대 편차를 나란히.
   Widget _buildDriftBlock(

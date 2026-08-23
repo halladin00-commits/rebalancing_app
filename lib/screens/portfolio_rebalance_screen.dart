@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
+import '../utils/money_format.dart';
 import '../models/portfolio.dart';
 import '../theme/design_system.dart';
 import '../utils/rebalancer.dart';
@@ -336,7 +337,7 @@ class PortfolioRebalanceScreen extends StatelessWidget {
               ),
               const Spacer(),
               Text(
-                _fmt(value, pf.currency),
+                fmtMoney(value, pf.currency),
                 style: TextStyle(
                     fontSize: DS.body,
                     fontWeight: FontWeight.w600,
@@ -401,12 +402,6 @@ class PortfolioRebalanceScreen extends StatelessWidget {
     return item.currentPrice;
   }
 
-  static String _fmt(double n, String cur) {
-    final prefix = n < 0 ? '−' : '';
-    final abs = n.abs();
-    if (cur == 'USD') return '$prefix\$${abs.toStringAsFixed(2)}';
-    return '$prefix₩${abs.round().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}';
-  }
 
   static String _trimZero(double v) =>
       v == v.roundToDouble() ? v.toStringAsFixed(0) : v.toStringAsFixed(1);

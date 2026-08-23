@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../main.dart';
+import '../utils/money_format.dart';
 import '../models/portfolio.dart';
 import '../theme/design_system.dart';
 import '../utils/share_format.dart';
@@ -24,17 +25,6 @@ class ItemDetailScreen extends StatelessWidget {
 
   // ── 서식 ──
 
-  String _fmt(double n, String cur) {
-    final sign = n < 0 ? '−' : '';
-    final abs = n.abs();
-    if (cur == 'USD') return '$sign\$${abs.toStringAsFixed(2)}';
-    return '$sign₩${abs.round().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}';
-  }
-
-  String _fmtPrice(double n, String market) {
-    if (market == 'US') return '\$${n.toStringAsFixed(2)}';
-    return '₩${n.round().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}';
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -156,7 +146,7 @@ class ItemDetailScreen extends StatelessWidget {
         FittedBox(
           fit: BoxFit.scaleDown,
           alignment: Alignment.centerLeft,
-          child: Text(_fmt(value, pf.currency),
+          child: Text(fmtMoney(value, pf.currency),
               style: const TextStyle(
                   fontSize: DS.displayAmount,
                   fontWeight: FontWeight.w800,
@@ -202,7 +192,7 @@ class ItemDetailScreen extends StatelessWidget {
           FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
-            child: Text(has ? '$sign${_fmt(amount.abs(), currency)}' : '—',
+            child: Text(has ? '$sign${fmtMoney(amount.abs(), currency)}' : '—',
                 style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
@@ -225,7 +215,7 @@ class ItemDetailScreen extends StatelessWidget {
     final l10n = context.l10n;
     if (item.isCash) {
       return ListCard(rows: [
-        _kv(context, l10n.evaluationAmount, _fmt(item.shares, pf.currency)),
+        _kv(context, l10n.evaluationAmount, fmtMoney(item.shares, pf.currency)),
       ]);
     }
     // 평균 매입가가 거래에서 계산된 값인지 직접 입력인지 밝힌다
@@ -233,9 +223,9 @@ class ItemDetailScreen extends StatelessWidget {
     return ListCard(rows: [
       _kv(context, l10n.holdingQty,
           '${formatShares(item.shares)}${l10n.unitShares}'),
-      _kv(context, l10n.avgCost, _fmtPrice(item.avgPrice, item.market),
+      _kv(context, l10n.avgCost, fmtPrice(item.avgPrice, item.market),
           note: fromTx ? l10n.basedOnTransactions : l10n.enteredDirectly),
-      _kv(context, l10n.currentPrice, _fmtPrice(item.currentPrice, item.market)),
+      _kv(context, l10n.currentPrice, fmtPrice(item.currentPrice, item.market)),
     ]);
   }
 
@@ -350,7 +340,7 @@ class ItemDetailScreen extends StatelessWidget {
                         letterSpacing: -0.2,
                         color: context.textPrimary),
                     children: [
-                      TextSpan(text: _fmtPrice(t.price, item.market)),
+                      TextSpan(text: fmtPrice(t.price, item.market)),
                       TextSpan(
                         text: ' · ${formatShares(qty)}${l10n.unitShares}',
                         style: TextStyle(
@@ -372,7 +362,7 @@ class ItemDetailScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 10),
-          Text(_fmtPrice(amount, item.market),
+          Text(fmtPrice(amount, item.market),
               style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,

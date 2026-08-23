@@ -6,6 +6,7 @@ import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import '../main.dart';
+import '../utils/money_format.dart';
 import '../models/portfolio.dart';
 import '../utils/rebalancer.dart';
 import '../utils/share_format.dart';
@@ -66,17 +67,6 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
 
   // ── Formatters ──
 
-  String _fmt(double n, String cur) {
-    final prefix = n < 0 ? '-' : '';
-    final abs = n.abs();
-    if (cur == 'USD') return '$prefix\$${abs.toStringAsFixed(2)}';
-    return '$prefix₩${abs.round().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}';
-  }
-
-  String _fmtPrice(double n, String market) {
-    if (market == 'US') return '\$${n.toStringAsFixed(2)}';
-    return '₩${n.round().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}'  ;
-  }
 
   String _pct(double n) => '${n.toStringAsFixed(2)}%';
 
@@ -255,7 +245,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
               style: TextStyle(fontSize: 11, color: context.textHint)),
           const SizedBox(height: 2),
           Text(
-            rb != null ? _fmt(rb.total - pf.additionalInvestment, pf.currency) : '—',
+            rb != null ? fmtMoney(rb.total - pf.additionalInvestment, pf.currency) : '—',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: context.textPrimary),
           ),
           const SizedBox(height: 12),
@@ -290,18 +280,18 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                 if (!item.isCash) ...[
                   const SizedBox(height: 4),
                   Row(children: [
-                    Text('${_fmtPrice(item.currentPrice, item.market)} × ${formatShares(item.shares)}',
+                    Text('${fmtPrice(item.currentPrice, item.market)} × ${formatShares(item.shares)}',
                         style: TextStyle(fontSize: 11, color: context.textSecondary)),
                     const Spacer(),
                     if (evalVal > 0)
-                      Text(_fmt(evalVal, pf.currency),
+                      Text(fmtMoney(evalVal, pf.currency),
                           style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: context.textPrimary)),
                   ]),
                 ] else ...[
                   const SizedBox(height: 4),
                   Row(children: [
                     const Spacer(),
-                    Text(_fmt(evalVal, pf.currency),
+                    Text(fmtMoney(evalVal, pf.currency),
                         style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: context.textPrimary)),
                   ]),
                 ],
@@ -753,7 +743,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     final bigLabel = l10n.evaluationAmount;
     final bigValue = rb == null
         ? '—'
-        : _fmt(rb.total - pf.additionalInvestment, pf.currency);
+        : fmtMoney(rb.total - pf.additionalInvestment, pf.currency);
 
     final tiles = <Widget>[
       _brandPnlTile(context, pf, l10n.profitLoss, hasPnl ? totalPnl : null,
@@ -899,7 +889,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     final sign = isPos ? '+' : '−';
     return _brandTile(context,
         label: label,
-        value: '$sign${_fmt(amount.abs(), pf.currency)}',
+        value: '$sign${fmtMoney(amount.abs(), pf.currency)}',
         sub: '$sign${pct.abs().toStringAsFixed(2)}%',
         color: isPos ? pnlColors.onBrandPositive : pnlColors.onBrandNegative);
   }
@@ -1000,13 +990,13 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
       subtitle: item.isCash
           ? null
           : Text(
-              '${_fmtPrice(item.currentPrice, item.market)} · ${formatShares(item.shares)}${context.l10n.unitShares}',
+              '${fmtPrice(item.currentPrice, item.market)} · ${formatShares(item.shares)}${context.l10n.unitShares}',
               style: TextStyle(
                   fontSize: DS.body,
                   fontWeight: FontWeight.w600,
                   color: context.textSecondary),
             ),
-      amount: _fmt(value, pf.currency),
+      amount: fmtMoney(value, pf.currency),
       dayText: dayText,
       returnText: returnText,
       returnColor: returnColor,
@@ -1035,8 +1025,8 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                   overflow: TextOverflow.ellipsis)),
             ]),
             const SizedBox(height: 2),
-            Text(item.isCash ? _fmt(item.shares, pf.currency)
-                    : '${_fmtPrice(item.currentPrice, item.market)} × ${formatShares(item.shares)}',
+            Text(item.isCash ? fmtMoney(item.shares, pf.currency)
+                    : '${fmtPrice(item.currentPrice, item.market)} × ${formatShares(item.shares)}',
                 style: TextStyle(fontSize: 12, color: context.textSecondary)),
           ])),
           IconButton(

@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import '../main.dart';
+import '../utils/money_format.dart';
 import '../models/portfolio.dart';
 import '../services/settlement_service.dart';
 import '../theme/design_system.dart';
@@ -222,7 +223,7 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
                 child: Text(
                   r == null
                       ? '—'
-                      : '${r.absoluteReturn >= 0 ? '+' : '−'}${_fmt(r.absoluteReturn.abs())}',
+                      : '${r.absoluteReturn >= 0 ? '+' : '−'}${fmtMoney(r.absoluteReturn.abs(), 'KRW')}',
                   style: TextStyle(
                     fontSize: DS.displayAmount,
                     fontWeight: FontWeight.w800,
@@ -259,8 +260,8 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
                     Flexible(
                       child: Text(
                         _isKo
-                            ? '순입금 ${_fmt(r.netCashFlow.abs())}은 제외'
-                            : 'Excludes ${_fmt(r.netCashFlow.abs())} net deposits',
+                            ? '순입금 ${fmtMoney(r.netCashFlow.abs(), 'KRW')}은 제외'
+                            : 'Excludes ${fmtMoney(r.netCashFlow.abs(), 'KRW')} net deposits',
                         style: TextStyle(
                             fontSize: DS.body,
                             fontWeight: FontWeight.w600,
@@ -327,7 +328,7 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       padding: const EdgeInsets.only(bottom: 10),
       child: ExcludedBanner(
         items: excluded,
-        amountText: _fmt(value),
+        amountText: fmtMoney(value, 'KRW'),
         onFix: () => showExcludedSheet(context, items: excluded),
       ),
     );
@@ -545,7 +546,7 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
               ),
               const SizedBox(width: 8),
               Text(
-                '$sign${_fmt(c.absoluteReturn.abs())}',
+                '$sign${fmtMoney(c.absoluteReturn.abs(), 'KRW')}',
                 style: TextStyle(
                     fontSize: DS.rowAmount,
                     fontWeight: FontWeight.w700,
@@ -670,11 +671,6 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       ' – '
       '${b.month.toString().padLeft(2, '0')}.${b.day.toString().padLeft(2, '0')}';
 
-  String _fmt(double n) {
-    final prefix = n < 0 ? '−' : '';
-    final abs = n.abs();
-    return '$prefix₩${abs.round().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}';
-  }
 
   // ── 이미지 저장 · 공유 ──
 
@@ -867,7 +863,7 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
                 Text(
                   r == null
                       ? '—'
-                      : '${r.absoluteReturn >= 0 ? '+' : '−'}${_fmt(r.absoluteReturn.abs())}',
+                      : '${r.absoluteReturn >= 0 ? '+' : '−'}${fmtMoney(r.absoluteReturn.abs(), 'KRW')}',
                   style: TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.w800,
@@ -915,7 +911,7 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
                           overflow: TextOverflow.ellipsis),
                     ),
                     Text(
-                      '${c.absoluteReturn >= 0 ? '+' : '−'}${_fmt(c.absoluteReturn.abs())}',
+                      '${c.absoluteReturn >= 0 ? '+' : '−'}${fmtMoney(c.absoluteReturn.abs(), 'KRW')}',
                       style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,

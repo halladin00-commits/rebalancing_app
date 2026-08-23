@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../main.dart';
+import '../utils/money_format.dart';
 import '../models/portfolio.dart';
 import '../theme/design_system.dart';
 import '../utils/share_format.dart';
@@ -179,7 +180,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     return SectionTitle(
       title: l10n.yearMonth(year, month),
       trailing: '${l10n.txCountLabel(entries.length)} · '
-          '${net >= 0 ? l10n.netBuy : l10n.netSell} ${_fmt(net.abs(), pf.currency)}',
+          '${net >= 0 ? l10n.netBuy : l10n.netSell} ${fmtMoney(net.abs(), pf.currency)}',
     );
   }
 
@@ -230,7 +231,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                 const SizedBox(height: 3),
                 Text(
                   '${d.month.toString().padLeft(2, '0')}.${d.day.toString().padLeft(2, '0')}'
-                  ' · ${_fmtPrice(e.tx.price, e.item.market)}'
+                  ' · ${fmtPrice(e.tx.price, e.item.market)}'
                   ' · ${formatShares(qty)}${l10n.unitShares}',
                   style: TextStyle(
                       fontSize: 11,
@@ -241,7 +242,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
             ),
           ),
           const SizedBox(width: 10),
-          Text(_fmtPrice(amount, e.item.market),
+          Text(fmtPrice(amount, e.item.market),
               style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
@@ -273,13 +274,4 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
 
   // ── 서식 ──
 
-  String _fmt(double n, String cur) {
-    if (cur == 'USD') return '\$${n.toStringAsFixed(2)}';
-    return '₩${n.round().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}';
-  }
-
-  String _fmtPrice(double n, String market) {
-    if (market == 'US') return '\$${n.toStringAsFixed(2)}';
-    return '₩${n.round().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}';
-  }
 }
