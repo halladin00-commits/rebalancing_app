@@ -20,7 +20,7 @@
 | 종목 상세 (거래내역) | v12c | 2730 | ✅ 스파크라인 남음 |
 | 종목 상세 (간편입력) | v12d | 2857 | ❌ |
 | 첫 진입 | v12e | 2975 | ❌ |
-| 종목 검색 | v13a | 3065 | ✅ 육안 확인 남음 |
+| 종목 검색 | v13a | 3065 | ✅ |
 | 거래 추가 | v13b | 3141 | ❌ |
 | 포트 추가 | v13c | 3228 | ❌ |
 | 포트 메뉴 | v13d | 3290 | ✅ |
@@ -188,6 +188,21 @@ rule 18 #726B5F + 12.5/700 `단주는 반올림` + 우 11.5/600 #6B6357 `27.9주
    없다** (`StockTransaction`은 수량·단가만 가진다). 만들려면 배당을 거래 유형으로
    추가해야 한다. 지금 만들면 두 행은 숫자를 지어내는 셈이다.
 7. **v12a 결산 준비 카드** — 완료 (전월 수익률 지연 로딩)
+
+## 검증 환경 주의
+
+에뮬레이터(`Medium_Phone_API_36.1`)가 **Gradle 빌드와 동시에 돌면 죽는다.**
+빌드가 CPU·메모리를 다 먹어 에뮬레이터가 굶는다. 죽은 뒤에는 패키지 매니저가
+깨져 `am start`가 "Activity class does not exist"를 내며, 재부팅으로는 안 고쳐진다.
+
+**순서를 지킨다: 빌드를 먼저 끝내고 → 그 다음 에뮬레이터를 띄운다.**
+
+깨졌을 때 복구:
+```
+taskkill //F //IM qemu-system-x86_64.exe
+adb kill-server && adb start-server
+"$LOCALAPPDATA/Android/Sdk/emulator/emulator.exe" -avd Medium_Phone_API_36.1 -wipe-data -no-snapshot -no-boot-anim &
+```
 
 ## 진행 규칙
 
