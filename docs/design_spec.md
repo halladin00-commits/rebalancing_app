@@ -212,6 +212,19 @@ rule 18 #726B5F + 12.5/700 `단주는 반올림` + 우 11.5/600 #6B6357 `27.9주
 
 **순서를 지킨다: 빌드를 먼저 끝내고 → 그 다음 에뮬레이터를 띄운다.**
 
+### 에뮬레이터의 ANR은 대부분 AdMob이다
+
+`Rebalancing isn't responding`이 반복되면 로그를 먼저 본다:
+
+```
+adb logcat -d | grep -i "gms.ads\|DynamiteModule"
+```
+
+`com.google.android.gms.ads.dynamite` 원격 모듈 로딩이 몇 초씩 걸리는 게
+보이면 **앱 문제가 아니다.** Play 서비스가 차가운 에뮬레이터에서 광고 SDK가
+메인 스레드를 잡는 것이고, 실기기에서는 훨씬 가볍다. 실제로 사용자 폰
+(SM-S921N)에서는 같은 빌드가 문제없이 돌았다. 쫓지 말 것.
+
 깨졌을 때 복구:
 ```
 taskkill //F //IM qemu-system-x86_64.exe
