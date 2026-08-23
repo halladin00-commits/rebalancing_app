@@ -9,6 +9,17 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
+  String yearMonth(int year, int month) {
+    return '$year년 $month월';
+  }
+
+  @override
+  String get netBuy => '순매수';
+
+  @override
+  String get netSell => '순매도';
+
+  @override
   String get fractionalIntro => '소수점 매매 가능 여부는 증권사·계좌마다 다릅니다. 되는 계좌만 켜세요.';
 
   @override

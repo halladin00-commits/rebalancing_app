@@ -15,6 +15,7 @@ import '../widgets/item_form_dialog.dart';
 import '../widgets/settings_dialog.dart';
 import 'item_detail_screen.dart';
 import 'item_search_screen.dart';
+import 'transaction_history_screen.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/bottom_banner_ad.dart';
 import '../widgets/brand_header.dart';
@@ -446,6 +447,15 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
               ),
             ),
             const SizedBox(height: 8),
+            // 시안 v13d의 `거래 내역 전체보기`
+            row(Icons.history, l10n.transactionHistory,
+                () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => TransactionHistoryScreen(
+                            portfolioId: pf.id),
+                      ),
+                    )),
             row(Icons.swap_vert, l10n.reorderItems,
                 () => setState(() => _editMode = true)),
             row(Icons.tune, l10n.labelSettings, () => _showSettings(pf)),

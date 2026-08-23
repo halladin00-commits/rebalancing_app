@@ -1,4 +1,8 @@
 {
+  "yearMonth": "{year}년 {month}월",
+  "@yearMonth": { "placeholders": { "year": { "type": "int" }, "month": { "type": "int" } } },
+  "netBuy": "순매수",
+  "netSell": "순매도",
   "fractionalIntro": "소수점 매매 가능 여부는 증권사·계좌마다 다릅니다. 되는 계좌만 켜세요.",
   "fractionalPerAccount": "계좌별 설정",
   "fractionalReasonOverseas": "해외주식 · 소수점 매매 가능",

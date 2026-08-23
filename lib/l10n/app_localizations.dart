@@ -98,6 +98,24 @@ abstract class AppLocalizations {
     Locale('ko')
   ];
 
+  /// No description provided for @yearMonth.
+  ///
+  /// In ko, this message translates to:
+  /// **'{year}년 {month}월'**
+  String yearMonth(int year, int month);
+
+  /// No description provided for @netBuy.
+  ///
+  /// In ko, this message translates to:
+  /// **'순매수'**
+  String get netBuy;
+
+  /// No description provided for @netSell.
+  ///
+  /// In ko, this message translates to:
+  /// **'순매도'**
+  String get netSell;
+
   /// No description provided for @fractionalIntro.
   ///
   /// In ko, this message translates to:

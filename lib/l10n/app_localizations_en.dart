@@ -9,6 +9,17 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String yearMonth(int year, int month) {
+    return '$month/$year';
+  }
+
+  @override
+  String get netBuy => 'net buy';
+
+  @override
+  String get netSell => 'net sell';
+
+  @override
   String get fractionalIntro =>
       'Fractional trading depends on your broker and account. Turn it on only where it works.';
 

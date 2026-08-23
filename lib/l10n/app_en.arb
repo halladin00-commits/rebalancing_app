@@ -1,4 +1,8 @@
 {
+  "yearMonth": "{month}/{year}",
+  "@yearMonth": { "placeholders": { "year": { "type": "int" }, "month": { "type": "int" } } },
+  "netBuy": "net buy",
+  "netSell": "net sell",
   "fractionalIntro": "Fractional trading depends on your broker and account. Turn it on only where it works.",
   "fractionalPerAccount": "Per account",
   "fractionalReasonOverseas": "Overseas · fractional supported",
