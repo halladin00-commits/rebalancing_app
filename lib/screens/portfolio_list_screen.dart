@@ -7,11 +7,9 @@ import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import '../main.dart';
 import '../models/portfolio.dart';
-import '../services/notification_service.dart';
 import '../services/asset_history_service.dart';
 import '../theme/design_system.dart';
 import '../utils/rebalancer.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/portfolio_form_dialog.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/brand_header.dart';
@@ -52,24 +50,12 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
     _loadHistory();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _autoRefreshIfStale();
-      await _ensureNotificationPermission();
       // 첫 화면을 막지 않도록 맨 뒤에 붙인다
       if (mounted) {
         await _loadLastMonthReturn(
             context.read<PortfolioProvider>().portfolios);
       }
     });
-  }
-
-  Future<void> _ensureNotificationPermission() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (prefs.getBool('permission_asked') == true) return;
-    await prefs.setBool('permission_asked', true);
-    final granted = await NotificationService.requestPermission();
-    if (!granted) {
-      await NotificationService.disable();
-      await NotificationService.disableAllSettlements();
-    }
   }
 
   void _autoRefreshIfStale() {

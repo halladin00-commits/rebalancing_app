@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../main.dart';
 import '../models/portfolio.dart';
 import '../services/review_service.dart';
-import '../theme/design_system.dart';
 import '../utils/share_format.dart';
 
 /// 리밸런싱 제안을 실제 거래로 기록하는 다이얼로그.

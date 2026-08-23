@@ -11,7 +11,6 @@ import '../utils/rebalancer.dart';
 import '../utils/share_format.dart';
 import '../services/api_service.dart';
 import '../services/excel_import_service.dart';
-import '../services/review_service.dart';
 import '../widgets/item_form_dialog.dart';
 import '../widgets/settings_dialog.dart';
 import 'item_detail_screen.dart';
@@ -23,7 +22,6 @@ import '../widgets/dashed_border_box.dart';
 import '../widgets/list_card.dart';
 import '../widgets/sparkline_panel.dart';
 import '../services/asset_history_service.dart';
-import '../widgets/rebalance_transaction_dialog.dart';
 import '../theme/design_system.dart';
 import 'portfolio_graph_screen.dart';
 
@@ -39,8 +37,6 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
   bool _refreshing = false;
   bool _savingAsset = false;
   bool _sharingAsset = false;
-  bool _savingRebalancing = false;
-  bool _sharingRebalancing = false;
   final _investController = TextEditingController();
   final _screenshotCtrl = ScreenshotController();
 
@@ -236,57 +232,6 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     }
   }
 
-  // ── Rebalancing image save/share ──
-
-  Future<void> _saveRebalancingImage(Portfolio pf, RebalanceResult? rb) async {
-    if (_savingRebalancing) return;
-    final l10n = context.l10n;
-    setState(() => _savingRebalancing = true);
-    try {
-      final captureHeight = 160.0 + pf.items.length * 80.0;
-      final bytes = await _screenshotCtrl.captureFromWidget(
-        _buildRebalancingCapture(pf, rb),
-        pixelRatio: 3.0,
-        context: context,
-        targetSize: Size(380, captureHeight),
-      );
-      final r = await ImageGallerySaverPlus.saveImage(
-        bytes,
-        name: 'rebalancing_${pf.name}_${DateTime.now().millisecondsSinceEpoch}',
-      );
-      if (!mounted) return;
-      final ok = r['isSuccess'] == true || r['filePath'] != null;
-      _showToast(ok ? l10n.savedToGallery : l10n.saveFailed, ok ? Colors.green : Colors.red);
-    } catch (e) {
-      if (mounted) _showToast(l10n.saveFailedError(e.toString()), Colors.red);
-    } finally {
-      if (mounted) setState(() => _savingRebalancing = false);
-    }
-  }
-
-  Future<void> _shareRebalancingImage(Portfolio pf, RebalanceResult? rb) async {
-    if (_sharingRebalancing) return;
-    final l10n = context.l10n;
-    setState(() => _sharingRebalancing = true);
-    try {
-      final captureHeight = 160.0 + pf.items.length * 80.0;
-      final bytes = await _screenshotCtrl.captureFromWidget(
-        _buildRebalancingCapture(pf, rb),
-        pixelRatio: 3.0,
-        context: context,
-        targetSize: Size(380, captureHeight),
-      );
-      final dir = await getTemporaryDirectory();
-      final file = File('${dir.path}/rebalancing_${DateTime.now().millisecondsSinceEpoch}.png');
-      await file.writeAsBytes(bytes);
-      await Share.shareXFiles([XFile(file.path)]);
-    } catch (e) {
-      if (mounted) _showToast(l10n.saveFailedError(e.toString()), Colors.red);
-    } finally {
-      if (mounted) setState(() => _sharingRebalancing = false);
-    }
-  }
-
   // ── Capture widgets ──
 
   Widget _buildAssetCapture(Portfolio pf, RebalanceResult? rb) {
@@ -357,97 +302,6 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                     const Spacer(),
                     Text(_fmt(evalVal, pf.currency),
                         style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: context.textPrimary)),
-                  ]),
-                ],
-              ]),
-            );
-          }),
-          const SizedBox(height: 8),
-          Text(_fmtTime(pf.lastUpdated),
-              style: TextStyle(fontSize: 10, color: context.textHint)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRebalancingCapture(Portfolio pf, RebalanceResult? rb) {
-    final l10n = context.l10n;
-    return Container(
-      width: 380,
-      color: context.scaffoldBg,
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text('${pf.emoji}  ${pf.name}',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: context.textPrimary)),
-            AppLogo(iconSize: 22, textColor: context.textPrimary),
-          ]),
-          const SizedBox(height: 12),
-          Row(children: [
-            Expanded(child: _infoBox(context, l10n.currentAssets,
-                rb != null ? _fmt(rb.total - pf.additionalInvestment, pf.currency) : '—')),
-            const SizedBox(width: 8),
-            Expanded(child: _infoBox(context, l10n.rebalancingBase,
-                rb != null ? _fmt(rb.total, pf.currency) : '—')),
-          ]),
-          const SizedBox(height: 12),
-          ...pf.items.map((item) {
-            final r = rb?.results.where((x) => x.id == item.id).firstOrNull;
-            final delta = r?.isCash == true ? r!.cashDelta : (r?.delta ?? 0.0);
-            final isBuy = delta > 0;
-            final showAction = r != null && delta != 0 && (pf.rebalancingThreshold <= 0 ||
-                (r.currentWeight - item.targetWeight).abs() >= pf.rebalancingThreshold);
-            return Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: context.cardBg,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: context.borderColor),
-              ),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Row(children: [
-                  _marketBadge(context, item), const SizedBox(width: 6),
-                  Expanded(child: Text(item.name,
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: context.textPrimary),
-                      overflow: TextOverflow.ellipsis)),
-                  if (showAction) ...[
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: isBuy ? const Color(0xFF22C55E) : const Color(0xFFEF4444),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(isBuy ? l10n.buy : l10n.sell,
-                          style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(item.isCash ? _fmt(delta.abs(), pf.currency) : '${formatShares(delta.abs())}${l10n.unitShares}',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700,
-                            color: isBuy ? const Color(0xFF16A34A) : const Color(0xFFDC2626))),
-                  ] else if (r != null)
-                    Text(l10n.hold, style: TextStyle(fontSize: 12, color: context.textHint)),
-                ]),
-                if (r != null) ...[
-                  const SizedBox(height: 4),
-                  Row(children: [
-                    Text(_pct(item.targetWeight),
-                        style: TextStyle(color: context.brand, fontWeight: FontWeight.w600, fontSize: 11)),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 3),
-                      child: Icon(Icons.arrow_forward, size: 10, color: context.textHint),
-                    ),
-                    Text(_pct(r.currentWeight),
-                        style: TextStyle(color: context.textSecondary, fontSize: 11)),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 3),
-                      child: Icon(Icons.arrow_forward, size: 10, color: context.textHint),
-                    ),
-                    Text(_pct(r.finalWeight),
-                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 11, color: context.textPrimary)),
                   ]),
                 ],
               ]),
@@ -900,8 +754,6 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
           hasDayChange ? totalDayChange / totalPrevValue * 100 : null),
     ];
 
-    // 하단 한 줄 — 오른쪽 시각과 나눠 쓰므로 짧은 문구만.
-    final footerLeft = l10n.itemCountLabel(pf.items.length);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1217,31 +1069,6 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     );
   }
 
-  Widget _infoBox(BuildContext context, String label, String value, {bool highlight = false}) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: highlight ? context.highlightBg : context.infoBoxBg,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(label, style: TextStyle(fontSize: 11, color: context.textHint)),
-          const SizedBox(height: 2),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(value,
-                style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: highlight ? context.highlightText : context.textPrimary)),
-          ),
-        ]),
-      ),
-    );
-  }
-
   Widget _buildSlimAddCard(BuildContext context, Portfolio pf) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
@@ -1271,54 +1098,6 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
         ),
       ),
     );
-  }
-
-  Widget _buildPnlRow(BuildContext context, Portfolio pf, PortfolioItem item) {
-    final l10n = context.l10n;
-    final rows = <Widget>[];
-
-    if (item.avgPrice > 0 && item.currentPrice > 0) {
-      double pnl = (item.currentPrice - item.avgPrice) * item.shares;
-      if (item.market == 'US' && pf.currency == 'KRW') pnl *= pf.exchangeRate;
-      if (item.market == 'KR' && pf.currency == 'USD') pnl /= pf.exchangeRate;
-      final rate = (item.currentPrice - item.avgPrice) / item.avgPrice * 100;
-      final isProfit = pnl >= 0;
-      final pnlColors = context.read<PnlColorNotifier>();
-      final color = isProfit ? pnlColors.positiveColor : pnlColors.negativeColor;
-      final sign = isProfit ? '+' : '';
-      rows.add(Row(children: [
-        Text(l10n.profitLoss, style: TextStyle(fontSize: 11, color: context.textHint)),
-        const Spacer(),
-        Text('$sign${_fmt(pnl, pf.currency)}',
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color)),
-        const SizedBox(width: 4),
-        Text('($sign${rate.toStringAsFixed(2)}%)',
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color)),
-      ]));
-    }
-
-    if (item.previousClose > 0 && item.currentPrice > 0) {
-      double dc = (item.currentPrice - item.previousClose) * item.shares;
-      if (item.market == 'US' && pf.currency == 'KRW') dc *= pf.exchangeRate;
-      if (item.market == 'KR' && pf.currency == 'USD') dc /= pf.exchangeRate;
-      final rate = (item.currentPrice - item.previousClose) / item.previousClose * 100;
-      final isUp = dc >= 0;
-      final pnlColors2 = context.read<PnlColorNotifier>();
-      final color = isUp ? pnlColors2.positiveColor : pnlColors2.negativeColor;
-      final sign = isUp ? '+' : '';
-      if (rows.isNotEmpty) rows.add(const SizedBox(height: 3));
-      rows.add(Row(children: [
-        Text(l10n.dayChange, style: TextStyle(fontSize: 11, color: context.textHint)),
-        const Spacer(),
-        Text('$sign${_fmt(dc, pf.currency)}',
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color)),
-        const SizedBox(width: 4),
-        Text('($sign${rate.toStringAsFixed(2)}%)',
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color)),
-      ]));
-    }
-
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: rows);
   }
 
   Widget _marketBadge(BuildContext context, PortfolioItem item) {
