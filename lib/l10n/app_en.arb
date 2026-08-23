@@ -1,4 +1,9 @@
 {
+  "targetWeightsTitle": "Target weights",
+  "targetSum": "Total",
+  "targetSumMustBe100": "Total must be 100%",
+  "currentWeightIs": "now {pct}%",
+  "@currentWeightIs": { "placeholders": { "pct": { "type": "String" } } },
   "notifRebalanceSection": "Rebalancing reminders",
   "settlementNotifNote": "Sent the morning after each period ends, so you can open the Returns tab and review.",
   "addPortfolioTitle": "New portfolio",

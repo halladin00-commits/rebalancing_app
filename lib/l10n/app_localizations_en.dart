@@ -9,6 +9,20 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get targetWeightsTitle => 'Target weights';
+
+  @override
+  String get targetSum => 'Total';
+
+  @override
+  String get targetSumMustBe100 => 'Total must be 100%';
+
+  @override
+  String currentWeightIs(String pct) {
+    return 'now $pct%';
+  }
+
+  @override
   String get notifRebalanceSection => 'Rebalancing reminders';
 
   @override

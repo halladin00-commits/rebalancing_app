@@ -9,6 +9,20 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
+  String get targetWeightsTitle => '목표 비중 설정';
+
+  @override
+  String get targetSum => '목표 합계';
+
+  @override
+  String get targetSumMustBe100 => '합계를 100%로 맞춰 주세요';
+
+  @override
+  String currentWeightIs(String pct) {
+    return '현재 $pct%';
+  }
+
+  @override
   String get notifRebalanceSection => '리밸런싱 점검 알림';
 
   @override

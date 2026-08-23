@@ -33,7 +33,6 @@ class _PortfolioSettingsScreenState extends State<PortfolioSettingsScreen> {
   late bool _commEnabled;
   late final TextEditingController _exRateCtl;
   late final TextEditingController _commRateCtl;
-  late final TextEditingController _thresholdCtl;
   String? _error;
 
   @override
@@ -46,12 +45,11 @@ class _PortfolioSettingsScreenState extends State<PortfolioSettingsScreen> {
     _commEnabled = pf.commissionEnabled;
     _exRateCtl = TextEditingController(text: _trim(pf.exchangeRate));
     _commRateCtl = TextEditingController(text: _trim(pf.commissionRate));
-    _thresholdCtl = TextEditingController(text: _trim(pf.rebalancingThreshold));
   }
 
   @override
   void dispose() {
-    for (final c in [_exRateCtl, _commRateCtl, _thresholdCtl]) {
+    for (final c in [_exRateCtl, _commRateCtl]) {
       c.dispose();
     }
     super.dispose();
@@ -102,17 +100,6 @@ class _PortfolioSettingsScreenState extends State<PortfolioSettingsScreen> {
                   _numField(context, l10n.exchangeRateInput, _exRateCtl,
                       suffix: l10n.unitKRW),
               ]),
-              const SizedBox(height: 16),
-
-              SectionTitle(title: l10n.rebalancingThresholdLabel),
-              const SizedBox(height: DS.cardGap),
-              ListCard(rows: [
-                _numField(context, l10n.rebalancingThresholdHint,
-                    _thresholdCtl,
-                    suffix: '%p'),
-              ]),
-              const SizedBox(height: 6),
-              _note(context, l10n.thresholdNote),
               const SizedBox(height: 16),
 
               SectionTitle(title: l10n.tradingFee),
@@ -243,18 +230,6 @@ class _PortfolioSettingsScreenState extends State<PortfolioSettingsScreen> {
     );
   }
 
-  Widget _note(BuildContext context, String text) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: Text(text,
-          style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              height: 1.55,
-              color: context.textSecondary)),
-    );
-  }
-
   Widget _buildCta(BuildContext context) {
     final l10n = context.l10n;
     return Container(
@@ -293,12 +268,6 @@ class _PortfolioSettingsScreenState extends State<PortfolioSettingsScreen> {
       setState(() => _error = l10n.validationExchangeRatePositive);
       return;
     }
-    final threshold = double.tryParse(_thresholdCtl.text.trim()) ?? 0.0;
-    if (threshold < 0) {
-      setState(() => _error = l10n.validationNonNegative);
-      return;
-    }
-
     widget.onSave({
       'currency': _currency,
       'commissionEnabled': _commEnabled,
@@ -306,7 +275,6 @@ class _PortfolioSettingsScreenState extends State<PortfolioSettingsScreen> {
       'exchangeAuto': _exAuto,
       'exchangeRate': exRate ?? widget.portfolio.exchangeRate,
       'priceAuto': _priceAuto,
-      'rebalancingThreshold': threshold,
     });
     Navigator.pop(context);
   }

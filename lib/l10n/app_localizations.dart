@@ -98,6 +98,30 @@ abstract class AppLocalizations {
     Locale('ko')
   ];
 
+  /// No description provided for @targetWeightsTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'목표 비중 설정'**
+  String get targetWeightsTitle;
+
+  /// No description provided for @targetSum.
+  ///
+  /// In ko, this message translates to:
+  /// **'목표 합계'**
+  String get targetSum;
+
+  /// No description provided for @targetSumMustBe100.
+  ///
+  /// In ko, this message translates to:
+  /// **'합계를 100%로 맞춰 주세요'**
+  String get targetSumMustBe100;
+
+  /// No description provided for @currentWeightIs.
+  ///
+  /// In ko, this message translates to:
+  /// **'현재 {pct}%'**
+  String currentWeightIs(String pct);
+
   /// No description provided for @notifRebalanceSection.
   ///
   /// In ko, this message translates to:

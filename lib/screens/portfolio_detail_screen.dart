@@ -17,6 +17,7 @@ import 'portfolio_settings_screen.dart';
 import 'item_detail_screen.dart';
 import 'item_search_screen.dart';
 import 'transaction_history_screen.dart';
+import 'target_weights_screen.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/bottom_banner_ad.dart';
 import '../widgets/brand_header.dart';
@@ -172,8 +173,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
           context.read<PortfolioProvider>().updateSettings(pf.id,
             currency: s['currency'], commissionEnabled: s['commissionEnabled'],
             commissionRate: s['commissionRate'], exchangeAuto: s['exchangeAuto'],
-            exchangeRate: s['exchangeRate'], priceAuto: s['priceAuto'],
-            rebalancingThreshold: s['rebalancingThreshold']);
+            exchangeRate: s['exchangeRate'], priceAuto: s['priceAuto']);
           },
         ),
       ),
@@ -452,6 +452,14 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                       MaterialPageRoute(
                         builder: (_) => TransactionHistoryScreen(
                             portfolioId: pf.id),
+                      ),
+                    )),
+            row(Icons.balance, l10n.targetWeightsTitle,
+                () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            TargetWeightsScreen(portfolioId: pf.id),
                       ),
                     )),
             row(Icons.swap_vert, l10n.reorderItems,
