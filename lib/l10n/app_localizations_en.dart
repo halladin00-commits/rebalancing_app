@@ -9,6 +9,13 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get notifRebalanceSection => 'Rebalancing reminders';
+
+  @override
+  String get settlementNotifNote =>
+      'Sent the morning after each period ends, so you can open the Returns tab and review.';
+
+  @override
   String get addPortfolioTitle => 'New portfolio';
 
   @override

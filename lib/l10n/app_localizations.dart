@@ -98,6 +98,18 @@ abstract class AppLocalizations {
     Locale('ko')
   ];
 
+  /// No description provided for @notifRebalanceSection.
+  ///
+  /// In ko, this message translates to:
+  /// **'리밸런싱 점검 알림'**
+  String get notifRebalanceSection;
+
+  /// No description provided for @settlementNotifNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'각 기간이 끝난 다음 날 아침에 알려줍니다. 결산 화면을 열어 확인하라는 알림입니다.'**
+  String get settlementNotifNote;
+
   /// No description provided for @addPortfolioTitle.
   ///
   /// In ko, this message translates to:

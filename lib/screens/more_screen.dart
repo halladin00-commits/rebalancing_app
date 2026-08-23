@@ -7,7 +7,7 @@ import '../services/storage_service.dart';
 import '../theme/design_system.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/disclaimer_dialog.dart';
-import '../widgets/notification_settings_dialog.dart';
+import 'notification_settings_screen.dart';
 import 'fractional_settings_screen.dart';
 
 /// 더보기 탭 (v23a).
@@ -128,6 +128,8 @@ class _MoreScreenState extends State<MoreScreen> {
                     ]),
 
                     _group(context, _isKo ? '결산 · 알림' : 'Returns & alerts', [
+                      // 두 행이 같은 곳을 열지만 값은 각각 보여준다 —
+                      // 목록에서 지금 어떻게 설정돼 있는지 보이는 게 요점이다
                       _row(
                         context,
                         label: l10n.notifReminder,
@@ -136,25 +138,13 @@ class _MoreScreenState extends State<MoreScreen> {
                                 ? l10n.notifWeekly
                                 : l10n.notifMonthly)
                             : (_isKo ? '꺼짐' : 'Off'),
-                        onTap: () async {
-                          await showDialog(
-                            context: context,
-                            builder: (_) => const NotificationSettingsDialog(),
-                          );
-                          _loadNotifState();
-                        },
+                        onTap: _openNotifSettings,
                       ),
                       _row(
                         context,
                         label: l10n.settlementNotifHeader,
                         value: _settlementNotifSummary(l10n),
-                        onTap: () async {
-                          await showDialog(
-                            context: context,
-                            builder: (_) => const NotificationSettingsDialog(),
-                          );
-                          _loadNotifState();
-                        },
+                        onTap: _openNotifSettings,
                       ),
                     ]),
 
@@ -189,6 +179,16 @@ class _MoreScreenState extends State<MoreScreen> {
   }
 
   // ── 값 요약 ──
+
+  Future<void> _openNotifSettings() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const NotificationSettingsScreen(),
+      ),
+    );
+    _loadNotifState();
+  }
 
   /// `2개 계좌` — 켜진 계좌 수. 꺼져 있으면 `사용 안 함`.
   String _fractionalSummary(List<Portfolio> portfolios) {

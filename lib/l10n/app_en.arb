@@ -1,4 +1,6 @@
 {
+  "notifRebalanceSection": "Rebalancing reminders",
+  "settlementNotifNote": "Sent the morning after each period ends, so you can open the Returns tab and review.",
   "addPortfolioTitle": "New portfolio",
   "renamePortfolio": "Rename",
   "portfolioNameLabel": "Name",

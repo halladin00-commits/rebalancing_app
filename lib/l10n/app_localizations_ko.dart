@@ -9,6 +9,13 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
+  String get notifRebalanceSection => '리밸런싱 점검 알림';
+
+  @override
+  String get settlementNotifNote =>
+      '각 기간이 끝난 다음 날 아침에 알려줍니다. 결산 화면을 열어 확인하라는 알림입니다.';
+
+  @override
   String get addPortfolioTitle => '포트폴리오 만들기';
 
   @override
