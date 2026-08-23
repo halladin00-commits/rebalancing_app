@@ -9,6 +9,23 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get itemName => 'Name';
+
+  @override
+  String get itemNameHint => 'e.g. Vanguard S&P 500';
+
+  @override
+  String get itemFormNote =>
+      'Entering a quantity creates one buy transaction on that date. Returns are computed from transactions.';
+
+  @override
+  String get cashFormNote =>
+      'Cash is what is left in the account. It counts toward your weights.';
+
+  @override
+  String get validationNameRequired => 'Enter a name';
+
+  @override
   String deleteLosesItems(int items, int txs) {
     return '$items holdings and $txs transactions go with it.';
   }

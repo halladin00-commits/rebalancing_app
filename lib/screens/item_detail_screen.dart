@@ -8,7 +8,7 @@ import '../theme/design_system.dart';
 import '../utils/share_format.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/list_card.dart';
-import '../widgets/item_form_dialog.dart';
+import 'item_form_screen.dart';
 import 'transaction_form_screen.dart';
 
 /// 종목 상세 (시안 v12c).
@@ -404,15 +404,17 @@ class ItemDetailScreen extends StatelessWidget {
                     color: context.textPrimary)),
             onTap: () {
               Navigator.pop(sheetCtx);
-              showDialog(
-                context: context,
-                builder: (_) => ItemFormDialog(
-                  item: item,
-                  priceAuto: pf.priceAuto,
-                  currency: pf.currency,
-                  onSave: (updated) => context
-                      .read<PortfolioProvider>()
-                      .updateItem(pf.id, updated),
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ItemFormScreen(
+                    item: item,
+                    priceAuto: pf.priceAuto,
+                    currency: pf.currency,
+                    onSave: (updated) => context
+                        .read<PortfolioProvider>()
+                        .updateItem(pf.id, updated),
+                  ),
                 ),
               );
             },

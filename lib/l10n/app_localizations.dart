@@ -98,6 +98,36 @@ abstract class AppLocalizations {
     Locale('ko')
   ];
 
+  /// No description provided for @itemName.
+  ///
+  /// In ko, this message translates to:
+  /// **'종목명'**
+  String get itemName;
+
+  /// No description provided for @itemNameHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'예: TIGER 미국S&P500'**
+  String get itemNameHint;
+
+  /// No description provided for @itemFormNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'수량을 넣으면 그 날짜의 매수 거래가 하나 만들어집니다. 결산은 거래를 기준으로 계산합니다.'**
+  String get itemFormNote;
+
+  /// No description provided for @cashFormNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'예수금은 계좌에 남은 현금입니다. 비중 계산에 함께 잡힙니다.'**
+  String get cashFormNote;
+
+  /// No description provided for @validationNameRequired.
+  ///
+  /// In ko, this message translates to:
+  /// **'종목명을 입력해 주세요'**
+  String get validationNameRequired;
+
   /// No description provided for @deleteLosesItems.
   ///
   /// In ko, this message translates to:

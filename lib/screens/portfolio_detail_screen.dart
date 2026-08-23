@@ -12,7 +12,7 @@ import '../utils/rebalancer.dart';
 import '../utils/share_format.dart';
 import '../services/api_service.dart';
 import '../services/excel_import_service.dart';
-import '../widgets/item_form_dialog.dart';
+import 'item_form_screen.dart';
 import '../widgets/settings_dialog.dart';
 import 'item_detail_screen.dart';
 import 'item_search_screen.dart';
@@ -142,15 +142,22 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
   }
 
   void _showItemForm(Portfolio pf, [PortfolioItem? item]) {
-    showDialog(
-      context: context,
-      builder: (_) => ItemFormDialog(
-        item: item, priceAuto: pf.priceAuto, currency: pf.currency,
-        onSave: (newItem) {
-          final p = context.read<PortfolioProvider>();
-          if (item != null) p.updateItem(pf.id, newItem);
-          else p.addItem(pf.id, newItem);
-        },
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ItemFormScreen(
+          item: item,
+          priceAuto: pf.priceAuto,
+          currency: pf.currency,
+          onSave: (newItem) {
+            final p = context.read<PortfolioProvider>();
+            if (item != null) {
+              p.updateItem(pf.id, newItem);
+            } else {
+              p.addItem(pf.id, newItem);
+            }
+          },
+        ),
       ),
     );
   }

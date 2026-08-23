@@ -9,7 +9,7 @@ import '../models/portfolio.dart';
 import '../services/api_service.dart';
 import '../services/stock_search_service.dart';
 import '../theme/design_system.dart';
-import '../widgets/item_form_dialog.dart';
+import 'item_form_screen.dart';
 import '../widgets/list_card.dart';
 
 /// 종목 추가 · 검색 (시안 v13a).
@@ -391,24 +391,26 @@ class _ItemSearchScreenState extends State<ItemSearchScreen> {
   void _openForm(BuildContext context,
       {PortfolioItem? preset, bool isCash = false}) {
     final pf = widget.portfolio;
-    showDialog(
-      context: context,
-      builder: (_) => ItemFormDialog(
-        item: preset ??
-            (isCash
-                ? PortfolioItem(
-                    id: DateTime.now().millisecondsSinceEpoch.toRadixString(36),
-                    name: context.l10n.cash,
-                    market: 'CASH',
-                    isCash: true,
-                  )
-                : null),
-        priceAuto: pf.priceAuto,
-        currency: pf.currency,
-        onSave: (item) {
-          context.read<PortfolioProvider>().addItem(pf.id, item);
-          Navigator.pop(context); // 검색 화면도 닫는다
-        },
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ItemFormScreen(
+          preset: preset ??
+              (isCash
+                  ? PortfolioItem(
+                      id: DateTime.now().millisecondsSinceEpoch.toRadixString(36),
+                      name: context.l10n.cash,
+                      market: 'CASH',
+                      isCash: true,
+                    )
+                  : null),
+          priceAuto: pf.priceAuto,
+          currency: pf.currency,
+          onSave: (item) {
+            context.read<PortfolioProvider>().addItem(pf.id, item);
+            Navigator.pop(context); // 검색 화면도 닫는다
+          },
+        ),
       ),
     );
   }

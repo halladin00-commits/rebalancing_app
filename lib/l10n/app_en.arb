@@ -1,4 +1,9 @@
 {
+  "itemName": "Name",
+  "itemNameHint": "e.g. Vanguard S&P 500",
+  "itemFormNote": "Entering a quantity creates one buy transaction on that date. Returns are computed from transactions.",
+  "cashFormNote": "Cash is what is left in the account. It counts toward your weights.",
+  "validationNameRequired": "Enter a name",
   "deleteLosesItems": "{items} holdings and {txs} transactions go with it.",
   "@deleteLosesItems": { "placeholders": { "items": { "type": "int" }, "txs": { "type": "int" } } },
   "deleteCannotUndo": "This cannot be undone.",

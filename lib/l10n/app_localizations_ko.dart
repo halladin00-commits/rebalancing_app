@@ -9,6 +9,22 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
+  String get itemName => '종목명';
+
+  @override
+  String get itemNameHint => '예: TIGER 미국S&P500';
+
+  @override
+  String get itemFormNote =>
+      '수량을 넣으면 그 날짜의 매수 거래가 하나 만들어집니다. 결산은 거래를 기준으로 계산합니다.';
+
+  @override
+  String get cashFormNote => '예수금은 계좌에 남은 현금입니다. 비중 계산에 함께 잡힙니다.';
+
+  @override
+  String get validationNameRequired => '종목명을 입력해 주세요';
+
+  @override
   String deleteLosesItems(int items, int txs) {
     return '종목 $items개 · 거래 $txs건이 함께 지워집니다.';
   }
