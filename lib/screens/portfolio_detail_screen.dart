@@ -172,8 +172,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
             currency: s['currency'], commissionEnabled: s['commissionEnabled'],
             commissionRate: s['commissionRate'], exchangeAuto: s['exchangeAuto'],
             exchangeRate: s['exchangeRate'], priceAuto: s['priceAuto'],
-            rebalancingThreshold: s['rebalancingThreshold'],
-            fractionalEnabled: s['fractionalEnabled']);
+            rebalancingThreshold: s['rebalancingThreshold']);
         },
       ),
     );

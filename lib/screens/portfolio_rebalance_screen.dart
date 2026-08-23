@@ -384,7 +384,6 @@ class PortfolioRebalanceScreen extends StatelessWidget {
                 exchangeRate: s['exchangeRate'],
                 priceAuto: s['priceAuto'],
                 rebalancingThreshold: s['rebalancingThreshold'],
-                fractionalEnabled: s['fractionalEnabled'],
               );
         },
       ),
