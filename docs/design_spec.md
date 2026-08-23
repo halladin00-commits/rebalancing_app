@@ -225,6 +225,14 @@ adb logcat -d | grep -i "gms.ads\|DynamiteModule"
 메인 스레드를 잡는 것이고, 실기기에서는 훨씬 가볍다. 실제로 사용자 폰
 (SM-S921N)에서는 같은 빌드가 문제없이 돌았다. 쫓지 말 것.
 
+**검증할 때는 비행기 모드를 켠다.** 광고가 즉시 실패해 ANR이 아예 안 난다.
+시세는 이미 받아 둔 값이 남아 있어 화면 확인에는 지장이 없다.
+
+```
+adb shell cmd connectivity airplane-mode enable    # 검증 시작 전
+adb shell cmd connectivity airplane-mode disable   # 시세 갱신을 봐야 할 때만
+```
+
 깨졌을 때 복구:
 ```
 taskkill //F //IM qemu-system-x86_64.exe
