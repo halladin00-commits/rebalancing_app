@@ -135,13 +135,20 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
           onSave: (name, emoji) {
             final pf = Portfolio(id: _uid(), name: name, emoji: emoji);
             context.read<PortfolioProvider>().addPortfolio(pf);
-            // 빈 포트만 덩그러니 남기지 않는다 — 바로 종목을 담게 이어준다
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => ItemSearchScreen(portfolio: pf),
-              ),
-            );
+            // 빈 포트만 덩그러니 남기지 않는다 — 바로 종목을 담게 이어준다.
+            //
+            // onSave는 폼이 pop 되기 **전에** 불린다. 여기서 바로 push 하면
+            // 검색 화면이 폼 위에 얹히고, 이어지는 pop이 그 검색 화면을 닫는다.
+            // 프레임이 끝난 뒤(=폼이 사라진 뒤)에 민다.
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!context.mounted) return;
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ItemSearchScreen(portfolio: pf),
+                ),
+              );
+            });
           },
         ),
       ),
