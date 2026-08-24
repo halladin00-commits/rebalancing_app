@@ -9,6 +9,21 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get firstRunTitle => 'How do you want to enter your holdings?';
+
+  @override
+  String get firstRunWithDates =>
+      'Include purchase dates and the Returns tab can show period returns. Recommended.';
+
+  @override
+  String get firstRunQuickOnly =>
+      'Quantity alone still works for assets and rebalancing. Only period returns are unavailable.';
+
+  @override
+  String get firstRunUpload =>
+      'With many trades, create a portfolio then use the menu to import an Excel file.';
+
+  @override
   String get settlementCannotCompute =>
       'Could not fetch prices to compute this';
 

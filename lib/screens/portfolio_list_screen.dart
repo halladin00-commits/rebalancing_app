@@ -712,7 +712,8 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                                   const SizedBox(height: 10),
                                   _buildPortfolioCard(context, portfolios),
                                   const SizedBox(height: 10),
-                                ],
+                                ] else
+                                  _buildFirstRun(context),
                                 _buildAddCard(context),
                               ],
                             ),
@@ -1210,6 +1211,68 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
         ),
       ),
     );
+  }
+
+  /// 첫 진입 안내 (시안 v17d).
+  ///
+  /// 시안은 `파일 올리기` / `직접 거래 기록` / `보유 현황만` 세 갈래인데,
+  /// 뒤의 둘은 이 앱에서 **같은 화면으로 간다** — 종목을 넣을 때 매수 일자를
+  /// 챙기느냐 마느냐의 차이일 뿐 별도 모드가 아니다. 버튼 두 개가 똑같이
+  /// 동작하면 거짓말이므로, 갈림길 대신 **그 차이를 한 번 알려주는** 쪽으로 뒀다.
+  Widget _buildFirstRun(BuildContext context) {
+    final l10n = context.l10n;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+      decoration: BoxDecoration(
+        color: context.cardBg,
+        borderRadius: BorderRadius.circular(DS.cardRadius),
+        border: Border.all(color: context.cardBorder),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(l10n.firstRunTitle,
+            style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.3,
+                height: 1.4,
+                color: context.textPrimary)),
+        const SizedBox(height: 14),
+        _firstRunPoint(context, Icons.history, l10n.firstRunWithDates,
+            highlight: true),
+        const SizedBox(height: 10),
+        _firstRunPoint(context, Icons.bolt, l10n.firstRunQuickOnly),
+        const SizedBox(height: 10),
+        _firstRunPoint(context, Icons.upload_file, l10n.firstRunUpload),
+      ]),
+    );
+  }
+
+  Widget _firstRunPoint(BuildContext context, IconData icon, String text,
+      {bool highlight = false}) {
+    return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Container(
+        width: 26,
+        height: 26,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: highlight ? context.brandTint : context.subtleFill,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(icon,
+            size: 15,
+            color: highlight ? context.brandOnLight : context.textSecondary),
+      ),
+      const SizedBox(width: 10),
+      Expanded(
+        child: Text(text,
+            style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                height: 1.55,
+                color: highlight ? context.textStrong : context.textSecondary)),
+      ),
+    ]);
   }
 
   Widget _buildAddCard(BuildContext context) {

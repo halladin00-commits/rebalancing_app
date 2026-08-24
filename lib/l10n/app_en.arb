@@ -1,4 +1,8 @@
 {
+  "firstRunTitle": "How do you want to enter your holdings?",
+  "firstRunWithDates": "Include purchase dates and the Returns tab can show period returns. Recommended.",
+  "firstRunQuickOnly": "Quantity alone still works for assets and rebalancing. Only period returns are unavailable.",
+  "firstRunUpload": "With many trades, create a portfolio then use the menu to import an Excel file.",
   "settlementCannotCompute": "Could not fetch prices to compute this",
   "settlementNoHoldings": "No holdings in this period",
   "targetWeightsTitle": "Target weights",

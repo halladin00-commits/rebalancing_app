@@ -9,6 +9,19 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
+  String get firstRunTitle => '보유 종목을 어떻게 넣으시겠어요?';
+
+  @override
+  String get firstRunWithDates => '매수 일자까지 넣으면 결산 탭에서 기간별 손익이 나옵니다. 권장합니다.';
+
+  @override
+  String get firstRunQuickOnly =>
+      '수량만 빠르게 넣어도 자산·리밸런싱은 그대로 됩니다. 결산의 기간 손익만 안 나옵니다.';
+
+  @override
+  String get firstRunUpload => '거래가 많으면 포트폴리오를 만든 뒤 ⋮ 메뉴에서 엑셀로 한 번에 올릴 수 있습니다.';
+
+  @override
   String get settlementCannotCompute => '시세를 받지 못해 계산할 수 없습니다';
 
   @override
