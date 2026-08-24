@@ -175,7 +175,7 @@ class _RebalanceTransactionDialogState extends State<RebalanceTransactionDialog>
         children: [
           _segmentBtn(id, true, isBuy, l10n.transactionBuy, context.brand),
           Container(width: 1, color: context.borderColor),
-          _segmentBtn(id, false, isBuy, l10n.transactionSell, Colors.red),
+          _segmentBtn(id, false, isBuy, l10n.transactionSell, context.danger),
         ],
       ),
     );

@@ -102,7 +102,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     if (_refreshing) return;
     final l10n = context.l10n;
     if (!pf.exchangeAuto && !pf.priceAuto) {
-      _showToast(l10n.toastAutoSettingRequired, Colors.orange);
+      _showToast(l10n.toastAutoSettingRequired, danger: true);
       return;
     }
     setState(() => _refreshing = true);
@@ -130,15 +130,25 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     setState(() => _refreshing = false);
 
     if (errors.isEmpty) {
-      _showToast(l10n.updateSuccessCount(successCount), context.brand);
+      _showToast(l10n.updateSuccessCount(successCount));
     }
-    else if (successCount > 0) _showToast('$successCount건 성공, ${errors.length}건 실패', Colors.orange);
-    else _showToast(l10n.updateFailed(errors.first), Colors.red);
+    // 일부라도 실패하면 마지막 값이 유지된다는 걸 알려야 한다
+    else if (successCount > 0) {
+      _showToast(l10n.refreshPartialFail(errors.length), danger: true);
+    } else {
+      _showToast(l10n.updateFailed(errors.first), danger: true);
+    }
   }
 
-  void _showToast(String msg, Color color) {
+  /// [danger]면 배경을 주의색으로 — 실패를 성공과 같은 모양으로 띄우면
+  /// 사용자가 못 알아챈다.
+  void _showToast(String msg, {bool danger = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), duration: const Duration(seconds: 2)),
+      SnackBar(
+        content: Text(msg),
+        backgroundColor: danger ? context.warningText : null,
+        duration: const Duration(seconds: 2),
+      ),
     );
   }
 
@@ -200,9 +210,9 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
       );
       if (!mounted) return;
       final ok = r['isSuccess'] == true || r['filePath'] != null;
-      _showToast(ok ? l10n.savedToGallery : l10n.saveFailed, ok ? Colors.green : Colors.red);
+      _showToast(ok ? l10n.savedToGallery : l10n.saveFailed, danger: !ok);
     } catch (e) {
-      if (mounted) _showToast(l10n.saveFailedError(e.toString()), Colors.red);
+      if (mounted) _showToast(l10n.saveFailedError(e.toString()), danger: true);
     } finally {
       if (mounted) setState(() => _savingAsset = false);
     }
@@ -225,7 +235,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
       await file.writeAsBytes(bytes);
       await Share.shareXFiles([XFile(file.path)]);
     } catch (e) {
-      if (mounted) _showToast(l10n.saveFailedError(e.toString()), Colors.red);
+      if (mounted) _showToast(l10n.saveFailedError(e.toString()), danger: true);
     } finally {
       if (mounted) setState(() => _sharingAsset = false);
     }
@@ -391,7 +401,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
               context.read<PortfolioProvider>().deleteItem(pf.id, item.id);
               Navigator.pop(context);
             },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: context.danger),
             child: Text(l10n.delete),
           ),
         ],
@@ -519,75 +529,103 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: context.cardBg,
+      backgroundColor: context.scaffoldBg,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(DS.sheetRadius)),
       ),
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setS) => Padding(
-          padding: EdgeInsets.fromLTRB(20, 16, 20, MediaQuery.of(ctx).padding.bottom + 20),
+          padding: EdgeInsets.fromLTRB(
+              20, 10, 20, MediaQuery.of(ctx).padding.bottom + 20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
                 child: Container(
-                  width: 36, height: 4,
+                  width: 38,
+                  height: 4,
                   decoration: BoxDecoration(
-                    color: ctx.borderColor,
+                    color: const Color(0xFFD6CFBC),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
-              const SizedBox(height: 14),
-              Text(l10n.excelImportTitle,
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: ctx.textPrimary)),
               const SizedBox(height: 16),
-              Row(children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => ExcelImportService.downloadTemplate(isKo),
-                    icon: const Icon(Icons.download_outlined, size: 16),
-                    label: Text(l10n.excelDownloadTemplate),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: ctx.textPrimary,
-                      side: BorderSide(color: ctx.borderColor),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: importing
-                        ? null
-                        : () async {
-                            setS(() => importing = true);
-                            final result = await ExcelImportService.importTransactions(
-                              pf, context.read<PortfolioProvider>(), isKo,
-                            );
-                            setS(() => importing = false);
-                            if (!ctx.mounted) return;
-                            Navigator.pop(ctx);
-                            if (result != null) _showImportResult(context, l10n, result);
-                          },
-                    icon: importing
-                        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                        : const Icon(Icons.upload_outlined, size: 16),
-                    label: Text(l10n.excelImportFile),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: context.brand,
-                      side: BorderSide(color: context.brand),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                  ),
-                ),
-              ]),
-              const SizedBox(height: 14),
+              Text(l10n.excelImportTitle,
+                  style: TextStyle(
+                      fontSize: 15.5,
+                      fontWeight: FontWeight.w800,
+                      color: ctx.textPrimary)),
+              const SizedBox(height: 6),
               Text(l10n.excelTemplateHint,
-                  style: TextStyle(fontSize: 11, color: ctx.textHint, height: 1.6)),
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      height: 1.55,
+                      color: ctx.textSecondary)),
+              const SizedBox(height: 16),
+              // 주 동작은 파일 올리기다. 양식 받기는 그 앞 단계일 뿐이라
+              // 같은 무게로 두면 무엇을 눌러야 할지 알 수 없다.
+              SizedBox(
+                width: double.infinity,
+                height: DS.buttonHeight,
+                child: ElevatedButton.icon(
+                  onPressed: importing
+                      ? null
+                      : () async {
+                          setS(() => importing = true);
+                          final result =
+                              await ExcelImportService.importTransactions(
+                            pf,
+                            context.read<PortfolioProvider>(),
+                            isKo,
+                          );
+                          setS(() => importing = false);
+                          if (!ctx.mounted) return;
+                          Navigator.pop(ctx);
+                          if (result != null) {
+                            _showImportResult(context, l10n, result);
+                          }
+                        },
+                  icon: importing
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white))
+                      : const Icon(Icons.upload_file, size: 18),
+                  label: Text(l10n.excelImportFile,
+                      style: const TextStyle(
+                          fontSize: 14.5, fontWeight: FontWeight.w800)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: ctx.brand,
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: ctx.disabledFill,
+                    disabledForegroundColor: ctx.textDisabled,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.circular(DS.buttonRadius)),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                height: 44,
+                child: TextButton.icon(
+                  onPressed: () => ExcelImportService.downloadTemplate(isKo),
+                  icon: Icon(Icons.download_outlined,
+                      size: 17, color: ctx.brandOnLight),
+                  label: Text(l10n.excelDownloadTemplate,
+                      style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: ctx.brandOnLight)),
+                ),
+              ),
             ],
           ),
         ),
@@ -1063,10 +1101,11 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
             icon: Container(
               width: 28, height: 28,
               decoration: BoxDecoration(
-                  color: Colors.red.withValues(alpha: 0.12),
+                  color: context.pnlDownTint,
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.red.withValues(alpha: 0.4))),
-              child: const Icon(Icons.remove, color: Colors.red, size: 18),
+                  border: Border.all(
+                      color: context.danger.withValues(alpha: 0.4))),
+              child: Icon(Icons.remove, color: context.danger, size: 18),
             ),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
