@@ -238,6 +238,11 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
                 ),
               ),
               const SizedBox(height: 6),
+              // 계산이 안 되면 `—` 하나만 남아 왜 비었는지 알 수 없었다.
+              // 숫자를 지어내지 않되, 이유와 다음 행동은 준다 (v13e와 같은 원칙)
+              if (r == null && !_loading)
+                _buildCannotCompute(context, l10n)
+              else
               Row(
                 crossAxisAlignment: CrossAxisAlignment.baseline,
                 textBaseline: TextBaseline.alphabetic,
@@ -277,6 +282,53 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
         ),
       ],
     );
+  }
+
+  /// 결산을 계산하지 못했을 때. 왜 비었는지 밝히고 다시 시도할 길을 준다.
+  ///
+  /// 결산은 기간 시작·끝의 과거 주가를 받아야 나온다. 네트워크가 없거나
+  /// 시세 조회가 실패하면 아무 값도 못 만든다 — 그 사실을 말해주지 않으면
+  /// 사용자는 앱이 고장 났다고 생각한다.
+  Widget _buildCannotCompute(BuildContext context, dynamic l10n) {
+    // 보유 종목이 아예 없으면 계산할 게 없는 것이지 실패가 아니다
+    final hasHoldings = widget.portfolios
+        .any((pf) => pf.items.any((i) => !i.isCash && i.shares > 0));
+
+    return Row(children: [
+      Flexible(
+        child: Text(
+          hasHoldings ? l10n.settlementCannotCompute : l10n.settlementNoHoldings,
+          style: TextStyle(
+              fontSize: DS.body,
+              fontWeight: FontWeight.w600,
+              height: 1.45,
+              color: context.onBrandSecondary),
+        ),
+      ),
+      if (hasHoldings) ...[
+        const SizedBox(width: 10),
+        GestureDetector(
+          onTap: _loading ? null : _load,
+          behavior: HitTestBehavior.opaque,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.16),
+              borderRadius: BorderRadius.circular(DS.chipRadius),
+            ),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              const Icon(Icons.refresh, size: 14, color: Colors.white),
+              const SizedBox(width: 5),
+              Text(l10n.refreshRetry,
+                  style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white)),
+            ]),
+          ),
+        ),
+      ],
+    ]);
   }
 
   Widget _unitTab(BuildContext context, SettlementPeriod p, dynamic l10n) {

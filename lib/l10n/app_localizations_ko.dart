@@ -9,6 +9,12 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
+  String get settlementCannotCompute => '시세를 받지 못해 계산할 수 없습니다';
+
+  @override
+  String get settlementNoHoldings => '해당 기간 보유 종목 없음';
+
+  @override
   String get targetWeightsTitle => '목표 비중 설정';
 
   @override
@@ -1006,9 +1012,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get settlementCurrentPeriod => '진행 중';
-
-  @override
-  String get settlementNoHoldings => '해당 기간 보유 종목 없음';
 
   @override
   String get settlementNetCashFlow => '추가 투자금';

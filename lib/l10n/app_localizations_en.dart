@@ -9,6 +9,13 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get settlementCannotCompute =>
+      'Could not fetch prices to compute this';
+
+  @override
+  String get settlementNoHoldings => 'No holdings in this period';
+
+  @override
   String get targetWeightsTitle => 'Target weights';
 
   @override
@@ -1020,9 +1027,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settlementCurrentPeriod => 'In Progress';
-
-  @override
-  String get settlementNoHoldings => 'No holdings in this period';
 
   @override
   String get settlementNetCashFlow => 'Capital Added';

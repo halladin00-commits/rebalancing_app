@@ -1,4 +1,6 @@
 {
+  "settlementCannotCompute": "시세를 받지 못해 계산할 수 없습니다",
+  "settlementNoHoldings": "이 기간에 보유한 종목이 없습니다",
   "targetWeightsTitle": "목표 비중 설정",
   "targetSum": "목표 합계",
   "targetSumMustBe100": "합계를 100%로 맞춰 주세요",

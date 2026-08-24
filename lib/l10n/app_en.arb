@@ -1,4 +1,6 @@
 {
+  "settlementCannotCompute": "Could not fetch prices to compute this",
+  "settlementNoHoldings": "No holdings in this period",
   "targetWeightsTitle": "Target weights",
   "targetSum": "Total",
   "targetSumMustBe100": "Total must be 100%",

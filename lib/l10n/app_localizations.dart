@@ -98,6 +98,18 @@ abstract class AppLocalizations {
     Locale('ko')
   ];
 
+  /// No description provided for @settlementCannotCompute.
+  ///
+  /// In ko, this message translates to:
+  /// **'시세를 받지 못해 계산할 수 없습니다'**
+  String get settlementCannotCompute;
+
+  /// No description provided for @settlementNoHoldings.
+  ///
+  /// In ko, this message translates to:
+  /// **'해당 기간 보유 종목 없음'**
+  String get settlementNoHoldings;
+
   /// No description provided for @targetWeightsTitle.
   ///
   /// In ko, this message translates to:
@@ -1933,12 +1945,6 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'진행 중'**
   String get settlementCurrentPeriod;
-
-  /// No description provided for @settlementNoHoldings.
-  ///
-  /// In ko, this message translates to:
-  /// **'해당 기간 보유 종목 없음'**
-  String get settlementNoHoldings;
 
   /// No description provided for @settlementNetCashFlow.
   ///
