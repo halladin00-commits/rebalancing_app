@@ -14,7 +14,7 @@
 
 ## 바로 다음에 할 일 (우선순위 순)
 
-### 1. 결산 탭 빈 상태 안내 ← 여기서 끊겼다
+### 1. 결산 탭 빈 상태 안내 — ✅ 완료 (2026-08-24)
 
 에뮬레이터를 비행기 모드로 두고 결산 탭에 들어가니 **헤더가 거의 비어 있었다.**
 기간 손익·수익률 자리에 작은 회색 막대만 남고, 왜 비었는지 설명이 없다.
@@ -101,3 +101,16 @@ mv android/_key.properties.aside android/key.properties   # 절대 빠뜨리지 
   Write 도구로 파일을 만든다.
 - `flutter analyze` 확인은 `grep -iE "error -|warning -"`로. `^\s+(error|warning)`은
   warning 줄을 놓친다(이것 때문에 경고 9개가 쌓인 걸 늦게 발견했다).
+
+
+---
+
+## 출장 중 이어서 하기
+
+**Remote Control로 폰에서 이어간다.** 검증 완료 — 선택지도 폰에서 뜨고 고를 수 있다
+(dispatch로는 안 되던 부분).
+
+시작 방법과 주의사항: [../tools/REMOTE_CONTROL.md](../tools/REMOTE_CONTROL.md)
+
+폰에서 새 세션을 열면 **이 파일부터 읽으라고** 하면 된다:
+> `docs/WORK_STATE.md 읽고 이어서 진행해`
