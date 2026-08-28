@@ -105,7 +105,9 @@ void main() {
     expect(await AssetHistoryService.load(), isEmpty);
   });
 
-  test('그래프는 두 점부터 그린다', () {
-    expect(AssetHistoryService.minPointsForChart, 2);
+  test('점이 모자라면 그래프를 그리지 않는다', () {
+    // 2점은 추이가 아니라 두 값을 이은 직선일 뿐이다.
+    // 값이 크고 차이가 작으면 상대 스케일 탓에 화면을 꽉 채워 덩어리로 보인다.
+    expect(AssetHistoryService.minPointsForChart, greaterThanOrEqualTo(5));
   });
 }

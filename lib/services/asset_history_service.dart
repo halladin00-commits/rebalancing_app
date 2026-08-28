@@ -25,8 +25,13 @@ class AssetHistoryService {
   /// 보관 기간. 이보다 오래된 점은 저장 시 버린다.
   static const _retentionDays = 400;
 
-  /// 그래프를 그리기 위한 최소 점 개수. 한 점짜리 선은 의미가 없다.
-  static const minPointsForChart = 2;
+  /// 그래프를 그리기 위한 최소 점 개수.
+  ///
+  /// 2점이면 선은 그려지지만 **추이가 아니라 두 값을 이은 직선**일 뿐이다.
+  /// 게다가 값이 크고 차이가 작으면 상대 스케일 때문에 그 직선이 화면을 꽉
+  /// 채워 초록 덩어리처럼 보인다(실제로 그렇게 나왔다).
+  /// 5점부터 그린다 — 그전까지는 왜 비었는지 안내를 띄운다.
+  static const minPointsForChart = 5;
 
   static String _dayKey(DateTime d) =>
       '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
