@@ -1,4 +1,8 @@
 {
+  "excludedShort": "제외",
+  "keepAsIs": "그대로 둠",
+  "planAllOrNothing": "아래 {count}건을 모두 실행해야 이 결과가 됩니다. 체크를 끄면 나머지를 다시 계산합니다.",
+  "@planAllOrNothing": { "placeholders": { "count": { "type": "int" } } },
   "firstRunTitle": "보유 종목을 어떻게 넣으시겠어요?",
   "firstRunWithDates": "매수 일자까지 넣으면 결산 탭에서 기간별 손익이 나옵니다. 권장합니다.",
   "firstRunQuickOnly": "수량만 빠르게 넣어도 자산·리밸런싱은 그대로 됩니다. 결산의 기간 손익만 안 나옵니다.",

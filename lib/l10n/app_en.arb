@@ -1,4 +1,8 @@
 {
+  "excludedShort": "Skip",
+  "keepAsIs": "Leave as is",
+  "planAllOrNothing": "All {count} trades must be executed for this result. Unchecking one recalculates the rest.",
+  "@planAllOrNothing": { "placeholders": { "count": { "type": "int" } } },
   "firstRunTitle": "How do you want to enter your holdings?",
   "firstRunWithDates": "Include purchase dates and the Returns tab can show period returns. Recommended.",
   "firstRunQuickOnly": "Quantity alone still works for assets and rebalancing. Only period returns are unavailable.",

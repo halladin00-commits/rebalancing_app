@@ -9,6 +9,17 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
+  String get excludedShort => '제외';
+
+  @override
+  String get keepAsIs => '그대로 둠';
+
+  @override
+  String planAllOrNothing(int count) {
+    return '아래 $count건을 모두 실행해야 이 결과가 됩니다. 체크를 끄면 나머지를 다시 계산합니다.';
+  }
+
+  @override
   String get firstRunTitle => '보유 종목을 어떻게 넣으시겠어요?';
 
   @override

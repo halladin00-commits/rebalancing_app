@@ -65,7 +65,13 @@ class Rebalancer {
     return result;
   }
 
-  static RebalanceResult? calculate(Portfolio portfolio) {
+  /// [excludeIds]에 든 종목은 **건드리지 않는다** — 현재 수량을 그대로 두고
+  /// 나머지만 목표에 맞춘다. 조정 제안에서 체크를 끈 종목이 여기로 온다
+  /// ("저건 팔기 싫은데 나머지는 어떻게 하지"에 답하기 위한 것).
+  static RebalanceResult? calculate(
+    Portfolio portfolio, {
+    Set<String>? excludeIds,
+  }) {
     final items = portfolio.items;
     if (items.isEmpty) return null;
     final weightSum = items.fold(0.0, (sum, item) => sum + item.targetWeight);
@@ -105,7 +111,7 @@ class Rebalancer {
     //
     // 추가 투자금이 있으면 어차피 전 종목의 비중이 바뀌므로 잠그지 않는다.
     // 임계값이 0이면 기존 동작(전 종목 재배분) 그대로다.
-    final lockedIds = <String>{};
+    final lockedIds = <String>{...?excludeIds};
     if (portfolio.rebalancingThreshold > 0 && portfolio.additionalInvestment == 0) {
       final exceeding =
           Rebalancer.driftExceeding(portfolio).map((d) => d.item.id).toSet();

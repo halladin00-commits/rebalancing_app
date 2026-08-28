@@ -29,6 +29,9 @@ class RebalanceProposalScreen extends StatefulWidget {
 class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
   late final TextEditingController _investCtl;
 
+  /// 체크를 끈 종목. 이 종목들은 건드리지 않고 나머지만 다시 맞춘다 (시안 v20).
+  final _excluded = <String>{};
+
   @override
   void initState() {
     super.initState();
@@ -62,10 +65,21 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
         if (pf == null) {
           return Scaffold(body: Center(child: Text(l10n.portfolioNotFound)));
         }
-        final rb = Rebalancer.calculate(pf);
+        final rb = Rebalancer.calculate(pf, excludeIds: _excluded);
         final trades = rb == null
             ? <RebalanceItemResult>[]
             : rb.results.where((r) => !r.isCash && r.delta != 0).toList();
+
+        // 체크를 끈 종목은 delta가 0이 되어 위 목록에서 빠진다.
+        // 그대로 사라지면 다시 켤 수가 없으므로 회색으로 남겨 둔다.
+        final shown = <RebalanceItemResult>[
+          ...trades,
+          if (rb != null)
+            ...rb.results.where((r) =>
+                !r.isCash &&
+                _excluded.contains(r.id) &&
+                !trades.any((t) => t.id == r.id)),
+        ];
 
         return Scaffold(
           backgroundColor: context.scaffoldBg,
@@ -80,10 +94,14 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
                         children: [
                           _buildModeSegment(context, pf),
                           const SizedBox(height: 9),
-                          if (trades.isEmpty)
+                          if (shown.isEmpty)
                             _buildNothingToDo(context)
                           else ...[
-                            _buildProposalCard(context, pf, rb, trades),
+                            if (trades.length > 1) ...[
+                              _buildAllOrNothing(context, trades.length),
+                              const SizedBox(height: 9),
+                            ],
+                            _buildProposalCard(context, pf, rb, shown),
                             const SizedBox(height: 9),
                             _buildRoundingNote(context, pf, rb, trades),
                           ],
@@ -258,7 +276,7 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
   // ── 조정 카드 ──
 
   Widget _buildProposalCard(BuildContext context, Portfolio pf,
-      RebalanceResult rb, List<RebalanceItemResult> trades) {
+      RebalanceResult rb, List<RebalanceItemResult> shown) {
     return Container(
       decoration: BoxDecoration(
         color: context.cardBg,
@@ -270,8 +288,31 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(children: [
-        for (final r in trades) _buildTradeBlock(context, pf, r),
+        for (final r in shown) _buildTradeBlock(context, pf, r),
         _buildDriftBlock(context, pf, rb),
+      ]),
+    );
+  }
+
+  /// 제안은 **한 묶음**이다. 일부만 실행하면 남는 편차가 달라진다.
+  Widget _buildAllOrNothing(BuildContext context, int count) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(13, 11, 13, 11),
+      decoration: BoxDecoration(
+        color: context.subtleFill,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Icon(Icons.link, size: 16, color: context.textSecondary),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(context.l10n.planAllOrNothing(count),
+              style: TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                  height: 1.45,
+                  color: context.textSecondary)),
+        ),
       ]),
     );
   }
@@ -280,6 +321,7 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
       BuildContext context, Portfolio pf, RebalanceItemResult r) {
     final l10n = context.l10n;
     final item = pf.items.firstWhere((i) => i.id == r.id);
+    final off = _excluded.contains(r.id);
     final isBuy = r.delta > 0;
 
     // 기준통화 환산가 — 금액은 포트 통화로 보여준다
@@ -303,14 +345,19 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
             padding: const EdgeInsets.symmetric(vertical: 4),
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: isBuy ? context.pnlUpTint : context.pnlDownTint,
+              color: off
+                  ? context.subtleFill
+                  : (isBuy ? context.pnlUpTint : context.pnlDownTint),
               borderRadius: BorderRadius.circular(6),
             ),
-            child: Text(isBuy ? l10n.buy : l10n.sell,
+            child: Text(
+                off ? l10n.excludedShort : (isBuy ? l10n.buy : l10n.sell),
                 style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
-                    color: isBuy ? context.brandOnLight : context.danger)),
+                    color: off
+                        ? context.textTertiary
+                        : (isBuy ? context.brandOnLight : context.danger))),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -319,23 +366,39 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                     letterSpacing: -0.2,
-                    color: context.textPrimary),
+                    color: off ? context.textTertiary : context.textPrimary),
                 overflow: TextOverflow.ellipsis),
           ),
           const SizedBox(width: 8),
-          Icon(Icons.check_circle, size: 20, color: context.brand),
+          // 끄면 그 종목을 빼고 나머지를 다시 계산한다
+          GestureDetector(
+            onTap: () => setState(() {
+              if (!_excluded.remove(r.id)) _excluded.add(r.id);
+            }),
+            behavior: HitTestBehavior.opaque,
+            child: Padding(
+              padding: const EdgeInsets.all(2),
+              child: Icon(
+                  off ? Icons.radio_button_unchecked : Icons.check_circle,
+                  size: 22,
+                  color: off ? context.textDisabled : context.brand),
+            ),
+          ),
         ]),
         const SizedBox(height: 11),
         Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('${formatShares(r.delta.abs())}${l10n.unitShares}',
+              Text(
+                  off
+                      ? l10n.keepAsIs
+                      : '${formatShares(r.delta.abs())}${l10n.unitShares}',
                   style: TextStyle(
-                      fontSize: 24,
+                      fontSize: off ? 16 : 24,
                       fontWeight: FontWeight.w800,
                       letterSpacing: -0.6,
                       height: 1.1,
-                      color: context.textPrimary)),
+                      color: off ? context.textTertiary : context.textPrimary)),
               const SizedBox(height: 4),
               Text(
                 l10n.atCurrentPrice(fmtPrice(item.currentPrice, item.market)),

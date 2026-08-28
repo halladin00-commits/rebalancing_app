@@ -98,6 +98,24 @@ abstract class AppLocalizations {
     Locale('ko')
   ];
 
+  /// No description provided for @excludedShort.
+  ///
+  /// In ko, this message translates to:
+  /// **'제외'**
+  String get excludedShort;
+
+  /// No description provided for @keepAsIs.
+  ///
+  /// In ko, this message translates to:
+  /// **'그대로 둠'**
+  String get keepAsIs;
+
+  /// No description provided for @planAllOrNothing.
+  ///
+  /// In ko, this message translates to:
+  /// **'아래 {count}건을 모두 실행해야 이 결과가 됩니다. 체크를 끄면 나머지를 다시 계산합니다.'**
+  String planAllOrNothing(int count);
+
   /// No description provided for @firstRunTitle.
   ///
   /// In ko, this message translates to:

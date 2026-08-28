@@ -9,6 +9,17 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get excludedShort => 'Skip';
+
+  @override
+  String get keepAsIs => 'Leave as is';
+
+  @override
+  String planAllOrNothing(int count) {
+    return 'All $count trades must be executed for this result. Unchecking one recalculates the rest.';
+  }
+
+  @override
   String get firstRunTitle => 'How do you want to enter your holdings?';
 
   @override
