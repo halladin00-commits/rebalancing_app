@@ -89,6 +89,10 @@ class PortfolioContribution {
   /// 이 포트 자체의 수익률 (%)
   final double returnRate;
 
+  /// 수익률을 낼 수 있는가. false면 `returnRate`는 의미가 없다 —
+  /// `0.00%`로 적으면 "정말 0%"와 구분되지 않는다.
+  final bool rateAvailable;
+
   /// 전체 수익률에 기여한 정도 (%p)
   final double contribution;
 
@@ -100,6 +104,7 @@ class PortfolioContribution {
     required this.endValue,
     required this.absoluteReturn,
     required this.returnRate,
+    this.rateAvailable = true,
     required this.contribution,
   });
 }
@@ -510,6 +515,7 @@ class SettlementService {
         endValue: e.r.endValue * e.fx,
         absoluteReturn: pfAbs,
         returnRate: e.r.returnRate,
+        rateAvailable: e.r.rateAvailable,
         // 전체 분모로 나눠 %p로 만든다
         contribution: start > 0 ? pfAbs / start * 100 : 0.0,
       );

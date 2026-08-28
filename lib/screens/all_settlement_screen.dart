@@ -609,7 +609,9 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
               SizedBox(
                 width: 52,
                 child: Text(
-                  '${c.returnRate >= 0 ? '+' : '−'}${c.returnRate.abs().toStringAsFixed(2)}%',
+                  c.rateAvailable
+                      ? '${c.returnRate >= 0 ? '+' : '−'}${c.returnRate.abs().toStringAsFixed(2)}%'
+                      : '—',
                   textAlign: TextAlign.right,
                   style: TextStyle(
                       fontSize: DS.returnPct,
