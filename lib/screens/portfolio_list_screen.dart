@@ -13,6 +13,7 @@ import '../theme/design_system.dart';
 import '../utils/rebalancer.dart';
 import 'portfolio_form_screen.dart';
 import 'item_search_screen.dart';
+import 'portfolio_reorder_screen.dart';
 import 'transaction_import_screen.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/brand_header.dart';
@@ -32,10 +33,7 @@ class PortfolioListScreen extends StatefulWidget {
 
 class PortfolioListScreenState extends State<PortfolioListScreen> {
   /// MainShell의 뒤로가기 처리용 — 편집 모드면 종료 확인을 먼저 띄운다.
-  bool get isEditMode => _editMode;
-  Future<void> confirmExitEdit() => _showEditExitConfirm();
 
-  bool _editMode = false;
   bool _savingMain = false;
   bool _sharingMain = false;
   final _screenshotCtrl = ScreenshotController();
@@ -160,116 +158,6 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
     );
   }
 
-  void _showEditDialog(BuildContext context, Portfolio pf) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => PortfolioFormScreen(
-          initialName: pf.name,
-          initialEmoji: pf.emoji,
-          isEdit: true,
-          onSave: (name, emoji) {
-            context
-                .read<PortfolioProvider>()
-                .updatePortfolio(pf.id, pf.copyWith(name: name, emoji: emoji));
-          },
-        ),
-      ),
-    );
-  }
-
-  void _duplicatePortfolio(Portfolio pf) {
-    final newPf = pf.copyWith(
-      id: _uid(),
-      name: '${pf.name} (복사)',
-      items: pf.items.map((item) => item.copyWith(id: _uid())).toList(),
-    );
-    context.read<PortfolioProvider>().addPortfolio(newPf);
-  }
-
-  void _showDeleteConfirm(BuildContext context, Portfolio pf) {
-    final l10n = context.l10n;
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: context.cardBg,
-        title: Text(l10n.deleteConfirmTitle,
-            style: TextStyle(color: context.textPrimary)),
-        // 무엇이 함께 사라지는지 밝힌다 — 이름만으로는 되돌릴 수 없다는 말의
-        // 무게가 전해지지 않는다 (시안 v16b)
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(pf.name,
-                style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: context.textPrimary)),
-            const SizedBox(height: 10),
-            Container(
-              width: double.infinity,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: context.warningBg,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                l10n.deleteLosesItems(
-                  pf.items.where((i) => !i.isCash).length,
-                  pf.items.fold(0, (n, i) => n + i.transactions.length),
-                ),
-                style: TextStyle(
-                    fontSize: 12.5,
-                    height: 1.45,
-                    fontWeight: FontWeight.w600,
-                    color: context.warningText),
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(l10n.deleteCannotUndo,
-                style: TextStyle(
-                    fontSize: 12.5, color: context.textSecondary)),
-          ],
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l10n.cancel)),
-          TextButton(
-            onPressed: () {
-              context.read<PortfolioProvider>().deletePortfolio(pf.id);
-              Navigator.pop(context);
-            },
-            style: TextButton.styleFrom(foregroundColor: context.danger),
-            child: Text(l10n.delete),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _showEditExitConfirm() async {
-    final l10n = context.l10n;
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text(l10n.editExitTitle),
-        content: Text(l10n.editExitContent),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text(l10n.cancel)),
-          TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: Text(l10n.exit)),
-        ],
-      ),
-    );
-    if (result == true) setState(() => _editMode = false);
-  }
-
   // ── Main image save/share ──
 
   /// 자산 탭 메뉴. 시안에 FAB는 없으므로 액션을 여기 모은다.
@@ -303,7 +191,10 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                     color: context.textPrimary)),
             onTap: () {
               Navigator.pop(sheetCtx);
-              setState(() => _editMode = true);
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const PortfolioReorderScreen()));
             },
           ),
           if (portfolios.isNotEmpty)
@@ -638,14 +529,15 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
     return Consumer<PortfolioProvider>(
       builder: (context, provider, _) {
         if (!provider.loaded) {
           return const Scaffold(
               body: Center(child: CircularProgressIndicator()));
         }
-        final portfolios = provider.portfolios;
+        // 정렬 규칙대로 줄 세운다 (시안 v16c)
+        final portfolios = sortPortfolios(
+            provider.portfolios, context.watch<PortfolioSortNotifier>().sort);
         return Scaffold(
           backgroundColor: context.scaffoldBg,
           body: Column(
@@ -656,8 +548,7 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                     iconSize: 21, textColor: context.onBrandSecondary),
                 childPadding: const EdgeInsets.fromLTRB(22, 4, 22, 16),
                 actions: [
-                  if (!_editMode)
-                    IconButton(
+                  IconButton(
                       icon: provider.refreshing
                           ? const SizedBox(
                               width: 20,
@@ -667,50 +558,20 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                           : const Icon(Icons.refresh, color: Colors.white),
                       onPressed: provider.refreshing ? null : _doRefreshAll,
                     ),
-                  if (!_editMode)
-                    IconButton(
-                      icon: const Icon(Icons.more_vert, color: Colors.white),
-                      onPressed: () => _showListMenu(portfolios),
-                    ),
-                  if (_editMode)
-                    TextButton.icon(
-                      onPressed: () => setState(() => _editMode = false),
-                      icon: const Icon(Icons.check,
-                          color: Colors.white, size: 18),
-                      label: Text(l10n.done,
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600)),
-                    ),
+                  IconButton(
+                    icon: const Icon(Icons.more_vert, color: Colors.white),
+                    onPressed: () => _showListMenu(portfolios),
+                  ),
                 ],
-                // 편집 중에만 총자산을 접어 목록에 집중시킨다.
                 // 포트가 없을 때도 `총 자산 ₩0`을 보인다 (시안 v17d) —
                 // 첫 진입만 헤더가 다르면 다른 앱처럼 보인다.
-                child: _editMode
-                    ? null
-                    : _buildTotalAssets(context, portfolios),
+                child: _buildTotalAssets(context, portfolios),
               ),
               Expanded(
                 child: Stack(
                   children: [
                     Positioned.fill(
-                      child: _editMode
-                          ? ReorderableListView.builder(
-                              padding:
-                                  const EdgeInsets.fromLTRB(16, 16, 16, 80),
-                              itemCount: portfolios.length,
-                              onReorder: (o, n) {
-                                if (n > o) n--;
-                                final list = List<Portfolio>.from(portfolios);
-                                final item = list.removeAt(o);
-                                list.insert(n, item);
-                                provider.reorderPortfolios(list);
-                              },
-                              itemBuilder: (ctx, idx) => _buildEditCard(
-                                  context, portfolios[idx],
-                                  key: ValueKey(portfolios[idx].id)),
-                            )
-                          : ListView(
+                      child: ListView(
                               padding:
                                   const EdgeInsets.fromLTRB(16, 14, 16, 100),
                               children: [
@@ -1421,69 +1282,4 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
   }
 
   // ── 편집 모드 카드 ──
-
-  Widget _buildEditCard(BuildContext context, Portfolio pf, {Key? key}) {
-    final l10n = context.l10n;
-    final subtitle =
-        '${l10n.itemCountLabel(pf.items.length)} · ${fmtMoney(pf.totalValue, pf.currency)}';
-
-    return Container(
-      key: key,
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: context.cardBg,
-        borderRadius: BorderRadius.circular(DS.listCardRadius),
-        border: Border.all(color: context.cardBorder),
-      ),
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-      child: Row(
-        children: [
-          Text(pf.emoji, style: const TextStyle(fontSize: 24)),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(pf.name,
-                    style: TextStyle(
-                        fontSize: DS.rowName,
-                        fontWeight: FontWeight.w700,
-                        color: context.textPrimary),
-                    overflow: TextOverflow.ellipsis),
-                const SizedBox(height: 2),
-                Text(subtitle,
-                    style:
-                        TextStyle(fontSize: 12, color: context.textSecondary)),
-              ],
-            ),
-          ),
-          _editIconBtn(context, Icons.edit_outlined, context.brand,
-              () => _showEditDialog(context, pf)),
-          _editIconBtn(context, Icons.content_copy, context.brandOnLight,
-              () => _duplicatePortfolio(pf)),
-          _editIconBtn(context, Icons.remove, context.danger,
-              () => _showDeleteConfirm(context, pf)),
-        ],
-      ),
-    );
-  }
-
-  Widget _editIconBtn(
-      BuildContext context, IconData icon, Color color, VoidCallback onTap) {
-    return IconButton(
-      onPressed: onTap,
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-      icon: Container(
-        width: 30,
-        height: 30,
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.12),
-          shape: BoxShape.circle,
-          border: Border.all(color: color.withValues(alpha: 0.35)),
-        ),
-        child: Icon(icon, color: color, size: 16),
-      ),
-    );
-  }
 }

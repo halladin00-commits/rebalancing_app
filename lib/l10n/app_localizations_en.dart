@@ -1055,4 +1055,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get createAndUpload => 'Create and upload';
+
+  @override
+  String get sortManual => 'Manual';
+
+  @override
+  String get sortByValue => 'By value';
+
+  @override
+  String get sortByReturn => 'By return';
+
+  @override
+  String get sortManualNote =>
+      'Once you arrange them yourself, the order stays even when values change.';
+
+  @override
+  String get rename => 'Rename';
+
+  @override
+  String get duplicate => 'Duplicate';
+
+  @override
+  String get copySuffix => '(copy)';
 }

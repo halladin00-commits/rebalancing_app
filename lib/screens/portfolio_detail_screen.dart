@@ -14,6 +14,7 @@ import '../utils/rebalancer.dart';
 import '../utils/share_format.dart';
 import '../services/api_service.dart';
 import '../services/excel_import_service.dart';
+import '../widgets/portfolio_actions.dart';
 import 'transaction_import_screen.dart';
 import 'item_form_screen.dart';
 import 'portfolio_settings_screen.dart';
@@ -489,6 +490,21 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                     )),
             row(Icons.upload_file, l10n.excelImportTitle,
                 () => _openImport(context, pf)),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Divider(height: 1, color: context.dividerColor),
+            ),
+            // 포트 자체를 다루는 것들 (시안 v13d). 예전에는 자산 탭 편집
+            // 모드에만 있었는데, 순서 변경이 별도 화면이 되며 갈 곳을 잃었다.
+            row(Icons.edit_outlined, l10n.rename,
+                () => editPortfolio(context, pf)),
+            row(Icons.copy_outlined, l10n.duplicate,
+                () => duplicatePortfolio(context, pf, l10n.copySuffix)),
+            row(Icons.delete_outline, l10n.delete, () async {
+              final gone = await confirmDeletePortfolio(context, pf);
+              // 지운 포트의 상세에 남아 있을 수 없다
+              if (gone && context.mounted) Navigator.pop(context);
+            }, danger: true),
             const SizedBox(height: 8),
           ]),
         );

@@ -28,6 +28,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
         ChangeNotifierProvider(create: (_) => PnlColorNotifier()),
         ChangeNotifierProvider(create: (_) => MainCurrencyNotifier()),
+        ChangeNotifierProvider(create: (_) => PortfolioSortNotifier()),
       ],
       child: const RebalancingApp(),
     ),
@@ -123,6 +124,38 @@ class PnlColorNotifier extends ChangeNotifier {
 }
 
 // ── 메인페이지 기준 통화 관리 ──
+
+/// 자산 탭에서 포트폴리오를 어떤 순서로 보일지 (시안 v16c).
+///
+/// `manual`은 사용자가 직접 끌어다 놓은 순서다. 금액이 바뀌어도 그대로 둔다 —
+/// 정렬 규칙을 골라 두면 자리가 계속 움직여서 어느 포트가 어디 있는지
+/// 외울 수가 없다. 그걸 원하지 않는 사람을 위해 직접 배치를 한 축으로 뒀다.
+enum PortfolioSort { manual, value, returnRate }
+
+class PortfolioSortNotifier extends ChangeNotifier {
+  static const _key = 'portfolio_sort';
+  PortfolioSort _sort = PortfolioSort.manual;
+  PortfolioSort get sort => _sort;
+
+  PortfolioSortNotifier() {
+    _load();
+  }
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString(_key);
+    _sort = PortfolioSort.values.firstWhere((e) => e.name == saved,
+        orElse: () => PortfolioSort.manual);
+    notifyListeners();
+  }
+
+  Future<void> setSort(PortfolioSort s) async {
+    _sort = s;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_key, s.name);
+  }
+}
 
 class MainCurrencyNotifier extends ChangeNotifier {
   static const _key = 'main_currency';

@@ -60,18 +60,13 @@ class _MainShellState extends State<MainShell> {
   // ── 뒤로가기 ──
 
   void _handleBackPress() {
-    // 1) 자산 탭이 편집 모드면 편집 종료를 먼저 확인
-    final listState = _listKey.currentState;
-    if (_index == 0 && listState != null && listState.isEditMode) {
-      listState.confirmExitEdit();
-      return;
-    }
-    // 2) 다른 탭이면 자산 탭으로
+    // 순서 변경은 별도 화면이 됐으므로(v16c) 여기서 따로 볼 편집 모드가 없다.
+    // 1) 다른 탭이면 자산 탭으로
     if (_index != 0) {
       setState(() => _index = 0);
       return;
     }
-    // 3) 자산 탭이면 앱 종료 확인
+    // 2) 자산 탭이면 앱 종료 확인
     _showExitConfirm();
   }
 

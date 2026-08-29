@@ -724,5 +724,12 @@
   "firstRunQuickDesc": "Enter what you hold now and your average price. Assets and rebalancing work the same, but the Settlement tab's period P&L will not.",
   "firstRunQuickCta": "Enter holdings only",
   "hintThenUpload": "You'll go straight to uploading a file.",
-  "createAndUpload": "Create and upload"
+  "createAndUpload": "Create and upload",
+  "sortManual": "Manual",
+  "sortByValue": "By value",
+  "sortByReturn": "By return",
+  "sortManualNote": "Once you arrange them yourself, the order stays even when values change.",
+  "rename": "Rename",
+  "duplicate": "Duplicate",
+  "copySuffix": "(copy)"
 }

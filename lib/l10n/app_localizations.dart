@@ -1903,6 +1903,48 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'만들고 파일 올리기'**
   String get createAndUpload;
+
+  /// No description provided for @sortManual.
+  ///
+  /// In ko, this message translates to:
+  /// **'직접 배치'**
+  String get sortManual;
+
+  /// No description provided for @sortByValue.
+  ///
+  /// In ko, this message translates to:
+  /// **'금액순'**
+  String get sortByValue;
+
+  /// No description provided for @sortByReturn.
+  ///
+  /// In ko, this message translates to:
+  /// **'수익률순'**
+  String get sortByReturn;
+
+  /// No description provided for @sortManualNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'직접 배치 후에는 금액이 바뀌어도 순서가 그대로입니다.'**
+  String get sortManualNote;
+
+  /// No description provided for @rename.
+  ///
+  /// In ko, this message translates to:
+  /// **'이름 변경'**
+  String get rename;
+
+  /// No description provided for @duplicate.
+  ///
+  /// In ko, this message translates to:
+  /// **'복제'**
+  String get duplicate;
+
+  /// No description provided for @copySuffix.
+  ///
+  /// In ko, this message translates to:
+  /// **'(복사)'**
+  String get copySuffix;
 }
 
 class _AppLocalizationsDelegate

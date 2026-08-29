@@ -1038,4 +1038,25 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get createAndUpload => '만들고 파일 올리기';
+
+  @override
+  String get sortManual => '직접 배치';
+
+  @override
+  String get sortByValue => '금액순';
+
+  @override
+  String get sortByReturn => '수익률순';
+
+  @override
+  String get sortManualNote => '직접 배치 후에는 금액이 바뀌어도 순서가 그대로입니다.';
+
+  @override
+  String get rename => '이름 변경';
+
+  @override
+  String get duplicate => '복제';
+
+  @override
+  String get copySuffix => '(복사)';
 }
