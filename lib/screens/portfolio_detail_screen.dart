@@ -14,6 +14,7 @@ import '../utils/rebalancer.dart';
 import '../utils/share_format.dart';
 import '../services/api_service.dart';
 import '../services/excel_import_service.dart';
+import 'transaction_import_screen.dart';
 import 'item_form_screen.dart';
 import 'portfolio_settings_screen.dart';
 import 'item_detail_screen.dart';
@@ -487,7 +488,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                       () => _shareAssetImage(pf, rb),
                     )),
             row(Icons.upload_file, l10n.excelImportTitle,
-                () => _showExcelSheet(context, pf)),
+                () => _openImport(context, pf)),
             const SizedBox(height: 8),
           ]),
         );
@@ -527,115 +528,20 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
         MaterialPageRoute(builder: (_) => PortfolioGraphScreen(portfolioId: pf.id)));
   }
 
-  void _showExcelSheet(BuildContext context, Portfolio pf) {
+  /// 거래내역 업로드 (시안 v17b·v17c).
+  ///
+  /// 예전에는 여기서 바텀시트를 띄우고 그 안에서 파일을 골라 **바로 저장**했다.
+  /// 지금은 두 단계 화면이 그 일을 하고, 저장 전에 무엇이 들어가는지 보여준다.
+  /// 시트는 같은 내용을 한 번 더 묻는 단계일 뿐이라 없앴다.
+  Future<void> _openImport(BuildContext context, Portfolio pf) async {
     final l10n = context.l10n;
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    bool importing = false;
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: context.scaffoldBg,
-      shape: const RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.vertical(top: Radius.circular(DS.sheetRadius)),
-      ),
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setS) => Padding(
-          padding: EdgeInsets.fromLTRB(
-              20, 10, 20, MediaQuery.of(ctx).padding.bottom + 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 38,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFD6CFBC),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(l10n.excelImportTitle,
-                  style: TextStyle(
-                      fontSize: 15.5,
-                      fontWeight: FontWeight.w800,
-                      color: ctx.textPrimary)),
-              const SizedBox(height: 6),
-              Text(l10n.excelTemplateHint,
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      height: 1.55,
-                      color: ctx.textSecondary)),
-              const SizedBox(height: 16),
-              // 주 동작은 파일 올리기다. 양식 받기는 그 앞 단계일 뿐이라
-              // 같은 무게로 두면 무엇을 눌러야 할지 알 수 없다.
-              SizedBox(
-                width: double.infinity,
-                height: DS.buttonHeight,
-                child: ElevatedButton.icon(
-                  onPressed: importing
-                      ? null
-                      : () async {
-                          setS(() => importing = true);
-                          final result =
-                              await ExcelImportService.importTransactions(
-                            pf,
-                            context.read<PortfolioProvider>(),
-                            isKo,
-                          );
-                          setS(() => importing = false);
-                          if (!ctx.mounted) return;
-                          Navigator.pop(ctx);
-                          if (result != null) {
-                            _showImportResult(context, l10n, result);
-                          }
-                        },
-                  icon: importing
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white))
-                      : const Icon(Icons.upload_file, size: 18),
-                  label: Text(l10n.excelImportFile,
-                      style: const TextStyle(
-                          fontSize: 14.5, fontWeight: FontWeight.w800)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: ctx.brand,
-                    foregroundColor: Colors.white,
-                    disabledBackgroundColor: ctx.disabledFill,
-                    disabledForegroundColor: ctx.textDisabled,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(DS.buttonRadius)),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              SizedBox(
-                width: double.infinity,
-                height: 44,
-                child: TextButton.icon(
-                  onPressed: () => ExcelImportService.downloadTemplate(isKo),
-                  icon: Icon(Icons.download_outlined,
-                      size: 17, color: ctx.brandOnLight),
-                  label: Text(l10n.excelDownloadTemplate,
-                      style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: ctx.brandOnLight)),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+    final result = await Navigator.push<ImportResult?>(
+      context,
+      MaterialPageRoute(
+          builder: (_) => TransactionImportScreen(portfolioId: pf.id)),
     );
+    if (!context.mounted || result == null) return;
+    _showImportResult(context, l10n, result);
   }
 
   void _showImportResult(BuildContext context, dynamic l10n, ImportResult result) {

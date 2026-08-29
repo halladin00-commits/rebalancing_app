@@ -2323,6 +2323,168 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'환율 {rate} · 환산 {amount}'**
   String fxConverted(String rate, String amount);
+
+  /// No description provided for @importStep1.
+  ///
+  /// In ko, this message translates to:
+  /// **'1 / 2 · 파일 선택'**
+  String get importStep1;
+
+  /// No description provided for @importStep2.
+  ///
+  /// In ko, this message translates to:
+  /// **'2 / 2 · {file}'**
+  String importStep2(String file);
+
+  /// No description provided for @targetPortfolio.
+  ///
+  /// In ko, this message translates to:
+  /// **'담을 포트폴리오'**
+  String get targetPortfolio;
+
+  /// No description provided for @uploadHow.
+  ///
+  /// In ko, this message translates to:
+  /// **'업로드 방법'**
+  String get uploadHow;
+
+  /// No description provided for @downloadTemplateTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'표준 양식 내려받기'**
+  String get downloadTemplateTitle;
+
+  /// No description provided for @downloadTemplateDesc.
+  ///
+  /// In ko, this message translates to:
+  /// **'XLSX · 옮겨 적으면 확실하게 들어갑니다'**
+  String get downloadTemplateDesc;
+
+  /// No description provided for @brokerFileOk.
+  ///
+  /// In ko, this message translates to:
+  /// **'증권사에서 받은 파일을 그대로 올려도 됩니다 — 거래일 · 종목 · 구분 · 수량 · 단가 같은 열 이름을 자동으로 찾습니다.'**
+  String get brokerFileOk;
+
+  /// No description provided for @pickFile.
+  ///
+  /// In ko, this message translates to:
+  /// **'파일 선택'**
+  String get pickFile;
+
+  /// No description provided for @pickFileDesc.
+  ///
+  /// In ko, this message translates to:
+  /// **'CSV · XLSX · 최대 5MB'**
+  String get pickFileDesc;
+
+  /// No description provided for @requiredColumns.
+  ///
+  /// In ko, this message translates to:
+  /// **'파일에 있어야 하는 열'**
+  String get requiredColumns;
+
+  /// No description provided for @requiredColumnsList.
+  ///
+  /// In ko, this message translates to:
+  /// **'거래일 · 종목 · 매수/매도 · 수량 · 단가'**
+  String get requiredColumnsList;
+
+  /// No description provided for @toImportLabel.
+  ///
+  /// In ko, this message translates to:
+  /// **'가져올 거래'**
+  String get toImportLabel;
+
+  /// No description provided for @importCountOf.
+  ///
+  /// In ko, this message translates to:
+  /// **'{ready} / {total}건'**
+  String importCountOf(int ready, int total);
+
+  /// No description provided for @importSummaryLine.
+  ///
+  /// In ko, this message translates to:
+  /// **'{range} · 종목 {items}개 · 매수 {buy} · 매도 {sell}'**
+  String importSummaryLine(String range, int items, int buy, int sell);
+
+  /// No description provided for @itemNotFound.
+  ///
+  /// In ko, this message translates to:
+  /// **'종목을 못 찾았습니다'**
+  String get itemNotFound;
+
+  /// No description provided for @linkAction.
+  ///
+  /// In ko, this message translates to:
+  /// **'연결'**
+  String get linkAction;
+
+  /// No description provided for @alreadyExists.
+  ///
+  /// In ko, this message translates to:
+  /// **'이미 있는 거래'**
+  String get alreadyExists;
+
+  /// No description provided for @skippedShort.
+  ///
+  /// In ko, this message translates to:
+  /// **'건너뜀'**
+  String get skippedShort;
+
+  /// No description provided for @unreadableRows.
+  ///
+  /// In ko, this message translates to:
+  /// **'읽지 못한 줄'**
+  String get unreadableRows;
+
+  /// No description provided for @previewTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'미리보기'**
+  String get previewTitle;
+
+  /// No description provided for @newestNItems.
+  ///
+  /// In ko, this message translates to:
+  /// **'최근순 {count}건'**
+  String newestNItems(int count);
+
+  /// No description provided for @importNButton.
+  ///
+  /// In ko, this message translates to:
+  /// **'{count}건 가져오기'**
+  String importNButton(int count);
+
+  /// No description provided for @nothingToImport.
+  ///
+  /// In ko, this message translates to:
+  /// **'가져올 거래가 없습니다'**
+  String get nothingToImport;
+
+  /// No description provided for @linkItemTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'종목 연결'**
+  String get linkItemTitle;
+
+  /// No description provided for @linkItemDesc.
+  ///
+  /// In ko, this message translates to:
+  /// **'{label} 거래 {count}건을 어느 종목에 넣을까요'**
+  String linkItemDesc(String label, int count);
+
+  /// No description provided for @createNewItem.
+  ///
+  /// In ko, this message translates to:
+  /// **'새 종목으로 만들기'**
+  String get createNewItem;
+
+  /// No description provided for @nRowsShort.
+  ///
+  /// In ko, this message translates to:
+  /// **'{count}건'**
+  String nRowsShort(int count);
 }
 
 class _AppLocalizationsDelegate

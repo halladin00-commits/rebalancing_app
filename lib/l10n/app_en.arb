@@ -803,5 +803,96 @@
         "type": "String"
       }
     }
+  },
+  "importStep1": "1 / 2 · Pick a file",
+  "importStep2": "2 / 2 · {file}",
+  "@importStep2": {
+    "placeholders": {
+      "file": {
+        "type": "String"
+      }
+    }
+  },
+  "targetPortfolio": "Import into",
+  "uploadHow": "How to upload",
+  "downloadTemplateTitle": "Download the template",
+  "downloadTemplateDesc": "XLSX · copying into it always works",
+  "brokerFileOk": "You can upload your broker's own export as-is — column names like date, item, side, quantity and price are detected automatically.",
+  "pickFile": "Pick a file",
+  "pickFileDesc": "CSV · XLSX · up to 5MB",
+  "requiredColumns": "Columns the file needs",
+  "requiredColumnsList": "Date · Item · Buy/Sell · Quantity · Price",
+  "toImportLabel": "Trades to import",
+  "importCountOf": "{ready} / {total}",
+  "@importCountOf": {
+    "placeholders": {
+      "ready": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "importSummaryLine": "{range} · {items} items · {buy} buys · {sell} sells",
+  "@importSummaryLine": {
+    "placeholders": {
+      "range": {
+        "type": "String"
+      },
+      "items": {
+        "type": "int"
+      },
+      "buy": {
+        "type": "int"
+      },
+      "sell": {
+        "type": "int"
+      }
+    }
+  },
+  "itemNotFound": "Item not found",
+  "linkAction": "Link",
+  "alreadyExists": "Already recorded",
+  "skippedShort": "skipped",
+  "unreadableRows": "Rows we could not read",
+  "previewTitle": "Preview",
+  "newestNItems": "{count}, newest first",
+  "@newestNItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importNButton": "Import {count}",
+  "@importNButton": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nothingToImport": "Nothing to import",
+  "linkItemTitle": "Link item",
+  "linkItemDesc": "Which holding should {count} {label} trades go to?",
+  "@linkItemDesc": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "createNewItem": "Create as a new holding",
+  "nRowsShort": "{count}",
+  "@nRowsShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

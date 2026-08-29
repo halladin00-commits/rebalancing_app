@@ -1277,4 +1277,100 @@ class AppLocalizationsEn extends AppLocalizations {
   String fxConverted(String rate, String amount) {
     return 'FX $rate · converts to $amount';
   }
+
+  @override
+  String get importStep1 => '1 / 2 · Pick a file';
+
+  @override
+  String importStep2(String file) {
+    return '2 / 2 · $file';
+  }
+
+  @override
+  String get targetPortfolio => 'Import into';
+
+  @override
+  String get uploadHow => 'How to upload';
+
+  @override
+  String get downloadTemplateTitle => 'Download the template';
+
+  @override
+  String get downloadTemplateDesc => 'XLSX · copying into it always works';
+
+  @override
+  String get brokerFileOk =>
+      'You can upload your broker\'s own export as-is — column names like date, item, side, quantity and price are detected automatically.';
+
+  @override
+  String get pickFile => 'Pick a file';
+
+  @override
+  String get pickFileDesc => 'CSV · XLSX · up to 5MB';
+
+  @override
+  String get requiredColumns => 'Columns the file needs';
+
+  @override
+  String get requiredColumnsList => 'Date · Item · Buy/Sell · Quantity · Price';
+
+  @override
+  String get toImportLabel => 'Trades to import';
+
+  @override
+  String importCountOf(int ready, int total) {
+    return '$ready / $total';
+  }
+
+  @override
+  String importSummaryLine(String range, int items, int buy, int sell) {
+    return '$range · $items items · $buy buys · $sell sells';
+  }
+
+  @override
+  String get itemNotFound => 'Item not found';
+
+  @override
+  String get linkAction => 'Link';
+
+  @override
+  String get alreadyExists => 'Already recorded';
+
+  @override
+  String get skippedShort => 'skipped';
+
+  @override
+  String get unreadableRows => 'Rows we could not read';
+
+  @override
+  String get previewTitle => 'Preview';
+
+  @override
+  String newestNItems(int count) {
+    return '$count, newest first';
+  }
+
+  @override
+  String importNButton(int count) {
+    return 'Import $count';
+  }
+
+  @override
+  String get nothingToImport => 'Nothing to import';
+
+  @override
+  String get linkItemTitle => 'Link item';
+
+  @override
+  String linkItemDesc(String label, int count) {
+    return 'Which holding should $count $label trades go to?';
+  }
+
+  @override
+  String get createNewItem => 'Create as a new holding';
+
+  @override
+  String nRowsShort(int count) {
+    return '$count';
+  }
 }

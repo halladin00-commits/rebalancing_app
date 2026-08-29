@@ -1,26 +1,34 @@
+import 'dart:convert';
 import 'dart:io';
+
 import 'package:excel/excel.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+
 import '../main.dart';
 import '../models/portfolio.dart';
+import '../utils/csv_parser.dart';
+import 'import_analyzer.dart';
+import 'import_plan.dart';
 
-class ImportResult {
-  final int addedCount;
-  final List<String> createdItems;
-  final List<String> skippedRows;
+export 'import_plan.dart' show ImportResult, ImportPlan;
 
-  const ImportResult({
-    required this.addedCount,
-    required this.createdItems,
-    required this.skippedRows,
-  });
-}
-
+/// 거래내역 파일을 읽어 들이는 일 (시안 v17b·v17c).
+///
+/// **읽기와 저장을 갈라 두었다.** [analyze]는 파일을 읽어 계획만 만들고,
+/// [commit]이 실제로 쓴다. 파일을 고르자마자 저장해 버리면 무엇이 들어갔는지
+/// 모른 채 끝나고, 잘못 들어간 것을 되돌리기도 어렵다.
 class ExcelImportService {
   static const _headersKo = ['날짜', '종목명', '티커', '시장', '유형', '수량', '단가'];
-  static const _headersEn = ['Date', 'Name', 'Ticker', 'Market', 'Type', 'Qty', 'Price'];
+  static const _headersEn = [
+    'Date', 'Name', 'Ticker', 'Market', 'Type', 'Qty', 'Price'
+  ];
+
+  /// 시안이 약속한 상한. 이보다 크면 읽지 않고 그렇다고 말한다.
+  static const int maxFileBytes = 5 * 1024 * 1024;
+
+  // ── 표준 양식 ──
 
   static Future<void> downloadTemplate(bool isKo) async {
     final excel = Excel.createExcel();
@@ -28,27 +36,26 @@ class ExcelImportService {
     final sheet = excel[sheetName];
 
     final headers = isKo ? _headersKo : _headersEn;
-
-    // 헤더 행 (볼드)
     for (int i = 0; i < headers.length; i++) {
-      final cell = sheet.cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
+      final cell =
+          sheet.cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
       cell.value = TextCellValue(headers[i]);
       cell.cellStyle = CellStyle(bold: true);
     }
 
-    // 예시 행
-    final sampleValues = [
-      '2024.01.15',
-      isKo ? 'KODEX 200' : 'KODEX 200',
+    final sample = [
+      '2026.01.15',
+      'KODEX 200',
       '069500',
       'KR',
       isKo ? '매수' : 'Buy',
       '10',
       '35000',
     ];
-    for (int i = 0; i < sampleValues.length; i++) {
-      final cell = sheet.cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 1));
-      cell.value = TextCellValue(sampleValues[i]);
+    for (int i = 0; i < sample.length; i++) {
+      final cell =
+          sheet.cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 1));
+      cell.value = TextCellValue(sample[i]);
     }
 
     final encoded = excel.encode();
@@ -60,205 +67,156 @@ class ExcelImportService {
     await Share.shareXFiles([XFile(file.path)]);
   }
 
-  static Future<ImportResult?> importTransactions(
-    Portfolio pf,
-    PortfolioProvider provider,
-    bool isKo,
-  ) async {
+  // ── 1단계: 읽기만 한다 ──
+
+  /// 파일을 고르게 하고 **저장 없이** 계획만 만든다.
+  ///
+  /// 사용자가 파일 고르기를 취소하면 null.
+  static Future<ImportPlan?> analyze(Portfolio pf, bool isKo) async {
     final picked = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['xlsx'],
+      allowedExtensions: ['xlsx', 'xls', 'csv', 'txt'],
     );
     if (picked == null || picked.files.isEmpty) return null;
 
     final path = picked.files.single.path;
     if (path == null) return null;
+    final fileName = picked.files.single.name;
 
-    final bytes = await File(path).readAsBytes();
-    final excel = Excel.decodeBytes(bytes);
-
-    final sheetName = excel.sheets.keys.first;
-    final sheet = excel.sheets[sheetName];
-    if (sheet == null) {
-      return const ImportResult(addedCount: 0, createdItems: [], skippedRows: []);
-    }
-
-    int addedCount = 0;
-    final List<String> createdItems = [];
-    final List<String> skippedRows = [];
-
-    // ticker → itemId 맵 (기존 종목 + 이번에 생성된 종목)
-    final itemIdMap = <String, String>{};
-    for (final item in pf.items) {
-      if (!item.isCash && item.ticker.isNotEmpty) {
-        itemIdMap[item.ticker] = item.id;
-      }
-    }
-
-    // Row 0 = 헤더, Row 1 = 예시 → Row 2부터 처리
-    // 단, Row 1이 예시행인지 확인 후 건너뜀
-    int startRow = 1;
-    if (sheet.rows.length > 1) {
-      final firstDataStr = _cellStr(sheet.rows[1].isNotEmpty ? sheet.rows[1][0] : null);
-      // 예시행 날짜가 2024.01.15이거나 숫자가 아니면 건너뜀
-      if (_parseDate(sheet.rows[1].isNotEmpty ? sheet.rows[1][0] : null) == null &&
-          firstDataStr.isNotEmpty) {
-        startRow = 2;
-      }
-    }
-
-    for (int rowIdx = startRow; rowIdx < sheet.rows.length; rowIdx++) {
-      final row = sheet.rows[rowIdx];
-
-      // 빈 행 스킵
-      if (row.every((c) => c?.value == null)) continue;
-
-      if (row.length < 6) {
-        skippedRows.add(isKo ? '${rowIdx + 1}행: 컬럼 수 부족' : 'Row ${rowIdx + 1}: insufficient columns');
-        continue;
-      }
-
-      final dateStr = _cellStr(row[0]);
-      final name = _cellStr(row[1]);
-      final ticker = _cellStr(row[2]).toUpperCase();
-      final market = _parseMarket(_cellStr(row[3]));
-      final typeStr = _cellStr(row[4]);
-      final qtyStr = _cellStr(row[5]);
-      final priceStr = row.length > 6 ? _cellStr(row[6]) : '';
-
-      // 날짜 파싱
-      final date = _parseDate(row[0]);
-      if (date == null) {
-        skippedRows.add(isKo ? '${rowIdx + 1}행: 날짜 오류 ($dateStr)' : 'Row ${rowIdx + 1}: invalid date ($dateStr)');
-        continue;
-      }
-
-      // 유형 파싱
-      final isBuy = _isBuy(typeStr);
-      if (isBuy == null) {
-        skippedRows.add(isKo ? '${rowIdx + 1}행: 유형 오류 ($typeStr)' : 'Row ${rowIdx + 1}: invalid type ($typeStr)');
-        continue;
-      }
-
-      // 수량 파싱
-      final qty = double.tryParse(qtyStr.replaceAll(',', ''));
-      if (qty == null || qty <= 0) {
-        skippedRows.add(isKo ? '${rowIdx + 1}행: 수량 오류 ($qtyStr)' : 'Row ${rowIdx + 1}: invalid qty ($qtyStr)');
-        continue;
-      }
-
-      // 단가 파싱 (선택)
-      final price = double.tryParse(priceStr.replaceAll(',', '')) ?? 0.0;
-
-      // 종목 찾기 또는 생성
-      String? itemId = itemIdMap[ticker];
-      if (itemId == null && ticker.isEmpty) {
-        itemId = pf.items.where((i) => !i.isCash && i.name == name).firstOrNull?.id;
-      }
-
-      if (itemId == null) {
-        if (name.isEmpty && ticker.isEmpty) {
-          skippedRows.add(isKo ? '${rowIdx + 1}행: 종목명/티커 없음' : 'Row ${rowIdx + 1}: missing name/ticker');
-          continue;
-        }
-        // 신규 종목 생성
-        final newId = _uid();
-        final newItem = PortfolioItem(
-          id: newId,
-          name: name.isNotEmpty ? name : ticker,
-          ticker: ticker,
-          market: market,
-        );
-        await provider.addItem(pf.id, newItem);
-        if (ticker.isNotEmpty) itemIdMap[ticker] = newId;
-        itemId = newId;
-        createdItems.add(name.isNotEmpty ? name : ticker);
-      }
-
-      // 거래 추가
-      final tx = StockTransaction(
-        id: _uid(),
-        date: date,
-        quantity: isBuy ? qty : -qty,
-        price: price,
+    final file = File(path);
+    final len = await file.length();
+    if (len > maxFileBytes) {
+      return ImportPlan(
+        fileName: fileName,
+        ready: const [],
+        unlinked: const [],
+        duplicates: const [],
+        skipped: [
+          SkippedRow(
+              0,
+              isKo
+                  ? '파일이 5MB를 넘습니다 (${(len / 1024 / 1024).toStringAsFixed(1)}MB)'
+                  : 'File exceeds 5MB (${(len / 1024 / 1024).toStringAsFixed(1)}MB)')
+        ],
       );
-      await provider.upsertTransaction(pf.id, itemId, tx);
-      addedCount++;
     }
 
-    return ImportResult(
-      addedCount: addedCount,
-      createdItems: createdItems,
-      skippedRows: skippedRows,
-    );
+    final bytes = await file.readAsBytes();
+    final lower = fileName.toLowerCase();
+
+    List<List<String>> rows;
+    try {
+      if (lower.endsWith('.csv') || lower.endsWith('.txt')) {
+        // 깨진 바이트가 있어도 죽지 않게 한다. 열 이름을 못 알아보면
+        // buildPlan이 "열을 찾지 못했다"고 말해 준다.
+        final text = utf8.decode(bytes, allowMalformed: true);
+        rows = parseCsv(text, delimiter: guessDelimiter(text));
+      } else {
+        rows = _readExcel(bytes);
+      }
+    } catch (e) {
+      return ImportPlan(
+        fileName: fileName,
+        ready: const [],
+        unlinked: const [],
+        duplicates: const [],
+        skipped: [
+          SkippedRow(0, isKo ? '파일을 열 수 없습니다' : 'Could not open the file')
+        ],
+      );
+    }
+
+    return ImportAnalyzer.buildPlan(rows, fileName, pf, isKo: isKo);
   }
 
-  static String _uid() =>
-      DateTime.now().millisecondsSinceEpoch.toRadixString(36) +
-      DateTime.now().microsecond.toRadixString(36);
+  static List<List<String>> _readExcel(List<int> bytes) {
+    final excel = Excel.decodeBytes(bytes);
+    if (excel.sheets.isEmpty) return const [];
+    final sheet = excel.sheets[excel.sheets.keys.first];
+    if (sheet == null) return const [];
+    return [
+      for (final row in sheet.rows) [for (final cell in row) _cellStr(cell)]
+    ];
+  }
 
   static String _cellStr(Data? cell) {
-    if (cell?.value == null) return '';
-    final v = cell!.value;
+    final v = cell?.value;
+    if (v == null) return '';
     if (v is TextCellValue) return v.value.toString().trim();
     if (v is IntCellValue) return v.value.toString();
     if (v is DoubleCellValue) {
       final d = v.value;
-      if (d == d.roundToDouble()) return d.round().toString();
-      return d.toString();
+      return d == d.roundToDouble() ? d.round().toString() : d.toString();
     }
     if (v is DateTimeCellValue) {
-      return '${v.year}.${v.month.toString().padLeft(2, '0')}.${v.day.toString().padLeft(2, '0')}';
+      return '${v.year}.${v.month.toString().padLeft(2, '0')}'
+          '.${v.day.toString().padLeft(2, '0')}';
     }
     return v.toString().trim();
   }
 
-  static DateTime? _parseDate(Data? cell) {
-    if (cell?.value == null) return null;
-    final v = cell!.value;
+  // ── 2단계: 확정해서 쓴다 ──
 
-    if (v is DateTimeCellValue) {
-      return DateTime(v.year, v.month, v.day);
+  /// [plan]의 `ready`를 실제 거래로 넣는다.
+  ///
+  /// [links]는 못 찾은 종목을 어디에 붙일지다 — 값이 [createNewItemMarker]면
+  /// 새 종목을 만들어 붙인다. 연결하지 않은 줄은 들어가지 않는다.
+  static Future<ImportResult> commit(
+    ImportPlan plan,
+    Portfolio pf,
+    PortfolioProvider provider, {
+    Map<String, String> links = const {},
+  }) async {
+    final createdItems = <String>[];
+    final resolved = <String, String>{};
+
+    // 새로 만들어 달라는 것부터 만든다
+    for (final u in plan.unmatchedItems) {
+      final target = links[u.label];
+      if (target == null) continue;
+      if (target == createNewItemMarker) {
+        final row = plan.unlinked.firstWhere((r) => r.key == u.label);
+        final id = _uid();
+        await provider.addItem(pf.id, newItemFrom(row, id));
+        resolved[u.label] = id;
+        createdItems.add(u.name.isNotEmpty ? u.name : u.ticker);
+      } else {
+        resolved[u.label] = target;
+      }
     }
 
-    // Excel 날짜 시리얼 (숫자)
-    int? serial;
-    if (v is IntCellValue) serial = v.value;
-    if (v is DoubleCellValue) serial = v.value.round();
-    if (serial != null && serial > 40000) {
-      final dt = DateTime(1899, 12, 30).add(Duration(days: serial));
-      return DateTime(dt.year, dt.month, dt.day);
+    final finalPlan = plan.withLinks(resolved);
+
+    var added = 0;
+    for (final r in finalPlan.ready) {
+      final itemId = r.matchedItemId;
+      if (itemId == null) continue;
+      await provider.upsertTransaction(
+        pf.id,
+        itemId,
+        StockTransaction(
+          id: _uid(),
+          date: r.date,
+          quantity: r.isBuy ? r.qty : -r.qty,
+          price: r.price,
+        ),
+      );
+      added++;
     }
 
-    // 문자열 파싱
-    String s = '';
-    if (v is TextCellValue) {
-      s = v.value.toString().trim();
-    } else {
-      s = v.toString().trim();
-    }
-
-    final m = RegExp(r'^(\d{4})[.\-/](\d{1,2})[.\-/](\d{1,2})$').firstMatch(s);
-    if (m != null) {
-      final y = int.tryParse(m.group(1)!);
-      final mo = int.tryParse(m.group(2)!);
-      final d = int.tryParse(m.group(3)!);
-      if (y != null && mo != null && d != null) return DateTime(y, mo, d);
-    }
-    return null;
+    return ImportResult(
+      addedCount: added,
+      createdItems: createdItems,
+      skippedRows: [
+        for (final s in finalPlan.skipped) '${s.rowNumber}: ${s.reason}'
+      ],
+    );
   }
 
-  static String _parseMarket(String s) {
-    final lower = s.toLowerCase().trim();
-    if (lower.startsWith('kr') || lower.contains('한국') || lower.contains('korea')) return 'KR';
-    if (lower.startsWith('us') || lower.contains('미국') || lower.contains('usa')) return 'US';
-    return 'KR';
-  }
-
-  static bool? _isBuy(String s) {
-    final lower = s.toLowerCase().trim();
-    if (lower == '매수' || lower == 'buy' || lower == 'b') return true;
-    if (lower == '매도' || lower == 'sell' || lower == 's') return false;
-    return null;
+  static var _seq = 0;
+  static String _uid() {
+    _seq++;
+    return '${DateTime.now().millisecondsSinceEpoch.toRadixString(36)}'
+        '_${_seq.toRadixString(36)}';
   }
 }

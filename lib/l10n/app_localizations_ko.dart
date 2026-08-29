@@ -1255,4 +1255,100 @@ class AppLocalizationsKo extends AppLocalizations {
   String fxConverted(String rate, String amount) {
     return '환율 $rate · 환산 $amount';
   }
+
+  @override
+  String get importStep1 => '1 / 2 · 파일 선택';
+
+  @override
+  String importStep2(String file) {
+    return '2 / 2 · $file';
+  }
+
+  @override
+  String get targetPortfolio => '담을 포트폴리오';
+
+  @override
+  String get uploadHow => '업로드 방법';
+
+  @override
+  String get downloadTemplateTitle => '표준 양식 내려받기';
+
+  @override
+  String get downloadTemplateDesc => 'XLSX · 옮겨 적으면 확실하게 들어갑니다';
+
+  @override
+  String get brokerFileOk =>
+      '증권사에서 받은 파일을 그대로 올려도 됩니다 — 거래일 · 종목 · 구분 · 수량 · 단가 같은 열 이름을 자동으로 찾습니다.';
+
+  @override
+  String get pickFile => '파일 선택';
+
+  @override
+  String get pickFileDesc => 'CSV · XLSX · 최대 5MB';
+
+  @override
+  String get requiredColumns => '파일에 있어야 하는 열';
+
+  @override
+  String get requiredColumnsList => '거래일 · 종목 · 매수/매도 · 수량 · 단가';
+
+  @override
+  String get toImportLabel => '가져올 거래';
+
+  @override
+  String importCountOf(int ready, int total) {
+    return '$ready / $total건';
+  }
+
+  @override
+  String importSummaryLine(String range, int items, int buy, int sell) {
+    return '$range · 종목 $items개 · 매수 $buy · 매도 $sell';
+  }
+
+  @override
+  String get itemNotFound => '종목을 못 찾았습니다';
+
+  @override
+  String get linkAction => '연결';
+
+  @override
+  String get alreadyExists => '이미 있는 거래';
+
+  @override
+  String get skippedShort => '건너뜀';
+
+  @override
+  String get unreadableRows => '읽지 못한 줄';
+
+  @override
+  String get previewTitle => '미리보기';
+
+  @override
+  String newestNItems(int count) {
+    return '최근순 $count건';
+  }
+
+  @override
+  String importNButton(int count) {
+    return '$count건 가져오기';
+  }
+
+  @override
+  String get nothingToImport => '가져올 거래가 없습니다';
+
+  @override
+  String get linkItemTitle => '종목 연결';
+
+  @override
+  String linkItemDesc(String label, int count) {
+    return '$label 거래 $count건을 어느 종목에 넣을까요';
+  }
+
+  @override
+  String get createNewItem => '새 종목으로 만들기';
+
+  @override
+  String nRowsShort(int count) {
+    return '$count건';
+  }
 }
