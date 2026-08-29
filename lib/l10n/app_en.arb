@@ -217,25 +217,12 @@
   "delete": "Delete",
   "edit": "Edit",
   "done": "Done",
-  "close": "Close",
-  "apply": "Apply",
   "exit": "Exit",
   "add": "Add",
-  "create": "Create",
-  "irrevocable": "This action cannot be undone.",
   "editExitTitle": "Exit Edit Mode",
   "editExitContent": "Exit edit mode?",
-  "editComplete": "Done",
   "saveChanges": "Save Changes",
   "deleteConfirmTitle": "Delete",
-  "deletePortfolioContent": "Delete portfolio '{name}'?\nThis action cannot be undone.",
-  "@deletePortfolioContent": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
   "deleteItemContent": "Delete '{name}'?\nThis action cannot be undone.",
   "@deleteItemContent": {
     "placeholders": {
@@ -244,7 +231,6 @@
       }
     }
   },
-  "appExitTitle": "Exit",
   "appExitContent": "Exit the app?",
   "neverUpdated": "Never updated",
   "toastAutoSettingRequired": "Please enable auto exchange rate or price in Settings",
@@ -256,7 +242,6 @@
       }
     }
   },
-  "updateSuccess": "Updated",
   "updateSuccessCount": "{count} updated",
   "@updateSuccessCount": {
     "placeholders": {
@@ -266,30 +251,8 @@
     }
   },
   "portfolioNotFound": "Portfolio not found",
-  "additionalInvestment": "Add Investment or Withdraw",
   "additionalInvestmentHint": "e.g. 1000000 or -500000",
-  "priceDelayNote": "※ Prices ~20min, rate ~1day delayed",
-  "totalAssetsLabel": "Total Assets (KRW equiv.)",
   "evaluationAmount": "Evaluation Amount",
-  "currentAssets": "Current Value",
-  "rebalancingBase": "Rebalancing Base",
-  "remainingCash": "Remaining Cash",
-  "estimatedFee": "Est. fee: {fee}",
-  "@estimatedFee": {
-    "placeholders": {
-      "fee": {
-        "type": "String"
-      }
-    }
-  },
-  "exchangeRateLabel": "Rate: 1 USD = ₩{rate}",
-  "@exchangeRateLabel": {
-    "placeholders": {
-      "rate": {
-        "type": "String"
-      }
-    }
-  },
   "weightWarning": "Target weight: {pct} (not 100%)",
   "@weightWarning": {
     "placeholders": {
@@ -299,20 +262,11 @@
     }
   },
   "labelSettings": "Settings",
-  "labelEdit": "Edit",
   "labelGraph": "Graph",
-  "labelRebalanceApply": "Apply Rebalancing",
   "addStock": "Add Stock",
   "buy": "Buy",
   "sell": "Sell",
-  "hold": "Hold",
   "cash": "Cash",
-  "rebalanceApplyTitle": "Apply Rebalancing",
-  "rebalanceBullet1": "Apply results to current holdings",
-  "rebalanceBullet2": "Remaining cash becomes additional investment",
-  "rebalanceBullet3": "Avg. cost auto-updates for buy orders",
-  "rebalanceBullet3Note": "* Based on current price — may differ from actual execution price",
-  "savePermissionRequired": "Storage permission required",
   "captureFailed": "Capture failed",
   "savedToGallery": "Saved to gallery",
   "saveFailed": "Save failed",
@@ -336,9 +290,6 @@
   "saveImage": "Save Image",
   "shareImage": "Share Image",
   "capture": "Capture",
-  "portfolio": "Portfolio",
-  "settlementTab": "Settlement",
-  "duplicatePortfolio": "Duplicate Portfolio",
   "notifPermissionDenied": "Notification permission denied. Please allow it in Settings.",
   "targetWeight": "Target Weight",
   "currentWeight": "Current Weight",
@@ -356,56 +307,25 @@
   "disclaimerTextTax": "Users are responsible for fulfilling legal obligations such as tax reporting, capital gains tax, and financial income tax related to financial transactions. This app does not provide tax or legal advice.",
   "disclaimerSectionService": "Service Changes",
   "disclaimerTextService": "Features, data sources, and services may be changed or discontinued without prior notice.",
-  "disclaimerDontShowAgain": "I have read and understood. Don't show this again.",
   "disclaimerStartBtn": "Confirm & Start",
   "disclaimerConfirmBtn": "Confirm",
-  "editStockTitle": "Edit Stock",
-  "addStockTitle": "Add Stock",
-  "cashItem": "Cash",
-  "searchStock": "Search Stock",
   "searchHint": "Enter name or ticker",
-  "stockName": "Stock Name",
-  "cashNameHint": "e.g. Cash Balance",
-  "autoFillHint": "Auto-filled by search",
-  "stockCodeTicker": "Stock Code / Ticker",
   "avgCost": "Avg. Cost",
   "profitLoss": "P&L",
-  "returnRate": "Return",
   "currentPrice": "Current Price",
-  "autoUpdate": "Auto Update",
-  "autoUpdateHint": "Auto-updated on refresh",
-  "targetWeightLabel": "Target Weight",
-  "holdingsAmount": "Holdings (Amount)",
-  "holdingsShares": "Holdings (Shares)",
-  "unitUSD": "USD",
   "unitKRW": "KRW",
   "unitShares": "shares",
-  "portfolioExampleHint": "e.g. Pension, US Stocks",
-  "editPortfolioTitle": "Edit Portfolio",
-  "createPortfolioTitle": "New Portfolio",
-  "portfolioName": "Portfolio Name",
-  "iconLabel": "Icon",
-  "createBtn": "Create",
   "settings": "Settings",
   "baseCurrency": "Base Currency",
   "currencyKRW": "KRW (₩)",
   "currencyUSD": "USD ($)",
-  "amountDisplay": "Amount Display",
-  "amountDisplayHint": "Current Assets / Base Amount",
-  "fullDisplay": "Full",
-  "compactDisplay": "Compact",
   "tradingFee": "Trading Fee",
   "includeFee": "Include Fee",
   "feeRate": "Fee Rate",
   "exchangeRateSetting": "Exchange Rate",
-  "autoRealtime": "Auto (Real-time)",
   "exchangeRateInput": "Rate (1 USD)",
-  "autoRateHint": "Use refresh button to get the latest rate",
   "stockPriceSetting": "Stock Price",
-  "autoPriceHint": "Price is fetched on refresh by ticker",
   "language": "Language",
-  "langKorean": "한국어",
-  "langEnglish": "English",
   "portfolioAddBtn": "Add Portfolio",
   "holdingsSection": "Holdings",
   "cashIncluded": "incl. cash",
@@ -418,27 +338,6 @@
     }
   },
   "notice": "Notice",
-  "lightMode": "Light Mode",
-  "darkMode": "Dark Mode",
-  "currentPriceLabel": "Price",
-  "holdingsLabel": "Holdings",
-  "targetWeightRow": "Target Weight",
-  "currentWeightRow": "Current Weight",
-  "finalWeightRow": "Final Weight",
-  "tradeRow": "Trade",
-  "wonEquivalent": "KRW equiv: {amount}",
-  "@wonEquivalent": {
-    "placeholders": {
-      "amount": {
-        "type": "String"
-      }
-    }
-  },
-  "autoPriceUpdateInfo": "Auto price update on — refresh to update",
-  "unitKrwSuffix": "",
-  "unitKrwMan": "",
-  "etfBadge": "ETF",
-  "totalPnl": "Total P&L",
   "dayChange": "Day Change",
   "disclaimerAgreeCheckbox": "I have read and agree\nto all of the above.",
   "validationNonNegative": "Please enter a value of 0 or greater.",
@@ -452,22 +351,6 @@
   "settlementMonthly": "Monthly",
   "settlementQuarterly": "Quarterly",
   "settlementYearly": "Yearly",
-  "settlementBasedOn": "Based on: {date}",
-  "@settlementBasedOn": {
-    "placeholders": {
-      "date": {
-        "type": "String"
-      }
-    }
-  },
-  "settlementStartValue": "Base Value",
-  "settlementEndValue": "Current Value",
-  "settlementReturn": "Period Return",
-  "settlementNoData": "Collecting data",
-  "settlementNoDataDesc": "Snapshots are saved automatically on refresh.",
-  "settlementViewWithApi": "View with API data",
-  "settlementApiFallbackWarning": "Based on Yahoo Finance historical data (holdings changes not reflected)",
-  "settlementContribution": "Contribution",
   "backupData": "Backup",
   "restoreData": "Restore",
   "backupFailed": "Backup failed",
@@ -490,16 +373,11 @@
   },
   "restoreFailed": "Restore failed: invalid backup file",
   "notifReminder": "Rebalancing Reminders",
-  "notifEnableLabel": "Notifications",
   "notifEnableDesc": "Periodic rebalancing reminders",
   "notifEnableHint": "We'll send you a reminder at the set interval",
-  "notifFrequency": "Frequency",
   "notifWeekly": "Every Monday at 9 AM",
   "notifMonthly": "1st of each month at 9 AM",
-  "notifSavedOn": "Reminders enabled",
-  "notifSavedOff": "Reminders disabled",
   "purchaseDateLabel": "Purchase Date",
-  "holdingsFromTransactions": "Modify via transactions",
   "transactionHistory": "Transactions",
   "addTransaction": "Add Transaction",
   "transactionBuy": "Buy",
@@ -507,19 +385,10 @@
   "transactionDate": "Date",
   "transactionQty": "Quantity",
   "transactionPrice": "Price",
-  "deleteTransaction": "Delete",
   "settlementWeekNum": "Week {week}",
   "@settlementWeekNum": {
     "placeholders": {
       "week": {
-        "type": "int"
-      }
-    }
-  },
-  "settlementMonthNum": "{month}",
-  "@settlementMonthNum": {
-    "placeholders": {
-      "month": {
         "type": "int"
       }
     }
@@ -532,19 +401,6 @@
       }
     }
   },
-  "settlementPeriodRange": "{start} – {end}",
-  "@settlementPeriodRange": {
-    "placeholders": {
-      "start": {
-        "type": "String"
-      },
-      "end": {
-        "type": "String"
-      }
-    }
-  },
-  "settlementCurrentPeriod": "In Progress",
-  "settlementNetCashFlow": "Capital Added",
   "settlementYearLabel": "{year}",
   "@settlementYearLabel": {
     "placeholders": {
@@ -581,15 +437,9 @@
   },
   "excelImportNothingAdded": "No transactions were added",
   "settlementNotifHeader": "Settlement Reminders",
-  "settlementNotifWeekly": "Weekly Settlement",
-  "settlementNotifMonthly": "Monthly Settlement",
-  "settlementNotifQuarterly": "Quarterly Settlement",
-  "settlementNotifYearly": "Yearly Settlement",
   "rebalancingThresholdLabel": "Rebalancing Threshold",
   "rebalancingThresholdHint": "No trade recommended below this deviation",
   "fractionalTrading": "Fractional Shares",
-  "fractionalTradingToggle": "Allow fractional quantities",
-  "fractionalTradingHint": "Turn on only if your broker supports fractional trading.\nOtherwise quantities stay in whole shares.",
   "maxDriftAfter": "Max drift after",
   "planMustRunAll": "This result holds only if all {count} trades are executed",
   "@planMustRunAll": {

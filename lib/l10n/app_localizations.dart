@@ -716,18 +716,6 @@ abstract class AppLocalizations {
   /// **'완료'**
   String get done;
 
-  /// No description provided for @close.
-  ///
-  /// In ko, this message translates to:
-  /// **'닫기'**
-  String get close;
-
-  /// No description provided for @apply.
-  ///
-  /// In ko, this message translates to:
-  /// **'적용'**
-  String get apply;
-
   /// No description provided for @exit.
   ///
   /// In ko, this message translates to:
@@ -739,18 +727,6 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'추가'**
   String get add;
-
-  /// No description provided for @create.
-  ///
-  /// In ko, this message translates to:
-  /// **'생성'**
-  String get create;
-
-  /// No description provided for @irrevocable.
-  ///
-  /// In ko, this message translates to:
-  /// **'이 작업은 되돌릴 수 없습니다.'**
-  String get irrevocable;
 
   /// No description provided for @editExitTitle.
   ///
@@ -764,12 +740,6 @@ abstract class AppLocalizations {
   /// **'편집 모드를 종료하시겠습니까?'**
   String get editExitContent;
 
-  /// No description provided for @editComplete.
-  ///
-  /// In ko, this message translates to:
-  /// **'편집 완료'**
-  String get editComplete;
-
   /// No description provided for @saveChanges.
   ///
   /// In ko, this message translates to:
@@ -782,23 +752,11 @@ abstract class AppLocalizations {
   /// **'삭제 확인'**
   String get deleteConfirmTitle;
 
-  /// No description provided for @deletePortfolioContent.
-  ///
-  /// In ko, this message translates to:
-  /// **'\'{name}\' 포트폴리오를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.'**
-  String deletePortfolioContent(String name);
-
   /// No description provided for @deleteItemContent.
   ///
   /// In ko, this message translates to:
   /// **'{name} 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.'**
   String deleteItemContent(String name);
-
-  /// No description provided for @appExitTitle.
-  ///
-  /// In ko, this message translates to:
-  /// **'종료'**
-  String get appExitTitle;
 
   /// No description provided for @appExitContent.
   ///
@@ -824,12 +782,6 @@ abstract class AppLocalizations {
   /// **'업데이트 실패: {msg}'**
   String updateFailed(String msg);
 
-  /// No description provided for @updateSuccess.
-  ///
-  /// In ko, this message translates to:
-  /// **'업데이트 완료'**
-  String get updateSuccess;
-
   /// No description provided for @updateSuccessCount.
   ///
   /// In ko, this message translates to:
@@ -842,65 +794,17 @@ abstract class AppLocalizations {
   /// **'포트폴리오를 찾을 수 없습니다'**
   String get portfolioNotFound;
 
-  /// No description provided for @additionalInvestment.
-  ///
-  /// In ko, this message translates to:
-  /// **'투자금 추가 or 출금'**
-  String get additionalInvestment;
-
   /// No description provided for @additionalInvestmentHint.
   ///
   /// In ko, this message translates to:
   /// **'예: 1000000 또는 -500000'**
   String get additionalInvestmentHint;
 
-  /// No description provided for @priceDelayNote.
-  ///
-  /// In ko, this message translates to:
-  /// **'※ 주가 ~20분, 환율 ~1일까지 지연 가능'**
-  String get priceDelayNote;
-
-  /// No description provided for @totalAssetsLabel.
-  ///
-  /// In ko, this message translates to:
-  /// **'전체 자산 합계 (원 환산)'**
-  String get totalAssetsLabel;
-
   /// No description provided for @evaluationAmount.
   ///
   /// In ko, this message translates to:
   /// **'평가금액'**
   String get evaluationAmount;
-
-  /// No description provided for @currentAssets.
-  ///
-  /// In ko, this message translates to:
-  /// **'현재 평가금액'**
-  String get currentAssets;
-
-  /// No description provided for @rebalancingBase.
-  ///
-  /// In ko, this message translates to:
-  /// **'리밸런싱 기준금액'**
-  String get rebalancingBase;
-
-  /// No description provided for @remainingCash.
-  ///
-  /// In ko, this message translates to:
-  /// **'잔여 현금'**
-  String get remainingCash;
-
-  /// No description provided for @estimatedFee.
-  ///
-  /// In ko, this message translates to:
-  /// **'예상 수수료: {fee}'**
-  String estimatedFee(String fee);
-
-  /// No description provided for @exchangeRateLabel.
-  ///
-  /// In ko, this message translates to:
-  /// **'환율: 1 USD = ₩{rate}'**
-  String exchangeRateLabel(String rate);
 
   /// No description provided for @weightWarning.
   ///
@@ -914,23 +818,11 @@ abstract class AppLocalizations {
   /// **'설정'**
   String get labelSettings;
 
-  /// No description provided for @labelEdit.
-  ///
-  /// In ko, this message translates to:
-  /// **'편집'**
-  String get labelEdit;
-
   /// No description provided for @labelGraph.
   ///
   /// In ko, this message translates to:
   /// **'그래프'**
   String get labelGraph;
-
-  /// No description provided for @labelRebalanceApply.
-  ///
-  /// In ko, this message translates to:
-  /// **'리밸런싱 적용'**
-  String get labelRebalanceApply;
 
   /// No description provided for @addStock.
   ///
@@ -950,53 +842,11 @@ abstract class AppLocalizations {
   /// **'매도'**
   String get sell;
 
-  /// No description provided for @hold.
-  ///
-  /// In ko, this message translates to:
-  /// **'유지'**
-  String get hold;
-
   /// No description provided for @cash.
   ///
   /// In ko, this message translates to:
   /// **'현금'**
   String get cash;
-
-  /// No description provided for @rebalanceApplyTitle.
-  ///
-  /// In ko, this message translates to:
-  /// **'리밸런싱 적용'**
-  String get rebalanceApplyTitle;
-
-  /// No description provided for @rebalanceBullet1.
-  ///
-  /// In ko, this message translates to:
-  /// **'리밸런싱 결과를 보유 수량에 반영'**
-  String get rebalanceBullet1;
-
-  /// No description provided for @rebalanceBullet2.
-  ///
-  /// In ko, this message translates to:
-  /// **'잔여 현금은 추가 투자금으로 변환'**
-  String get rebalanceBullet2;
-
-  /// No description provided for @rebalanceBullet3.
-  ///
-  /// In ko, this message translates to:
-  /// **'매수 종목 평단가 자동 업데이트'**
-  String get rebalanceBullet3;
-
-  /// No description provided for @rebalanceBullet3Note.
-  ///
-  /// In ko, this message translates to:
-  /// **'* 현재가 기준 계산 — 실제 체결가와 다를 수 있음'**
-  String get rebalanceBullet3Note;
-
-  /// No description provided for @savePermissionRequired.
-  ///
-  /// In ko, this message translates to:
-  /// **'저장 권한이 필요합니다'**
-  String get savePermissionRequired;
 
   /// No description provided for @captureFailed.
   ///
@@ -1093,24 +943,6 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'캡처'**
   String get capture;
-
-  /// No description provided for @portfolio.
-  ///
-  /// In ko, this message translates to:
-  /// **'포트폴리오'**
-  String get portfolio;
-
-  /// No description provided for @settlementTab.
-  ///
-  /// In ko, this message translates to:
-  /// **'결산'**
-  String get settlementTab;
-
-  /// No description provided for @duplicatePortfolio.
-  ///
-  /// In ko, this message translates to:
-  /// **'포트폴리오 복사'**
-  String get duplicatePortfolio;
 
   /// No description provided for @notifPermissionDenied.
   ///
@@ -1214,12 +1046,6 @@ abstract class AppLocalizations {
   /// **'앱의 기능, 데이터 소스, 서비스는 사전 고지 없이 변경되거나 중단될 수 있습니다.'**
   String get disclaimerTextService;
 
-  /// No description provided for @disclaimerDontShowAgain.
-  ///
-  /// In ko, this message translates to:
-  /// **'위 내용을 확인하였으며, 다음부터 이 안내를 표시하지 않습니다'**
-  String get disclaimerDontShowAgain;
-
   /// No description provided for @disclaimerStartBtn.
   ///
   /// In ko, this message translates to:
@@ -1232,59 +1058,11 @@ abstract class AppLocalizations {
   /// **'확인'**
   String get disclaimerConfirmBtn;
 
-  /// No description provided for @editStockTitle.
-  ///
-  /// In ko, this message translates to:
-  /// **'종목 수정'**
-  String get editStockTitle;
-
-  /// No description provided for @addStockTitle.
-  ///
-  /// In ko, this message translates to:
-  /// **'종목 추가'**
-  String get addStockTitle;
-
-  /// No description provided for @cashItem.
-  ///
-  /// In ko, this message translates to:
-  /// **'현금 항목'**
-  String get cashItem;
-
-  /// No description provided for @searchStock.
-  ///
-  /// In ko, this message translates to:
-  /// **'종목 검색'**
-  String get searchStock;
-
   /// No description provided for @searchHint.
   ///
   /// In ko, this message translates to:
   /// **'종목명 또는 티커 입력'**
   String get searchHint;
-
-  /// No description provided for @stockName.
-  ///
-  /// In ko, this message translates to:
-  /// **'종목명'**
-  String get stockName;
-
-  /// No description provided for @cashNameHint.
-  ///
-  /// In ko, this message translates to:
-  /// **'예: 예수금'**
-  String get cashNameHint;
-
-  /// No description provided for @autoFillHint.
-  ///
-  /// In ko, this message translates to:
-  /// **'검색으로 자동 입력'**
-  String get autoFillHint;
-
-  /// No description provided for @stockCodeTicker.
-  ///
-  /// In ko, this message translates to:
-  /// **'종목 코드 / 티커'**
-  String get stockCodeTicker;
 
   /// No description provided for @avgCost.
   ///
@@ -1298,53 +1076,11 @@ abstract class AppLocalizations {
   /// **'평가손익'**
   String get profitLoss;
 
-  /// No description provided for @returnRate.
-  ///
-  /// In ko, this message translates to:
-  /// **'수익률'**
-  String get returnRate;
-
   /// No description provided for @currentPrice.
   ///
   /// In ko, this message translates to:
   /// **'현재가'**
   String get currentPrice;
-
-  /// No description provided for @autoUpdate.
-  ///
-  /// In ko, this message translates to:
-  /// **'자동 업데이트'**
-  String get autoUpdate;
-
-  /// No description provided for @autoUpdateHint.
-  ///
-  /// In ko, this message translates to:
-  /// **'새로고침 시 자동으로 업데이트'**
-  String get autoUpdateHint;
-
-  /// No description provided for @targetWeightLabel.
-  ///
-  /// In ko, this message translates to:
-  /// **'목표 비중'**
-  String get targetWeightLabel;
-
-  /// No description provided for @holdingsAmount.
-  ///
-  /// In ko, this message translates to:
-  /// **'보유 금액'**
-  String get holdingsAmount;
-
-  /// No description provided for @holdingsShares.
-  ///
-  /// In ko, this message translates to:
-  /// **'보유 수량'**
-  String get holdingsShares;
-
-  /// No description provided for @unitUSD.
-  ///
-  /// In ko, this message translates to:
-  /// **'USD'**
-  String get unitUSD;
 
   /// No description provided for @unitKRW.
   ///
@@ -1357,42 +1093,6 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'주'**
   String get unitShares;
-
-  /// No description provided for @portfolioExampleHint.
-  ///
-  /// In ko, this message translates to:
-  /// **'예: 연금저축, 미국주식'**
-  String get portfolioExampleHint;
-
-  /// No description provided for @editPortfolioTitle.
-  ///
-  /// In ko, this message translates to:
-  /// **'포트폴리오 수정'**
-  String get editPortfolioTitle;
-
-  /// No description provided for @createPortfolioTitle.
-  ///
-  /// In ko, this message translates to:
-  /// **'포트폴리오 생성'**
-  String get createPortfolioTitle;
-
-  /// No description provided for @portfolioName.
-  ///
-  /// In ko, this message translates to:
-  /// **'포트폴리오 이름'**
-  String get portfolioName;
-
-  /// No description provided for @iconLabel.
-  ///
-  /// In ko, this message translates to:
-  /// **'아이콘'**
-  String get iconLabel;
-
-  /// No description provided for @createBtn.
-  ///
-  /// In ko, this message translates to:
-  /// **'생성'**
-  String get createBtn;
 
   /// No description provided for @settings.
   ///
@@ -1418,30 +1118,6 @@ abstract class AppLocalizations {
   /// **'USD (\$)'**
   String get currencyUSD;
 
-  /// No description provided for @amountDisplay.
-  ///
-  /// In ko, this message translates to:
-  /// **'금액 표시'**
-  String get amountDisplay;
-
-  /// No description provided for @amountDisplayHint.
-  ///
-  /// In ko, this message translates to:
-  /// **'현재 자산 / 리밸런싱 기준'**
-  String get amountDisplayHint;
-
-  /// No description provided for @fullDisplay.
-  ///
-  /// In ko, this message translates to:
-  /// **'전체 표시'**
-  String get fullDisplay;
-
-  /// No description provided for @compactDisplay.
-  ///
-  /// In ko, this message translates to:
-  /// **'축약 표시'**
-  String get compactDisplay;
-
   /// No description provided for @tradingFee.
   ///
   /// In ko, this message translates to:
@@ -1466,23 +1142,11 @@ abstract class AppLocalizations {
   /// **'환율'**
   String get exchangeRateSetting;
 
-  /// No description provided for @autoRealtime.
-  ///
-  /// In ko, this message translates to:
-  /// **'자동 (실시간)'**
-  String get autoRealtime;
-
   /// No description provided for @exchangeRateInput.
   ///
   /// In ko, this message translates to:
   /// **'환율 (1 USD)'**
   String get exchangeRateInput;
-
-  /// No description provided for @autoRateHint.
-  ///
-  /// In ko, this message translates to:
-  /// **'새로고침 버튼으로 최신 환율을 가져옵니다'**
-  String get autoRateHint;
 
   /// No description provided for @stockPriceSetting.
   ///
@@ -1490,29 +1154,11 @@ abstract class AppLocalizations {
   /// **'주가'**
   String get stockPriceSetting;
 
-  /// No description provided for @autoPriceHint.
-  ///
-  /// In ko, this message translates to:
-  /// **'새로고침 시 종목코드/티커 기준으로 현재가를 가져옵니다'**
-  String get autoPriceHint;
-
   /// No description provided for @language.
   ///
   /// In ko, this message translates to:
   /// **'언어'**
   String get language;
-
-  /// No description provided for @langKorean.
-  ///
-  /// In ko, this message translates to:
-  /// **'한국어'**
-  String get langKorean;
-
-  /// No description provided for @langEnglish.
-  ///
-  /// In ko, this message translates to:
-  /// **'English'**
-  String get langEnglish;
 
   /// No description provided for @portfolioAddBtn.
   ///
@@ -1543,90 +1189,6 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'공지사항'**
   String get notice;
-
-  /// No description provided for @lightMode.
-  ///
-  /// In ko, this message translates to:
-  /// **'라이트 모드'**
-  String get lightMode;
-
-  /// No description provided for @darkMode.
-  ///
-  /// In ko, this message translates to:
-  /// **'다크 모드'**
-  String get darkMode;
-
-  /// No description provided for @currentPriceLabel.
-  ///
-  /// In ko, this message translates to:
-  /// **'현재가'**
-  String get currentPriceLabel;
-
-  /// No description provided for @holdingsLabel.
-  ///
-  /// In ko, this message translates to:
-  /// **'보유 수량'**
-  String get holdingsLabel;
-
-  /// No description provided for @targetWeightRow.
-  ///
-  /// In ko, this message translates to:
-  /// **'목표 비중'**
-  String get targetWeightRow;
-
-  /// No description provided for @currentWeightRow.
-  ///
-  /// In ko, this message translates to:
-  /// **'현재 비중'**
-  String get currentWeightRow;
-
-  /// No description provided for @finalWeightRow.
-  ///
-  /// In ko, this message translates to:
-  /// **'최종 비중'**
-  String get finalWeightRow;
-
-  /// No description provided for @tradeRow.
-  ///
-  /// In ko, this message translates to:
-  /// **'매매'**
-  String get tradeRow;
-
-  /// No description provided for @wonEquivalent.
-  ///
-  /// In ko, this message translates to:
-  /// **'원화 환산가: {amount}'**
-  String wonEquivalent(String amount);
-
-  /// No description provided for @autoPriceUpdateInfo.
-  ///
-  /// In ko, this message translates to:
-  /// **'주가 자동 업데이트 설정 중 — 새로고침으로 갱신'**
-  String get autoPriceUpdateInfo;
-
-  /// No description provided for @unitKrwSuffix.
-  ///
-  /// In ko, this message translates to:
-  /// **'억'**
-  String get unitKrwSuffix;
-
-  /// No description provided for @unitKrwMan.
-  ///
-  /// In ko, this message translates to:
-  /// **'만'**
-  String get unitKrwMan;
-
-  /// No description provided for @etfBadge.
-  ///
-  /// In ko, this message translates to:
-  /// **'ETF'**
-  String get etfBadge;
-
-  /// No description provided for @totalPnl.
-  ///
-  /// In ko, this message translates to:
-  /// **'종합손익'**
-  String get totalPnl;
 
   /// No description provided for @dayChange.
   ///
@@ -1706,60 +1268,6 @@ abstract class AppLocalizations {
   /// **'연간'**
   String get settlementYearly;
 
-  /// No description provided for @settlementBasedOn.
-  ///
-  /// In ko, this message translates to:
-  /// **'기준일: {date}'**
-  String settlementBasedOn(String date);
-
-  /// No description provided for @settlementStartValue.
-  ///
-  /// In ko, this message translates to:
-  /// **'기준 평가금액'**
-  String get settlementStartValue;
-
-  /// No description provided for @settlementEndValue.
-  ///
-  /// In ko, this message translates to:
-  /// **'현재 평가금액'**
-  String get settlementEndValue;
-
-  /// No description provided for @settlementReturn.
-  ///
-  /// In ko, this message translates to:
-  /// **'기간 수익률'**
-  String get settlementReturn;
-
-  /// No description provided for @settlementNoData.
-  ///
-  /// In ko, this message translates to:
-  /// **'데이터 수집 중'**
-  String get settlementNoData;
-
-  /// No description provided for @settlementNoDataDesc.
-  ///
-  /// In ko, this message translates to:
-  /// **'새로고침 시 자동으로 스냅샷이 저장됩니다.'**
-  String get settlementNoDataDesc;
-
-  /// No description provided for @settlementViewWithApi.
-  ///
-  /// In ko, this message translates to:
-  /// **'API 데이터로 대체 보기'**
-  String get settlementViewWithApi;
-
-  /// No description provided for @settlementApiFallbackWarning.
-  ///
-  /// In ko, this message translates to:
-  /// **'Yahoo Finance 과거 데이터 기준 (수량 변동 미반영)'**
-  String get settlementApiFallbackWarning;
-
-  /// No description provided for @settlementContribution.
-  ///
-  /// In ko, this message translates to:
-  /// **'기여도'**
-  String get settlementContribution;
-
   /// No description provided for @backupData.
   ///
   /// In ko, this message translates to:
@@ -1808,12 +1316,6 @@ abstract class AppLocalizations {
   /// **'리밸런싱 알림'**
   String get notifReminder;
 
-  /// No description provided for @notifEnableLabel.
-  ///
-  /// In ko, this message translates to:
-  /// **'알림'**
-  String get notifEnableLabel;
-
   /// No description provided for @notifEnableDesc.
   ///
   /// In ko, this message translates to:
@@ -1825,12 +1327,6 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'지정한 주기마다 앱 알림을 보내드립니다'**
   String get notifEnableHint;
-
-  /// No description provided for @notifFrequency.
-  ///
-  /// In ko, this message translates to:
-  /// **'알림 주기'**
-  String get notifFrequency;
 
   /// No description provided for @notifWeekly.
   ///
@@ -1844,29 +1340,11 @@ abstract class AppLocalizations {
   /// **'매월 1일 오전 9시'**
   String get notifMonthly;
 
-  /// No description provided for @notifSavedOn.
-  ///
-  /// In ko, this message translates to:
-  /// **'알림이 설정됐습니다'**
-  String get notifSavedOn;
-
-  /// No description provided for @notifSavedOff.
-  ///
-  /// In ko, this message translates to:
-  /// **'알림이 꺼졌습니다'**
-  String get notifSavedOff;
-
   /// No description provided for @purchaseDateLabel.
   ///
   /// In ko, this message translates to:
   /// **'매수 일자'**
   String get purchaseDateLabel;
-
-  /// No description provided for @holdingsFromTransactions.
-  ///
-  /// In ko, this message translates to:
-  /// **'거래 내역에서 수정'**
-  String get holdingsFromTransactions;
 
   /// No description provided for @transactionHistory.
   ///
@@ -1910,47 +1388,17 @@ abstract class AppLocalizations {
   /// **'단가'**
   String get transactionPrice;
 
-  /// No description provided for @deleteTransaction.
-  ///
-  /// In ko, this message translates to:
-  /// **'거래 삭제'**
-  String get deleteTransaction;
-
   /// No description provided for @settlementWeekNum.
   ///
   /// In ko, this message translates to:
   /// **'{week}주차'**
   String settlementWeekNum(int week);
 
-  /// No description provided for @settlementMonthNum.
-  ///
-  /// In ko, this message translates to:
-  /// **'{month}월'**
-  String settlementMonthNum(int month);
-
   /// No description provided for @settlementQuarterNum.
   ///
   /// In ko, this message translates to:
   /// **'{q}분기'**
   String settlementQuarterNum(int q);
-
-  /// No description provided for @settlementPeriodRange.
-  ///
-  /// In ko, this message translates to:
-  /// **'{start} ~ {end}'**
-  String settlementPeriodRange(String start, String end);
-
-  /// No description provided for @settlementCurrentPeriod.
-  ///
-  /// In ko, this message translates to:
-  /// **'진행 중'**
-  String get settlementCurrentPeriod;
-
-  /// No description provided for @settlementNetCashFlow.
-  ///
-  /// In ko, this message translates to:
-  /// **'추가 투자금'**
-  String get settlementNetCashFlow;
 
   /// No description provided for @settlementYearLabel.
   ///
@@ -2000,30 +1448,6 @@ abstract class AppLocalizations {
   /// **'결산 알림'**
   String get settlementNotifHeader;
 
-  /// No description provided for @settlementNotifWeekly.
-  ///
-  /// In ko, this message translates to:
-  /// **'주간 결산'**
-  String get settlementNotifWeekly;
-
-  /// No description provided for @settlementNotifMonthly.
-  ///
-  /// In ko, this message translates to:
-  /// **'월간 결산'**
-  String get settlementNotifMonthly;
-
-  /// No description provided for @settlementNotifQuarterly.
-  ///
-  /// In ko, this message translates to:
-  /// **'분기 결산'**
-  String get settlementNotifQuarterly;
-
-  /// No description provided for @settlementNotifYearly.
-  ///
-  /// In ko, this message translates to:
-  /// **'연간 결산'**
-  String get settlementNotifYearly;
-
   /// No description provided for @rebalancingThresholdLabel.
   ///
   /// In ko, this message translates to:
@@ -2041,18 +1465,6 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'소수점 거래'**
   String get fractionalTrading;
-
-  /// No description provided for @fractionalTradingToggle.
-  ///
-  /// In ko, this message translates to:
-  /// **'소수점 단위로 매매'**
-  String get fractionalTradingToggle;
-
-  /// No description provided for @fractionalTradingHint.
-  ///
-  /// In ko, this message translates to:
-  /// **'소수점 매매가 되는 계좌에서만 켜세요.\n끄면 1주 단위로만 계산합니다.'**
-  String get fractionalTradingHint;
 
   /// No description provided for @maxDriftAfter.
   ///

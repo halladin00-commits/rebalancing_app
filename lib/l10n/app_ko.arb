@@ -217,25 +217,12 @@
   "delete": "삭제",
   "edit": "편집",
   "done": "완료",
-  "close": "닫기",
-  "apply": "적용",
   "exit": "종료",
   "add": "추가",
-  "create": "생성",
-  "irrevocable": "이 작업은 되돌릴 수 없습니다.",
   "editExitTitle": "편집 종료",
   "editExitContent": "편집 모드를 종료하시겠습니까?",
-  "editComplete": "편집 완료",
   "saveChanges": "수정 완료",
   "deleteConfirmTitle": "삭제 확인",
-  "deletePortfolioContent": "'{name}' 포트폴리오를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.",
-  "@deletePortfolioContent": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
   "deleteItemContent": "{name} 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.",
   "@deleteItemContent": {
     "placeholders": {
@@ -244,7 +231,6 @@
       }
     }
   },
-  "appExitTitle": "종료",
   "appExitContent": "앱을 종료하시겠습니까?",
   "neverUpdated": "업데이트 전",
   "toastAutoSettingRequired": "설정에서 환율 또는 주가를 자동으로 변경해 주세요",
@@ -256,7 +242,6 @@
       }
     }
   },
-  "updateSuccess": "업데이트 완료",
   "updateSuccessCount": "{count}건 업데이트 완료",
   "@updateSuccessCount": {
     "placeholders": {
@@ -266,30 +251,8 @@
     }
   },
   "portfolioNotFound": "포트폴리오를 찾을 수 없습니다",
-  "additionalInvestment": "투자금 추가 or 출금",
   "additionalInvestmentHint": "예: 1000000 또는 -500000",
-  "priceDelayNote": "※ 주가 ~20분, 환율 ~1일까지 지연 가능",
-  "totalAssetsLabel": "전체 자산 합계 (원 환산)",
   "evaluationAmount": "평가금액",
-  "currentAssets": "현재 평가금액",
-  "rebalancingBase": "리밸런싱 기준금액",
-  "remainingCash": "잔여 현금",
-  "estimatedFee": "예상 수수료: {fee}",
-  "@estimatedFee": {
-    "placeholders": {
-      "fee": {
-        "type": "String"
-      }
-    }
-  },
-  "exchangeRateLabel": "환율: 1 USD = ₩{rate}",
-  "@exchangeRateLabel": {
-    "placeholders": {
-      "rate": {
-        "type": "String"
-      }
-    }
-  },
   "weightWarning": "목표 비중 합계: {pct} (100%가 아닙니다)",
   "@weightWarning": {
     "placeholders": {
@@ -299,20 +262,11 @@
     }
   },
   "labelSettings": "설정",
-  "labelEdit": "편집",
   "labelGraph": "그래프",
-  "labelRebalanceApply": "리밸런싱 적용",
   "addStock": "종목 추가",
   "buy": "매수",
   "sell": "매도",
-  "hold": "유지",
   "cash": "현금",
-  "rebalanceApplyTitle": "리밸런싱 적용",
-  "rebalanceBullet1": "리밸런싱 결과를 보유 수량에 반영",
-  "rebalanceBullet2": "잔여 현금은 추가 투자금으로 변환",
-  "rebalanceBullet3": "매수 종목 평단가 자동 업데이트",
-  "rebalanceBullet3Note": "* 현재가 기준 계산 — 실제 체결가와 다를 수 있음",
-  "savePermissionRequired": "저장 권한이 필요합니다",
   "captureFailed": "캡처 실패",
   "savedToGallery": "갤러리에 저장됐어요",
   "saveFailed": "저장 실패",
@@ -336,9 +290,6 @@
   "saveImage": "이미지 저장",
   "shareImage": "이미지 공유",
   "capture": "캡처",
-  "portfolio": "포트폴리오",
-  "settlementTab": "결산",
-  "duplicatePortfolio": "포트폴리오 복사",
   "notifPermissionDenied": "알림 권한이 거부됐습니다. 설정에서 허용해 주세요.",
   "targetWeight": "목표 비중",
   "currentWeight": "현재 비중",
@@ -356,56 +307,25 @@
   "disclaimerTextTax": "금융거래에 따른 세금 신고, 양도소득세, 금융소득 종합과세 등 법적 의무는 사용자가 직접 확인하고 이행해야 합니다. 본 앱은 세무·법률 조언을 제공하지 않습니다.",
   "disclaimerSectionService": "서비스 변경 및 중단",
   "disclaimerTextService": "앱의 기능, 데이터 소스, 서비스는 사전 고지 없이 변경되거나 중단될 수 있습니다.",
-  "disclaimerDontShowAgain": "위 내용을 확인하였으며, 다음부터 이 안내를 표시하지 않습니다",
   "disclaimerStartBtn": "확인하고 시작하기",
   "disclaimerConfirmBtn": "확인",
-  "editStockTitle": "종목 수정",
-  "addStockTitle": "종목 추가",
-  "cashItem": "현금 항목",
-  "searchStock": "종목 검색",
   "searchHint": "종목명 또는 티커 입력",
-  "stockName": "종목명",
-  "cashNameHint": "예: 예수금",
-  "autoFillHint": "검색으로 자동 입력",
-  "stockCodeTicker": "종목 코드 / 티커",
   "avgCost": "평균 매수단가",
   "profitLoss": "평가손익",
-  "returnRate": "수익률",
   "currentPrice": "현재가",
-  "autoUpdate": "자동 업데이트",
-  "autoUpdateHint": "새로고침 시 자동으로 업데이트",
-  "targetWeightLabel": "목표 비중",
-  "holdingsAmount": "보유 금액",
-  "holdingsShares": "보유 수량",
-  "unitUSD": "USD",
   "unitKRW": "원",
   "unitShares": "주",
-  "portfolioExampleHint": "예: 연금저축, 미국주식",
-  "editPortfolioTitle": "포트폴리오 수정",
-  "createPortfolioTitle": "포트폴리오 생성",
-  "portfolioName": "포트폴리오 이름",
-  "iconLabel": "아이콘",
-  "createBtn": "생성",
   "settings": "설정",
   "baseCurrency": "기준 통화",
   "currencyKRW": "KRW (₩)",
   "currencyUSD": "USD ($)",
-  "amountDisplay": "금액 표시",
-  "amountDisplayHint": "현재 자산 / 리밸런싱 기준",
-  "fullDisplay": "전체 표시",
-  "compactDisplay": "축약 표시",
   "tradingFee": "거래 수수료",
   "includeFee": "수수료 반영",
   "feeRate": "수수료율",
   "exchangeRateSetting": "환율",
-  "autoRealtime": "자동 (실시간)",
   "exchangeRateInput": "환율 (1 USD)",
-  "autoRateHint": "새로고침 버튼으로 최신 환율을 가져옵니다",
   "stockPriceSetting": "주가",
-  "autoPriceHint": "새로고침 시 종목코드/티커 기준으로 현재가를 가져옵니다",
   "language": "언어",
-  "langKorean": "한국어",
-  "langEnglish": "English",
   "portfolioAddBtn": "포트폴리오 추가",
   "holdingsSection": "구성 종목",
   "cashIncluded": "예수금 포함",
@@ -418,27 +338,6 @@
     }
   },
   "notice": "공지사항",
-  "lightMode": "라이트 모드",
-  "darkMode": "다크 모드",
-  "currentPriceLabel": "현재가",
-  "holdingsLabel": "보유 수량",
-  "targetWeightRow": "목표 비중",
-  "currentWeightRow": "현재 비중",
-  "finalWeightRow": "최종 비중",
-  "tradeRow": "매매",
-  "wonEquivalent": "원화 환산가: {amount}",
-  "@wonEquivalent": {
-    "placeholders": {
-      "amount": {
-        "type": "String"
-      }
-    }
-  },
-  "autoPriceUpdateInfo": "주가 자동 업데이트 설정 중 — 새로고침으로 갱신",
-  "unitKrwSuffix": "억",
-  "unitKrwMan": "만",
-  "etfBadge": "ETF",
-  "totalPnl": "종합손익",
   "dayChange": "전일대비",
   "disclaimerAgreeCheckbox": "위 내용을 전부 확인하였으며\n동의합니다.",
   "validationNonNegative": "0 이상의 값을 입력해주세요.",
@@ -452,22 +351,6 @@
   "settlementMonthly": "월간",
   "settlementQuarterly": "분기",
   "settlementYearly": "연간",
-  "settlementBasedOn": "기준일: {date}",
-  "@settlementBasedOn": {
-    "placeholders": {
-      "date": {
-        "type": "String"
-      }
-    }
-  },
-  "settlementStartValue": "기준 평가금액",
-  "settlementEndValue": "현재 평가금액",
-  "settlementReturn": "기간 수익률",
-  "settlementNoData": "데이터 수집 중",
-  "settlementNoDataDesc": "새로고침 시 자동으로 스냅샷이 저장됩니다.",
-  "settlementViewWithApi": "API 데이터로 대체 보기",
-  "settlementApiFallbackWarning": "Yahoo Finance 과거 데이터 기준 (수량 변동 미반영)",
-  "settlementContribution": "기여도",
   "backupData": "백업",
   "restoreData": "복원",
   "backupFailed": "백업 실패",
@@ -490,16 +373,11 @@
   },
   "restoreFailed": "복원 실패: 올바른 백업 파일이 아닙니다",
   "notifReminder": "리밸런싱 알림",
-  "notifEnableLabel": "알림",
   "notifEnableDesc": "정기 리밸런싱 점검 알림",
   "notifEnableHint": "지정한 주기마다 앱 알림을 보내드립니다",
-  "notifFrequency": "알림 주기",
   "notifWeekly": "매주 월요일 오전 9시",
   "notifMonthly": "매월 1일 오전 9시",
-  "notifSavedOn": "알림이 설정됐습니다",
-  "notifSavedOff": "알림이 꺼졌습니다",
   "purchaseDateLabel": "매수 일자",
-  "holdingsFromTransactions": "거래 내역에서 수정",
   "transactionHistory": "거래 내역",
   "addTransaction": "거래 추가",
   "transactionBuy": "매수",
@@ -507,19 +385,10 @@
   "transactionDate": "거래 일자",
   "transactionQty": "수량",
   "transactionPrice": "단가",
-  "deleteTransaction": "거래 삭제",
   "settlementWeekNum": "{week}주차",
   "@settlementWeekNum": {
     "placeholders": {
       "week": {
-        "type": "int"
-      }
-    }
-  },
-  "settlementMonthNum": "{month}월",
-  "@settlementMonthNum": {
-    "placeholders": {
-      "month": {
         "type": "int"
       }
     }
@@ -532,19 +401,6 @@
       }
     }
   },
-  "settlementPeriodRange": "{start} ~ {end}",
-  "@settlementPeriodRange": {
-    "placeholders": {
-      "start": {
-        "type": "String"
-      },
-      "end": {
-        "type": "String"
-      }
-    }
-  },
-  "settlementCurrentPeriod": "진행 중",
-  "settlementNetCashFlow": "추가 투자금",
   "settlementYearLabel": "{year}년",
   "@settlementYearLabel": {
     "placeholders": {
@@ -581,15 +437,9 @@
   },
   "excelImportNothingAdded": "추가된 거래내역이 없습니다",
   "settlementNotifHeader": "결산 알림",
-  "settlementNotifWeekly": "주간 결산",
-  "settlementNotifMonthly": "월간 결산",
-  "settlementNotifQuarterly": "분기 결산",
-  "settlementNotifYearly": "연간 결산",
   "rebalancingThresholdLabel": "리밸런싱 임계값",
   "rebalancingThresholdHint": "편차가 이 값 미만이면 거래 권고 안 함",
   "fractionalTrading": "소수점 거래",
-  "fractionalTradingToggle": "소수점 단위로 매매",
-  "fractionalTradingHint": "소수점 매매가 되는 계좌에서만 켜세요.\n끄면 1주 단위로만 계산합니다.",
   "maxDriftAfter": "조정 후 최대 편차",
   "planMustRunAll": "아래 {count}건을 모두 실행해야 성립하는 결과입니다",
   "@planMustRunAll": {

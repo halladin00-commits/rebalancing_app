@@ -364,22 +364,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get done => 'Done';
 
   @override
-  String get close => 'Close';
-
-  @override
-  String get apply => 'Apply';
-
-  @override
   String get exit => 'Exit';
 
   @override
   String get add => 'Add';
-
-  @override
-  String get create => 'Create';
-
-  @override
-  String get irrevocable => 'This action cannot be undone.';
 
   @override
   String get editExitTitle => 'Exit Edit Mode';
@@ -388,26 +376,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editExitContent => 'Exit edit mode?';
 
   @override
-  String get editComplete => 'Done';
-
-  @override
   String get saveChanges => 'Save Changes';
 
   @override
   String get deleteConfirmTitle => 'Delete';
 
   @override
-  String deletePortfolioContent(String name) {
-    return 'Delete portfolio \'$name\'?\nThis action cannot be undone.';
-  }
-
-  @override
   String deleteItemContent(String name) {
     return 'Delete \'$name\'?\nThis action cannot be undone.';
   }
-
-  @override
-  String get appExitTitle => 'Exit';
 
   @override
   String get appExitContent => 'Exit the app?';
@@ -425,9 +402,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get updateSuccess => 'Updated';
-
-  @override
   String updateSuccessCount(int count) {
     return '$count updated';
   }
@@ -436,38 +410,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get portfolioNotFound => 'Portfolio not found';
 
   @override
-  String get additionalInvestment => 'Add Investment or Withdraw';
-
-  @override
   String get additionalInvestmentHint => 'e.g. 1000000 or -500000';
 
   @override
-  String get priceDelayNote => '※ Prices ~20min, rate ~1day delayed';
-
-  @override
-  String get totalAssetsLabel => 'Total Assets (KRW equiv.)';
-
-  @override
   String get evaluationAmount => 'Evaluation Amount';
-
-  @override
-  String get currentAssets => 'Current Value';
-
-  @override
-  String get rebalancingBase => 'Rebalancing Base';
-
-  @override
-  String get remainingCash => 'Remaining Cash';
-
-  @override
-  String estimatedFee(String fee) {
-    return 'Est. fee: $fee';
-  }
-
-  @override
-  String exchangeRateLabel(String rate) {
-    return 'Rate: 1 USD = ₩$rate';
-  }
 
   @override
   String weightWarning(String pct) {
@@ -478,13 +424,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get labelSettings => 'Settings';
 
   @override
-  String get labelEdit => 'Edit';
-
-  @override
   String get labelGraph => 'Graph';
-
-  @override
-  String get labelRebalanceApply => 'Apply Rebalancing';
 
   @override
   String get addStock => 'Add Stock';
@@ -496,29 +436,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sell => 'Sell';
 
   @override
-  String get hold => 'Hold';
-
-  @override
   String get cash => 'Cash';
-
-  @override
-  String get rebalanceApplyTitle => 'Apply Rebalancing';
-
-  @override
-  String get rebalanceBullet1 => 'Apply results to current holdings';
-
-  @override
-  String get rebalanceBullet2 => 'Remaining cash becomes additional investment';
-
-  @override
-  String get rebalanceBullet3 => 'Avg. cost auto-updates for buy orders';
-
-  @override
-  String get rebalanceBullet3Note =>
-      '* Based on current price — may differ from actual execution price';
-
-  @override
-  String get savePermissionRequired => 'Storage permission required';
 
   @override
   String get captureFailed => 'Capture failed';
@@ -569,15 +487,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get capture => 'Capture';
-
-  @override
-  String get portfolio => 'Portfolio';
-
-  @override
-  String get settlementTab => 'Settlement';
-
-  @override
-  String get duplicatePortfolio => 'Duplicate Portfolio';
 
   @override
   String get notifPermissionDenied =>
@@ -637,41 +546,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Features, data sources, and services may be changed or discontinued without prior notice.';
 
   @override
-  String get disclaimerDontShowAgain =>
-      'I have read and understood. Don\'t show this again.';
-
-  @override
   String get disclaimerStartBtn => 'Confirm & Start';
 
   @override
   String get disclaimerConfirmBtn => 'Confirm';
 
   @override
-  String get editStockTitle => 'Edit Stock';
-
-  @override
-  String get addStockTitle => 'Add Stock';
-
-  @override
-  String get cashItem => 'Cash';
-
-  @override
-  String get searchStock => 'Search Stock';
-
-  @override
   String get searchHint => 'Enter name or ticker';
-
-  @override
-  String get stockName => 'Stock Name';
-
-  @override
-  String get cashNameHint => 'e.g. Cash Balance';
-
-  @override
-  String get autoFillHint => 'Auto-filled by search';
-
-  @override
-  String get stockCodeTicker => 'Stock Code / Ticker';
 
   @override
   String get avgCost => 'Avg. Cost';
@@ -680,52 +561,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profitLoss => 'P&L';
 
   @override
-  String get returnRate => 'Return';
-
-  @override
   String get currentPrice => 'Current Price';
-
-  @override
-  String get autoUpdate => 'Auto Update';
-
-  @override
-  String get autoUpdateHint => 'Auto-updated on refresh';
-
-  @override
-  String get targetWeightLabel => 'Target Weight';
-
-  @override
-  String get holdingsAmount => 'Holdings (Amount)';
-
-  @override
-  String get holdingsShares => 'Holdings (Shares)';
-
-  @override
-  String get unitUSD => 'USD';
 
   @override
   String get unitKRW => 'KRW';
 
   @override
   String get unitShares => 'shares';
-
-  @override
-  String get portfolioExampleHint => 'e.g. Pension, US Stocks';
-
-  @override
-  String get editPortfolioTitle => 'Edit Portfolio';
-
-  @override
-  String get createPortfolioTitle => 'New Portfolio';
-
-  @override
-  String get portfolioName => 'Portfolio Name';
-
-  @override
-  String get iconLabel => 'Icon';
-
-  @override
-  String get createBtn => 'Create';
 
   @override
   String get settings => 'Settings';
@@ -740,18 +582,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get currencyUSD => 'USD (\$)';
 
   @override
-  String get amountDisplay => 'Amount Display';
-
-  @override
-  String get amountDisplayHint => 'Current Assets / Base Amount';
-
-  @override
-  String get fullDisplay => 'Full';
-
-  @override
-  String get compactDisplay => 'Compact';
-
-  @override
   String get tradingFee => 'Trading Fee';
 
   @override
@@ -764,28 +594,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exchangeRateSetting => 'Exchange Rate';
 
   @override
-  String get autoRealtime => 'Auto (Real-time)';
-
-  @override
   String get exchangeRateInput => 'Rate (1 USD)';
-
-  @override
-  String get autoRateHint => 'Use refresh button to get the latest rate';
 
   @override
   String get stockPriceSetting => 'Stock Price';
 
   @override
-  String get autoPriceHint => 'Price is fetched on refresh by ticker';
-
-  @override
   String get language => 'Language';
-
-  @override
-  String get langKorean => '한국어';
-
-  @override
-  String get langEnglish => 'English';
 
   @override
   String get portfolioAddBtn => 'Add Portfolio';
@@ -803,50 +618,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notice => 'Notice';
-
-  @override
-  String get lightMode => 'Light Mode';
-
-  @override
-  String get darkMode => 'Dark Mode';
-
-  @override
-  String get currentPriceLabel => 'Price';
-
-  @override
-  String get holdingsLabel => 'Holdings';
-
-  @override
-  String get targetWeightRow => 'Target Weight';
-
-  @override
-  String get currentWeightRow => 'Current Weight';
-
-  @override
-  String get finalWeightRow => 'Final Weight';
-
-  @override
-  String get tradeRow => 'Trade';
-
-  @override
-  String wonEquivalent(String amount) {
-    return 'KRW equiv: $amount';
-  }
-
-  @override
-  String get autoPriceUpdateInfo => 'Auto price update on — refresh to update';
-
-  @override
-  String get unitKrwSuffix => '';
-
-  @override
-  String get unitKrwMan => '';
-
-  @override
-  String get etfBadge => 'ETF';
-
-  @override
-  String get totalPnl => 'Total P&L';
 
   @override
   String get dayChange => 'Day Change';
@@ -890,37 +661,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settlementYearly => 'Yearly';
 
   @override
-  String settlementBasedOn(String date) {
-    return 'Based on: $date';
-  }
-
-  @override
-  String get settlementStartValue => 'Base Value';
-
-  @override
-  String get settlementEndValue => 'Current Value';
-
-  @override
-  String get settlementReturn => 'Period Return';
-
-  @override
-  String get settlementNoData => 'Collecting data';
-
-  @override
-  String get settlementNoDataDesc =>
-      'Snapshots are saved automatically on refresh.';
-
-  @override
-  String get settlementViewWithApi => 'View with API data';
-
-  @override
-  String get settlementApiFallbackWarning =>
-      'Based on Yahoo Finance historical data (holdings changes not reflected)';
-
-  @override
-  String get settlementContribution => 'Contribution';
-
-  @override
   String get backupData => 'Backup';
 
   @override
@@ -949,17 +689,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notifReminder => 'Rebalancing Reminders';
 
   @override
-  String get notifEnableLabel => 'Notifications';
-
-  @override
   String get notifEnableDesc => 'Periodic rebalancing reminders';
 
   @override
   String get notifEnableHint =>
       'We\'ll send you a reminder at the set interval';
-
-  @override
-  String get notifFrequency => 'Frequency';
 
   @override
   String get notifWeekly => 'Every Monday at 9 AM';
@@ -968,16 +702,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notifMonthly => '1st of each month at 9 AM';
 
   @override
-  String get notifSavedOn => 'Reminders enabled';
-
-  @override
-  String get notifSavedOff => 'Reminders disabled';
-
-  @override
   String get purchaseDateLabel => 'Purchase Date';
-
-  @override
-  String get holdingsFromTransactions => 'Modify via transactions';
 
   @override
   String get transactionHistory => 'Transactions';
@@ -1001,33 +726,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transactionPrice => 'Price';
 
   @override
-  String get deleteTransaction => 'Delete';
-
-  @override
   String settlementWeekNum(int week) {
     return 'Week $week';
-  }
-
-  @override
-  String settlementMonthNum(int month) {
-    return '$month';
   }
 
   @override
   String settlementQuarterNum(int q) {
     return 'Q$q';
   }
-
-  @override
-  String settlementPeriodRange(String start, String end) {
-    return '$start – $end';
-  }
-
-  @override
-  String get settlementCurrentPeriod => 'In Progress';
-
-  @override
-  String get settlementNetCashFlow => 'Capital Added';
 
   @override
   String settlementYearLabel(int year) {
@@ -1062,18 +768,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settlementNotifHeader => 'Settlement Reminders';
 
   @override
-  String get settlementNotifWeekly => 'Weekly Settlement';
-
-  @override
-  String get settlementNotifMonthly => 'Monthly Settlement';
-
-  @override
-  String get settlementNotifQuarterly => 'Quarterly Settlement';
-
-  @override
-  String get settlementNotifYearly => 'Yearly Settlement';
-
-  @override
   String get rebalancingThresholdLabel => 'Rebalancing Threshold';
 
   @override
@@ -1082,13 +776,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fractionalTrading => 'Fractional Shares';
-
-  @override
-  String get fractionalTradingToggle => 'Allow fractional quantities';
-
-  @override
-  String get fractionalTradingHint =>
-      'Turn on only if your broker supports fractional trading.\nOtherwise quantities stay in whole shares.';
 
   @override
   String get maxDriftAfter => 'Max drift after';
