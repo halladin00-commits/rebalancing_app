@@ -1945,6 +1945,24 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'(복사)'**
   String get copySuffix;
+
+  /// No description provided for @feeLabel.
+  ///
+  /// In ko, this message translates to:
+  /// **'수수료'**
+  String get feeLabel;
+
+  /// No description provided for @commissionAutoRate.
+  ///
+  /// In ko, this message translates to:
+  /// **'수수료율 {rate}% 자동 적용'**
+  String commissionAutoRate(String rate);
+
+  /// No description provided for @noTransactionsNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'거래 내역 없이\n현재 보유만 입력한 종목입니다'**
+  String get noTransactionsNote;
 }
 
 class _AppLocalizationsDelegate

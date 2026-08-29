@@ -363,9 +363,10 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
                     Text(
                       // 진행 중이면 경과 일수까지 — 아직 안 끝난 값임을 못박는다
                       inProgress
+                          // 어느 기간이 진행 중인지 이름까지 밝힌다 (시안 v22b)
                           ? (_isKo
-                              ? '진행 중 · $elapsed일 경과'
-                              : 'In progress · day $elapsed')
+                              ? '${_subLabel(_selected)} 진행 중 · $elapsed일 경과'
+                              : '${_subLabel(_selected)} in progress · day $elapsed')
                           : (_isKo ? '마감 · 막대를 눌러 기간 선택' : 'Closed · tap a bar to pick'),
                       style: TextStyle(
                         fontSize: DS.caption,

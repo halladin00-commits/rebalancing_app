@@ -222,7 +222,8 @@ class ItemDetailScreen extends StatelessWidget {
     final fromTx = item.transactions.isNotEmpty;
     return ListCard(rows: [
       _kv(context, l10n.holdingQty,
-          '${formatShares(item.shares)}${l10n.unitShares}'),
+          '${formatShares(item.shares)}${l10n.unitShares}',
+          note: fromTx ? l10n.basedOnTransactions : l10n.enteredDirectly),
       _kv(context, l10n.avgCost, fmtPrice(item.avgPrice, item.market),
           note: fromTx ? l10n.basedOnTransactions : l10n.enteredDirectly),
       _kv(context, l10n.currentPrice, fmtPrice(item.currentPrice, item.market)),
@@ -277,13 +278,17 @@ class ItemDetailScreen extends StatelessWidget {
                 color: Color(0x0D16130F), blurRadius: 2, offset: Offset(0, 1)),
           ],
         ),
-        child: Center(
-          child: Text(l10n.noTransactionsYet,
+        child: Column(children: [
+          Icon(Icons.history_toggle_off, size: 26, color: context.textDisabled),
+          const SizedBox(height: 9),
+          Text(l10n.noTransactionsNote,
+              textAlign: TextAlign.center,
               style: TextStyle(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w600,
+                  height: 1.5,
                   color: context.textTertiary)),
-        ),
+        ]),
       );
     }
 

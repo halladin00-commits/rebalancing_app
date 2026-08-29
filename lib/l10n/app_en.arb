@@ -731,5 +731,15 @@
   "sortManualNote": "Once you arrange them yourself, the order stays even when values change.",
   "rename": "Rename",
   "duplicate": "Duplicate",
-  "copySuffix": "(copy)"
+  "copySuffix": "(copy)",
+  "feeLabel": "Fee",
+  "commissionAutoRate": "{rate}% commission applied automatically",
+  "@commissionAutoRate": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "noTransactionsNote": "Holdings entered directly,\nwithout any transactions"
 }

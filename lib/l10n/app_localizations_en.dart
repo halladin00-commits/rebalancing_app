@@ -1077,4 +1077,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get copySuffix => '(copy)';
+
+  @override
+  String get feeLabel => 'Fee';
+
+  @override
+  String commissionAutoRate(String rate) {
+    return '$rate% commission applied automatically';
+  }
+
+  @override
+  String get noTransactionsNote =>
+      'Holdings entered directly,\nwithout any transactions';
 }

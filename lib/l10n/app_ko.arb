@@ -731,5 +731,15 @@
   "sortManualNote": "직접 배치 후에는 금액이 바뀌어도 순서가 그대로입니다.",
   "rename": "이름 변경",
   "duplicate": "복제",
-  "copySuffix": "(복사)"
+  "copySuffix": "(복사)",
+  "feeLabel": "수수료",
+  "commissionAutoRate": "수수료율 {rate}% 자동 적용",
+  "@commissionAutoRate": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "noTransactionsNote": "거래 내역 없이\n현재 보유만 입력한 종목입니다"
 }

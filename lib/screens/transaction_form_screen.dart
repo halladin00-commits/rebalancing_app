@@ -103,6 +103,8 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                 _fieldRow(context, l10n.transactionPrice, _priceCtl,
                     prefix: _sym, decimal: true),
                 _dateRow(context),
+                if (widget.portfolio.commissionEnabled)
+                  _feeRow(context),
                 _amountRow(context),
               ]),
               if (_error != null) ...[
@@ -359,6 +361,46 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
           Icon(Icons.calendar_month, size: 18, color: context.brand),
         ]),
       ),
+    );
+  }
+
+  /// 수수료 (시안 v13b). 포트 설정으로 계산되므로 여기서 고칠 수 없다 —
+  /// 시안의 `edit`은 거래마다 요율을 따로 두는 것인데, 그러려면 저장 형식이
+  /// 바뀐다 (docs/DECISIONS.md에서 하지 않기로 정했다).
+  /// 수수료를 끄고 쓰는 포트에는 아예 내지 않는다.
+  Widget _feeRow(BuildContext context) {
+    final pf = widget.portfolio;
+    final l10n = context.l10n;
+    final rate = pf.commissionRate;
+    final fee = _qty * _price * rate / 100;
+    final rateText =
+        rate == rate.roundToDouble() ? rate.toStringAsFixed(0) : rate.toString();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Row(children: [
+        Expanded(
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(l10n.feeLabel,
+                style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: context.textSecondary)),
+            const SizedBox(height: 2),
+            Text(l10n.commissionAutoRate(rateText),
+                style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: context.textTertiary)),
+          ]),
+        ),
+        Text(_fmtMoney(fee),
+            style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: context.textSecondary)),
+      ]),
     );
   }
 

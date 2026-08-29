@@ -1059,4 +1059,15 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get copySuffix => '(복사)';
+
+  @override
+  String get feeLabel => '수수료';
+
+  @override
+  String commissionAutoRate(String rate) {
+    return '수수료율 $rate% 자동 적용';
+  }
+
+  @override
+  String get noTransactionsNote => '거래 내역 없이\n현재 보유만 입력한 종목입니다';
 }
