@@ -697,5 +697,62 @@
         "type": "int"
       }
     }
+  },
+  "nOutOfRange": "{count} left",
+  "@nOutOfRange": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "excludedOnlyOutside": "Only the excluded {name} is out of range",
+  "@excludedOnlyOutside": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "whereToSendShare": "Where should {name}'s {amount} go?",
+  "@whereToSendShare": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "excludedNItems": "the {count} excluded",
+  "@excludedNItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "toRemainingItems": "To the other holdings",
+  "keepInCash": "Leave it in cash",
+  "wouldExceedBy": "Goes out of range at {value}",
+  "@wouldExceedBy": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "recalculated": "recalculated",
+  "keptAsIsDrift": "{weight} unchanged · {drift}",
+  "@keptAsIsDrift": {
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      },
+      "drift": {
+        "type": "String"
+      }
+    }
   }
 }

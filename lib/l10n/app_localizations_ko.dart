@@ -1182,4 +1182,43 @@ class AppLocalizationsKo extends AppLocalizations {
   String selectedExcluded(int sel, int exc) {
     return '$sel건 선택 · $exc건 제외';
   }
+
+  @override
+  String nOutOfRange(int count) {
+    return '$count개 남음';
+  }
+
+  @override
+  String excludedOnlyOutside(String name) {
+    return '제외한 $name만 허용 밖';
+  }
+
+  @override
+  String whereToSendShare(String name, String amount) {
+    return '$name 몫 $amount 어디로 보낼까요';
+  }
+
+  @override
+  String excludedNItems(int count) {
+    return '제외한 $count건';
+  }
+
+  @override
+  String get toRemainingItems => '나머지 종목에';
+
+  @override
+  String get keepInCash => '예수금에 남김';
+
+  @override
+  String wouldExceedBy(String value) {
+    return '$value로 허용을 벗어납니다';
+  }
+
+  @override
+  String get recalculated => '재계산';
+
+  @override
+  String keptAsIsDrift(String weight, String drift) {
+    return '$weight 그대로 · $drift';
+  }
 }

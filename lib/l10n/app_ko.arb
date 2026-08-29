@@ -697,5 +697,62 @@
         "type": "int"
       }
     }
+  },
+  "nOutOfRange": "{count}개 남음",
+  "@nOutOfRange": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "excludedOnlyOutside": "제외한 {name}만 허용 밖",
+  "@excludedOnlyOutside": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "whereToSendShare": "{name} 몫 {amount} 어디로 보낼까요",
+  "@whereToSendShare": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "excludedNItems": "제외한 {count}건",
+  "@excludedNItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "toRemainingItems": "나머지 종목에",
+  "keepInCash": "예수금에 남김",
+  "wouldExceedBy": "{value}로 허용을 벗어납니다",
+  "@wouldExceedBy": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "recalculated": "재계산",
+  "keptAsIsDrift": "{weight} 그대로 · {drift}",
+  "@keptAsIsDrift": {
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      },
+      "drift": {
+        "type": "String"
+      }
+    }
   }
 }

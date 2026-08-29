@@ -1202,4 +1202,43 @@ class AppLocalizationsEn extends AppLocalizations {
   String selectedExcluded(int sel, int exc) {
     return '$sel selected · $exc excluded';
   }
+
+  @override
+  String nOutOfRange(int count) {
+    return '$count left';
+  }
+
+  @override
+  String excludedOnlyOutside(String name) {
+    return 'Only the excluded $name is out of range';
+  }
+
+  @override
+  String whereToSendShare(String name, String amount) {
+    return 'Where should $name\'s $amount go?';
+  }
+
+  @override
+  String excludedNItems(int count) {
+    return 'the $count excluded';
+  }
+
+  @override
+  String get toRemainingItems => 'To the other holdings';
+
+  @override
+  String get keepInCash => 'Leave it in cash';
+
+  @override
+  String wouldExceedBy(String value) {
+    return 'Goes out of range at $value';
+  }
+
+  @override
+  String get recalculated => 'recalculated';
+
+  @override
+  String keptAsIsDrift(String weight, String drift) {
+    return '$weight unchanged · $drift';
+  }
 }

@@ -2221,6 +2221,60 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'{sel}건 선택 · {exc}건 제외'**
   String selectedExcluded(int sel, int exc);
+
+  /// No description provided for @nOutOfRange.
+  ///
+  /// In ko, this message translates to:
+  /// **'{count}개 남음'**
+  String nOutOfRange(int count);
+
+  /// No description provided for @excludedOnlyOutside.
+  ///
+  /// In ko, this message translates to:
+  /// **'제외한 {name}만 허용 밖'**
+  String excludedOnlyOutside(String name);
+
+  /// No description provided for @whereToSendShare.
+  ///
+  /// In ko, this message translates to:
+  /// **'{name} 몫 {amount} 어디로 보낼까요'**
+  String whereToSendShare(String name, String amount);
+
+  /// No description provided for @excludedNItems.
+  ///
+  /// In ko, this message translates to:
+  /// **'제외한 {count}건'**
+  String excludedNItems(int count);
+
+  /// No description provided for @toRemainingItems.
+  ///
+  /// In ko, this message translates to:
+  /// **'나머지 종목에'**
+  String get toRemainingItems;
+
+  /// No description provided for @keepInCash.
+  ///
+  /// In ko, this message translates to:
+  /// **'예수금에 남김'**
+  String get keepInCash;
+
+  /// No description provided for @wouldExceedBy.
+  ///
+  /// In ko, this message translates to:
+  /// **'{value}로 허용을 벗어납니다'**
+  String wouldExceedBy(String value);
+
+  /// No description provided for @recalculated.
+  ///
+  /// In ko, this message translates to:
+  /// **'재계산'**
+  String get recalculated;
+
+  /// No description provided for @keptAsIsDrift.
+  ///
+  /// In ko, this message translates to:
+  /// **'{weight} 그대로 · {drift}'**
+  String keptAsIsDrift(String weight, String drift);
 }
 
 class _AppLocalizationsDelegate

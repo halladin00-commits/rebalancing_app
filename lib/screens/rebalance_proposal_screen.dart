@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../main.dart';
+import '../utils/josa.dart';
 import '../utils/money_format.dart';
 import '../models/portfolio.dart';
 import '../theme/design_system.dart';
@@ -32,6 +33,10 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
 
   /// 체크를 끈 종목. 이 종목들은 건드리지 않고 나머지만 다시 맞춘다 (시안 v20).
   final _excluded = <String>{};
+
+  /// 뺀 종목의 몫을 나머지 종목에 나눠줄지 (시안 v20b).
+  /// 끄면 예수금에 남는다 — 이게 기존 동작이라 기본값이다.
+  bool _redistribute = false; // ignore: prefer_final_fields
 
   @override
   void initState() {
@@ -66,7 +71,17 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
         if (pf == null) {
           return Scaffold(body: Center(child: Text(l10n.portfolioNotFound)));
         }
-        final rb = Rebalancer.calculate(pf, excludeIds: _excluded);
+        final rb = Rebalancer.calculate(pf,
+            excludeIds: _excluded, redistributeExcluded: _redistribute);
+
+        // 뺀 것이 있으면 빼기 전 계획과 견줘 어떤 줄이 다시 계산됐는지 보인다.
+        Map<String, double>? baseDeltas;
+        if (_excluded.isNotEmpty) {
+          final base = Rebalancer.calculate(pf);
+          if (base != null) {
+            baseDeltas = {for (final b in base.results) b.id: b.delta};
+          }
+        }
         final trades = rb == null
             ? <RebalanceItemResult>[]
             : rb.results.where((r) => !r.isCash && r.delta != 0).toList();
@@ -99,9 +114,10 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
                           else ...[
                             _buildHeadline(context, pf, rb, trades),
                             const SizedBox(height: 9),
+                            ...?_buildSpreadChoice(context, pf, rb, baseDeltas),
                             _buildSectionTitle(context, trades.length),
                             const SizedBox(height: 7),
-                            _buildProposalCard(context, pf, shown),
+                            _buildProposalCard(context, pf, shown, baseDeltas),
                             const SizedBox(height: 9),
                             ...?_buildCashLedger(context, pf, rb, trades),
                             _buildRoundingNote(context, pf, rb, trades),
@@ -276,8 +292,8 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
 
   // ── 조정 카드 ──
 
-  Widget _buildProposalCard(
-      BuildContext context, Portfolio pf, List<RebalanceItemResult> shown) {
+  Widget _buildProposalCard(BuildContext context, Portfolio pf,
+      List<RebalanceItemResult> shown, Map<String, double>? baseDeltas) {
     return Container(
       decoration: BoxDecoration(
         color: context.cardBg,
@@ -289,7 +305,7 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(children: [
-        for (final r in shown) _buildTradeBlock(context, pf, r),
+        for (final r in shown) _buildTradeBlock(context, pf, r, baseDeltas),
       ]),
     );
   }
@@ -306,15 +322,27 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
 
     double maxNow = 0, maxAfter = 0;
     var inRange = 0;
+    final outOfRange = <String>[];
+    String? firstOutName;
     for (final r in rb.results) {
       final item = pf.items.firstWhere((i) => i.id == r.id);
       final now = r.currentWeight - item.targetWeight;
       final after = r.finalWeight - item.targetWeight;
       if (now.abs() > maxNow.abs()) maxNow = now;
       if (after.abs() > maxAfter.abs()) maxAfter = after;
-      if (threshold <= 0 || after.abs() < threshold) inRange++;
+      if (threshold <= 0 || after.abs() < threshold) {
+        inRange++;
+      } else {
+        outOfRange.add(item.id);
+        firstOutName ??= item.name;
+      }
     }
     final within = threshold <= 0 || maxAfter.abs() < threshold;
+    // 남은 편차가 **뺀 종목 때문만**이면 그렇다고 말해준다 —
+    // 아무것도 잘못하지 않았는데 빨간 숫자를 보는 것과는 다르다.
+    final onlyExcludedOut = outOfRange.isNotEmpty &&
+        outOfRange.every(_excluded.contains) &&
+        firstOutName != null;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 13, 16, 14),
@@ -367,19 +395,23 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
                     letterSpacing: -0.5,
                     color: within ? context.brandOnLight : context.danger)),
             const Spacer(),
-            if (within && threshold > 0)
+            if (threshold > 0)
               Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: context.pnlUpTint,
+                  color: within ? context.pnlUpTint : context.pnlDownTint,
                   borderRadius: BorderRadius.circular(DS.chipRadius),
                 ),
-                child: Text(l10n.withinTolerance,
+                child: Text(
+                    within
+                        ? l10n.withinTolerance
+                        : l10n.nOutOfRange(outOfRange.length),
                     style: TextStyle(
                         fontSize: 10.5,
                         fontWeight: FontWeight.w800,
-                        color: context.brandOnLight)),
+                        color:
+                            within ? context.brandOnLight : context.danger)),
               ),
           ],
         ),
@@ -388,7 +420,10 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
           within
               ? '${l10n.planMustRunAll(trades.length)} — '
                   '${l10n.allItemsInRange(inRange)}'
-              : l10n.planMustRunAll(trades.length),
+              : onlyExcludedOut
+                  ? '${l10n.planMustRunAll(trades.length)} — '
+                      '${l10n.excludedOnlyOutside(firstOutName)}'
+                  : l10n.planMustRunAll(trades.length),
           style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w500,
@@ -436,16 +471,27 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
     return delta.abs() * item.currentPrice * fx;
   }
 
-  /// 거래 한 줄 (시안 v20a).
+  /// 거래 한 줄 (시안 v20a·v20b).
   ///
   /// v18d는 수량을 24px로 크게 뽑았지만, 결론이 편차로 옮겨간 이상 줄마다
   /// 수량을 크게 둘 이유가 없다. 17px로 나란히 두고 한 줄에 담는다.
-  Widget _buildTradeBlock(
-      BuildContext context, Portfolio pf, RebalanceItemResult r) {
+  ///
+  /// 뺀 종목 때문에 수량이 바뀐 줄은 `재계산` 배지와 함께 **직전 값을 취소선으로**
+  /// 남긴다 — 무엇이 왜 움직였는지 보이지 않으면 숫자를 믿을 수 없다.
+  Widget _buildTradeBlock(BuildContext context, Portfolio pf,
+      RebalanceItemResult r, Map<String, double>? baseDeltas) {
     final l10n = context.l10n;
     final item = pf.items.firstWhere((i) => i.id == r.id);
     final off = _excluded.contains(r.id);
     final isBuy = r.delta > 0;
+
+    final prev = baseDeltas?[r.id];
+    final changed = !off &&
+        prev != null &&
+        (prev.abs() - r.delta.abs()).abs() > sharesEpsilon;
+
+    String sharesText(double d) =>
+        '${formatShares(d.abs())}${l10n.unitShares}';
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -474,43 +520,89 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
         const SizedBox(width: 10),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(item.name,
-                style: TextStyle(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.2,
-                    color: off ? context.textTertiary : context.textPrimary),
-                overflow: TextOverflow.ellipsis),
+            Row(children: [
+              Flexible(
+                child: Text(item.name,
+                    style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.2,
+                        color: off ? context.textTertiary : context.textPrimary),
+                    overflow: TextOverflow.ellipsis),
+              ),
+              if (changed) ...[
+                const SizedBox(width: 6),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: context.subtleFill,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(l10n.recalculated,
+                      style: TextStyle(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w800,
+                          color: context.textSecondary)),
+                ),
+              ],
+            ]),
             const SizedBox(height: 3),
             Text(
                 off
-                    ? '${_pct(r.currentWeight)} ${l10n.keepAsIs}'
+                    ? l10n.keptAsIsDrift(_pct(r.currentWeight),
+                        _pp(r.currentWeight - item.targetWeight))
                     : '${_pct(r.currentWeight)} → ${_pct(r.finalWeight)}',
                 style: TextStyle(
                     fontSize: 11.5,
                     fontWeight: FontWeight.w600,
-                    color: context.textSecondary)),
+                    color: context.textSecondary),
+                overflow: TextOverflow.ellipsis),
           ]),
         ),
         const SizedBox(width: 10),
         Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              // 직전 값 — 뺐거나 재계산됐을 때만
+              if (off && prev != null && prev.abs() > sharesEpsilon ||
+                  changed) ...[
+                Text(sharesText(prev),
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        decoration: TextDecoration.lineThrough,
+                        decorationColor: context.textTertiary,
+                        color: context.textTertiary)),
+                const SizedBox(width: 5),
+              ],
+              if (!off)
+                Text(sharesText(r.delta),
+                    style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.4,
+                        color: context.textPrimary))
+              else
+                Text(l10n.keepAsIs,
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: context.textTertiary)),
+            ],
+          ),
+          const SizedBox(height: 2),
           Text(
-              off
-                  ? l10n.keepAsIs
-                  : '${formatShares(r.delta.abs())}${l10n.unitShares}',
+              fmtMoney(
+                  _amountOf(pf, item, off ? (prev ?? 0) : r.delta), pf.currency),
               style: TextStyle(
-                  fontSize: off ? 13 : 17,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.4,
-                  color: off ? context.textTertiary : context.textPrimary)),
-          if (!off) ...[
-            const SizedBox(height: 2),
-            Text(fmtMoney(_amountOf(pf, item, r.delta), pf.currency),
-                style: TextStyle(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w600,
-                    color: context.textSecondary)),
-          ],
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                  decoration: off ? TextDecoration.lineThrough : null,
+                  decorationColor: context.textTertiary,
+                  color: context.textSecondary)),
         ]),
         const SizedBox(width: 8),
         // 끄면 그 종목을 빼고 나머지를 다시 계산한다
@@ -529,6 +621,133 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
         ),
       ]),
     );
+  }
+
+  /// 조정 뒤 남는 최대 편차 (%p).
+  double _maxDriftAfter(Portfolio pf, RebalanceResult rb) {
+    double worst = 0;
+    for (final r in rb.results) {
+      final item = pf.items.firstWhere((i) => i.id == r.id);
+      final after = r.finalWeight - item.targetWeight;
+      if (after.abs() > worst.abs()) worst = after;
+    }
+    return worst;
+  }
+
+  /// 뺀 몫을 어디로 보낼까 (시안 v20b).
+  ///
+  /// 종목을 빼면 그 종목이 쓰려던 돈이 남는다. 그 돈을 나머지 종목에 나눠줄지
+  /// 예수금에 둘지에 따라 **나머지 수량이 달라진다.** 앱이 대신 정하면
+  /// 사용자는 왜 이 수량인지 알 수 없으므로 물어본다.
+  List<Widget>? _buildSpreadChoice(BuildContext context, Portfolio pf,
+      RebalanceResult rb, Map<String, double>? baseDeltas) {
+    if (_excluded.isEmpty || baseDeltas == null) return null;
+    final l10n = context.l10n;
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+
+    // 뺀 종목들이 원래 움직였을 금액
+    double amount = 0;
+    String? firstName;
+    for (final id in _excluded) {
+      PortfolioItem? item;
+      for (final i in pf.items) {
+        if (i.id == id) {
+          item = i;
+          break;
+        }
+      }
+      if (item == null) continue;
+      amount += _amountOf(pf, item, baseDeltas[id] ?? 0);
+      firstName ??= item.name;
+    }
+    if (amount <= 0) return null;
+
+    final who = _excluded.length == 1
+        ? (firstName ?? '')
+        : l10n.excludedNItems(_excluded.length);
+    final money =
+        withJosa(fmtMoney(amount, pf.currency), Josa.eulReul, korean: isKo);
+
+    // 고르지 않은 쪽이 **더 나쁠 때만** 말해준다.
+    // 두 쪽 결과가 같으면(남는 편차가 뺀 종목 자체 때문일 때가 그렇다)
+    // 경고를 띄우는 게 오히려 거짓말이 된다.
+    final other = Rebalancer.calculate(pf,
+        excludeIds: _excluded, redistributeExcluded: !_redistribute);
+    final threshold = pf.rebalancingThreshold;
+    String? consequence;
+    if (other != null && threshold > 0) {
+      final d = _maxDriftAfter(pf, other);
+      final now = _maxDriftAfter(pf, rb);
+      if (d.abs() >= threshold && d.abs() > now.abs() + 0.005) {
+        consequence = l10n.wouldExceedBy(_pp(d));
+      }
+    }
+
+    Widget option(String label, bool selected, VoidCallback onTap) => Expanded(
+          child: GestureDetector(
+            onTap: onTap,
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              height: 38,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: selected ? context.brand : context.cardBg,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                    color: selected ? context.brand : context.borderColor),
+              ),
+              child: Text(label,
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
+                      color:
+                          selected ? Colors.white : context.textSecondary)),
+            ),
+          ),
+        );
+
+    return [
+      Container(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 13),
+        decoration: BoxDecoration(
+          color: context.subtleFill,
+          borderRadius: BorderRadius.circular(DS.listCardRadius),
+        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Icon(Icons.calculate_outlined, size: 16, color: context.textSecondary),
+            const SizedBox(width: 7),
+            Expanded(
+              child: Text(l10n.whereToSendShare(who, money),
+                  style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      height: 1.45,
+                      color: context.textPrimary)),
+            ),
+          ]),
+          const SizedBox(height: 10),
+          Row(children: [
+            option(l10n.toRemainingItems, _redistribute,
+                () => setState(() => _redistribute = true)),
+            const SizedBox(width: 8),
+            option(l10n.keepInCash, !_redistribute,
+                () => setState(() => _redistribute = false)),
+          ]),
+          if (consequence != null) ...[
+            const SizedBox(height: 8),
+            Text(
+                '${_redistribute ? l10n.keepInCash : l10n.toRemainingItems} · '
+                '$consequence',
+                style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: context.danger)),
+          ],
+        ]),
+      ),
+      const SizedBox(height: 9),
+    ];
   }
 
   /// 예수금 가계부 (시안 v20a).
