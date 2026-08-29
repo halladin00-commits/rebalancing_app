@@ -1134,4 +1134,72 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get rebalanceTransactionDesc =>
       'Edit qty/price to match your actual trades.\nItems with qty 0 will be skipped.';
+
+  @override
+  String get maxDriftAfter => 'Max drift after';
+
+  @override
+  String planMustRunAll(int count) {
+    return 'This result holds only if all $count trades are executed';
+  }
+
+  @override
+  String allItemsInRange(int count) {
+    return 'All $count holdings within range.';
+  }
+
+  @override
+  String togetherNTrades(int count) {
+    return '$count trades together';
+  }
+
+  @override
+  String get uncheckToRecalc => 'Uncheck to recalculate';
+
+  @override
+  String cashLedgerTitle(int count) {
+    return '$count buys share one cash balance';
+  }
+
+  @override
+  String get sellProceeds => 'Sale proceeds';
+
+  @override
+  String buyCostN(int count) {
+    return 'Purchases ($count)';
+  }
+
+  @override
+  String get cashAfterAdjust => 'Cash after adjusting';
+
+  @override
+  String get cashSharedNote =>
+      'The buys draw on the same cash — computing them separately does not add up.';
+
+  @override
+  String get sellFirstNote =>
+      'Sell first — foreign holdings can take a day or two if FX conversion is needed.';
+
+  @override
+  String recordNTransactions(int count) {
+    return 'Record $count trades';
+  }
+
+  @override
+  String targetShort(String value) {
+    return 'target $value';
+  }
+
+  @override
+  String get shareProposal => 'Share proposal';
+
+  @override
+  String driftedTogether(int count) {
+    return '$count drifted holdings together';
+  }
+
+  @override
+  String selectedExcluded(int sel, int exc) {
+    return '$sel selected · $exc excluded';
+  }
 }

@@ -68,9 +68,15 @@ class Rebalancer {
   /// [excludeIds]에 든 종목은 **건드리지 않는다** — 현재 수량을 그대로 두고
   /// 나머지만 목표에 맞춘다. 조정 제안에서 체크를 끈 종목이 여기로 온다
   /// ("저건 팔기 싫은데 나머지는 어떻게 하지"에 답하기 위한 것).
+  ///
+  /// [redistributeExcluded]는 **뺀 종목이 붙잡고 있는 돈을 뺀 나머지 예산**을
+  /// 남은 종목의 목표 비중대로 나눈다 (시안 v20b의 `나머지 종목에`).
+  /// 끄면 각 종목이 제 목표 비중을 그대로 향하고 남는 돈은 예수금이 된다
+  /// (`예수금에 남김` · 기존 동작).
   static RebalanceResult? calculate(
     Portfolio portfolio, {
     Set<String>? excludeIds,
+    bool redistributeExcluded = false,
   }) {
     final items = portfolio.items;
     if (items.isEmpty) return null;
@@ -124,6 +130,21 @@ class Rebalancer {
     // 필요 없다. 대신 수수료만큼 예산을 미리 빼 둬야 한다 —
     // 온주 거래는 내림에서 남는 돈이 수수료를 덮지만, 소수점 거래는
     // 남는 돈이 0이라 그냥 두면 잔여 현금이 음수가 된다.
+    // 뺀 종목이 붙잡고 있는 금액과, 아직 움직일 수 있는 종목의 목표 비중 합.
+    // 사용자가 실제로 뺀 것이 있을 때만 나눈다 — 기존 동작을 그대로 보존한다.
+    final spreading = redistributeExcluded && (excludeIds?.isNotEmpty ?? false);
+    double lockedValue = 0, activeWeight = 0;
+    if (spreading) {
+      for (final item in items) {
+        if (lockedIds.contains(item.id)) {
+          lockedValue +=
+              item.isCash ? item.shares : item.shares * priceInBase(item);
+        } else {
+          activeWeight += item.targetWeight;
+        }
+      }
+    }
+
     final fractional = portfolio.fractionalEnabled;
 
     /// [base]를 목표 금액의 기준으로 삼아 각 종목의 목표 수량을 잡는다.
@@ -134,7 +155,12 @@ class Rebalancer {
         final p = priceInBase(item);
         final cv = item.isCash ? item.shares : item.shares * p;
         final cw = (cv / total) * 100;
-        final tv = base * (item.targetWeight / 100);
+        final locked0 = lockedIds.contains(item.id);
+        // 나눠주기: 잠긴 몫을 뺀 예산을 남은 종목의 목표 비중대로 나눈다.
+        // 합이 정확히 `base - lockedValue`가 되어 낼 수 없는 계획이 안 나온다.
+        final tv = (spreading && !locked0 && activeWeight > 0)
+            ? max(0.0, base - lockedValue) * (item.targetWeight / activeWeight)
+            : base * (item.targetWeight / 100);
         final locked = lockedIds.contains(item.id);
         // 잠긴 종목은 "거래하지 않는다"는 뜻이므로 현재 수량을 그대로 둔다.
         if (item.isCash) {

@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+<style>
+body{margin:0;background:#e9e7e2;font-family:Pretendard,-apple-system,system-ui,sans-serif;text-wrap:pretty}
+a{color:#2563EB;text-decoration:none}
+a:hover{color:#1D4ED8;text-decoration:underline}
+.mi{font-family:'Material Icons';font-weight:400;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;white-space:nowrap;word-wrap:normal;direction:ltr;-webkit-font-feature-settings:'liga';-webkit-font-smoothing:antialiased}
+</style>
+</helmet>
+
+<section style="padding:44px 48px 56px;display:flex;flex-direction:column;gap:34px">
+
+  <div style="max-width:900px;display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;align-items:baseline;gap:10px">
+      <span style="font:600 10px ui-monospace,Menlo,monospace;padding:4px 8px;background:#1E293B;color:#fff;border-radius:4px">현황 재현</span>
+      <span style="font:700 15px/1.2 Pretendard,sans-serif;color:#1a1a1a">REBALANCING — 현재 출시 버전 화면 (라이트 모드)</span>
+    </div>
+    <p style="margin:0;font:400 13px/1.7 Pretendard,sans-serif;color:rgba(0,0,0,.62);max-width:760px">
+      개선안을 그리기 전에, 지금 서비스 중인 화면을 <b>Flutter 소스 코드 값 그대로</b> 옮겨 놓았습니다.
+      색상(<code>main.dart</code> AppColors), 폰트 크기·굵기, 여백, 라운드, 배지 색, 탭 구조, 하단 배너 50px 예약 영역까지 코드에 적힌 수치를 사용했습니다.
+      데이터만 실제 사용 상황을 가정한 예시입니다.
+    </p>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;font:500 11px Pretendard,sans-serif">
+      <span style="padding:5px 9px;background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:20px;color:#334155">Pretendard · Material 3</span>
+      <span style="padding:5px 9px;background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:20px;color:#334155">scaffold #F1F5F9 · appBar #1E293B</span>
+      <span style="padding:5px 9px;background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:20px;color:#334155">primary #3B82F6</span>
+      <span style="padding:5px 9px;background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:20px;color:#334155">손익 초록/빨강 #16A34A / #DC2626</span>
+      <span style="padding:5px 9px;background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:20px;color:#334155">본문 11–15px</span>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+
+    <!-- ══════════ SCREEN 1 : 포트폴리오 목록 ══════════ -->
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:baseline;gap:8px;font:400 11px Pretendard,sans-serif;color:rgba(0,0,0,.55)">
+        <span style="font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);border-radius:5px;color:#1a1a1a">S1</span>
+        portfolio_list_screen.dart · 포트폴리오 탭
+      </div>
+      <div data-screen-label="S1 목록" style="width:390px;height:844px;background:#F1F5F9;display:flex;flex-direction:column;overflow:hidden;border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.14);position:relative">
+
+        <div style="background:#1E293B;flex:none">
+          <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;color:#fff;font-size:13px;font-weight:600;letter-spacing:.2px">
+            <span>9:41</span><span style="font-size:11px;opacity:.85;letter-spacing:1px">LTE · 82%</span>
+          </div>
+          <div style="height:56px;display:flex;align-items:center;padding:0 4px 0 16px">
+            <div style="display:flex;align-items:center;gap:7.8px">
+              <div style="width:26px;height:26px;border-radius:50%;background:conic-gradient(#3B82F6 0deg 126deg,#22C55E 126deg 234deg,#F59E0B 234deg 306deg,#EF4444 306deg 360deg);-webkit-mask:radial-gradient(circle,transparent 7.8px,#000 7.8px);mask:radial-gradient(circle,transparent 7.8px,#000 7.8px)"></div>
+              <span style="font-size:18.2px;font-weight:700;color:#fff;letter-spacing:2.08px">REBALANCING</span>
+            </div>
+            <div style="flex:1"></div>
+            <div style="width:48px;height:48px;display:flex;align-items:center;justify-content:center"><span class="mi" style="font-size:24px;color:#fff">refresh</span></div>
+          </div>
+          <div style="height:46px;display:flex">
+            <div style="flex:1;display:flex;align-items:center;justify-content:center;position:relative">
+              <span style="font-size:14px;font-weight:500;color:#fff">포트폴리오</span>
+              <div style="position:absolute;left:0;right:0;bottom:0;height:2px;background:#fff"></div>
+            </div>
+            <div style="flex:1;display:flex;align-items:center;justify-content:center">
+              <span style="font-size:14px;font-weight:500;color:rgba(255,255,255,.54)">결산</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="flex:1;position:relative;overflow:hidden">
+          <div style="position:absolute;inset:0;overflow:hidden;padding:16px 16px 100px">
+
+            <div style="margin-bottom:12px;padding:14px 16px 12px;background:#fff;border-radius:12px;border:1px solid #E0E0E0">
+              <div style="font-size:11px;font-weight:500;color:#BDBDBD">평가금액</div>
+              <div style="height:4px"></div>
+              <div style="font-size:22px;font-weight:800;color:#1E293B">₩24,412,730</div>
+              <div style="height:8px"></div>
+              <div style="display:flex;gap:8px">
+                <div style="flex:1;padding:8px 10px;background:#F8FAFC;border-radius:8px">
+                  <div style="display:flex;align-items:center">
+                    <span style="font-size:11px;color:#BDBDBD">평가손익</span>
+                    <div style="flex:1"></div>
+                    <span style="padding:1px 5px;background:rgba(22,163,74,.12);border-radius:4px;font-size:10px;font-weight:700;color:#16A34A">+2.8%</span>
+                  </div>
+                  <div style="height:3px"></div>
+                  <div style="font-size:14px;font-weight:700;color:#16A34A">+₩672,138</div>
+                </div>
+                <div style="flex:1;padding:8px 10px;background:#F8FAFC;border-radius:8px">
+                  <div style="display:flex;align-items:center">
+                    <span style="font-size:11px;color:#BDBDBD">전일대비</span>
+                    <div style="flex:1"></div>
+                    <span style="padding:1px 5px;background:rgba(22,163,74,.12);border-radius:4px;font-size:10px;font-weight:700;color:#16A34A">+0.4%</span>
+                  </div>
+                  <div style="height:3px"></div>
+                  <div style="font-size:14px;font-weight:700;color:#16A34A">+₩107,363</div>
+                </div>
+              </div>
+              <div style="height:8px"></div>
+              <div style="display:flex;justify-content:space-between">
+                <span style="font-size:10px;color:#BDBDBD">8/13 21:04</span>
+                <span style="font-size:10px;color:#BDBDBD">※ 주가 ~20분, 환율 ~1일까지 지연 가능</span>
+              </div>
+            </div>
+
+            <div style="margin-bottom:10px;background:#fff;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.09),0 1px 3px 1px rgba(0,0,0,.045);padding:12px 16px;display:flex;align-items:center">
+              <span style="font-size:26px;line-height:1.2">📈</span>
+              <div style="width:12px"></div>
+              <div style="flex:1;min-width:0">
+                <div style="display:flex;align-items:center">
+                  <span style="flex:1;min-width:0;font-size:15px;font-weight:700;color:#1E293B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">연금저축 ETF</span>
+                  <span style="width:6px"></span>
+                  <span style="font-size:11px;color:#757575">4개 종목</span>
+                  <span style="width:8px"></span>
+                  <span style="font-size:13px;font-weight:700;color:#1E293B">₩11,772,880</span>
+                </div>
+                <div style="height:5px"></div>
+                <div style="display:flex;align-items:center">
+                  <span style="font-size:11px;color:#BDBDBD">평가손익</span>
+                  <span style="flex:1;text-align:right;font-size:12px;font-weight:600;color:#16A34A">+₩786,238 (+8.0%)</span>
+                </div>
+                <div style="height:2px"></div>
+                <div style="display:flex;align-items:center">
+                  <span style="font-size:11px;color:#BDBDBD">전일대비</span>
+                  <span style="flex:1;text-align:right;font-size:12px;font-weight:600;color:#16A34A">+₩73,583 (+0.7%)</span>
+                </div>
+              </div>
+              <div style="width:4px"></div>
+              <span class="mi" style="font-size:24px;color:#BDBDBD">chevron_right</span>
+            </div>
+
+            <div style="margin-bottom:10px;background:#fff;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.09),0 1px 3px 1px rgba(0,0,0,.045);padding:12px 16px;display:flex;align-items:center">
+              <span style="font-size:26px;line-height:1.2">🇺🇸</span>
+              <div style="width:12px"></div>
+              <div style="flex:1;min-width:0">
+                <div style="display:flex;align-items:center">
+                  <span style="flex:1;min-width:0;font-size:15px;font-weight:700;color:#1E293B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">미국주식 계좌</span>
+                  <span style="width:6px"></span>
+                  <span style="font-size:11px;color:#757575">3개 종목</span>
+                  <span style="width:8px"></span>
+                  <span style="font-size:13px;font-weight:700;color:#1E293B">₩8,431,200</span>
+                </div>
+                <div style="height:5px"></div>
+                <div style="display:flex;align-items:center">
+                  <span style="font-size:11px;color:#BDBDBD">평가손익</span>
+                  <span style="flex:1;text-align:right;font-size:12px;font-weight:600;color:#DC2626">-₩312,400 (-3.6%)</span>
+                </div>
+                <div style="height:2px"></div>
+                <div style="display:flex;align-items:center">
+                  <span style="font-size:11px;color:#BDBDBD">전일대비</span>
+                  <span style="flex:1;text-align:right;font-size:12px;font-weight:600;color:#16A34A">+₩41,900 (+0.5%)</span>
+                </div>
+              </div>
+              <div style="width:4px"></div>
+              <span class="mi" style="font-size:24px;color:#BDBDBD">chevron_right</span>
+            </div>
+
+            <div style="margin-bottom:10px;background:#fff;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.09),0 1px 3px 1px rgba(0,0,0,.045);padding:12px 16px;display:flex;align-items:center">
+              <span style="font-size:26px;line-height:1.2">💰</span>
+              <div style="width:12px"></div>
+              <div style="flex:1;min-width:0">
+                <div style="display:flex;align-items:center">
+                  <span style="flex:1;min-width:0;font-size:15px;font-weight:700;color:#1E293B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">배당 모으기</span>
+                  <span style="width:6px"></span>
+                  <span style="font-size:11px;color:#757575">5개 종목</span>
+                  <span style="width:8px"></span>
+                  <span style="font-size:13px;font-weight:700;color:#1E293B">₩4,208,650</span>
+                </div>
+                <div style="height:5px"></div>
+                <div style="display:flex;align-items:center">
+                  <span style="font-size:11px;color:#BDBDBD">평가손익</span>
+                  <span style="flex:1;text-align:right;font-size:12px;font-weight:600;color:#16A34A">+₩198,300 (+4.9%)</span>
+                </div>
+                <div style="height:2px"></div>
+                <div style="display:flex;align-items:center">
+                  <span style="font-size:11px;color:#BDBDBD">전일대비</span>
+                  <span style="flex:1;text-align:right;font-size:12px;font-weight:600;color:#DC2626">-₩8,120 (-0.2%)</span>
+                </div>
+              </div>
+              <div style="width:4px"></div>
+              <span class="mi" style="font-size:24px;color:#BDBDBD">chevron_right</span>
+            </div>
+
+            <div style="margin-bottom:10px;padding:14px 0;border:1px solid #E0E0E0;border-radius:12px;background:rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center">
+              <div style="width:20px;height:20px;border-radius:5px;background:#3B82F6;display:flex;align-items:center;justify-content:center"><span class="mi" style="font-size:14px;color:#fff">add</span></div>
+              <div style="width:8px"></div>
+              <span style="font-size:13px;font-weight:500;color:#3B82F6">포트폴리오 추가</span>
+            </div>
+          </div>
+
+          <div style="position:absolute;bottom:16px;right:16px;width:56px;height:56px;border-radius:50%;background:#3B82F6;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 6px rgba(0,0,0,.24),0 6px 12px rgba(0,0,0,.16)">
+            <span class="mi" style="font-size:26px;color:#fff">more_vert</span>
+          </div>
+        </div>
+
+        <div style="height:50px;flex:none;background:#F1F5F9;display:flex;align-items:center;justify-content:center;border-top:1px dashed rgba(0,0,0,.12)">
+          <span style="font-size:10px;color:#BDBDBD;letter-spacing:.4px">배너 광고 영역 (항상 50px 예약)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ SCREEN 2 : 상세 · 자산현황 ══════════ -->
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:baseline;gap:8px;font:400 11px Pretendard,sans-serif;color:rgba(0,0,0,.55)">
+        <span style="font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);border-radius:5px;color:#1a1a1a">S2</span>
+        portfolio_detail_screen.dart · 자산현황 탭
+      </div>
+      <div data-screen-label="S2 자산현황" style="width:390px;height:844px;background:#F1F5F9;display:flex;flex-direction:column;overflow:hidden;border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.14)">
+
+        <div style="background:#1E293B;flex:none">
+          <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;color:#fff;font-size:13px;font-weight:600;letter-spacing:.2px">
+            <span>9:41</span><span style="font-size:11px;opacity:.85;letter-spacing:1px">LTE · 82%</span>
+          </div>
+          <div style="height:56px;display:flex;align-items:center;padding:0 4px 0 4px">
+            <div style="width:48px;height:48px;display:flex;align-items:center;justify-content:center"><span class="mi" style="font-size:24px;color:#fff">arrow_back</span></div>
+            <span style="font-size:17px;font-weight:700;color:#fff;margin-left:12px">📈 연금저축 ETF</span>
+            <div style="flex:1"></div>
+            <div style="width:48px;height:48px;display:flex;align-items:center;justify-content:center"><span class="mi" style="font-size:24px;color:#fff">refresh</span></div>
+          </div>
+          <div style="height:46px;display:flex">
+            <div style="flex:1;display:flex;align-items:center;justify-content:center;position:relative">
+              <span style="font-size:14px;font-weight:500;color:#fff">자산현황</span>
+              <div style="position:absolute;left:0;right:0;bottom:0;height:2px;background:#fff"></div>
+            </div>
+            <div style="flex:1;display:flex;align-items:center;justify-content:center"><span style="font-size:14px;font-weight:500;color:rgba(255,255,255,.54)">리밸런싱</span></div>
+            <div style="flex:1;display:flex;align-items:center;justify-content:center"><span style="font-size:14px;font-weight:500;color:rgba(255,255,255,.54)">결산</span></div>
+          </div>
+        </div>
+
+        <div style="flex:1;position:relative;overflow:hidden;display:flex;flex-direction:column">
+          <div style="background:#fff;padding:12px 16px;flex:none">
+            <div style="display:flex;align-items:flex-end">
+              <div style="flex:1;min-width:0">
+                <div style="font-size:11px;color:#BDBDBD">평가금액</div>
+                <div style="height:1px"></div>
+                <div style="font-size:22px;font-weight:800;color:#1E293B">₩11,772,880</div>
+              </div>
+              <div style="width:8px"></div>
+              <div style="text-align:right">
+                <div style="font-size:11px;color:#BDBDBD">환율: 1 USD = ₩1382</div>
+                <div style="height:1px"></div>
+                <div style="font-size:11px;color:#BDBDBD">2026.08.13 21:04</div>
+              </div>
+            </div>
+            <div style="height:10px"></div>
+            <div style="display:flex;gap:8px">
+              <div style="flex:1;padding:8px 10px;background:#F8FAFC;border-radius:8px">
+                <div style="display:flex;align-items:center">
+                  <span style="font-size:11px;color:#BDBDBD">평가손익</span><div style="flex:1"></div>
+                  <span style="padding:1px 5px;background:rgba(22,163,74,.12);border-radius:4px;font-size:10px;font-weight:700;color:#16A34A">+8.0%</span>
+                </div>
+                <div style="height:3px"></div>
+                <div style="font-size:14px;font-weight:700;color:#16A34A">+₩786,238</div>
+              </div>
+              <div style="flex:1;padding:8px 10px;background:#F8FAFC;border-radius:8px">
+                <div style="display:flex;align-items:center">
+                  <span style="font-size:11px;color:#BDBDBD">전일대비</span><div style="flex:1"></div>
+                  <span style="padding:1px 5px;background:rgba(22,163,74,.12);border-radius:4px;font-size:10px;font-weight:700;color:#16A34A">+0.7%</span>
+                </div>
+                <div style="height:3px"></div>
+                <div style="font-size:14px;font-weight:700;color:#16A34A">+₩73,583</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="flex:1;overflow:hidden;padding:16px 16px 100px">
+            <div style="margin-bottom:10px;background:#fff;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.09),0 1px 3px 1px rgba(0,0,0,.045);padding:10px 14px">
+              <div style="display:flex;align-items:center">
+                <span style="padding:2px 6px;border-radius:4px;background:rgba(3,105,161,.1);font-size:11px;font-weight:700;color:#0369A1">KR</span>
+                <span style="width:6px"></span>
+                <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:600;color:#1E293B">TIGER 미국S&amp;P500 <span style="font-size:12px;font-weight:400;color:#BDBDBD">360750</span></span>
+              </div>
+              <div style="height:6px"></div>
+              <div style="display:flex;align-items:center">
+                <span style="font-size:12px;color:#757575">₩21,450 × 220</span><div style="flex:1"></div>
+                <span style="font-size:12px;font-weight:600;color:#1E293B">₩4,719,000</span>
+                <span style="width:4px"></span>
+                <span style="font-size:11px;color:#BDBDBD">(40.08%)</span>
+              </div>
+              <div style="height:6px"></div>
+              <div style="display:flex;align-items:center">
+                <span style="font-size:11px;color:#BDBDBD">평가손익</span><div style="flex:1"></div>
+                <span style="font-size:11px;font-weight:600;color:#16A34A">+₩561,000</span><span style="width:4px"></span>
+                <span style="font-size:11px;font-weight:600;color:#16A34A">(+13.49%)</span>
+              </div>
+              <div style="height:3px"></div>
+              <div style="display:flex;align-items:center">
+                <span style="font-size:11px;color:#BDBDBD">전일대비</span><div style="flex:1"></div>
+                <span style="font-size:11px;font-weight:600;color:#16A34A">+₩55,000</span><span style="width:4px"></span>
+                <span style="font-size:11px;font-weight:600;color:#16A34A">(+1.18%)</span>
+              </div>
+            </div>
+
+            <div style="margin-bottom:10px;background:#fff;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.09),0 1px 3px 1px rgba(0,0,0,.045);padding:10px 14px">
+              <div style="display:flex;align-items:center">
+                <span style="padding:2px 6px;border-radius:4px;background:rgba(3,105,161,.1);font-size:11px;font-weight:700;color:#0369A1">KR</span>
+                <span style="width:6px"></span>
+                <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:600;color:#1E293B">KODEX 200 <span style="font-size:12px;font-weight:400;color:#BDBDBD">069500</span></span>
+              </div>
+              <div style="height:6px"></div>
+              <div style="display:flex;align-items:center">
+                <span style="font-size:12px;color:#757575">₩38,650 × 60</span><div style="flex:1"></div>
+                <span style="font-size:12px;font-weight:600;color:#1E293B">₩2,319,000</span>
+                <span style="width:4px"></span>
+                <span style="font-size:11px;color:#BDBDBD">(19.70%)</span>
+              </div>
+              <div style="height:6px"></div>
+              <div style="display:flex;align-items:center">
+                <span style="font-size:11px;color:#BDBDBD">평가손익</span><div style="flex:1"></div>
+                <span style="font-size:11px;font-weight:600;color:#DC2626">-₩88,200</span><span style="width:4px"></span>
+                <span style="font-size:11px;font-weight:600;color:#DC2626">(-3.66%)</span>
+              </div>
+              <div style="height:3px"></div>
+              <div style="display:flex;align-items:center">
+                <span style="font-size:11px;color:#BDBDBD">전일대비</span><div style="flex:1"></div>
+                <span style="font-size:11px;font-weight:600;color:#DC2626">-₩15,000</span><span style="width:4px"></span>
+                <span style="font-size:11px;font-weight:600;color:#DC2626">(-0.64%)</span>
+              </div>
+            </div>
+
+            <div style="margin-bottom:10px;background:#fff;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.09),0 1px 3px 1px rgba(0,0,0,.045);padding:10px 14px">
+              <div style="display:flex;align-items:center">
+                <span style="padding:2px 6px;border-radius:4px;background:rgba(124,58,237,.1);font-size:11px;font-weight:700;color:#7C3AED">US</span>
+                <span style="width:6px"></span>
+                <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:600;color:#1E293B">Schwab US Dividend <span style="font-size:12px;font-weight:400;color:#BDBDBD">SCHD</span></span>
+              </div>
+              <div style="height:6px"></div>
+              <div style="display:flex;align-items:center">
+                <span style="font-size:12px;color:#757575">$28.42 × 90</span><div style="flex:1"></div>
+                <span style="font-size:12px;font-weight:600;color:#1E293B">₩3,534,880</span>
+                <span style="width:4px"></span>
+                <span style="font-size:11px;color:#BDBDBD">(30.03%)</span>
+              </div>
+              <div style="height:6px"></div>
+              <div style="display:flex;align-items:center">
+                <span style="font-size:11px;color:#BDBDBD">평가손익</span><div style="flex:1"></div>
+                <span style="font-size:11px;font-weight:600;color:#16A34A">+₩313,438</span><span style="width:4px"></span>
+                <span style="font-size:11px;font-weight:600;color:#16A34A">(+9.73%)</span>
+              </div>
+              <div style="height:3px"></div>
+              <div style="display:flex;align-items:center">
+                <span style="font-size:11px;color:#BDBDBD">전일대비</span><div style="flex:1"></div>
+                <span style="font-size:11px;font-weight:600;color:#16A34A">+₩33,583</span><span style="width:4px"></span>
+                <span style="font-size:11px;font-weight:600;color:#16A34A">(+0.96%)</span>
+              </div>
+            </div>
+
+            <div style="margin-bottom:10px;background:#fff;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.09),0 1px 3px 1px rgba(0,0,0,.045);padding:10px 14px">
+              <div style="display:flex;align-items:center">
+                <span style="padding:2px 6px;border-radius:4px;background:rgba(101,163,13,.1);font-size:11px;font-weight:700;color:#65A30D">현금</span>
+                <span style="width:6px"></span>
+                <span style="flex:1;min-width:0;font-size:14px;font-weight:600;color:#1E293B">예수금</span>
+              </div>
+              <div style="height:6px"></div>
+              <div style="display:flex;align-items:center">
+                <div style="flex:1"></div>
+                <span style="font-size:12px;font-weight:600;color:#1E293B">₩1,200,000</span>
+              </div>
+            </div>
+
+            <div style="margin-bottom:10px;padding:14px 0;border:1px solid #E0E0E0;border-radius:12px;background:rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center">
+              <div style="width:20px;height:20px;border-radius:5px;background:#3B82F6;display:flex;align-items:center;justify-content:center"><span class="mi" style="font-size:14px;color:#fff">add</span></div>
+              <div style="width:8px"></div>
+              <span style="font-size:13px;font-weight:500;color:#3B82F6">종목 추가</span>
+            </div>
+          </div>
+
+          <div style="position:absolute;bottom:16px;right:16px;display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="padding:5px 10px;background:#fff;border:1px solid #E0E0E0;border-radius:6px;font-size:13px;font-weight:500;color:#1E293B">편집</span>
+              <div style="width:42px;height:42px;border-radius:16px;background:#fff;border:1px solid #E0E0E0;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.16)"><span class="mi" style="font-size:20px;color:#757575">edit</span></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="padding:5px 10px;background:#fff;border:1px solid #E0E0E0;border-radius:6px;font-size:13px;font-weight:500;color:#1E293B">설정</span>
+              <div style="width:42px;height:42px;border-radius:16px;background:#fff;border:1px solid #E0E0E0;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.16)"><span class="mi" style="font-size:20px;color:#757575">settings</span></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="padding:5px 10px;background:#fff;border:1px solid #E0E0E0;border-radius:6px;font-size:13px;font-weight:500;color:#1E293B">캡처</span>
+              <div style="width:42px;height:42px;border-radius:16px;background:#fff;border:1px solid #E0E0E0;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.16)"><span class="mi" style="font-size:20px;color:#757575">photo_camera</span></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="padding:5px 10px;background:#fff;border:1px solid #E0E0E0;border-radius:6px;font-size:13px;font-weight:500;color:#1E293B">그래프</span>
+              <div style="width:42px;height:42px;border-radius:16px;background:#1D4ED8;border:1px solid #E0E0E0;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.16)"><span class="mi" style="font-size:20px;color:#93C5FD">pie_chart_outline</span></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="padding:5px 10px;background:#fff;border:1px solid #E0E0E0;border-radius:6px;font-size:13px;font-weight:500;color:#1E293B">엑셀 가져오기</span>
+              <div style="width:42px;height:42px;border-radius:16px;background:#fff;border:1px solid #E0E0E0;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.16)"><span class="mi" style="font-size:20px;color:#757575">table_chart</span></div>
+            </div>
+            <div style="width:56px;height:56px;border-radius:50%;background:#3B82F6;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 6px rgba(0,0,0,.24),0 6px 12px rgba(0,0,0,.16)">
+              <span class="mi" style="font-size:26px;color:#fff">keyboard_arrow_down</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="height:50px;flex:none;background:#F1F5F9;display:flex;align-items:center;justify-content:center;border-top:1px dashed rgba(0,0,0,.12)">
+          <span style="font-size:10px;color:#BDBDBD;letter-spacing:.4px">배너 광고 영역 (항상 50px 예약)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ SCREEN 3 : 상세 · 리밸런싱 ══════════ -->
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:baseline;gap:8px;font:400 11px Pretendard,sans-serif;color:rgba(0,0,0,.55)">
+        <span style="font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);border-radius:5px;color:#1a1a1a">S3</span>
+        portfolio_detail_screen.dart · 리밸런싱 탭
+      </div>
+      <div data-screen-label="S3 리밸런싱" style="width:390px;height:844px;background:#F1F5F9;display:flex;flex-direction:column;overflow:hidden;border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.14)">
+
+        <div style="background:#1E293B;flex:none">
+          <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;color:#fff;font-size:13px;font-weight:600;letter-spacing:.2px">
+            <span>9:41</span><span style="font-size:11px;opacity:.85;letter-spacing:1px">LTE · 82%</span>
+          </div>
+          <div style="height:56px;display:flex;align-items:center;padding:0 4px">
+            <div style="width:48px;height:48px;display:flex;align-items:center;justify-content:center"><span class="mi" style="font-size:24px;color:#fff">arrow_back</span></div>
+            <span style="font-size:17px;font-weight:700;color:#fff;margin-left:12px">📈 연금저축 ETF</span>
+            <div style="flex:1"></div>
+            <div style="width:48px;height:48px;display:flex;align-items:center;justify-content:center"><span class="mi" style="font-size:24px;color:#fff">refresh</span></div>
+          </div>
+          <div style="height:46px;display:flex">
+            <div style="flex:1;display:flex;align-items:center;justify-content:center"><span style="font-size:14px;font-weight:500;color:rgba(255,255,255,.54)">자산현황</span></div>
+            <div style="flex:1;display:flex;align-items:center;justify-content:center;position:relative">
+              <span style="font-size:14px;font-weight:500;color:#fff">리밸런싱</span>
+              <div style="position:absolute;left:0;right:0;bottom:0;height:2px;background:#fff"></div>
+            </div>
+            <div style="flex:1;display:flex;align-items:center;justify-content:center"><span style="font-size:14px;font-weight:500;color:rgba(255,255,255,.54)">결산</span></div>
+          </div>
+        </div>
+
+        <div style="flex:1;position:relative;overflow:hidden;display:flex;flex-direction:column">
+          <div style="background:#fff;padding:16px;flex:none">
+            <div style="font-size:12px;font-weight:600;color:#757575">투자금 추가 or 출금</div>
+            <div style="height:4px"></div>
+            <div style="background:#F9FAFB;border:1px solid #E0E0E0;border-radius:8px;padding:10px 12px;display:flex;align-items:center">
+              <span style="font-size:16px;color:#1E293B">₩ </span>
+              <span style="font-size:16px;color:#BDBDBD">0</span>
+            </div>
+            <div style="height:10px"></div>
+            <div style="display:flex;gap:8px">
+              <div style="flex:1;padding:8px;background:#F8FAFC;border-radius:8px">
+                <div style="font-size:11px;color:#BDBDBD">현재 평가금액</div>
+                <div style="height:2px"></div>
+                <div style="font-size:14px;font-weight:700;color:#1E293B">₩11,772,880</div>
+              </div>
+              <div style="flex:1;padding:8px;background:#F8FAFC;border-radius:8px">
+                <div style="font-size:11px;color:#BDBDBD">리밸런싱 기준금액</div>
+                <div style="height:2px"></div>
+                <div style="font-size:14px;font-weight:700;color:#1E293B">₩11,772,880</div>
+              </div>
+              <div style="flex:1;padding:8px;background:#F0FDF4;border-radius:8px">
+                <div style="font-size:11px;color:#BDBDBD">잔여 현금</div>
+                <div style="height:2px"></div>
+                <div style="font-size:14px;font-weight:700;color:#16A34A">₩64,120</div>
+              </div>
+            </div>
+            <div style="height:6px"></div>
+            <div style="display:flex;justify-content:space-between">
+              <span style="font-size:12px;color:#BDBDBD">환율: 1 USD = ₩1382</span>
+              <span style="font-size:12px;color:#BDBDBD">2026.08.13 21:04</span>
+            </div>
+          </div>
+
+          <div style="flex:1;overflow:hidden;padding:16px 16px 100px">
+            <div style="margin-bottom:10px;background:#fff;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.09),0 1px 3px 1px rgba(0,0,0,.045);padding:10px 14px">
+              <div style="display:flex;align-items:center">
+                <span style="padding:2px 6px;border-radius:4px;background:rgba(3,105,161,.1);font-size:11px;font-weight:700;color:#0369A1">KR</span>
+                <span style="width:6px"></span>
+                <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:600;color:#1E293B">TIGER 미국S&amp;P500 <span style="font-size:12px;font-weight:400;color:#BDBDBD">360750</span></span>
+                <span style="font-size:13px;color:#757575">₩21,450 × 220</span>
+              </div>
+              <div style="height:4px"></div>
+              <div style="display:flex;align-items:center">
+                <span style="font-size:12px;font-weight:600;color:#3B82F6">35.00%</span>
+                <span class="mi" style="font-size:10px;color:#BDBDBD;margin:0 3px">arrow_forward</span>
+                <span style="font-size:12px;color:#757575">40.08%</span>
+                <span class="mi" style="font-size:10px;color:#BDBDBD;margin:0 3px">arrow_forward</span>
+                <span style="font-size:12px;font-weight:600;color:#1E293B">34.98%</span>
+                <div style="flex:1"></div>
+                <span style="padding:2px 6px;border-radius:4px;background:#EF4444;font-size:11px;font-weight:700;color:#fff">매도</span>
+                <span style="width:4px"></span>
+                <span style="font-size:14px;font-weight:700;color:#DC2626">28주</span>
+              </div>
+            </div>
+
+            <div style="margin-bottom:10px;background:#fff;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.09),0 1px 3px 1px rgba(0,0,0,.045);padding:10px 14px">
+              <div style="display:flex;align-items:center">
+                <span style="padding:2px 6px;border-radius:4px;background:rgba(3,105,161,.1);font-size:11px;font-weight:700;color:#0369A1">KR</span>
+                <span style="width:6px"></span>
+                <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:600;color:#1E293B">KODEX 200 <span style="font-size:12px;font-weight:400;color:#BDBDBD">069500</span></span>
+                <span style="font-size:13px;color:#757575">₩38,650 × 60</span>
+              </div>
+              <div style="height:4px"></div>
+              <div style="display:flex;align-items:center">
+                <span style="font-size:12px;font-weight:600;color:#3B82F6">25.00%</span>
+                <span class="mi" style="font-size:10px;color:#BDBDBD;margin:0 3px">arrow_forward</span>
+                <span style="font-size:12px;color:#757575">19.70%</span>
+                <span class="mi" style="font-size:10px;color:#BDBDBD;margin:0 3px">arrow_forward</span>
+                <span style="font-size:12px;font-weight:600;color:#1E293B">24.95%</span>
+                <div style="flex:1"></div>
+                <span style="padding:2px 6px;border-radius:4px;background:#22C55E;font-size:11px;font-weight:700;color:#fff">매수</span>
+                <span style="width:4px"></span>
+                <span style="font-size:14px;font-weight:700;color:#16A34A">16주</span>
+              </div>
+            </div>
+
+            <div style="margin-bottom:10px;background:#fff;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.09),0 1px 3px 1px rgba(0,0,0,.045);padding:10px 14px">
+              <div style="display:flex;align-items:center">
+                <span style="padding:2px 6px;border-radius:4px;background:rgba(124,58,237,.1);font-size:11px;font-weight:700;color:#7C3AED">US</span>
+                <span style="width:6px"></span>
+                <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:600;color:#1E293B">Schwab US Dividend <span style="font-size:12px;font-weight:400;color:#BDBDBD">SCHD</span></span>
+                <span style="font-size:13px;color:#757575">$28.42 × 90</span>
+              </div>
+              <div style="height:4px"></div>
+              <div style="display:flex;align-items:center">
+                <span style="font-size:12px;font-weight:600;color:#3B82F6">30.00%</span>
+                <span class="mi" style="font-size:10px;color:#BDBDBD;margin:0 3px">arrow_forward</span>
+                <span style="font-size:12px;color:#757575">30.03%</span>
+                <span class="mi" style="font-size:10px;color:#BDBDBD;margin:0 3px">arrow_forward</span>
+                <span style="font-size:12px;font-weight:600;color:#1E293B">29.69%</span>
+                <div style="flex:1"></div>
+                <span style="padding:2px 6px;border-radius:4px;background:#EF4444;font-size:11px;font-weight:700;color:#fff">매도</span>
+                <span style="width:4px"></span>
+                <span style="font-size:14px;font-weight:700;color:#DC2626">1주</span>
+              </div>
+            </div>
+
+            <div style="margin-bottom:10px;background:#fff;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.09),0 1px 3px 1px rgba(0,0,0,.045);padding:10px 14px">
+              <div style="display:flex;align-items:center">
+                <span style="padding:2px 6px;border-radius:4px;background:rgba(101,163,13,.1);font-size:11px;font-weight:700;color:#65A30D">현금</span>
+                <span style="width:6px"></span>
+                <span style="flex:1;min-width:0;font-size:14px;font-weight:600;color:#1E293B">예수금</span>
+                <span style="font-size:13px;color:#757575">₩1,200,000</span>
+              </div>
+              <div style="height:4px"></div>
+              <div style="display:flex;align-items:center">
+                <span style="font-size:12px;font-weight:600;color:#3B82F6">10.00%</span>
+                <span class="mi" style="font-size:10px;color:#BDBDBD;margin:0 3px">arrow_forward</span>
+                <span style="font-size:12px;color:#757575">10.19%</span>
+                <span class="mi" style="font-size:10px;color:#BDBDBD;margin:0 3px">arrow_forward</span>
+                <span style="font-size:12px;font-weight:600;color:#1E293B">10.00%</span>
+                <div style="flex:1"></div>
+                <span style="padding:2px 6px;border-radius:4px;background:#EF4444;font-size:11px;font-weight:700;color:#fff">매도</span>
+                <span style="width:4px"></span>
+                <span style="font-size:14px;font-weight:700;color:#DC2626">₩22,712</span>
+              </div>
+            </div>
+
+            <div style="margin-bottom:10px;padding:14px 0;border:1px solid #E0E0E0;border-radius:12px;background:rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center">
+              <div style="width:20px;height:20px;border-radius:5px;background:#3B82F6;display:flex;align-items:center;justify-content:center"><span class="mi" style="font-size:14px;color:#fff">add</span></div>
+              <div style="width:8px"></div>
+              <span style="font-size:13px;font-weight:500;color:#3B82F6">종목 추가</span>
+            </div>
+          </div>
+
+          <div style="position:absolute;bottom:16px;right:16px;width:56px;height:56px;border-radius:50%;background:#3B82F6;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 6px rgba(0,0,0,.24),0 6px 12px rgba(0,0,0,.16)">
+            <span class="mi" style="font-size:26px;color:#fff">more_vert</span>
+          </div>
+        </div>
+
+        <div style="height:50px;flex:none;background:#F1F5F9;display:flex;align-items:center;justify-content:center;border-top:1px dashed rgba(0,0,0,.12)">
+          <span style="font-size:10px;color:#BDBDBD;letter-spacing:.4px">배너 광고 영역 (항상 50px 예약)</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="max-width:900px;padding:20px 22px;background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:10px">
+    <div style="font:700 13px Pretendard,sans-serif;color:#1a1a1a;margin-bottom:10px">코드를 읽고 확인한 문제 지점 (개선안의 근거)</div>
+    <ol style="margin:0;padding-left:20px;font:400 12.5px/1.85 Pretendard,sans-serif;color:rgba(0,0,0,.68)">
+      <li><b>글자 크기가 10–15px에 몰려 있습니다.</b> 카드 한 장에 15/13/12/11px이 섞여 있어 무엇이 중요한지 위계가 생기지 않습니다. 특히 라벨 색 <code>grey.shade400 (#BDBDBD)</code>은 흰 배경에서 대비 1.9:1로 접근성 기준(4.5:1) 미달입니다.</li>
+      <li><b>핵심 기능 5개가 <code>···</code> FAB 안에 숨어 있습니다.</b> 편집·설정·캡처·그래프·엑셀이 모두 2탭 뒤에 있고, 아이콘이 <code>more_vert</code>라 열기 전에는 무엇이 있는지 알 수 없습니다.</li>
+      <li><b>리밸런싱 결과를 숫자 3개(35% → 40.08% → 34.98%)로만 보여줍니다.</b> "얼마나 벌어졌는지"가 시각적으로 없어 매번 계산해야 합니다.</li>
+      <li><b>비중 = 도넛인데 그래프가 별도 화면에 있습니다.</b> 포트폴리오 구성이 메인 흐름에 한 번도 등장하지 않습니다.</li>
+      <li><b>숫자 정렬이 없습니다.</b> 금액이 우측 정렬 텍스트로 흐르고 tabular-nums가 아니어서 자릿수가 어긋납니다.</li>
+      <li><b>앱바가 다크 네이비(#1E293B) 고정</b>이라 라이트 모드에서 화면 상단 100px이 무겁고, 탭바까지 앱바 안에 들어가 헤더가 146px을 차지합니다.</li>
+    </ol>
+  </div>
+
+</section>
+
+</x-dc>
+</body>
+</html>

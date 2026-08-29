@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../main.dart';
 import '../utils/money_format.dart';
@@ -10,7 +11,7 @@ import '../utils/rebalancer.dart';
 import '../utils/share_format.dart';
 import '../widgets/rebalance_transaction_dialog.dart';
 
-/// 조정 제안 (시안 v18d).
+/// 조정 제안 (시안 v20a·v20b).
 ///
 /// 이 화면은 **주문을 내지 않는다.** 무엇을 얼마나 사고팔면 목표에 닿는지 보여주고,
 /// 실제 체결 후 거래 내역으로 기록하게 한다.
@@ -96,20 +97,22 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
                           if (shown.isEmpty)
                             _buildNothingToDo(context)
                           else ...[
-                            if (trades.length > 1) ...[
-                              _buildAllOrNothing(context, trades.length),
-                              const SizedBox(height: 9),
-                            ],
-                            _buildProposalCard(context, pf, rb, shown),
+                            _buildHeadline(context, pf, rb, trades),
                             const SizedBox(height: 9),
+                            _buildSectionTitle(context, trades.length),
+                            const SizedBox(height: 7),
+                            _buildProposalCard(context, pf, shown),
+                            const SizedBox(height: 9),
+                            ...?_buildCashLedger(context, pf, rb, trades),
                             _buildRoundingNote(context, pf, rb, trades),
+                            ...?_buildOrderNote(context, pf, trades),
                           ],
                           const SizedBox(height: 9),
                           _buildDisclaimer(context),
                         ],
                       ),
               ),
-              if (trades.isNotEmpty) _buildCta(context, pf, rb!),
+              if (trades.isNotEmpty) _buildCta(context, pf, rb!, trades),
             ],
           ),
         );
@@ -122,12 +125,11 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
   Widget _buildHeader(
       BuildContext context, Portfolio pf, List<RebalanceItemResult> trades) {
     final l10n = context.l10n;
-    final buys = trades.where((r) => r.delta > 0).length;
-    final sells = trades.where((r) => r.delta < 0).length;
-    final parts = <String>[
-      if (buys > 0) '${l10n.buy} $buys',
-      if (sells > 0) '${l10n.sell} $sells',
-    ];
+    // 시안 v20a/v20b — 뺀 것이 없으면 몇 종목을 함께 다루는지,
+    // 빼둔 것이 있으면 몇 건을 하고 몇 건을 빼는지 보여준다.
+    final subtitle = _excluded.isEmpty
+        ? l10n.driftedTogether(trades.length)
+        : l10n.selectedExcluded(trades.length, _excluded.length);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
@@ -159,9 +161,9 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
                             color: Colors.white)),
                     const SizedBox(height: 1),
                     Text(
-                      parts.isEmpty
+                      trades.isEmpty && _excluded.isEmpty
                           ? pf.name
-                          : '${pf.name} · ${parts.join(' · ')}',
+                          : '${pf.name} · $subtitle',
                       style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
@@ -274,8 +276,8 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
 
   // ── 조정 카드 ──
 
-  Widget _buildProposalCard(BuildContext context, Portfolio pf,
-      RebalanceResult rb, List<RebalanceItemResult> shown) {
+  Widget _buildProposalCard(
+      BuildContext context, Portfolio pf, List<RebalanceItemResult> shown) {
     return Container(
       decoration: BoxDecoration(
         color: context.cardBg,
@@ -288,172 +290,49 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
       clipBehavior: Clip.antiAlias,
       child: Column(children: [
         for (final r in shown) _buildTradeBlock(context, pf, r),
-        _buildDriftBlock(context, pf, rb),
       ]),
     );
   }
 
-  /// 제안은 **한 묶음**이다. 일부만 실행하면 남는 편차가 달라진다.
-  Widget _buildAllOrNothing(BuildContext context, int count) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(13, 11, 13, 11),
-      decoration: BoxDecoration(
-        color: context.subtleFill,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Icon(Icons.link, size: 16, color: context.textSecondary),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(context.l10n.planAllOrNothing(count),
-              style: TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w600,
-                  height: 1.45,
-                  color: context.textSecondary)),
-        ),
-      ]),
-    );
-  }
-
-  Widget _buildTradeBlock(
-      BuildContext context, Portfolio pf, RebalanceItemResult r) {
-    final l10n = context.l10n;
-    final item = pf.items.firstWhere((i) => i.id == r.id);
-    final off = _excluded.contains(r.id);
-    final isBuy = r.delta > 0;
-
-    // 기준통화 환산가 — 금액은 포트 통화로 보여준다
-    double fx = 1.0;
-    if (item.market == 'US' && pf.currency == 'KRW') {
-      fx = pf.exchangeRate;
-    } else if (item.market == 'KR' && pf.currency == 'USD') {
-      fx = 1.0 / pf.exchangeRate;
-    }
-    final amount = r.delta.abs() * item.currentPrice * fx;
-
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 13, 16, 14),
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: context.dividerColor)),
-      ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Container(
-            width: 34,
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: off
-                  ? context.subtleFill
-                  : (isBuy ? context.pnlUpTint : context.pnlDownTint),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Text(
-                off ? l10n.excludedShort : (isBuy ? l10n.buy : l10n.sell),
-                style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    color: off
-                        ? context.textTertiary
-                        : (isBuy ? context.brandOnLight : context.danger))),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(item.name,
-                style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.2,
-                    color: off ? context.textTertiary : context.textPrimary),
-                overflow: TextOverflow.ellipsis),
-          ),
-          const SizedBox(width: 8),
-          // 끄면 그 종목을 빼고 나머지를 다시 계산한다
-          GestureDetector(
-            onTap: () => setState(() {
-              if (!_excluded.remove(r.id)) _excluded.add(r.id);
-            }),
-            behavior: HitTestBehavior.opaque,
-            child: Padding(
-              padding: const EdgeInsets.all(2),
-              child: Icon(
-                  off ? Icons.radio_button_unchecked : Icons.check_circle,
-                  size: 22,
-                  color: off ? context.textDisabled : context.brand),
-            ),
-          ),
-        ]),
-        const SizedBox(height: 11),
-        Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(
-                  off
-                      ? l10n.keepAsIs
-                      : '${formatShares(r.delta.abs())}${l10n.unitShares}',
-                  style: TextStyle(
-                      fontSize: off ? 16 : 24,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.6,
-                      height: 1.1,
-                      color: off ? context.textTertiary : context.textPrimary)),
-              const SizedBox(height: 4),
-              Text(
-                l10n.atCurrentPrice(fmtPrice(item.currentPrice, item.market)),
-                style: TextStyle(
-                    fontSize: DS.body,
-                    fontWeight: FontWeight.w600,
-                    color: context.textSecondary),
-              ),
-            ]),
-          ),
-          const SizedBox(width: 10),
-          Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-            Text(fmtMoney(amount, pf.currency),
-                style: TextStyle(
-                    fontSize: DS.rowAmount,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.3,
-                    color: context.textPrimary)),
-            const SizedBox(height: 4),
-            Text('${_pct(r.currentWeight)} → ${_pct(r.finalWeight)}',
-                style: TextStyle(
-                    fontSize: DS.body,
-                    fontWeight: FontWeight.w600,
-                    color: context.textSecondary)),
-          ]),
-        ]),
-      ]),
-    );
-  }
-
-
-  /// 조정 후 남는 편차 — 지금 최대 편차와 조정 뒤 최대 편차를 나란히.
-  Widget _buildDriftBlock(
-      BuildContext context, Portfolio pf, RebalanceResult rb) {
+  /// 이 화면의 결론 (시안 v20a).
+  ///
+  /// v18d에서는 남는 편차가 맨 아래 작게 있고 개별 수량이 가장 큰 글자였다.
+  /// 여러 종목을 한 번에 조정하는 화면에서 사용자가 알아야 할 건
+  /// "이걸 다 하면 포트가 어디에 서는가" 하나이므로 맨 위로 올리고 키웠다.
+  Widget _buildHeadline(BuildContext context, Portfolio pf, RebalanceResult rb,
+      List<RebalanceItemResult> trades) {
     final l10n = context.l10n;
     final threshold = pf.rebalancingThreshold;
 
     double maxNow = 0, maxAfter = 0;
+    var inRange = 0;
     for (final r in rb.results) {
       final item = pf.items.firstWhere((i) => i.id == r.id);
       final now = r.currentWeight - item.targetWeight;
       final after = r.finalWeight - item.targetWeight;
       if (now.abs() > maxNow.abs()) maxNow = now;
       if (after.abs() > maxAfter.abs()) maxAfter = after;
+      if (threshold <= 0 || after.abs() < threshold) inRange++;
     }
     final within = threshold <= 0 || maxAfter.abs() < threshold;
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 13, 16, 14),
+      decoration: BoxDecoration(
+        color: context.cardBg,
+        borderRadius: BorderRadius.circular(DS.listCardRadius),
+        boxShadow: const [
+          BoxShadow(
+              color: Color(0x0D16130F), blurRadius: 2, offset: Offset(0, 1)),
+        ],
+      ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(
           crossAxisAlignment: CrossAxisAlignment.baseline,
           textBaseline: TextBaseline.alphabetic,
           children: [
             Expanded(
-              child: Text(l10n.driftAfterAdjust,
+              child: Text(l10n.maxDriftAfter,
                   style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
@@ -462,7 +341,7 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
             if (threshold > 0)
               Text(l10n.toleranceLabel(_trimZero(threshold)),
                   style: TextStyle(
-                      fontSize: DS.body,
+                      fontSize: 11.5,
                       fontWeight: FontWeight.w600,
                       color: context.textTertiary)),
           ],
@@ -483,9 +362,9 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
             const SizedBox(width: 9),
             Text(_pp(maxAfter),
                 style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 22,
                     fontWeight: FontWeight.w800,
-                    letterSpacing: -0.4,
+                    letterSpacing: -0.5,
                     color: within ? context.brandOnLight : context.danger)),
             const Spacer(),
             if (within && threshold > 0)
@@ -498,14 +377,308 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
                 ),
                 child: Text(l10n.withinTolerance,
                     style: TextStyle(
-                        fontSize: DS.caption,
+                        fontSize: 10.5,
                         fontWeight: FontWeight.w800,
                         color: context.brandOnLight)),
               ),
           ],
         ),
+        const SizedBox(height: 8),
+        Text(
+          within
+              ? '${l10n.planMustRunAll(trades.length)} — '
+                  '${l10n.allItemsInRange(inRange)}'
+              : l10n.planMustRunAll(trades.length),
+          style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              height: 1.55,
+              color: context.textSecondary),
+        ),
       ]),
     );
+  }
+
+  /// `함께 실행할 3건` · 우측에 `체크를 끄면 재계산`
+  Widget _buildSectionTitle(BuildContext context, int count) {
+    final l10n = context.l10n;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
+        children: [
+          Text(l10n.togetherNTrades(count),
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.2,
+                  color: context.textPrimary)),
+          const Spacer(),
+          Text(l10n.uncheckToRecalc,
+              style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: context.textSecondary)),
+        ],
+      ),
+    );
+  }
+
+  /// 종목 통화 → 포트 통화 환산 금액.
+  double _amountOf(Portfolio pf, PortfolioItem item, double delta) {
+    double fx = 1.0;
+    if (item.market == 'US' && pf.currency == 'KRW') {
+      fx = pf.exchangeRate;
+    } else if (item.market == 'KR' && pf.currency == 'USD') {
+      fx = 1.0 / pf.exchangeRate;
+    }
+    return delta.abs() * item.currentPrice * fx;
+  }
+
+  /// 거래 한 줄 (시안 v20a).
+  ///
+  /// v18d는 수량을 24px로 크게 뽑았지만, 결론이 편차로 옮겨간 이상 줄마다
+  /// 수량을 크게 둘 이유가 없다. 17px로 나란히 두고 한 줄에 담는다.
+  Widget _buildTradeBlock(
+      BuildContext context, Portfolio pf, RebalanceItemResult r) {
+    final l10n = context.l10n;
+    final item = pf.items.firstWhere((i) => i.id == r.id);
+    final off = _excluded.contains(r.id);
+    final isBuy = r.delta > 0;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: context.dividerColor)),
+      ),
+      child: Row(children: [
+        Container(
+          width: 34,
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: off
+                ? context.subtleFill
+                : (isBuy ? context.pnlUpTint : context.pnlDownTint),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Text(off ? l10n.excludedShort : (isBuy ? l10n.buy : l10n.sell),
+              style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: off
+                      ? context.textTertiary
+                      : (isBuy ? context.brandOnLight : context.danger))),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(item.name,
+                style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.2,
+                    color: off ? context.textTertiary : context.textPrimary),
+                overflow: TextOverflow.ellipsis),
+            const SizedBox(height: 3),
+            Text(
+                off
+                    ? '${_pct(r.currentWeight)} ${l10n.keepAsIs}'
+                    : '${_pct(r.currentWeight)} → ${_pct(r.finalWeight)}',
+                style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    color: context.textSecondary)),
+          ]),
+        ),
+        const SizedBox(width: 10),
+        Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+          Text(
+              off
+                  ? l10n.keepAsIs
+                  : '${formatShares(r.delta.abs())}${l10n.unitShares}',
+              style: TextStyle(
+                  fontSize: off ? 13 : 17,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.4,
+                  color: off ? context.textTertiary : context.textPrimary)),
+          if (!off) ...[
+            const SizedBox(height: 2),
+            Text(fmtMoney(_amountOf(pf, item, r.delta), pf.currency),
+                style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    color: context.textSecondary)),
+          ],
+        ]),
+        const SizedBox(width: 8),
+        // 끄면 그 종목을 빼고 나머지를 다시 계산한다
+        GestureDetector(
+          onTap: () => setState(() {
+            if (!_excluded.remove(r.id)) _excluded.add(r.id);
+          }),
+          behavior: HitTestBehavior.opaque,
+          child: Padding(
+            padding: const EdgeInsets.all(2),
+            child: Icon(
+                off ? Icons.radio_button_unchecked : Icons.check_circle,
+                size: 21,
+                color: off ? context.textDisabled : context.brand),
+          ),
+        ),
+      ]),
+    );
+  }
+
+  /// 예수금 가계부 (시안 v20a).
+  ///
+  /// 매수가 여러 건이면 **같은 예수금을 나눠 쓴다.** 종목별로 따로 보면 왜
+  /// 이 금액인지 알 수 없다. 이 화면이 왜 한 장이어야 하는지를 숫자로 보이는 자리다.
+  /// 매수가 한 건뿐이면 나눠 쓸 일이 없으므로 내지 않는다.
+  List<Widget>? _buildCashLedger(BuildContext context, Portfolio pf,
+      RebalanceResult rb, List<RebalanceItemResult> trades) {
+    final l10n = context.l10n;
+
+    PortfolioItem? cash;
+    for (final i in pf.items) {
+      if (i.isCash) {
+        cash = i;
+        break;
+      }
+    }
+    if (cash == null) return null;
+
+    final buyCount = trades.where((r) => r.delta > 0).length;
+    if (buyCount < 2) return null;
+
+    double proceeds = 0, cost = 0;
+    for (final r in trades) {
+      final item = pf.items.firstWhere((i) => i.id == r.id);
+      final amt = _amountOf(pf, item, r.delta);
+      if (r.delta > 0) {
+        cost += amt;
+      } else {
+        proceeds += amt;
+      }
+    }
+    final after = cash.shares + proceeds - cost;
+
+    RebalanceItemResult? cashResult;
+    for (final r in rb.results) {
+      if (r.id == cash.id) {
+        cashResult = r;
+        break;
+      }
+    }
+
+    Widget line(String label, String value, {Color? color, bool bold = false}) =>
+        Row(children: [
+          Expanded(
+            child: Text(label,
+                style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: bold ? FontWeight.w700 : FontWeight.w600,
+                    color: bold ? context.textPrimary : context.textSecondary)),
+          ),
+          Text(value,
+              style: TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: bold ? FontWeight.w700 : FontWeight.w600,
+                  color: color ?? context.textPrimary)),
+        ]);
+
+    return [
+      Container(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 13),
+        decoration: BoxDecoration(
+          color: context.cardBg,
+          borderRadius: BorderRadius.circular(DS.listCardRadius),
+          boxShadow: const [
+            BoxShadow(
+                color: Color(0x0D16130F), blurRadius: 2, offset: Offset(0, 1)),
+          ],
+        ),
+        child:
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Expanded(
+                child: Text(l10n.cashLedgerTitle(buyCount),
+                    style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: context.textPrimary)),
+              ),
+              if (cashResult != null)
+                Text(
+                    '${_pct(cashResult.currentWeight)} → '
+                    '${_pct(cashResult.finalWeight)}',
+                    style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: context.textTertiary)),
+            ],
+          ),
+          const SizedBox(height: 9),
+          line(l10n.sellProceeds, '+${fmtMoney(proceeds, pf.currency)}',
+              color: context.brandOnLight),
+          const SizedBox(height: 5),
+          line(l10n.buyCostN(buyCount), '−${fmtMoney(cost, pf.currency)}',
+              color: context.danger),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Divider(height: 1, color: context.dividerColor),
+          ),
+          line(l10n.cashAfterAdjust, fmtMoney(after, pf.currency), bold: true),
+          const SizedBox(height: 9),
+          Text(l10n.cashSharedNote,
+              style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  height: 1.55,
+                  color: context.textSecondary)),
+        ]),
+      ),
+      const SizedBox(height: 9),
+    ];
+  }
+
+  /// 실행 순서 안내 (시안 v20a). 해외 종목이 섞였을 때만 낸다 —
+  /// 환전이 하루 이틀 걸릴 수 있어 매도를 먼저 해야 매수 대금이 맞는다.
+  List<Widget>? _buildOrderNote(
+      BuildContext context, Portfolio pf, List<RebalanceItemResult> trades) {
+    final hasSell = trades.any((r) => r.delta < 0);
+    final hasBuy = trades.any((r) => r.delta > 0);
+    if (!hasSell || !hasBuy) return null;
+
+    final crossesFx = trades.any((r) {
+      final item = pf.items.firstWhere((i) => i.id == r.id);
+      return (item.market == 'US' && pf.currency == 'KRW') ||
+          (item.market == 'KR' && pf.currency == 'USD');
+    });
+    if (!crossesFx) return null;
+
+    return [
+      const SizedBox(height: 9),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Icon(Icons.schedule, size: 15, color: context.textTertiary),
+          const SizedBox(width: 7),
+          Expanded(
+            child: Text(context.l10n.sellFirstNote,
+                style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    height: 1.55,
+                    color: context.textSecondary)),
+          ),
+        ]),
+      ),
+    ];
   }
 
   String _trimZero(double v) => v == v.roundToDouble()
@@ -624,13 +797,16 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
     );
   }
 
-  Widget _buildCta(BuildContext context, Portfolio pf, RebalanceResult rb) {
+  Widget _buildCta(BuildContext context, Portfolio pf, RebalanceResult rb,
+      List<RebalanceItemResult> trades) {
+    final count = trades.length;
     return Container(
       color: context.scaffoldBg,
       padding: EdgeInsets.fromLTRB(
           16, 10, 16, 16 + MediaQuery.of(context).padding.bottom),
-      child: SizedBox(
-        width: double.infinity,
+      child: Row(children: [
+        Expanded(
+          child: SizedBox(
         height: 50,
         child: ElevatedButton(
           onPressed: () async {
@@ -647,11 +823,48 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(DS.buttonRadius)),
           ),
-          child: Text(context.l10n.recordAsTransactions,
+          child: Text(context.l10n.recordNTransactions(count),
               style: const TextStyle(
                   fontSize: 13.5, fontWeight: FontWeight.w700)),
         ),
-      ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        // 사와야 할 것을 그대로 옮겨 적을 수 있게 글로 내보낸다
+        Tooltip(
+          message: context.l10n.shareProposal,
+          child: GestureDetector(
+            onTap: () => _shareProposal(context, pf, trades),
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              width: 50,
+              height: 50,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: context.cardBg,
+                borderRadius: BorderRadius.circular(DS.buttonRadius),
+                border: Border.all(color: context.borderColor, width: 1.5),
+              ),
+              child: Icon(Icons.share, size: 21, color: context.brand),
+            ),
+          ),
+        ),
+      ]),
     );
+  }
+
+  /// 제안을 글로 내보낸다. 증권사 앱에 옮겨 적을 때 쓰라고.
+  void _shareProposal(
+      BuildContext context, Portfolio pf, List<RebalanceItemResult> trades) {
+    final l10n = context.l10n;
+    final lines = <String>['${pf.name} · ${l10n.proposalTitle}'];
+    for (final r in trades) {
+      final item = pf.items.firstWhere((i) => i.id == r.id);
+      final side = r.delta > 0 ? l10n.buy : l10n.sell;
+      lines.add('$side ${item.name} '
+          '${formatShares(r.delta.abs())}${l10n.unitShares} · '
+          '${fmtMoney(_amountOf(pf, item, r.delta), pf.currency)}');
+    }
+    Share.share(lines.join('\n'));
   }
 }

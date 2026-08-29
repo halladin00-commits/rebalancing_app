@@ -1116,4 +1116,70 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get rebalanceTransactionDesc =>
       '실제 거래 수량·가격으로 수정 후 완료를 누르세요.\n수량이 0이면 거래내역에 추가되지 않습니다.';
+
+  @override
+  String get maxDriftAfter => '조정 후 최대 편차';
+
+  @override
+  String planMustRunAll(int count) {
+    return '아래 $count건을 모두 실행해야 성립하는 결과입니다';
+  }
+
+  @override
+  String allItemsInRange(int count) {
+    return '$count개 항목 전부 범위 안.';
+  }
+
+  @override
+  String togetherNTrades(int count) {
+    return '함께 실행할 $count건';
+  }
+
+  @override
+  String get uncheckToRecalc => '체크를 끄면 재계산';
+
+  @override
+  String cashLedgerTitle(int count) {
+    return '예수금 하나로 매수 $count건';
+  }
+
+  @override
+  String get sellProceeds => '매도 대금';
+
+  @override
+  String buyCostN(int count) {
+    return '매수 대금 $count건';
+  }
+
+  @override
+  String get cashAfterAdjust => '조정 후 예수금';
+
+  @override
+  String get cashSharedNote => '매수가 같은 예수금을 나눠 씁니다 — 따로 계산하면 맞지 않습니다.';
+
+  @override
+  String get sellFirstNote => '매도 먼저 실행 — 해외 종목은 환전이 필요하면 하루 이틀 늦어질 수 있습니다.';
+
+  @override
+  String recordNTransactions(int count) {
+    return '$count건 거래 내역으로 기록';
+  }
+
+  @override
+  String targetShort(String value) {
+    return '목표 $value';
+  }
+
+  @override
+  String get shareProposal => '제안 공유';
+
+  @override
+  String driftedTogether(int count) {
+    return '이탈 $count종목 함께';
+  }
+
+  @override
+  String selectedExcluded(int sel, int exc) {
+    return '$sel건 선택 · $exc건 제외';
+  }
 }

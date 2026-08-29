@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&display=swap">
+<style>
+body{margin:0;background:#e9e7e2;font-family:Pretendard,-apple-system,system-ui,sans-serif;text-wrap:pretty}
+a{color:#0E4F49;text-decoration:none}
+a:hover{color:#0A3B36;text-decoration:underline}
+.ms{font-family:'Material Symbols Rounded';font-weight:400;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;white-space:nowrap;direction:ltr;-webkit-font-smoothing:antialiased}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}
+</style>
+</helmet>
+
+<div style="min-height:100vh;box-sizing:border-box;padding:32px;display:flex;flex-direction:column;align-items:center;gap:12px">
+  <div style="font:700 12px Pretendard,sans-serif;color:rgba(22,19,15,.6)">C · 차트 — 막대를 눌러 기간을 고름</div>
+
+  <div data-screen-label="결산 C 차트" style="width:390px;height:844px;background:#FBF8F1;display:flex;flex-direction:column;overflow:hidden;border-radius:20px;box-shadow:0 14px 40px rgba(22,19,15,.18);color:#16130F">
+    <div style="background:#0E4F49;flex:none">
+      <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font-size:13px;font-weight:600;color:#fff">
+        <span>9:41</span>
+        <span style="font-size:11px;color:rgba(255,255,255,.72)">LTE · 82%</span>
+      </div>
+      <div style="height:46px;display:flex;align-items:center;gap:9px;padding:0 10px 0 22px">
+        <span style="font-size:19px;font-weight:800;color:#fff;letter-spacing:-.4px">결산</span>
+        <div style="flex:1"></div>
+        <div style="width:40px;height:40px;display:flex;align-items:center;justify-content:center"><span class="ms" style="font-size:21px;color:rgba(255,255,255,.86)">tune</span></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:17px;padding:0 14px 12px 22px">
+        <span style="font-size:12.5px;font-weight:700;color:rgba(255,255,255,.5)">주간</span>
+        <span style="font-size:12.5px;font-weight:800;color:#fff;border-bottom:2px solid #fff;padding-bottom:2px">월간</span>
+        <span style="font-size:12.5px;font-weight:700;color:rgba(255,255,255,.5)">분기</span>
+        <span style="font-size:12.5px;font-weight:700;color:rgba(255,255,255,.5)">연간</span>
+        <div style="flex:1"></div>
+        <div style="flex:none;width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center"><span class="ms" style="font-size:18px;color:#fff">calendar_month</span></div>
+      </div>
+    </div>
+
+    <div style="flex:1;min-height:0;overflow:hidden;padding:12px 16px 0;display:flex;flex-direction:column;gap:9px">
+
+      <div style="background:#fff;border-radius:20px;padding:13px 16px 12px;box-shadow:0 1px 2px rgba(22,19,15,.05)">
+        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:9px">
+          <span style="flex:1;font-size:11.5px;font-weight:700;color:#8A8478">막대를 눌러 기간 선택 · 밀면 과거</span>
+          <span class="num" style="flex:none;font-size:11px;font-weight:700;color:#4A443B">07.01 – 07.31</span>
+        </div>
+        <div style="display:flex;align-items:flex-end;gap:7px;height:96px">
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%">
+            <div style="width:100%;display:flex;flex-direction:column;justify-content:flex-end;height:60px"><div style="height:24px;border-radius:5px 5px 0 0;background:#BFE3CF"></div></div>
+            <div style="width:100%;height:1px;background:#E4DECF"></div>
+            <div style="width:100%;height:22px"></div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%">
+            <div style="width:100%;height:60px"></div>
+            <div style="width:100%;height:1px;background:#E4DECF"></div>
+            <div style="width:100%;display:flex;flex-direction:column;height:22px"><div style="height:13px;border-radius:0 0 5px 5px;background:#EED4C6"></div></div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%">
+            <div style="width:100%;display:flex;flex-direction:column;justify-content:flex-end;height:60px"><div style="height:46px;border-radius:5px 5px 0 0;background:#BFE3CF"></div></div>
+            <div style="width:100%;height:1px;background:#E4DECF"></div>
+            <div style="width:100%;height:22px"></div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%">
+            <div style="width:100%;display:flex;flex-direction:column;justify-content:flex-end;height:60px"><div style="height:15px;border-radius:5px 5px 0 0;background:#BFE3CF"></div></div>
+            <div style="width:100%;height:1px;background:#E4DECF"></div>
+            <div style="width:100%;height:22px"></div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%">
+            <div style="width:100%;display:flex;flex-direction:column;justify-content:flex-end;height:60px"><div style="height:60px;border-radius:5px 5px 0 0;background:#0E4F49"></div></div>
+            <div style="width:100%;height:1px;background:#16130F"></div>
+            <div style="width:100%;height:22px"></div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%">
+            <div style="width:100%;display:flex;flex-direction:column;justify-content:flex-end;height:60px"><div style="height:12px;border-radius:5px 5px 0 0;background:#fff;border:1.5px dashed #A9CBBB;border-bottom:none"></div></div>
+            <div style="width:100%;height:1px;background:#E4DECF"></div>
+            <div style="width:100%;height:22px"></div>
+          </div>
+        </div>
+        <div class="num" style="display:flex;gap:7px;margin-top:4px">
+          <span style="flex:1;text-align:center;font-size:10.5px;font-weight:600;color:#A39B8C">3월</span>
+          <span style="flex:1;text-align:center;font-size:10.5px;font-weight:600;color:#A39B8C">4월</span>
+          <span style="flex:1;text-align:center;font-size:10.5px;font-weight:600;color:#A39B8C">5월</span>
+          <span style="flex:1;text-align:center;font-size:10.5px;font-weight:600;color:#A39B8C">6월</span>
+          <span style="flex:1;text-align:center;font-size:11px;font-weight:800;color:#16130F">7월</span>
+          <span style="flex:1;text-align:center;font-size:10.5px;font-weight:600;color:#A39B8C">8월</span>
+        </div>
+      </div>
+
+      <div style="background:#fff;border-radius:20px;padding:15px 18px 16px;box-shadow:0 1px 2px rgba(22,19,15,.05)">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="num" style="flex:1;font-size:12.5px;font-weight:700;color:#4A443B">7월 기간손익</span>
+          <span class="num" style="flex:none;font-size:11px;font-weight:600;color:#8A8478">순입금 제외</span>
+        </div>
+        <div style="display:flex;align-items:flex-end;gap:9px;margin-top:5px">
+          <span class="num" style="font-size:31px;font-weight:800;color:#0E7A52;letter-spacing:-1.2px;line-height:1.1">+₩541,220</span>
+          <span class="num" style="font-size:13px;font-weight:700;color:#0E7A52;padding-bottom:4px">+2.31%</span>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <div style="flex:1;background:#F7F3EA;border-radius:11px;padding:9px 11px">
+            <div class="num" style="font-size:10.5px;font-weight:700;color:#8A8478">실현</div>
+            <div class="num" style="font-size:14px;font-weight:700;color:#16130F;margin-top:3px">+207,100</div>
+          </div>
+          <div style="flex:1;background:#F7F3EA;border-radius:11px;padding:9px 11px">
+            <div class="num" style="font-size:10.5px;font-weight:700;color:#8A8478">평가 변동</div>
+            <div class="num" style="font-size:14px;font-weight:700;color:#16130F;margin-top:3px">+361,000</div>
+          </div>
+          <div style="flex:1;background:#F7F3EA;border-radius:11px;padding:9px 11px">
+            <div class="num" style="font-size:10.5px;font-weight:700;color:#8A8478">수수료</div>
+            <div class="num" style="font-size:14px;font-weight:700;color:#B85127;margin-top:3px">−26,880</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:#fff;border-radius:20px;padding:14px 18px 15px;box-shadow:0 1px 2px rgba(22,19,15,.05)">
+        <div style="display:flex;align-items:baseline;gap:9px">
+          <span style="flex:1;font-size:12.5px;font-weight:800;letter-spacing:-.2px">포트별 기간 수익</span>
+          <span class="num" style="flex:none;width:70px;text-align:right;font-size:10px;font-weight:700;color:#A39B8C">손익</span>
+          <span class="num" style="flex:none;width:44px;text-align:right;font-size:10px;font-weight:700;color:#A39B8C">기여%p</span>
+        </div>
+        <div style="display:flex;gap:3px;height:12px;margin-top:10px">
+          <div style="width:53%;background:#0E4F49;border-radius:6px 2px 2px 6px"></div>
+          <div style="width:34%;background:#6FA88C"></div>
+          <div style="width:13%;background:#B85127;border-radius:2px 6px 6px 2px"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:9px;margin-top:13px">
+          <span style="flex:none;width:8px;height:8px;border-radius:3px;background:#0E4F49"></span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">연금저축 ETF</div>
+            <div class="num" style="font-size:11px;font-weight:700;color:#0E7A52;margin-top:2px">+3.42%</div>
+          </div>
+          <span class="num" style="flex:none;width:70px;text-align:right;font-size:13.5px;font-weight:700;letter-spacing:-.2px">+386,500</span>
+          <span class="num" style="flex:none;width:44px;text-align:right;font-size:12px;font-weight:700;color:#8A8478">+1.65</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:9px;margin-top:11px">
+          <span style="flex:none;width:8px;height:8px;border-radius:3px;background:#6FA88C"></span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">배당 모으기</div>
+            <div class="num" style="font-size:11px;font-weight:700;color:#0E7A52;margin-top:2px">+6.21%<span style="font-weight:600;color:#9C4A16"> · 2종목 제외</span></div>
+          </div>
+          <span class="num" style="flex:none;width:70px;text-align:right;font-size:13.5px;font-weight:700;letter-spacing:-.2px">+246,900</span>
+          <span class="num" style="flex:none;width:44px;text-align:right;font-size:12px;font-weight:700;color:#8A8478">+1.05</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:9px;margin-top:11px">
+          <span style="flex:none;width:8px;height:8px;border-radius:3px;background:#B85127"></span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">미국주식 계좌</div>
+            <div class="num" style="font-size:11px;font-weight:700;color:#B85127;margin-top:2px">−1.09%<span style="font-weight:600;color:#8A8478"> · 환율 −41,300</span></div>
+          </div>
+          <span class="num" style="flex:none;width:70px;text-align:right;font-size:13.5px;font-weight:700;letter-spacing:-.2px;color:#B85127">−92,180</span>
+          <span class="num" style="flex:none;width:44px;text-align:right;font-size:12px;font-weight:700;color:#8A8478">−0.39</span>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:8px;padding:0 6px">
+        <span class="ms" style="font-size:15px;color:#A39B8C;flex:none">info</span>
+        <span style="flex:1;min-width:0;font-size:11px;font-weight:600;color:#8A8478;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">간편입력 2종목(₩1,860,000)은 집계 제외</span>
+        <span style="flex:none;font-size:10.5px;font-weight:800;color:#0E4F49">전환</span>
+      </div>
+    </div>
+
+    <div style="height:50px;flex:none;background:#F2EDE1;border-top:1px solid #E4DECF;display:flex;align-items:center;justify-content:center">
+      <span style="font-size:10px;font-weight:500;color:#726B5F;letter-spacing:.4px">배너 광고 영역 · 50px 고정</span>
+    </div>
+    <div style="height:64px;flex:none;background:#fff;border-top:1px solid #E4DECF;display:flex;align-items:center;padding-bottom:6px">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><span class="ms" style="font-size:23px;color:#726B5F">account_balance_wallet</span><span style="font-size:10.5px;font-weight:600;color:#726B5F">자산</span></div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><span class="ms" style="font-size:23px;color:#726B5F">balance</span><span style="font-size:10.5px;font-weight:600;color:#726B5F">리밸런싱</span></div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><span class="ms" style="font-size:23px;color:#0E4F49">bar_chart</span><span style="font-size:10.5px;font-weight:700;color:#0E4F49">결산</span></div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><span class="ms" style="font-size:23px;color:#726B5F">more_horiz</span><span style="font-size:10.5px;font-weight:600;color:#726B5F">더보기</span></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

@@ -2125,6 +2125,102 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'실제 거래 수량·가격으로 수정 후 완료를 누르세요.\n수량이 0이면 거래내역에 추가되지 않습니다.'**
   String get rebalanceTransactionDesc;
+
+  /// No description provided for @maxDriftAfter.
+  ///
+  /// In ko, this message translates to:
+  /// **'조정 후 최대 편차'**
+  String get maxDriftAfter;
+
+  /// No description provided for @planMustRunAll.
+  ///
+  /// In ko, this message translates to:
+  /// **'아래 {count}건을 모두 실행해야 성립하는 결과입니다'**
+  String planMustRunAll(int count);
+
+  /// No description provided for @allItemsInRange.
+  ///
+  /// In ko, this message translates to:
+  /// **'{count}개 항목 전부 범위 안.'**
+  String allItemsInRange(int count);
+
+  /// No description provided for @togetherNTrades.
+  ///
+  /// In ko, this message translates to:
+  /// **'함께 실행할 {count}건'**
+  String togetherNTrades(int count);
+
+  /// No description provided for @uncheckToRecalc.
+  ///
+  /// In ko, this message translates to:
+  /// **'체크를 끄면 재계산'**
+  String get uncheckToRecalc;
+
+  /// No description provided for @cashLedgerTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'예수금 하나로 매수 {count}건'**
+  String cashLedgerTitle(int count);
+
+  /// No description provided for @sellProceeds.
+  ///
+  /// In ko, this message translates to:
+  /// **'매도 대금'**
+  String get sellProceeds;
+
+  /// No description provided for @buyCostN.
+  ///
+  /// In ko, this message translates to:
+  /// **'매수 대금 {count}건'**
+  String buyCostN(int count);
+
+  /// No description provided for @cashAfterAdjust.
+  ///
+  /// In ko, this message translates to:
+  /// **'조정 후 예수금'**
+  String get cashAfterAdjust;
+
+  /// No description provided for @cashSharedNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'매수가 같은 예수금을 나눠 씁니다 — 따로 계산하면 맞지 않습니다.'**
+  String get cashSharedNote;
+
+  /// No description provided for @sellFirstNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'매도 먼저 실행 — 해외 종목은 환전이 필요하면 하루 이틀 늦어질 수 있습니다.'**
+  String get sellFirstNote;
+
+  /// No description provided for @recordNTransactions.
+  ///
+  /// In ko, this message translates to:
+  /// **'{count}건 거래 내역으로 기록'**
+  String recordNTransactions(int count);
+
+  /// No description provided for @targetShort.
+  ///
+  /// In ko, this message translates to:
+  /// **'목표 {value}'**
+  String targetShort(String value);
+
+  /// No description provided for @shareProposal.
+  ///
+  /// In ko, this message translates to:
+  /// **'제안 공유'**
+  String get shareProposal;
+
+  /// No description provided for @driftedTogether.
+  ///
+  /// In ko, this message translates to:
+  /// **'이탈 {count}종목 함께'**
+  String driftedTogether(int count);
+
+  /// No description provided for @selectedExcluded.
+  ///
+  /// In ko, this message translates to:
+  /// **'{sel}건 선택 · {exc}건 제외'**
+  String selectedExcluded(int sel, int exc);
 }
 
 class _AppLocalizationsDelegate
