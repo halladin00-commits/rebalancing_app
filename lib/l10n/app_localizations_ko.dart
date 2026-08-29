@@ -1380,4 +1380,10 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get firstRunQuickCta => '현재 보유만 입력';
+
+  @override
+  String get hintThenUpload => '만들면 바로 파일 올리기로 넘어갑니다.';
+
+  @override
+  String get createAndUpload => '만들고 파일 올리기';
 }

@@ -903,5 +903,7 @@
   "firstRunRecordCta": "기록하며 시작",
   "firstRunQuickTitle": "보유 현황만 빠르게",
   "firstRunQuickDesc": "지금 가진 수량과 평단만 넣습니다. 자산·리밸런싱은 그대로 되지만 결산 탭의 기간별 손익은 안 나옵니다.",
-  "firstRunQuickCta": "현재 보유만 입력"
+  "firstRunQuickCta": "현재 보유만 입력",
+  "hintThenUpload": "만들면 바로 파일 올리기로 넘어갑니다.",
+  "createAndUpload": "만들고 파일 올리기"
 }

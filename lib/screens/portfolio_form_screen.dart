@@ -16,8 +16,13 @@ class PortfolioFormScreen extends StatefulWidget {
   /// 저장 후 호출. 새로 만들었으면 곧바로 종목을 담게 할 수 있다.
   final void Function(String name, String emoji) onSave;
 
+  /// 만든 뒤 파일 올리기로 가는 경우 (시안 v17d의 `파일로 시작`).
+  /// 안내와 버튼 문구가 실제로 가는 곳과 달라지면 안 된다.
+  final bool uploadNext;
+
   const PortfolioFormScreen({
     super.key,
+    this.uploadNext = false,
     this.initialName,
     this.initialEmoji,
     this.isEdit = false,
@@ -81,7 +86,7 @@ class _PortfolioFormScreenState extends State<PortfolioFormScreen> {
               if (!widget.isEdit) ...[
                 _hint(context, Icons.balance, l10n.hintTargetsInRebalanceTab),
                 const SizedBox(height: 8),
-                _hint(context, Icons.lightbulb_outline, l10n.hintThenAddStocks),
+                _hint(context, Icons.lightbulb_outline, widget.uploadNext ? l10n.hintThenUpload : l10n.hintThenAddStocks),
               ],
             ],
           ),
@@ -261,7 +266,7 @@ class _PortfolioFormScreenState extends State<PortfolioFormScreen> {
                 borderRadius: BorderRadius.circular(DS.buttonRadius)),
           ),
           child: Text(
-              widget.isEdit ? l10n.saveChanges : l10n.createAndAddStocks,
+              widget.isEdit ? l10n.saveChanges : widget.uploadNext ? l10n.createAndUpload : l10n.createAndAddStocks,
               style:
                   const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w800)),
         ),

@@ -133,6 +133,7 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
       context,
       MaterialPageRoute(
         builder: (_) => PortfolioFormScreen(
+          uploadNext: uploadAfter,
           onSave: (name, emoji) {
             final pf = Portfolio(id: _uid(), name: name, emoji: emoji);
             context.read<PortfolioProvider>().addPortfolio(pf);
@@ -682,8 +683,10 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                               fontWeight: FontWeight.w600)),
                     ),
                 ],
-                // 편집 중에는 총자산을 접어 목록에 집중시킨다
-                child: (portfolios.isEmpty || _editMode)
+                // 편집 중에만 총자산을 접어 목록에 집중시킨다.
+                // 포트가 없을 때도 `총 자산 ₩0`을 보인다 (시안 v17d) —
+                // 첫 진입만 헤더가 다르면 다른 앱처럼 보인다.
+                child: _editMode
                     ? null
                     : _buildTotalAssets(context, portfolios),
               ),
@@ -739,6 +742,27 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final pnlColors = context.watch<PnlColorNotifier>();
     final displayCur = context.watch<MainCurrencyNotifier>().currency;
+
+    // 포트가 없으면 총자산만 간결하게 낸다 (시안 v17d).
+    // 스파크라인 안내와 기간 칩은 보여줄 것이 없는데 자리만 차지해서,
+    // 정작 골라야 할 세 갈래를 화면 아래로 밀어낸다.
+    if (portfolios.isEmpty) {
+      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(isKo ? '총 자산' : 'Total assets',
+            style: TextStyle(
+                fontSize: DS.body,
+                fontWeight: FontWeight.w600,
+                color: context.onBrandSecondary)),
+        const SizedBox(height: 4),
+        Text(fmtMoney(0, displayCur),
+            style: const TextStyle(
+                fontSize: DS.displayAmount,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+                letterSpacing: -1.5,
+                height: 1.08)),
+      ]);
+    }
 
     final hasAnyPrice = portfolios.any((p) => p.hasPriceData);
 

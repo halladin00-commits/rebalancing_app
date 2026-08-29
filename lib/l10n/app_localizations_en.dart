@@ -1400,4 +1400,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get firstRunQuickCta => 'Enter holdings only';
+
+  @override
+  String get hintThenUpload => 'You\'ll go straight to uploading a file.';
+
+  @override
+  String get createAndUpload => 'Create and upload';
 }

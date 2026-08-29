@@ -2539,6 +2539,18 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'현재 보유만 입력'**
   String get firstRunQuickCta;
+
+  /// No description provided for @hintThenUpload.
+  ///
+  /// In ko, this message translates to:
+  /// **'만들면 바로 파일 올리기로 넘어갑니다.'**
+  String get hintThenUpload;
+
+  /// No description provided for @createAndUpload.
+  ///
+  /// In ko, this message translates to:
+  /// **'만들고 파일 올리기'**
+  String get createAndUpload;
 }
 
 class _AppLocalizationsDelegate
