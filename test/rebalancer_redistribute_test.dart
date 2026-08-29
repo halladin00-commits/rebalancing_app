@@ -55,18 +55,28 @@ void main() {
         reason: '없는 돈으로 사는 계획이 나왔다');
   });
 
-  group('예수금에 남김 (기존 동작)', () {
+  group('예수금에 남김 (골라야 나오는 동작)', () {
     test('뺀 종목은 그대로다', () {
       final pf = skewed();
-      final r = Rebalancer.calculate(pf, excludeIds: {'a'})!;
+      final r = Rebalancer.calculate(pf,
+          excludeIds: {'a'}, redistributeExcluded: false)!;
       expect(deltas(r)['a'], 0);
     });
 
     test('나머지는 제 목표 비중을 향해 계속 산다', () {
       final pf = skewed();
-      final r = Rebalancer.calculate(pf, excludeIds: {'a'})!;
+      final r = Rebalancer.calculate(pf,
+          excludeIds: {'a'}, redistributeExcluded: false)!;
       expect(deltas(r)['b'], greaterThan(0));
       expect(deltas(r)['c'], greaterThan(0));
+    });
+
+    test('그 대신 낼 수 없는 계획이 나온다 — 이래서 기본값에서 뺐다', () {
+      final pf = skewed();
+      final r = Rebalancer.calculate(pf,
+          excludeIds: {'a'}, redistributeExcluded: false)!;
+      expect(netSpend(pf, r), greaterThan(0),
+          reason: '없는 돈으로 사는 계획인데 통과했다');
     });
   });
 

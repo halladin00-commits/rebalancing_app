@@ -35,8 +35,11 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
   final _excluded = <String>{};
 
   /// 뺀 종목의 몫을 나머지 종목에 나눠줄지 (시안 v20b).
-  /// 끄면 예수금에 남는다 — 이게 기존 동작이라 기본값이다.
-  bool _redistribute = false; // ignore: prefer_final_fields
+  ///
+  /// **켜는 것이 기본이다.** 끄면 뺀 종목이 붙잡은 돈까지 다시 쓰려 들어
+  /// 낼 수 없는 계획이 나올 수 있다. 그래도 고를 수 있게 둔 건, 남는 돈을
+  /// 정말 예수금으로 두고 싶은 경우가 있기 때문이다.
+  bool _redistribute = true; // ignore: prefer_final_fields
 
   @override
   void initState() {

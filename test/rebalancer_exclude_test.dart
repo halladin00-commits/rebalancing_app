@@ -49,10 +49,22 @@ void main() {
     expect(d['a'], 0, reason: 'a를 뺐는데 거래가 잡혔다');
   });
 
-  test('뺀 종목이 있어도 나머지는 계속 조정된다', () {
+  test('a를 안 팔면 b·c를 살 돈도 없다', () {
+    // 기본값은 `나머지 종목에`다. a가 60만을 붙잡고 있으므로 남은 예산은 40만,
+    // b·c가 반씩 나눠도 각 20만 — 이미 20주(20만)씩 갖고 있어 거래가 없다.
+    //
+    // 예전 기본값(`예수금에 남김`)은 여기서 b·c를 33주까지 밀어올렸다.
+    // 총액이 100만인데 계획 합계가 126만이 되는, 낼 수 없는 계획이었다.
     final r = Rebalancer.calculate(pf(skewed()), excludeIds: {'a'})!;
     final d = deltas(r);
-    // a가 60주를 그대로 들고 있으므로 b·c는 목표(각 33.33%)를 향해 늘어난다
+    expect(d['b'], 0);
+    expect(d['c'], 0);
+  });
+
+  test('`예수금에 남김`을 고르면 예전처럼 계속 산다', () {
+    final r = Rebalancer.calculate(pf(skewed()),
+        excludeIds: {'a'}, redistributeExcluded: false)!;
+    final d = deltas(r);
     expect(d['b'], greaterThan(0));
     expect(d['c'], greaterThan(0));
   });

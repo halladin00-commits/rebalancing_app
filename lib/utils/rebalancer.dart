@@ -71,12 +71,14 @@ class Rebalancer {
   ///
   /// [redistributeExcluded]는 **뺀 종목이 붙잡고 있는 돈을 뺀 나머지 예산**을
   /// 남은 종목의 목표 비중대로 나눈다 (시안 v20b의 `나머지 종목에`).
-  /// 끄면 각 종목이 제 목표 비중을 그대로 향하고 남는 돈은 예수금이 된다
-  /// (`예수금에 남김` · 기존 동작).
+  ///
+  /// **기본값이다.** 끄면 각 종목이 제 목표 비중을 그대로 향해서, 뺀 종목이
+  /// 붙잡은 돈까지 다시 쓰려 든다 — 합이 총액을 넘는 **낼 수 없는 계획**이
+  /// 나올 수 있다. 예전 기본값이었고 지금은 `예수금에 남김`으로만 남아 있다.
   static RebalanceResult? calculate(
     Portfolio portfolio, {
     Set<String>? excludeIds,
-    bool redistributeExcluded = false,
+    bool redistributeExcluded = true,
   }) {
     final items = portfolio.items;
     if (items.isEmpty) return null;
