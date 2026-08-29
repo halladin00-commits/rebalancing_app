@@ -1,14 +1,6 @@
 {
   "excludedShort": "Skip",
   "keepAsIs": "Leave as is",
-  "planAllOrNothing": "All {count} trades must be executed for this result. Unchecking one recalculates the rest.",
-  "@planAllOrNothing": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "firstRunTitle": "How do you want to enter your holdings?",
   "settlementCannotCompute": "Could not fetch prices to compute this",
   "settlementNoHoldings": "No holdings in this period",
@@ -195,15 +187,6 @@
   "proposalTitle": "Adjustment",
   "modeHoldings": "Within holdings",
   "modeAddCash": "With new cash",
-  "atCurrentPrice": "at {price}",
-  "@atCurrentPrice": {
-    "placeholders": {
-      "price": {
-        "type": "String"
-      }
-    }
-  },
-  "driftAfterAdjust": "Drift after adjusting",
   "toleranceLabel": "±{value}pp allowed",
   "@toleranceLabel": {
     "placeholders": {
@@ -227,7 +210,6 @@
   "proposalDisclaimer": "This does not place any orders. Record your trades below once you have actually executed them.",
   "noAdjustmentNeeded": "Nothing to adjust right now",
   "cannotCalculate": "Cannot calculate. Check whether any holding is missing a current price.",
-  "recordAsTransactions": "Record as transactions",
   "@@locale": "en",
   "cancel": "Cancel",
   "save": "Save",
@@ -572,8 +554,6 @@
     }
   },
   "excelImportTitle": "Upload Transactions",
-  "excelDownloadTemplate": "Download Template",
-  "excelImportFile": "Import File",
   "excelImportDone": "Import Complete",
   "excelImportAdded": "{count} transactions added",
   "@excelImportAdded": {
@@ -599,7 +579,6 @@
       }
     }
   },
-  "excelTemplateHint": "Columns: Date | Name | Ticker | Market | Type | Qty | Price\nDate: 2024.01.15  Market: KR / US  Type: Buy / Sell",
   "excelImportNothingAdded": "No transactions were added",
   "settlementNotifHeader": "Settlement Reminders",
   "settlementNotifWeekly": "Weekly Settlement",
@@ -611,8 +590,6 @@
   "fractionalTrading": "Fractional Shares",
   "fractionalTradingToggle": "Allow fractional quantities",
   "fractionalTradingHint": "Turn on only if your broker supports fractional trading.\nOtherwise quantities stay in whole shares.",
-  "rebalanceTransactionTitle": "Confirm Trades",
-  "rebalanceTransactionDesc": "Edit qty/price to match your actual trades.\nItems with qty 0 will be skipped.",
   "maxDriftAfter": "Max drift after",
   "planMustRunAll": "This result holds only if all {count} trades are executed",
   "@planMustRunAll": {
@@ -664,14 +641,6 @@
     "placeholders": {
       "count": {
         "type": "int"
-      }
-    }
-  },
-  "targetShort": "target {value}",
-  "@targetShort": {
-    "placeholders": {
-      "value": {
-        "type": "String"
       }
     }
   },

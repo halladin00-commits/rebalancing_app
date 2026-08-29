@@ -110,12 +110,6 @@ abstract class AppLocalizations {
   /// **'그대로 둠'**
   String get keepAsIs;
 
-  /// No description provided for @planAllOrNothing.
-  ///
-  /// In ko, this message translates to:
-  /// **'아래 {count}건을 모두 실행해야 이 결과가 됩니다. 체크를 끄면 나머지를 다시 계산합니다.'**
-  String planAllOrNothing(int count);
-
   /// No description provided for @firstRunTitle.
   ///
   /// In ko, this message translates to:
@@ -632,18 +626,6 @@ abstract class AppLocalizations {
   /// **'추가 입금으로'**
   String get modeAddCash;
 
-  /// No description provided for @atCurrentPrice.
-  ///
-  /// In ko, this message translates to:
-  /// **'현재가 {price} 기준'**
-  String atCurrentPrice(String price);
-
-  /// No description provided for @driftAfterAdjust.
-  ///
-  /// In ko, this message translates to:
-  /// **'조정 후 남는 편차'**
-  String get driftAfterAdjust;
-
   /// No description provided for @toleranceLabel.
   ///
   /// In ko, this message translates to:
@@ -697,12 +679,6 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'계산할 수 없습니다. 현재가가 없는 종목이 있는지 확인해 주세요.'**
   String get cannotCalculate;
-
-  /// No description provided for @recordAsTransactions.
-  ///
-  /// In ko, this message translates to:
-  /// **'거래 내역으로 기록'**
-  String get recordAsTransactions;
 
   /// No description provided for @cancel.
   ///
@@ -1988,18 +1964,6 @@ abstract class AppLocalizations {
   /// **'거래내역 업로드'**
   String get excelImportTitle;
 
-  /// No description provided for @excelDownloadTemplate.
-  ///
-  /// In ko, this message translates to:
-  /// **'양식 다운로드'**
-  String get excelDownloadTemplate;
-
-  /// No description provided for @excelImportFile.
-  ///
-  /// In ko, this message translates to:
-  /// **'파일 가져오기'**
-  String get excelImportFile;
-
   /// No description provided for @excelImportDone.
   ///
   /// In ko, this message translates to:
@@ -2023,12 +1987,6 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'{count}행 건너뜀'**
   String excelImportSkipped(int count);
-
-  /// No description provided for @excelTemplateHint.
-  ///
-  /// In ko, this message translates to:
-  /// **'컬럼: 날짜 | 종목명 | 티커 | 시장 | 유형 | 수량 | 단가\n날짜: 2024.01.15  시장: KR / US  유형: 매수 / 매도'**
-  String get excelTemplateHint;
 
   /// No description provided for @excelImportNothingAdded.
   ///
@@ -2095,18 +2053,6 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'소수점 매매가 되는 계좌에서만 켜세요.\n끄면 1주 단위로만 계산합니다.'**
   String get fractionalTradingHint;
-
-  /// No description provided for @rebalanceTransactionTitle.
-  ///
-  /// In ko, this message translates to:
-  /// **'리밸런싱 거래 확인'**
-  String get rebalanceTransactionTitle;
-
-  /// No description provided for @rebalanceTransactionDesc.
-  ///
-  /// In ko, this message translates to:
-  /// **'실제 거래 수량·가격으로 수정 후 완료를 누르세요.\n수량이 0이면 거래내역에 추가되지 않습니다.'**
-  String get rebalanceTransactionDesc;
 
   /// No description provided for @maxDriftAfter.
   ///
@@ -2179,12 +2125,6 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'{count}건 거래 내역으로 기록'**
   String recordNTransactions(int count);
-
-  /// No description provided for @targetShort.
-  ///
-  /// In ko, this message translates to:
-  /// **'목표 {value}'**
-  String targetShort(String value);
 
   /// No description provided for @shareProposal.
   ///

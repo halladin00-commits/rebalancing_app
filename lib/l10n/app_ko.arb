@@ -1,14 +1,6 @@
 {
   "excludedShort": "제외",
   "keepAsIs": "그대로 둠",
-  "planAllOrNothing": "아래 {count}건을 모두 실행해야 이 결과가 됩니다. 체크를 끄면 나머지를 다시 계산합니다.",
-  "@planAllOrNothing": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "firstRunTitle": "보유 종목을 어떻게 넣으시겠어요?",
   "settlementCannotCompute": "시세를 받지 못해 계산할 수 없습니다",
   "settlementNoHoldings": "해당 기간 보유 종목 없음",
@@ -195,15 +187,6 @@
   "proposalTitle": "조정 제안",
   "modeHoldings": "보유 안에서",
   "modeAddCash": "추가 입금으로",
-  "atCurrentPrice": "현재가 {price} 기준",
-  "@atCurrentPrice": {
-    "placeholders": {
-      "price": {
-        "type": "String"
-      }
-    }
-  },
-  "driftAfterAdjust": "조정 후 남는 편차",
   "toleranceLabel": "허용 ±{value}%p",
   "@toleranceLabel": {
     "placeholders": {
@@ -227,7 +210,6 @@
   "proposalDisclaimer": "이 제안은 주문을 내지 않습니다. 실제로 매매하신 뒤 아래 버튼으로 기록하세요.",
   "noAdjustmentNeeded": "지금은 조정할 것이 없습니다",
   "cannotCalculate": "계산할 수 없습니다. 현재가가 없는 종목이 있는지 확인해 주세요.",
-  "recordAsTransactions": "거래 내역으로 기록",
   "@@locale": "ko",
   "cancel": "취소",
   "save": "저장",
@@ -572,8 +554,6 @@
     }
   },
   "excelImportTitle": "거래내역 업로드",
-  "excelDownloadTemplate": "양식 다운로드",
-  "excelImportFile": "파일 가져오기",
   "excelImportDone": "가져오기 완료",
   "excelImportAdded": "{count}건 거래 추가됨",
   "@excelImportAdded": {
@@ -599,7 +579,6 @@
       }
     }
   },
-  "excelTemplateHint": "컬럼: 날짜 | 종목명 | 티커 | 시장 | 유형 | 수량 | 단가\n날짜: 2024.01.15  시장: KR / US  유형: 매수 / 매도",
   "excelImportNothingAdded": "추가된 거래내역이 없습니다",
   "settlementNotifHeader": "결산 알림",
   "settlementNotifWeekly": "주간 결산",
@@ -611,8 +590,6 @@
   "fractionalTrading": "소수점 거래",
   "fractionalTradingToggle": "소수점 단위로 매매",
   "fractionalTradingHint": "소수점 매매가 되는 계좌에서만 켜세요.\n끄면 1주 단위로만 계산합니다.",
-  "rebalanceTransactionTitle": "리밸런싱 거래 확인",
-  "rebalanceTransactionDesc": "실제 거래 수량·가격으로 수정 후 완료를 누르세요.\n수량이 0이면 거래내역에 추가되지 않습니다.",
   "maxDriftAfter": "조정 후 최대 편차",
   "planMustRunAll": "아래 {count}건을 모두 실행해야 성립하는 결과입니다",
   "@planMustRunAll": {
@@ -664,14 +641,6 @@
     "placeholders": {
       "count": {
         "type": "int"
-      }
-    }
-  },
-  "targetShort": "목표 {value}",
-  "@targetShort": {
-    "placeholders": {
-      "value": {
-        "type": "String"
       }
     }
   },

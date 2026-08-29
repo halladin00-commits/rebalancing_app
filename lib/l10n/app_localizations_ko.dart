@@ -15,11 +15,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get keepAsIs => '그대로 둠';
 
   @override
-  String planAllOrNothing(int count) {
-    return '아래 $count건을 모두 실행해야 이 결과가 됩니다. 체크를 끄면 나머지를 다시 계산합니다.';
-  }
-
-  @override
   String get firstRunTitle => '보유 종목을 어떻게 넣으시겠어요?';
 
   @override
@@ -311,14 +306,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get modeAddCash => '추가 입금으로';
 
   @override
-  String atCurrentPrice(String price) {
-    return '현재가 $price 기준';
-  }
-
-  @override
-  String get driftAfterAdjust => '조정 후 남는 편차';
-
-  @override
   String toleranceLabel(String value) {
     return '허용 ±$value%p';
   }
@@ -350,9 +337,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get cannotCalculate => '계산할 수 없습니다. 현재가가 없는 종목이 있는지 확인해 주세요.';
-
-  @override
-  String get recordAsTransactions => '거래 내역으로 기록';
 
   @override
   String get cancel => '취소';
@@ -1039,12 +1023,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get excelImportTitle => '거래내역 업로드';
 
   @override
-  String get excelDownloadTemplate => '양식 다운로드';
-
-  @override
-  String get excelImportFile => '파일 가져오기';
-
-  @override
   String get excelImportDone => '가져오기 완료';
 
   @override
@@ -1061,10 +1039,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String excelImportSkipped(int count) {
     return '$count행 건너뜀';
   }
-
-  @override
-  String get excelTemplateHint =>
-      '컬럼: 날짜 | 종목명 | 티커 | 시장 | 유형 | 수량 | 단가\n날짜: 2024.01.15  시장: KR / US  유형: 매수 / 매도';
 
   @override
   String get excelImportNothingAdded => '추가된 거래내역이 없습니다';
@@ -1099,13 +1073,6 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get fractionalTradingHint =>
       '소수점 매매가 되는 계좌에서만 켜세요.\n끄면 1주 단위로만 계산합니다.';
-
-  @override
-  String get rebalanceTransactionTitle => '리밸런싱 거래 확인';
-
-  @override
-  String get rebalanceTransactionDesc =>
-      '실제 거래 수량·가격으로 수정 후 완료를 누르세요.\n수량이 0이면 거래내역에 추가되지 않습니다.';
 
   @override
   String get maxDriftAfter => '조정 후 최대 편차';
@@ -1153,11 +1120,6 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String recordNTransactions(int count) {
     return '$count건 거래 내역으로 기록';
-  }
-
-  @override
-  String targetShort(String value) {
-    return '목표 $value';
   }
 
   @override

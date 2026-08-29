@@ -15,11 +15,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get keepAsIs => 'Leave as is';
 
   @override
-  String planAllOrNothing(int count) {
-    return 'All $count trades must be executed for this result. Unchecking one recalculates the rest.';
-  }
-
-  @override
   String get firstRunTitle => 'How do you want to enter your holdings?';
 
   @override
@@ -317,14 +312,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get modeAddCash => 'With new cash';
 
   @override
-  String atCurrentPrice(String price) {
-    return 'at $price';
-  }
-
-  @override
-  String get driftAfterAdjust => 'Drift after adjusting';
-
-  @override
   String toleranceLabel(String value) {
     return '±${value}pp allowed';
   }
@@ -357,9 +344,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get cannotCalculate =>
       'Cannot calculate. Check whether any holding is missing a current price.';
-
-  @override
-  String get recordAsTransactions => 'Record as transactions';
 
   @override
   String get cancel => 'Cancel';
@@ -1054,12 +1038,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get excelImportTitle => 'Upload Transactions';
 
   @override
-  String get excelDownloadTemplate => 'Download Template';
-
-  @override
-  String get excelImportFile => 'Import File';
-
-  @override
   String get excelImportDone => 'Import Complete';
 
   @override
@@ -1076,10 +1054,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String excelImportSkipped(int count) {
     return '$count rows skipped';
   }
-
-  @override
-  String get excelTemplateHint =>
-      'Columns: Date | Name | Ticker | Market | Type | Qty | Price\nDate: 2024.01.15  Market: KR / US  Type: Buy / Sell';
 
   @override
   String get excelImportNothingAdded => 'No transactions were added';
@@ -1115,13 +1089,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get fractionalTradingHint =>
       'Turn on only if your broker supports fractional trading.\nOtherwise quantities stay in whole shares.';
-
-  @override
-  String get rebalanceTransactionTitle => 'Confirm Trades';
-
-  @override
-  String get rebalanceTransactionDesc =>
-      'Edit qty/price to match your actual trades.\nItems with qty 0 will be skipped.';
 
   @override
   String get maxDriftAfter => 'Max drift after';
@@ -1171,11 +1138,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String recordNTransactions(int count) {
     return 'Record $count trades';
-  }
-
-  @override
-  String targetShort(String value) {
-    return 'target $value';
   }
 
   @override

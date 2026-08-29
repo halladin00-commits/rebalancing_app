@@ -141,6 +141,28 @@ void main() {
       }
     });
 
+    test('일부만 잠겨도 소수점 거래가 예산을 넘지 않는다', () {
+      // b는 35%인데 목표 33% — 허용 ±3%p 안이라 잠겨서 35만을 붙잡는다.
+      // a·c만 조정 대상이다. 잠긴 몫을 두 번 세면 없는 돈으로 사게 된다.
+      final portfolio = pf([
+        stock(id: 'a', target: 34, shares: 60, price: 10000),
+        stock(id: 'b', target: 33, shares: 35, price: 10000),
+        stock(id: 'c', target: 33, shares: 5, price: 10000),
+      ], fractional: true, threshold: 3);
+      final r = Rebalancer.calculate(portfolio)!;
+
+      expect({for (final x in r.results) x.id: x.delta}['b'], 0,
+          reason: '잠긴 종목이 거래됐다');
+
+      var net = 0.0;
+      for (final x in r.results) {
+        if (x.isCash) continue;
+        final item = portfolio.items.firstWhere((i) => i.id == x.id);
+        net += x.delta * item.currentPrice;
+      }
+      expect(net, lessThanOrEqualTo(0), reason: '없는 돈으로 사는 계획이다');
+    });
+
     test('임계값을 넘은 종목만 소수점으로 조정된다', () {
       final r = Rebalancer.calculate(pf([
         stock(id: 'a', target: 50, shares: 60, price: 10000),
