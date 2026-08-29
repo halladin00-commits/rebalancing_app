@@ -46,3 +46,9 @@ app.*.map.json
 key.properties
 *.jks
 *.keystore
+
+# 빌드 산출물 (루트 /build/ 외에 android/build/도 생긴다)
+/android/build/
+
+# tools/shot.sh가 남기는 원본 캡처 (줄인 것만 docs/review/에 둔다)
+raw.png
