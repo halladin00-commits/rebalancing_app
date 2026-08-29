@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+
+import '../utils/josa.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
@@ -393,7 +395,10 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
       context: context,
       builder: (_) => AlertDialog(
         title: Text(l10n.deleteConfirmTitle),
-        content: Text(l10n.deleteItemContent(item.name)),
+        content: Text(l10n.deleteItemContent(
+          withJosa(item.name, Josa.eulReul,
+              korean: Localizations.localeOf(context).languageCode == 'ko'),
+        )),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
           TextButton(

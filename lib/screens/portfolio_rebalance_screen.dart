@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../utils/josa.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
 import '../utils/money_format.dart';
@@ -139,7 +141,7 @@ class PortfolioRebalanceScreen extends StatelessWidget {
         Text(
           needsAdjusting
               ? (isKo
-                  ? '${worst.item.name}이(가) 목표보다 ${worst.drift >= 0 ? '많습니다' : '적습니다'}'
+                  ? '${withJosa(worst.item.name, Josa.iGa)} 목표보다 ${worst.drift >= 0 ? '많습니다' : '적습니다'}'
                   : '${worst.item.name} is ${worst.drift >= 0 ? 'over' : 'under'} target')
               : (isKo ? '모든 종목이 허용 편차 안에 있습니다' : 'All holdings within tolerance'),
           style: TextStyle(

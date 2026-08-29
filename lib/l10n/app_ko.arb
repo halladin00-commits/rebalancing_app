@@ -84,7 +84,7 @@
   "cashAddHint": "예수금은 검색이 아니라 바로 만듭니다.\n계좌에 남은 현금을 한 항목으로 넣어 두면\n비중 계산에 함께 잡힙니다.",
   "cashAddButton": "예수금 추가",
   "manualEntryHint": "목록에 없으면 직접 등록",
-  "alreadyInPortfolio": "{name}은(는) 이미 담겨 있습니다",
+  "alreadyInPortfolio": "{name} 이미 담겨 있습니다",
   "@alreadyInPortfolio": { "placeholders": { "name": { "type": "String" } } },
   "txCountLabel": "{count}건",
   "@txCountLabel": { "placeholders": { "count": { "type": "int" } } },
@@ -144,7 +144,7 @@
   "@deletePortfolioContent": {
     "placeholders": { "name": { "type": "String" } }
   },
-  "deleteItemContent": "'{name}'을(를) 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.",
+  "deleteItemContent": "{name} 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.",
   "@deleteItemContent": {
     "placeholders": { "name": { "type": "String" } }
   },

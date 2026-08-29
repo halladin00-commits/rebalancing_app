@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+
+import '../utils/josa.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
@@ -367,7 +369,11 @@ class _ItemSearchScreenState extends State<ItemSearchScreen> {
     final dup = pf.items.where((i) => i.ticker == r.ticker).firstOrNull;
     if (dup != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.alreadyInPortfolio(r.name))),
+        SnackBar(
+          content: Text(context.l10n.alreadyInPortfolio(
+            withJosa(r.name, Josa.eunNeun, korean: Localizations.localeOf(context).languageCode == 'ko'),
+          )),
+        ),
       );
       return;
     }

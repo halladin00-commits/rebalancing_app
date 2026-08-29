@@ -261,7 +261,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String alreadyInPortfolio(String name) {
-    return '$name은(는) 이미 담겨 있습니다';
+    return '$name 이미 담겨 있습니다';
   }
 
   @override
@@ -422,7 +422,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String deleteItemContent(String name) {
-    return '\'$name\'을(를) 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.';
+    return '$name 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.';
   }
 
   @override

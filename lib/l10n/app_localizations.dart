@@ -545,7 +545,7 @@ abstract class AppLocalizations {
   /// No description provided for @alreadyInPortfolio.
   ///
   /// In ko, this message translates to:
-  /// **'{name}은(는) 이미 담겨 있습니다'**
+  /// **'{name} 이미 담겨 있습니다'**
   String alreadyInPortfolio(String name);
 
   /// No description provided for @txCountLabel.
@@ -833,7 +833,7 @@ abstract class AppLocalizations {
   /// No description provided for @deleteItemContent.
   ///
   /// In ko, this message translates to:
-  /// **'\'{name}\'을(를) 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.'**
+  /// **'{name} 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.'**
   String deleteItemContent(String name);
 
   /// No description provided for @appExitTitle.
