@@ -141,4 +141,42 @@ void main() {
       expect(b, a, reason: '뺀 것이 없으면 나눠줄 몫도 없다');
     });
   });
+
+  group('허용 편차로 잠긴 경우 (종목을 빼지 않아도 걸린다)', () {
+    /// b는 35%인데 목표 33% — 허용 ±3%p 안이라 잠겨 거래하지 않는다.
+    /// a와 c만 조정 대상이다.
+    Portfolio withinTolerance() =>
+        Portfolio(id: 'p', name: 'p', rebalancingThreshold: 3, items: [
+          stock(id: 'a', target: 34, shares: 60),
+          stock(id: 'b', target: 33, shares: 35),
+          stock(id: 'c', target: 33, shares: 5),
+        ]);
+
+    test('잠긴 종목은 거래하지 않는다', () {
+      final pf = withinTolerance();
+      expect(deltas(Rebalancer.calculate(pf)!)['b'], 0);
+    });
+
+    test('낼 수 없는 계획을 만들지 않는다', () {
+      // 예전에는 b가 목표보다 더 가진 2만만큼 그대로 예산을 넘었다.
+      final pf = withinTolerance();
+      final r = Rebalancer.calculate(pf)!;
+      expect(netSpend(pf, r), lessThanOrEqualTo(0),
+          reason: '잠긴 종목이 붙잡은 돈을 두 번 셌다');
+    });
+
+    test('`예수금에 남김`을 고르면 예전처럼 예산을 넘는다', () {
+      final pf = withinTolerance();
+      final r = Rebalancer.calculate(pf, redistributeExcluded: false)!;
+      expect(netSpend(pf, r), greaterThan(0));
+    });
+
+    test('잠긴 것이 없으면 계산이 달라지지 않는다', () {
+      // 허용 편차를 0으로 두면 아무것도 잠기지 않는다 = 나눠줄 몫도 없다.
+      final a = deltas(Rebalancer.calculate(skewed())!);
+      final b = deltas(
+          Rebalancer.calculate(skewed(), redistributeExcluded: false)!);
+      expect(a, b);
+    });
+  });
 }

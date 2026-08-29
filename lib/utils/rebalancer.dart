@@ -132,9 +132,16 @@ class Rebalancer {
     // 필요 없다. 대신 수수료만큼 예산을 미리 빼 둬야 한다 —
     // 온주 거래는 내림에서 남는 돈이 수수료를 덮지만, 소수점 거래는
     // 남는 돈이 0이라 그냥 두면 잔여 현금이 음수가 된다.
-    // 뺀 종목이 붙잡고 있는 금액과, 아직 움직일 수 있는 종목의 목표 비중 합.
-    // 사용자가 실제로 뺀 것이 있을 때만 나눈다 — 기존 동작을 그대로 보존한다.
-    final spreading = redistributeExcluded && (excludeIds?.isNotEmpty ?? false);
+    // 잠긴 종목이 붙잡고 있는 금액과, 아직 움직일 수 있는 종목의 목표 비중 합.
+    //
+    // **무엇 때문에 잠겼든** 나눈다. 종목을 뺀 경우든 허용 편차 안에 들어
+    // 잠긴 경우든, 잠긴 종목은 지금 금액을 그대로 붙잡는다. 그런데 나머지를
+    // 총액 기준으로 계산하면 그 돈이 두 번 세어져 예산을 넘는다 —
+    // 잠긴 종목이 목표에서 벗어난 만큼이 그대로 초과액이 된다.
+    //
+    // 잠긴 것이 없으면 `lockedValue`가 0, `activeWeight`가 100이라
+    // 원래 식과 똑같아진다.
+    final spreading = redistributeExcluded && lockedIds.isNotEmpty;
     double lockedValue = 0, activeWeight = 0;
     if (spreading) {
       for (final item in items) {
@@ -158,11 +165,22 @@ class Rebalancer {
         final cv = item.isCash ? item.shares : item.shares * p;
         final cw = (cv / total) * 100;
         final locked0 = lockedIds.contains(item.id);
-        // 나눠주기: 잠긴 몫을 뺀 예산을 남은 종목의 목표 비중대로 나눈다.
-        // 합이 정확히 `base - lockedValue`가 되어 낼 수 없는 계획이 안 나온다.
+
+        // 잠긴 종목이 있으면 목표 금액은 **두 상한 중 작은 쪽**이다.
+        //
+        //   제 목표 비중          — 이걸 넘으면 목표를 지나쳐 산다
+        //   남은 예산의 제 몫      — 이걸 넘으면 없는 돈으로 산다
+        //
+        // 잠긴 종목이 목표보다 **많이** 갖고 있으면 예산 쪽이 작아져
+        // 낼 수 없는 계획을 막는다. 목표보다 **적게** 갖고 있으면 목표 쪽이
+        // 작아져 남는 돈이 현금으로 남는다 — 억지로 밀어 넣으면 다른 종목이
+        // 목표를 넘어가므로 이게 맞다.
+        final ownTarget = base * (item.targetWeight / 100);
         final tv = (spreading && !locked0 && activeWeight > 0)
-            ? max(0.0, base - lockedValue) * (item.targetWeight / activeWeight)
-            : base * (item.targetWeight / 100);
+            ? min(
+                ownTarget,
+                max(0.0, base - lockedValue) * (item.targetWeight / activeWeight))
+            : ownTarget;
         final locked = lockedIds.contains(item.id);
         // 잠긴 종목은 "거래하지 않는다"는 뜻이므로 현재 수량을 그대로 둔다.
         if (item.isCash) {
