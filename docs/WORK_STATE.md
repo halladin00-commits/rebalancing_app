@@ -142,6 +142,17 @@ mv android/_key.properties.aside android/key.properties   # 절대 빠뜨리지 
 - **`uiautomator dump`는 Flutter에서 안 통한다** — 캔버스에 그려서 위젯이 안 잡힌다.
   UI 트리를 텍스트로 뽑아 캡처를 아끼려 했으나 빈 결과만 나온다. 확인은 캡처로 한다.
 - 탭이 어긋나면 앱이 아직 뜨는 중일 수 있다. 긴 이동은 중간에 한 번 찍어 확인한다.
+- **첫 진입 화면을 보려면 앱 데이터를 지워야 한다. 지우기 전에 백업한다** —
+  디버그 빌드는 `run-as`로 앱 내부를 만질 수 있다.
+  ```sh
+  # 백업
+  adb shell run-as com.xaxavoo.rebalancing cat shared_prefs/FlutterSharedPreferences.xml > prefs.xml
+  adb shell pm clear com.xaxavoo.rebalancing
+  # 복구 (run-as는 /sdcard를 못 읽으므로 표준입력으로 넣는다)
+  base64 -w0 prefs.xml > prefs.b64
+  adb shell "run-as com.xaxavoo.rebalancing sh -c 'base64 -d > shared_prefs/FlutterSharedPreferences.xml'" < prefs.b64
+  ```
+  Git Bash에서 `/sdcard/...` 경로는 `MSYS_NO_PATHCONV=1`을 붙여야 안 망가진다.
 
 ### 도구 주의
 - Bash 히어독에서 Dart/JSON을 쓰면 **백슬래시가 먹힌다.** `chr(92)`를 쓰거나
