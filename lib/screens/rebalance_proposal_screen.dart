@@ -70,16 +70,15 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
             ? <RebalanceItemResult>[]
             : rb.results.where((r) => !r.isCash && r.delta != 0).toList();
 
-        // 체크를 끈 종목은 delta가 0이 되어 위 목록에서 빠진다.
-        // 그대로 사라지면 다시 켤 수가 없으므로 회색으로 남겨 둔다.
-        final shown = <RebalanceItemResult>[
-          ...trades,
-          if (rb != null)
-            ...rb.results.where((r) =>
-                !r.isCash &&
-                _excluded.contains(r.id) &&
-                !trades.any((t) => t.id == r.id)),
-        ];
+        // 체크를 끈 종목은 delta가 0이 되어 trades에서 빠진다. 목록에서까지 없어지면
+        // 다시 켤 수가 없으므로 회색으로 남겨 두되, **원래 자리에** 남긴다.
+        // 맨 뒤로 보내면 방금 누른 행이 화면 밖으로 밀려 사라진 것과 같아진다.
+        final shown = rb == null
+            ? <RebalanceItemResult>[]
+            : rb.results
+                .where((r) =>
+                    !r.isCash && (r.delta != 0 || _excluded.contains(r.id)))
+                .toList();
 
         return Scaffold(
           backgroundColor: context.scaffoldBg,
