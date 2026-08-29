@@ -10,9 +10,6 @@
     }
   },
   "firstRunTitle": "How do you want to enter your holdings?",
-  "firstRunWithDates": "Include purchase dates and the Returns tab can show period returns. Recommended.",
-  "firstRunQuickOnly": "Quantity alone still works for assets and rebalancing. Only period returns are unavailable.",
-  "firstRunUpload": "With many trades, create a portfolio then use the menu to import an Excel file.",
   "settlementCannotCompute": "Could not fetch prices to compute this",
   "settlementNoHoldings": "No holdings in this period",
   "targetWeightsTitle": "Target weights",
@@ -894,5 +891,17 @@
         "type": "int"
       }
     }
-  }
+  },
+  "firstRunSubtitle": "You can change this later, or mix them.",
+  "firstRunUploadTitle": "Upload a transaction file",
+  "firstRunNeedsPc": "needs a PC",
+  "firstRunUploadDesc": "If you can export a transaction file from your broker, dozens of trades come in at once.",
+  "firstRunUploadCta": "Start from a file",
+  "firstRunRecordTitle": "Record trades yourself",
+  "firstRunRecommended": "recommended",
+  "firstRunRecordDesc": "Recording buys and sells with quantity, price and date gives you period P&L in the Settlement tab.",
+  "firstRunRecordCta": "Start by recording",
+  "firstRunQuickTitle": "Just current holdings",
+  "firstRunQuickDesc": "Enter what you hold now and your average price. Assets and rebalancing work the same, but the Settlement tab's period P&L will not.",
+  "firstRunQuickCta": "Enter holdings only"
 }

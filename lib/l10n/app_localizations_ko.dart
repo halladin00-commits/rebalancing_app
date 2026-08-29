@@ -23,16 +23,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get firstRunTitle => '보유 종목을 어떻게 넣으시겠어요?';
 
   @override
-  String get firstRunWithDates => '매수 일자까지 넣으면 결산 탭에서 기간별 손익이 나옵니다. 권장합니다.';
-
-  @override
-  String get firstRunQuickOnly =>
-      '수량만 빠르게 넣어도 자산·리밸런싱은 그대로 됩니다. 결산의 기간 손익만 안 나옵니다.';
-
-  @override
-  String get firstRunUpload => '거래가 많으면 포트폴리오를 만든 뒤 ⋮ 메뉴에서 엑셀로 한 번에 올릴 수 있습니다.';
-
-  @override
   String get settlementCannotCompute => '시세를 받지 못해 계산할 수 없습니다';
 
   @override
@@ -1351,4 +1341,43 @@ class AppLocalizationsKo extends AppLocalizations {
   String nRowsShort(int count) {
     return '$count건';
   }
+
+  @override
+  String get firstRunSubtitle => '나중에 바꾸거나 섞어 쓸 수 있습니다.';
+
+  @override
+  String get firstRunUploadTitle => '거래내역 파일 올리기';
+
+  @override
+  String get firstRunNeedsPc => 'PC 필요';
+
+  @override
+  String get firstRunUploadDesc =>
+      'HTS·홈페이지에서 거래내역 파일을 받을 수 있다면 수십 건이 한 번에 들어옵니다.';
+
+  @override
+  String get firstRunUploadCta => '파일로 시작';
+
+  @override
+  String get firstRunRecordTitle => '직접 거래 기록하기';
+
+  @override
+  String get firstRunRecommended => '권장';
+
+  @override
+  String get firstRunRecordDesc =>
+      '매수·매도를 수량 · 단가 · 날짜로 남기면 결산 탭의 기간별 손익까지 나옵니다.';
+
+  @override
+  String get firstRunRecordCta => '기록하며 시작';
+
+  @override
+  String get firstRunQuickTitle => '보유 현황만 빠르게';
+
+  @override
+  String get firstRunQuickDesc =>
+      '지금 가진 수량과 평단만 넣습니다. 자산·리밸런싱은 그대로 되지만 결산 탭의 기간별 손익은 안 나옵니다.';
+
+  @override
+  String get firstRunQuickCta => '현재 보유만 입력';
 }

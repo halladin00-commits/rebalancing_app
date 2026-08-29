@@ -23,18 +23,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get firstRunTitle => 'How do you want to enter your holdings?';
 
   @override
-  String get firstRunWithDates =>
-      'Include purchase dates and the Returns tab can show period returns. Recommended.';
-
-  @override
-  String get firstRunQuickOnly =>
-      'Quantity alone still works for assets and rebalancing. Only period returns are unavailable.';
-
-  @override
-  String get firstRunUpload =>
-      'With many trades, create a portfolio then use the menu to import an Excel file.';
-
-  @override
   String get settlementCannotCompute =>
       'Could not fetch prices to compute this';
 
@@ -1373,4 +1361,43 @@ class AppLocalizationsEn extends AppLocalizations {
   String nRowsShort(int count) {
     return '$count';
   }
+
+  @override
+  String get firstRunSubtitle => 'You can change this later, or mix them.';
+
+  @override
+  String get firstRunUploadTitle => 'Upload a transaction file';
+
+  @override
+  String get firstRunNeedsPc => 'needs a PC';
+
+  @override
+  String get firstRunUploadDesc =>
+      'If you can export a transaction file from your broker, dozens of trades come in at once.';
+
+  @override
+  String get firstRunUploadCta => 'Start from a file';
+
+  @override
+  String get firstRunRecordTitle => 'Record trades yourself';
+
+  @override
+  String get firstRunRecommended => 'recommended';
+
+  @override
+  String get firstRunRecordDesc =>
+      'Recording buys and sells with quantity, price and date gives you period P&L in the Settlement tab.';
+
+  @override
+  String get firstRunRecordCta => 'Start by recording';
+
+  @override
+  String get firstRunQuickTitle => 'Just current holdings';
+
+  @override
+  String get firstRunQuickDesc =>
+      'Enter what you hold now and your average price. Assets and rebalancing work the same, but the Settlement tab\'s period P&L will not.';
+
+  @override
+  String get firstRunQuickCta => 'Enter holdings only';
 }

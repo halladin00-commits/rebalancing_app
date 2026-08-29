@@ -13,6 +13,7 @@ import '../theme/design_system.dart';
 import '../utils/rebalancer.dart';
 import 'portfolio_form_screen.dart';
 import 'item_search_screen.dart';
+import 'transaction_import_screen.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/sparkline_panel.dart';
@@ -127,7 +128,7 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
             builder: (_) => PortfolioDetailScreen(portfolioId: id)));
   }
 
-  void _showCreateDialog(BuildContext context) {
+  void _showCreateDialog(BuildContext context, {bool uploadAfter = false}) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -145,7 +146,10 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => ItemSearchScreen(portfolio: pf),
+                  builder: (_) => uploadAfter
+                      // 파일로 시작 — 종목까지 파일이 만들어 준다
+                      ? TransactionImportScreen(portfolioId: pf.id)
+                      : ItemSearchScreen(portfolio: pf),
                 ),
               );
             });
@@ -1219,60 +1223,149 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
   /// 뒤의 둘은 이 앱에서 **같은 화면으로 간다** — 종목을 넣을 때 매수 일자를
   /// 챙기느냐 마느냐의 차이일 뿐 별도 모드가 아니다. 버튼 두 개가 똑같이
   /// 동작하면 거짓말이므로, 갈림길 대신 **그 차이를 한 번 알려주는** 쪽으로 뒀다.
+  /// 첫 진입 — 입력 방식을 먼저 고르게 한다 (시안 v17d).
+  ///
+  /// 예전에는 "이렇게 넣으면 이런 게 나옵니다"를 읽히기만 했다. 읽고 나서
+  /// 무엇을 눌러야 할지는 여전히 알 수 없었다. 지금은 **세 갈래를 버튼으로**
+  /// 두고, 각각 무엇을 얻고 무엇을 못 얻는지 그 자리에 적었다.
+  ///
+  /// 업로드를 맨 위에 둔 건 거래가 많은 사람에게 가장 크게 이득이기 때문이다.
+  /// 다만 파일을 받으려면 PC가 필요하므로 그렇다고 먼저 밝힌다.
   Widget _buildFirstRun(BuildContext context) {
     final l10n = context.l10n;
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(4, 2, 4, 0),
+        child: Text(l10n.firstRunTitle,
+            style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.4,
+                height: 1.4,
+                color: context.textPrimary)),
+      ),
+      const SizedBox(height: 5),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: Text(l10n.firstRunSubtitle,
+            style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: context.textSecondary)),
+      ),
+      const SizedBox(height: 13),
+      _firstRunOption(
+        context,
+        icon: Icons.upload_file,
+        title: l10n.firstRunUploadTitle,
+        badge: l10n.firstRunNeedsPc,
+        badgeStrong: false,
+        desc: l10n.firstRunUploadDesc,
+        cta: l10n.firstRunUploadCta,
+        onTap: () => _startFirstRun(context, upload: true),
+      ),
+      const SizedBox(height: 10),
+      _firstRunOption(
+        context,
+        icon: Icons.history,
+        title: l10n.firstRunRecordTitle,
+        badge: l10n.firstRunRecommended,
+        badgeStrong: true,
+        desc: l10n.firstRunRecordDesc,
+        cta: l10n.firstRunRecordCta,
+        onTap: () => _startFirstRun(context),
+      ),
+      const SizedBox(height: 10),
+      _firstRunOption(
+        context,
+        icon: Icons.bolt,
+        title: l10n.firstRunQuickTitle,
+        desc: l10n.firstRunQuickDesc,
+        cta: l10n.firstRunQuickCta,
+        onTap: () => _startFirstRun(context),
+      ),
+      const SizedBox(height: 14),
+    ]);
+  }
+
+  /// 어느 갈래를 골라도 포트폴리오부터 만들어야 한다. 만든 뒤 갈 곳만 다르다.
+  void _startFirstRun(BuildContext context, {bool upload = false}) =>
+      _showCreateDialog(context, uploadAfter: upload);
+
+  Widget _firstRunOption(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    String? badge,
+    bool badgeStrong = false,
+    required String desc,
+    required String cta,
+    required VoidCallback onTap,
+  }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
       decoration: BoxDecoration(
         color: context.cardBg,
         borderRadius: BorderRadius.circular(DS.cardRadius),
         border: Border.all(color: context.cardBorder),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(l10n.firstRunTitle,
-            style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.3,
-                height: 1.4,
-                color: context.textPrimary)),
-        const SizedBox(height: 14),
-        _firstRunPoint(context, Icons.history, l10n.firstRunWithDates,
-            highlight: true),
-        const SizedBox(height: 10),
-        _firstRunPoint(context, Icons.bolt, l10n.firstRunQuickOnly),
-        const SizedBox(height: 10),
-        _firstRunPoint(context, Icons.upload_file, l10n.firstRunUpload),
-      ]),
-    );
-  }
-
-  Widget _firstRunPoint(BuildContext context, IconData icon, String text,
-      {bool highlight = false}) {
-    return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Container(
-        width: 26,
-        height: 26,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: highlight ? context.brandTint : context.subtleFill,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(icon,
-            size: 15,
-            color: highlight ? context.brandOnLight : context.textSecondary),
-      ),
-      const SizedBox(width: 10),
-      Expanded(
-        child: Text(text,
+        Row(children: [
+          Icon(icon, size: 19, color: context.brand),
+          const SizedBox(width: 9),
+          Flexible(
+            child: Text(title,
+                style: TextStyle(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.3,
+                    color: context.textPrimary),
+                overflow: TextOverflow.ellipsis),
+          ),
+          if (badge != null) ...[
+            const SizedBox(width: 7),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+              decoration: BoxDecoration(
+                color: badgeStrong ? context.pnlUpTint : context.subtleFill,
+                borderRadius: BorderRadius.circular(DS.chipRadius),
+              ),
+              child: Text(badge,
+                  style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      color: badgeStrong
+                          ? context.brandOnLight
+                          : context.textTertiary)),
+            ),
+          ],
+        ]),
+        const SizedBox(height: 8),
+        Text(desc,
             style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
-                height: 1.55,
-                color: highlight ? context.textStrong : context.textSecondary)),
-      ),
-    ]);
+                height: 1.6,
+                color: context.textSecondary)),
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          height: 42,
+          child: OutlinedButton(
+            onPressed: onTap,
+            style: OutlinedButton.styleFrom(
+              foregroundColor: context.brandOnLight,
+              side: BorderSide(color: context.brand, width: 1.3),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(DS.buttonRadius)),
+            ),
+            child: Text(cta,
+                style: const TextStyle(
+                    fontSize: 13, fontWeight: FontWeight.w800)),
+          ),
+        ),
+      ]),
+    );
   }
 
   Widget _buildAddCard(BuildContext context) {

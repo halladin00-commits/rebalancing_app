@@ -122,24 +122,6 @@ abstract class AppLocalizations {
   /// **'보유 종목을 어떻게 넣으시겠어요?'**
   String get firstRunTitle;
 
-  /// No description provided for @firstRunWithDates.
-  ///
-  /// In ko, this message translates to:
-  /// **'매수 일자까지 넣으면 결산 탭에서 기간별 손익이 나옵니다. 권장합니다.'**
-  String get firstRunWithDates;
-
-  /// No description provided for @firstRunQuickOnly.
-  ///
-  /// In ko, this message translates to:
-  /// **'수량만 빠르게 넣어도 자산·리밸런싱은 그대로 됩니다. 결산의 기간 손익만 안 나옵니다.'**
-  String get firstRunQuickOnly;
-
-  /// No description provided for @firstRunUpload.
-  ///
-  /// In ko, this message translates to:
-  /// **'거래가 많으면 포트폴리오를 만든 뒤 ⋮ 메뉴에서 엑셀로 한 번에 올릴 수 있습니다.'**
-  String get firstRunUpload;
-
   /// No description provided for @settlementCannotCompute.
   ///
   /// In ko, this message translates to:
@@ -2485,6 +2467,78 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'{count}건'**
   String nRowsShort(int count);
+
+  /// No description provided for @firstRunSubtitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'나중에 바꾸거나 섞어 쓸 수 있습니다.'**
+  String get firstRunSubtitle;
+
+  /// No description provided for @firstRunUploadTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'거래내역 파일 올리기'**
+  String get firstRunUploadTitle;
+
+  /// No description provided for @firstRunNeedsPc.
+  ///
+  /// In ko, this message translates to:
+  /// **'PC 필요'**
+  String get firstRunNeedsPc;
+
+  /// No description provided for @firstRunUploadDesc.
+  ///
+  /// In ko, this message translates to:
+  /// **'HTS·홈페이지에서 거래내역 파일을 받을 수 있다면 수십 건이 한 번에 들어옵니다.'**
+  String get firstRunUploadDesc;
+
+  /// No description provided for @firstRunUploadCta.
+  ///
+  /// In ko, this message translates to:
+  /// **'파일로 시작'**
+  String get firstRunUploadCta;
+
+  /// No description provided for @firstRunRecordTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'직접 거래 기록하기'**
+  String get firstRunRecordTitle;
+
+  /// No description provided for @firstRunRecommended.
+  ///
+  /// In ko, this message translates to:
+  /// **'권장'**
+  String get firstRunRecommended;
+
+  /// No description provided for @firstRunRecordDesc.
+  ///
+  /// In ko, this message translates to:
+  /// **'매수·매도를 수량 · 단가 · 날짜로 남기면 결산 탭의 기간별 손익까지 나옵니다.'**
+  String get firstRunRecordDesc;
+
+  /// No description provided for @firstRunRecordCta.
+  ///
+  /// In ko, this message translates to:
+  /// **'기록하며 시작'**
+  String get firstRunRecordCta;
+
+  /// No description provided for @firstRunQuickTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'보유 현황만 빠르게'**
+  String get firstRunQuickTitle;
+
+  /// No description provided for @firstRunQuickDesc.
+  ///
+  /// In ko, this message translates to:
+  /// **'지금 가진 수량과 평단만 넣습니다. 자산·리밸런싱은 그대로 되지만 결산 탭의 기간별 손익은 안 나옵니다.'**
+  String get firstRunQuickDesc;
+
+  /// No description provided for @firstRunQuickCta.
+  ///
+  /// In ko, this message translates to:
+  /// **'현재 보유만 입력'**
+  String get firstRunQuickCta;
 }
 
 class _AppLocalizationsDelegate
