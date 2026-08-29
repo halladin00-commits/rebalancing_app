@@ -1221,4 +1221,38 @@ class AppLocalizationsKo extends AppLocalizations {
   String keptAsIsDrift(String weight, String drift) {
     return '$weight 그대로 · $drift';
   }
+
+  @override
+  String recordNTradesTitle(int count) {
+    return '거래 $count건 기록';
+  }
+
+  @override
+  String get fromProposal => '조정 제안에서';
+
+  @override
+  String appliedToAllN(int count) {
+    return '$count건에 같이 적용됩니다';
+  }
+
+  @override
+  String commissionAutoSum(String rate, int count) {
+    return '수수료 $rate% 자동 · $count건 합';
+  }
+
+  @override
+  String get followsPortfolioSettings => '수수료·예수금은 이 포트 설정을 따릅니다.';
+
+  @override
+  String get priceIsProposalNote => '단가는 제안 시점 현재가입니다 — 체결가로 고쳐야 다음 조정이 정확합니다.';
+
+  @override
+  String recordNButton(int count) {
+    return '$count건 기록하기';
+  }
+
+  @override
+  String fxConverted(String rate, String amount) {
+    return '환율 $rate · 환산 $amount';
+  }
 }

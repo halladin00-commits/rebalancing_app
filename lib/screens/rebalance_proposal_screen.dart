@@ -10,7 +10,7 @@ import '../models/portfolio.dart';
 import '../theme/design_system.dart';
 import '../utils/rebalancer.dart';
 import '../utils/share_format.dart';
-import '../widgets/rebalance_transaction_dialog.dart';
+import 'bulk_transaction_screen.dart';
 
 /// 조정 제안 (시안 v20a·v20b).
 ///
@@ -1029,9 +1029,11 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
         height: 50,
         child: ElevatedButton(
           onPressed: () async {
-            final ok = await showDialog<bool>(
-              context: context,
-              builder: (_) => RebalanceTransactionDialog(pf: pf, rb: rb),
+            // 시안 v20c — 거래 추가 화면을 N번 여는 대신 한 장에서 한꺼번에
+            final ok = await Navigator.push<bool>(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => BulkTransactionScreen(pf: pf, rb: rb)),
             );
             if (ok == true && context.mounted) Navigator.pop(context);
           },

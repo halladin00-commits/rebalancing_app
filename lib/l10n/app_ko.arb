@@ -754,5 +754,54 @@
         "type": "String"
       }
     }
+  },
+  "recordNTradesTitle": "거래 {count}건 기록",
+  "@recordNTradesTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fromProposal": "조정 제안에서",
+  "appliedToAllN": "{count}건에 같이 적용됩니다",
+  "@appliedToAllN": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "commissionAutoSum": "수수료 {rate}% 자동 · {count}건 합",
+  "@commissionAutoSum": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "followsPortfolioSettings": "수수료·예수금은 이 포트 설정을 따릅니다.",
+  "priceIsProposalNote": "단가는 제안 시점 현재가입니다 — 체결가로 고쳐야 다음 조정이 정확합니다.",
+  "recordNButton": "{count}건 기록하기",
+  "@recordNButton": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fxConverted": "환율 {rate} · 환산 {amount}",
+  "@fxConverted": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
   }
 }

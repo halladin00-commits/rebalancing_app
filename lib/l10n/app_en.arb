@@ -754,5 +754,54 @@
         "type": "String"
       }
     }
+  },
+  "recordNTradesTitle": "Record {count} trades",
+  "@recordNTradesTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fromProposal": "from the proposal",
+  "appliedToAllN": "Applies to all {count}",
+  "@appliedToAllN": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "commissionAutoSum": "Commission {rate}% auto · {count} trades",
+  "@commissionAutoSum": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "followsPortfolioSettings": "Commission and cash follow this portfolio's settings.",
+  "priceIsProposalNote": "Prices are the current prices at proposal time — correct them to your fills so the next adjustment is accurate.",
+  "recordNButton": "Record {count}",
+  "@recordNButton": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fxConverted": "FX {rate} · converts to {amount}",
+  "@fxConverted": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
   }
 }

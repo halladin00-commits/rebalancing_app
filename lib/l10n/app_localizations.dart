@@ -2275,6 +2275,54 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'{weight} 그대로 · {drift}'**
   String keptAsIsDrift(String weight, String drift);
+
+  /// No description provided for @recordNTradesTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'거래 {count}건 기록'**
+  String recordNTradesTitle(int count);
+
+  /// No description provided for @fromProposal.
+  ///
+  /// In ko, this message translates to:
+  /// **'조정 제안에서'**
+  String get fromProposal;
+
+  /// No description provided for @appliedToAllN.
+  ///
+  /// In ko, this message translates to:
+  /// **'{count}건에 같이 적용됩니다'**
+  String appliedToAllN(int count);
+
+  /// No description provided for @commissionAutoSum.
+  ///
+  /// In ko, this message translates to:
+  /// **'수수료 {rate}% 자동 · {count}건 합'**
+  String commissionAutoSum(String rate, int count);
+
+  /// No description provided for @followsPortfolioSettings.
+  ///
+  /// In ko, this message translates to:
+  /// **'수수료·예수금은 이 포트 설정을 따릅니다.'**
+  String get followsPortfolioSettings;
+
+  /// No description provided for @priceIsProposalNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'단가는 제안 시점 현재가입니다 — 체결가로 고쳐야 다음 조정이 정확합니다.'**
+  String get priceIsProposalNote;
+
+  /// No description provided for @recordNButton.
+  ///
+  /// In ko, this message translates to:
+  /// **'{count}건 기록하기'**
+  String recordNButton(int count);
+
+  /// No description provided for @fxConverted.
+  ///
+  /// In ko, this message translates to:
+  /// **'환율 {rate} · 환산 {amount}'**
+  String fxConverted(String rate, String amount);
 }
 
 class _AppLocalizationsDelegate

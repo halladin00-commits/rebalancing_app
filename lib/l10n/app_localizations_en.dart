@@ -1241,4 +1241,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String keptAsIsDrift(String weight, String drift) {
     return '$weight unchanged · $drift';
   }
+
+  @override
+  String recordNTradesTitle(int count) {
+    return 'Record $count trades';
+  }
+
+  @override
+  String get fromProposal => 'from the proposal';
+
+  @override
+  String appliedToAllN(int count) {
+    return 'Applies to all $count';
+  }
+
+  @override
+  String commissionAutoSum(String rate, int count) {
+    return 'Commission $rate% auto · $count trades';
+  }
+
+  @override
+  String get followsPortfolioSettings =>
+      'Commission and cash follow this portfolio\'s settings.';
+
+  @override
+  String get priceIsProposalNote =>
+      'Prices are the current prices at proposal time — correct them to your fills so the next adjustment is accurate.';
+
+  @override
+  String recordNButton(int count) {
+    return 'Record $count';
+  }
+
+  @override
+  String fxConverted(String rate, String amount) {
+    return 'FX $rate · converts to $amount';
+  }
 }
