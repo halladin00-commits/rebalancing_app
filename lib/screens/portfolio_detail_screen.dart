@@ -72,7 +72,6 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
 
   // ── Formatters ──
 
-
   String _pct(double n) => '${n.toStringAsFixed(2)}%';
 
   String _fmtTime(int? ts) {
@@ -93,10 +92,12 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
   // ── Auto refresh ──
 
   void _autoRefreshIfStale() {
-    final pf = context.read<PortfolioProvider>().getPortfolio(widget.portfolioId);
+    final pf =
+        context.read<PortfolioProvider>().getPortfolio(widget.portfolioId);
     if (pf == null || (!pf.exchangeAuto && !pf.priceAuto)) return;
     final now = DateTime.now().millisecondsSinceEpoch;
-    final stale = pf.lastUpdated == null || (now - pf.lastUpdated!) > 5 * 60 * 1000;
+    final stale =
+        pf.lastUpdated == null || (now - pf.lastUpdated!) > 5 * 60 * 1000;
     if (stale) _doRefresh(pf);
   }
 
@@ -116,17 +117,24 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
 
     if (pf.exchangeAuto) {
       final r = await ApiService.fetchExchangeRate();
-      if (r.ok) { pf.exchangeRate = r.data!; successCount++; }
-      else { errors.add(r.error!); }
+      if (r.ok) {
+        pf.exchangeRate = r.data!;
+        successCount++;
+      } else {
+        errors.add(r.error!);
+      }
     }
     if (pf.priceAuto) {
-      for (final item in pf.items.where((i) => !i.isCash && i.ticker.isNotEmpty)) {
+      for (final item
+          in pf.items.where((i) => !i.isCash && i.ticker.isNotEmpty)) {
         final r = await ApiService.fetchStockPrice(item.ticker, item.market);
         if (r.ok) {
           item.currentPrice = r.data!.currentPrice;
           item.previousClose = r.data!.previousClose;
           successCount++;
-        } else { errors.add(r.error!); }
+        } else {
+          errors.add(r.error!);
+        }
       }
     }
     pf.lastUpdated = DateTime.now().millisecondsSinceEpoch;
@@ -182,12 +190,15 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
       context,
       MaterialPageRoute(
         builder: (_) => PortfolioSettingsScreen(
-        portfolio: pf,
-        onSave: (s) {
-          context.read<PortfolioProvider>().updateSettings(pf.id,
-            currency: s['currency'], commissionEnabled: s['commissionEnabled'],
-            commissionRate: s['commissionRate'], exchangeAuto: s['exchangeAuto'],
-            exchangeRate: s['exchangeRate'], priceAuto: s['priceAuto']);
+          portfolio: pf,
+          onSave: (s) {
+            context.read<PortfolioProvider>().updateSettings(pf.id,
+                currency: s['currency'],
+                commissionEnabled: s['commissionEnabled'],
+                commissionRate: s['commissionRate'],
+                exchangeAuto: s['exchangeAuto'],
+                exchangeRate: s['exchangeRate'],
+                priceAuto: s['priceAuto']);
           },
         ),
       ),
@@ -235,7 +246,8 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
         targetSize: Size(380, captureHeight),
       );
       final dir = await getTemporaryDirectory();
-      final file = File('${dir.path}/asset_${DateTime.now().millisecondsSinceEpoch}.png');
+      final file = File(
+          '${dir.path}/asset_${DateTime.now().millisecondsSinceEpoch}.png');
       await file.writeAsBytes(bytes);
       await Share.shareXFiles([XFile(file.path)]);
     } catch (e) {
@@ -259,7 +271,10 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
         children: [
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             Text('${pf.emoji}  ${pf.name}',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: context.textPrimary)),
+                style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: context.textPrimary)),
             AppLogo(iconSize: 22, textColor: context.textPrimary),
           ]),
           const SizedBox(height: 12),
@@ -267,17 +282,27 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
               style: TextStyle(fontSize: 11, color: context.textHint)),
           const SizedBox(height: 2),
           Text(
-            rb != null ? fmtMoney(rb.total - pf.additionalInvestment, pf.currency) : '—',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: context.textPrimary),
+            rb != null
+                ? fmtMoney(rb.total - pf.additionalInvestment, pf.currency)
+                : '—',
+            style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: context.textPrimary),
           ),
           const SizedBox(height: 12),
           ...pf.items.map((item) {
-            final curWeight = rb?.results.where((r) => r.id == item.id).firstOrNull?.currentWeight;
+            final curWeight = rb?.results
+                .where((r) => r.id == item.id)
+                .firstOrNull
+                ?.currentWeight;
             double evalVal = 0;
             if (!item.isCash && item.currentPrice > 0) {
               evalVal = item.currentPrice * item.shares;
-              if (item.market == 'US' && pf.currency == 'KRW') evalVal *= pf.exchangeRate;
-              else if (item.market == 'KR' && pf.currency == 'USD') evalVal /= pf.exchangeRate;
+              if (item.market == 'US' && pf.currency == 'KRW')
+                evalVal *= pf.exchangeRate;
+              else if (item.market == 'KR' && pf.currency == 'USD')
+                evalVal /= pf.exchangeRate;
             } else if (item.isCash) {
               evalVal = item.shares;
             }
@@ -289,35 +314,51 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: context.borderColor),
               ),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Row(children: [
-                  _marketBadge(context, item), const SizedBox(width: 6),
-                  Expanded(child: Text(item.name,
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: context.textPrimary),
-                      overflow: TextOverflow.ellipsis)),
-                  if (curWeight != null)
-                    Text(_pct(curWeight),
-                        style: TextStyle(fontSize: 12, color: context.textSecondary)),
-                ]),
-                if (!item.isCash) ...[
-                  const SizedBox(height: 4),
-                  Row(children: [
-                    Text('${fmtPrice(item.currentPrice, item.market)} × ${formatShares(item.shares)}',
-                        style: TextStyle(fontSize: 11, color: context.textSecondary)),
-                    const Spacer(),
-                    if (evalVal > 0)
-                      Text(fmtMoney(evalVal, pf.currency),
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: context.textPrimary)),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(children: [
+                      _marketBadge(context, item),
+                      const SizedBox(width: 6),
+                      Expanded(
+                          child: Text(item.name,
+                              style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: context.textPrimary),
+                              overflow: TextOverflow.ellipsis)),
+                      if (curWeight != null)
+                        Text(_pct(curWeight),
+                            style: TextStyle(
+                                fontSize: 12, color: context.textSecondary)),
+                    ]),
+                    if (!item.isCash) ...[
+                      const SizedBox(height: 4),
+                      Row(children: [
+                        Text(
+                            '${fmtPrice(item.currentPrice, item.market)} × ${formatShares(item.shares)}',
+                            style: TextStyle(
+                                fontSize: 11, color: context.textSecondary)),
+                        const Spacer(),
+                        if (evalVal > 0)
+                          Text(fmtMoney(evalVal, pf.currency),
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: context.textPrimary)),
+                      ]),
+                    ] else ...[
+                      const SizedBox(height: 4),
+                      Row(children: [
+                        const Spacer(),
+                        Text(fmtMoney(evalVal, pf.currency),
+                            style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: context.textPrimary)),
+                      ]),
+                    ],
                   ]),
-                ] else ...[
-                  const SizedBox(height: 4),
-                  Row(children: [
-                    const Spacer(),
-                    Text(fmtMoney(evalVal, pf.currency),
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: context.textPrimary)),
-                  ]),
-                ],
-              ]),
             );
           }),
           const SizedBox(height: 8),
@@ -338,14 +379,16 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (_) => Padding(
-        padding: EdgeInsets.fromLTRB(20, 16, 20, MediaQuery.of(ctx).padding.bottom + 20),
+        padding: EdgeInsets.fromLTRB(
+            20, 16, 20, MediaQuery.of(ctx).padding.bottom + 20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(
               child: Container(
-                width: 36, height: 4,
+                width: 36,
+                height: 4,
                 decoration: BoxDecoration(
                   color: ctx.borderColor,
                   borderRadius: BorderRadius.circular(2),
@@ -354,33 +397,44 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
             ),
             const SizedBox(height: 14),
             Text(l10n.capture,
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: ctx.textPrimary)),
+                style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: ctx.textPrimary)),
             const SizedBox(height: 16),
             Row(children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () { Navigator.pop(ctx); onSave(); },
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    onSave();
+                  },
                   icon: const Icon(Icons.save_alt_rounded, size: 16),
                   label: Text(l10n.saveImage),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: ctx.textPrimary,
                     side: BorderSide(color: ctx.borderColor),
                     padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
                   ),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () { Navigator.pop(ctx); onShare(); },
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    onShare();
+                  },
                   icon: const Icon(Icons.share_rounded, size: 16),
                   label: Text(l10n.shareImage),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: context.brand,
                     side: BorderSide(color: context.brand),
                     padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
                   ),
                 ),
               ),
@@ -402,7 +456,9 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
               korean: Localizations.localeOf(context).languageCode == 'ko'),
         )),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l10n.cancel)),
           TextButton(
             onPressed: () {
               context.read<PortfolioProvider>().deleteItem(pf.id, item.id);
@@ -422,6 +478,8 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: context.scaffoldBg,
+      // 항목이 늘면 기본 높이(화면의 절반)를 넘어 잘린다.
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius:
             BorderRadius.vertical(top: Radius.circular(DS.sheetRadius)),
@@ -451,62 +509,80 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
         }
 
         return SafeArea(
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            const SizedBox(height: 8),
-            Container(
-              width: 38,
-              height: 4,
-              decoration: BoxDecoration(
-                color: const Color(0xFFD6CFBC),
-                borderRadius: BorderRadius.circular(2),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(sheetCtx).size.height * 0.85),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              const SizedBox(height: 8),
+              Container(
+                width: 38,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFD6CFBC),
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            // 시안 v13d의 `거래 내역 전체보기`
-            row(Icons.history, l10n.transactionHistory,
-                () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => TransactionHistoryScreen(
-                            portfolioId: pf.id),
-                      ),
-                    )),
-            row(Icons.balance, l10n.targetWeightsTitle,
-                () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            TargetWeightsScreen(portfolioId: pf.id),
-                      ),
-                    )),
-            row(Icons.swap_vert, l10n.reorderItems,
-                () => setState(() => _editMode = true)),
-            row(Icons.tune, l10n.labelSettings, () => _showSettings(pf)),
-            row(Icons.pie_chart_outline, l10n.labelGraph, () => _openGraph(pf)),
-            row(Icons.ios_share, l10n.capture,
-                () => _showCaptureSheet(
-                      () => _saveAssetImage(pf, rb),
-                      () => _shareAssetImage(pf, rb),
-                    )),
-            row(Icons.upload_file, l10n.excelImportTitle,
-                () => _openImport(context, pf)),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Divider(height: 1, color: context.dividerColor),
-            ),
-            // 포트 자체를 다루는 것들 (시안 v13d). 예전에는 자산 탭 편집
-            // 모드에만 있었는데, 순서 변경이 별도 화면이 되며 갈 곳을 잃었다.
-            row(Icons.edit_outlined, l10n.rename,
-                () => editPortfolio(context, pf)),
-            row(Icons.copy_outlined, l10n.duplicate,
-                () => duplicatePortfolio(context, pf, l10n.copySuffix)),
-            row(Icons.delete_outline, l10n.delete, () async {
-              final gone = await confirmDeletePortfolio(context, pf);
-              // 지운 포트의 상세에 남아 있을 수 없다
-              if (gone && context.mounted) Navigator.pop(context);
-            }, danger: true),
-            const SizedBox(height: 8),
-          ]),
+              const SizedBox(height: 8),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    // 시안 v13d의 `거래 내역 전체보기`
+                    row(
+                        Icons.history,
+                        l10n.transactionHistory,
+                        () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => TransactionHistoryScreen(
+                                    portfolioId: pf.id),
+                              ),
+                            )),
+                    row(
+                        Icons.balance,
+                        l10n.targetWeightsTitle,
+                        () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    TargetWeightsScreen(portfolioId: pf.id),
+                              ),
+                            )),
+                    row(Icons.swap_vert, l10n.reorderItems,
+                        () => setState(() => _editMode = true)),
+                    row(Icons.tune, l10n.labelSettings,
+                        () => _showSettings(pf)),
+                    row(Icons.pie_chart_outline, l10n.labelGraph,
+                        () => _openGraph(pf)),
+                    row(
+                        Icons.ios_share,
+                        l10n.capture,
+                        () => _showCaptureSheet(
+                              () => _saveAssetImage(pf, rb),
+                              () => _shareAssetImage(pf, rb),
+                            )),
+                    row(Icons.upload_file, l10n.excelImportTitle,
+                        () => _openImport(context, pf)),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Divider(height: 1, color: context.dividerColor),
+                    ),
+                    // 포트 자체를 다루는 것들 (시안 v13d). 예전에는 자산 탭 편집
+                    // 모드에만 있었는데, 순서 변경이 별도 화면이 되며 갈 곳을 잃었다.
+                    row(Icons.edit_outlined, l10n.rename,
+                        () => editPortfolio(context, pf)),
+                    row(Icons.copy_outlined, l10n.duplicate,
+                        () => duplicatePortfolio(context, pf, l10n.copySuffix)),
+                    row(Icons.delete_outline, l10n.delete, () async {
+                      final gone = await confirmDeletePortfolio(context, pf);
+                      // 지운 포트의 상세에 남아 있을 수 없다
+                      if (gone && context.mounted) Navigator.pop(context);
+                    }, danger: true),
+                    const SizedBox(height: 8),
+                  ]),
+                ),
+              ),
+            ]),
+          ),
         );
       },
     );
@@ -517,8 +593,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) =>
-            ItemDetailScreen(portfolioId: pf.id, itemId: item.id),
+        builder: (_) => ItemDetailScreen(portfolioId: pf.id, itemId: item.id),
       ),
     );
   }
@@ -531,8 +606,12 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
         title: Text(l10n.editExitTitle),
         content: Text(l10n.editExitContent),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.cancel)),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l10n.exit)),
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(l10n.cancel)),
+          TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(l10n.exit)),
         ],
       ),
     );
@@ -540,8 +619,10 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
   }
 
   void _openGraph(Portfolio pf) {
-    Navigator.push(context,
-        MaterialPageRoute(builder: (_) => PortfolioGraphScreen(portfolioId: pf.id)));
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (_) => PortfolioGraphScreen(portfolioId: pf.id)));
   }
 
   /// 거래내역 업로드 (시안 v17b·v17c).
@@ -560,7 +641,8 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     _showImportResult(context, l10n, result);
   }
 
-  void _showImportResult(BuildContext context, dynamic l10n, ImportResult result) {
+  void _showImportResult(
+      BuildContext context, dynamic l10n, ImportResult result) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -572,11 +654,18 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (result.addedCount > 0)
-              _resultLine('✓', l10n.excelImportAdded(result.addedCount), const Color(0xFF16A34A)),
+              _resultLine('✓', l10n.excelImportAdded(result.addedCount),
+                  const Color(0xFF16A34A)),
             if (result.createdItems.isNotEmpty)
-              _resultLine('+', l10n.excelImportCreated(result.createdItems.length), context.brand),
+              _resultLine(
+                  '+',
+                  l10n.excelImportCreated(result.createdItems.length),
+                  context.brand),
             if (result.skippedRows.isNotEmpty)
-              _resultLine('⚠', l10n.excelImportSkipped(result.skippedRows.length), const Color(0xFFF59E0B)),
+              _resultLine(
+                  '⚠',
+                  l10n.excelImportSkipped(result.skippedRows.length),
+                  const Color(0xFFF59E0B)),
             if (result.addedCount == 0 && result.createdItems.isEmpty)
               Text(l10n.excelImportNothingAdded,
                   style: TextStyle(color: context.textSecondary)),
@@ -595,8 +684,10 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
   Widget _resultLine(String icon, String text, Color color) => Padding(
         padding: const EdgeInsets.only(bottom: 6),
         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('$icon  ', style: TextStyle(color: color, fontWeight: FontWeight.w700)),
-          Expanded(child: Text(text, style: TextStyle(fontSize: 13, color: color))),
+          Text('$icon  ',
+              style: TextStyle(color: color, fontWeight: FontWeight.w700)),
+          Expanded(
+              child: Text(text, style: TextStyle(fontSize: 13, color: color))),
         ]),
       );
 
@@ -618,18 +709,24 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
 
         final rb = Rebalancer.calculate(pf);
 
-        double totalPnl = 0, totalCost = 0, totalDayChange = 0, totalPrevValue = 0;
+        double totalPnl = 0,
+            totalCost = 0,
+            totalDayChange = 0,
+            totalPrevValue = 0;
         for (final item in pf.items) {
           if (item.isCash || item.currentPrice <= 0) continue;
           double fx = 1.0;
-          if (item.market == 'US' && pf.currency == 'KRW') fx = pf.exchangeRate;
-          else if (item.market == 'KR' && pf.currency == 'USD') fx = 1.0 / pf.exchangeRate;
+          if (item.market == 'US' && pf.currency == 'KRW')
+            fx = pf.exchangeRate;
+          else if (item.market == 'KR' && pf.currency == 'USD')
+            fx = 1.0 / pf.exchangeRate;
           if (item.avgPrice > 0) {
             totalPnl += (item.currentPrice - item.avgPrice) * item.shares * fx;
             totalCost += item.avgPrice * item.shares * fx;
           }
           if (item.previousClose > 0) {
-            totalDayChange += (item.currentPrice - item.previousClose) * item.shares * fx;
+            totalDayChange +=
+                (item.currentPrice - item.previousClose) * item.shares * fx;
             totalPrevValue += item.previousClose * item.shares * fx;
           }
         }
@@ -668,15 +765,19 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                     if (_editMode)
                       TextButton.icon(
                         onPressed: () => setState(() => _editMode = false),
-                        icon: const Icon(Icons.check, color: Colors.white, size: 18),
+                        icon: const Icon(Icons.check,
+                            color: Colors.white, size: 18),
                         label: Text(l10n.done,
                             style: const TextStyle(
-                                color: Colors.white, fontWeight: FontWeight.w600)),
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600)),
                       )
                     else
                       IconButton(
                         icon: _refreshing
-                            ? const SizedBox(width: 20, height: 20,
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
                                 child: CircularProgressIndicator(
                                     color: Colors.white, strokeWidth: 2))
                             : Icon(Icons.refresh,
@@ -713,12 +814,20 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
   /// 두 탭 모두 `큰 금액 + 타일 2개 + 하단 한 줄`이라는 같은 골격을 써서
   /// 탭을 오갈 때 헤더 높이가 흔들리지 않게 한다. 값이 없는 칸은 감추지 않고
   /// `—`로 남겨 자리를 지킨다.
-  Widget _buildHeaderBody(BuildContext context, Portfolio pf, RebalanceResult? rb,
-      bool hasPnl, bool hasDayChange,
-      double totalPnl, double totalCost, double totalDayChange, double totalPrevValue) {
+  Widget _buildHeaderBody(
+      BuildContext context,
+      Portfolio pf,
+      RebalanceResult? rb,
+      bool hasPnl,
+      bool hasDayChange,
+      double totalPnl,
+      double totalCost,
+      double totalDayChange,
+      double totalPrevValue) {
     final l10n = context.l10n;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final hasForeign = pf.currency == 'USD' || pf.items.any((i) => i.market == 'US');
+    final hasForeign =
+        pf.currency == 'USD' || pf.items.any((i) => i.market == 'US');
     final pnlColors = context.watch<PnlColorNotifier>();
 
     final bigLabel = l10n.evaluationAmount;
@@ -730,11 +839,13 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
       _brandPnlTile(context, pf, l10n.profitLoss, hasPnl ? totalPnl : null,
           hasPnl ? totalPnl / totalCost * 100 : null),
       const SizedBox(width: 9),
-      _brandPnlTile(context, pf, l10n.dayChange,
+      _brandPnlTile(
+          context,
+          pf,
+          l10n.dayChange,
           hasDayChange ? totalDayChange : null,
           hasDayChange ? totalDayChange / totalPrevValue * 100 : null),
     ];
-
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -755,8 +866,8 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                   const Spacer(),
                   if (hasForeign)
                     Container(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 9, vertical: 4),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.16),
                         borderRadius: BorderRadius.circular(DS.chipRadius),
@@ -877,43 +988,44 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
 
   // ── Tab: 자산현황 ──
 
-  Widget _buildAssetView(BuildContext context, Portfolio pf, RebalanceResult? rb) {
+  Widget _buildAssetView(
+      BuildContext context, Portfolio pf, RebalanceResult? rb) {
     final l10n = context.l10n;
     return pf.items.isEmpty
-            ? _buildEmptyState(context, pf)
-            : _editMode
-                ? ReorderableListView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
-                    itemCount: pf.items.length,
-                    onReorder: (o, n) {
-                      if (n > o) n--;
-                      final list = List<PortfolioItem>.from(pf.items);
-                      final item = list.removeAt(o);
-                      list.insert(n, item);
-                      context.read<PortfolioProvider>().reorderItems(pf.id, list);
-                    },
-                    itemBuilder: (ctx, idx) => _buildEditCard(
-                        context, pf, pf.items[idx],
-                        key: ValueKey(pf.items[idx].id)),
-                  )
-                : ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 100),
-                    children: [
-                      SectionTitle(
-                        title: l10n.holdingsSection,
-                        trailing: _holdingsSummary(context, pf),
-                      ),
-                      const SizedBox(height: DS.cardGap),
-                      ListCard(
-                        rows: [
-                          for (final item in pf.items)
-                            _buildHoldingRow(context, pf, item, rb),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      _buildSlimAddCard(context, pf),
+        ? _buildEmptyState(context, pf)
+        : _editMode
+            ? ReorderableListView.builder(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
+                itemCount: pf.items.length,
+                onReorder: (o, n) {
+                  if (n > o) n--;
+                  final list = List<PortfolioItem>.from(pf.items);
+                  final item = list.removeAt(o);
+                  list.insert(n, item);
+                  context.read<PortfolioProvider>().reorderItems(pf.id, list);
+                },
+                itemBuilder: (ctx, idx) => _buildEditCard(
+                    context, pf, pf.items[idx],
+                    key: ValueKey(pf.items[idx].id)),
+              )
+            : ListView(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 100),
+                children: [
+                  SectionTitle(
+                    title: l10n.holdingsSection,
+                    trailing: _holdingsSummary(context, pf),
+                  ),
+                  const SizedBox(height: DS.cardGap),
+                  ListCard(
+                    rows: [
+                      for (final item in pf.items)
+                        _buildHoldingRow(context, pf, item, rb),
                     ],
-                  );
+                  ),
+                  const SizedBox(height: 10),
+                  _buildSlimAddCard(context, pf),
+                ],
+              );
   }
 
   /// `3종목 · 예수금 포함` — 섹션 제목 우측 부가.
@@ -940,7 +1052,8 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     } else if (item.market == 'KR' && pf.currency == 'USD') {
       fx = 1.0 / pf.exchangeRate;
     }
-    final value = item.isCash ? item.shares : item.shares * item.currentPrice * fx;
+    final value =
+        item.isCash ? item.shares : item.shares * item.currentPrice * fx;
 
     String? dayText;
     if (!item.isCash && item.previousClose > 0 && item.currentPrice > 0) {
@@ -986,7 +1099,8 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     );
   }
 
-  Widget _buildEditCard(BuildContext context, Portfolio pf, PortfolioItem item, {Key? key}) {
+  Widget _buildEditCard(BuildContext context, Portfolio pf, PortfolioItem item,
+      {Key? key}) {
     return Container(
       key: key,
       margin: const EdgeInsets.only(bottom: 9),
@@ -998,26 +1112,39 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
         child: Row(children: [
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              _marketBadge(context, item), const SizedBox(width: 6),
-              Expanded(child: Text(item.name,
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: context.textPrimary),
-                  overflow: TextOverflow.ellipsis)),
-            ]),
-            const SizedBox(height: 2),
-            Text(item.isCash ? fmtMoney(item.shares, pf.currency)
-                    : '${fmtPrice(item.currentPrice, item.market)} × ${formatShares(item.shares)}',
-                style: TextStyle(fontSize: 12, color: context.textSecondary)),
-          ])),
+          Expanded(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                Row(children: [
+                  _marketBadge(context, item),
+                  const SizedBox(width: 6),
+                  Expanded(
+                      child: Text(item.name,
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: context.textPrimary),
+                          overflow: TextOverflow.ellipsis)),
+                ]),
+                const SizedBox(height: 2),
+                Text(
+                    item.isCash
+                        ? fmtMoney(item.shares, pf.currency)
+                        : '${fmtPrice(item.currentPrice, item.market)} × ${formatShares(item.shares)}',
+                    style:
+                        TextStyle(fontSize: 12, color: context.textSecondary)),
+              ])),
           IconButton(
             onPressed: () => _showItemForm(pf, item),
             icon: Container(
-              width: 28, height: 28,
+              width: 28,
+              height: 28,
               decoration: BoxDecoration(
                   color: context.brand.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
-                  border: Border.all(color: context.brand.withValues(alpha: 0.4))),
+                  border:
+                      Border.all(color: context.brand.withValues(alpha: 0.4))),
               child: Icon(Icons.edit_outlined, color: context.brand, size: 16),
             ),
             padding: EdgeInsets.zero,
@@ -1026,12 +1153,13 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
           IconButton(
             onPressed: () => _showDeleteConfirm(pf, item),
             icon: Container(
-              width: 28, height: 28,
+              width: 28,
+              height: 28,
               decoration: BoxDecoration(
                   color: context.pnlDownTint,
                   shape: BoxShape.circle,
-                  border: Border.all(
-                      color: context.danger.withValues(alpha: 0.4))),
+                  border:
+                      Border.all(color: context.danger.withValues(alpha: 0.4))),
               child: Icon(Icons.remove, color: context.danger, size: 18),
             ),
             padding: EdgeInsets.zero,
@@ -1083,8 +1211,10 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
   }
 
   Widget _marketBadge(BuildContext context, PortfolioItem item) {
-    if (item.isCash) return _badge(context, context.l10n.cash, const Color(0xFF65A30D));
-    if (item.market == 'US') return _badge(context, 'US', const Color(0xFF7C3AED));
+    if (item.isCash)
+      return _badge(context, context.l10n.cash, const Color(0xFF65A30D));
+    if (item.market == 'US')
+      return _badge(context, 'US', const Color(0xFF7C3AED));
     return _badge(context, 'KR', const Color(0xFF0369A1));
   }
 
@@ -1094,7 +1224,9 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
       decoration: BoxDecoration(
           color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(4)),
-      child: Text(text, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color)),
+      child: Text(text,
+          style: TextStyle(
+              fontSize: 11, fontWeight: FontWeight.w700, color: color)),
     );
   }
 }
