@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../models/portfolio.dart';
 import '../services/api_service.dart';
 
@@ -35,6 +39,27 @@ class SettlementItemContribution {
     required this.itemReturnPct,
     required this.itemAbsoluteReturn,
   });
+
+  Map<String, dynamic> toJson() => {
+        'i': itemId,
+        'n': name,
+        's': startValue,
+        'e': endValue,
+        'c': contribution,
+        'r': itemReturnPct,
+        'a': itemAbsoluteReturn,
+      };
+
+  factory SettlementItemContribution.fromJson(Map<String, dynamic> j) =>
+      SettlementItemContribution(
+        itemId: j['i'] as String,
+        name: j['n'] as String,
+        startValue: (j['s'] as num).toDouble(),
+        endValue: (j['e'] as num).toDouble(),
+        contribution: (j['c'] as num).toDouble(),
+        itemReturnPct: (j['r'] as num).toDouble(),
+        itemAbsoluteReturn: (j['a'] as num).toDouble(),
+      );
 }
 
 class SettlementResult {
@@ -72,6 +97,40 @@ class SettlementResult {
     required this.isCurrentPeriod,
     required this.contributions,
   });
+
+  /// 마감된 기간만 저장하므로 `isCurrentPeriod`는 늘 false로 되살린다.
+  Map<String, dynamic> toJson() => {
+        'p': period.index,
+        'ky': key.year,
+        'ks': key.sub,
+        'ps': periodStart.millisecondsSinceEpoch,
+        'pe': periodEnd.millisecondsSinceEpoch,
+        'sv': startValue,
+        'ev': endValue,
+        'ar': absoluteReturn,
+        'rr': returnRate,
+        'ra': rateAvailable,
+        'cf': netCashFlow,
+        'co': contributions.map((c) => c.toJson()).toList(),
+      };
+
+  factory SettlementResult.fromJson(Map<String, dynamic> j) => SettlementResult(
+        period: SettlementPeriod.values[j['p'] as int],
+        key: PeriodKey(j['ky'] as int, j['ks'] as int),
+        periodStart: DateTime.fromMillisecondsSinceEpoch(j['ps'] as int),
+        periodEnd: DateTime.fromMillisecondsSinceEpoch(j['pe'] as int),
+        startValue: (j['sv'] as num).toDouble(),
+        endValue: (j['ev'] as num).toDouble(),
+        absoluteReturn: (j['ar'] as num).toDouble(),
+        returnRate: (j['rr'] as num).toDouble(),
+        rateAvailable: j['ra'] as bool? ?? true,
+        netCashFlow: (j['cf'] as num).toDouble(),
+        isCurrentPeriod: false,
+        contributions: [
+          for (final c in (j['co'] as List))
+            SettlementItemContribution.fromJson(c as Map<String, dynamic>)
+        ],
+      );
 }
 
 /// 전체 결산에서 포트폴리오 하나가 차지하는 몫.
@@ -424,9 +483,73 @@ class SettlementService {
   static final Map<String, SettlementResult?> _cache = {};
   static final Map<String, CombinedSettlement?> _combinedCache = {};
 
+  // ── 디스크에도 남긴다 ──
+  //
+  // 예전에는 메모리 Map뿐이라 **앱을 껐다 켤 때마다** 지난 달·분기·연도를
+  // 전부 다시 계산했다. 과거 시세를 API로 새로 받아야 해서 30초씩 걸렸고,
+  // 서버가 안 주면 작년 성적을 아예 볼 수 없었다.
+  //
+  // 마감된 기간은 값이 변하지 않으므로 한 번 계산하면 그대로 쓸 수 있다.
+  // 무효화는 `clearCache`가 맡는다 — 거래·시세가 바뀌면 `_save()`가 부른다.
+  // 통째로 비우는 방식이라 거칠지만, 돈 계산에서는 정확한 편이 낫다.
+
+  static const String _prefsKey = 'settlement_cache_v2';
+
+  /// 너무 불어나지 않게 둔다. 주간 5년치를 담고도 남는다.
+  static const int _maxEntries = 400;
+
+  static bool _diskLoaded = false;
+  static bool _writePending = false;
+
+  static Future<void> _loadFromDisk() async {
+    if (_diskLoaded) return;
+    _diskLoaded = true;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_prefsKey);
+      if (raw == null) return;
+      final map = jsonDecode(raw) as Map<String, dynamic>;
+      for (final e in map.entries) {
+        _cache[e.key] =
+            SettlementResult.fromJson(e.value as Map<String, dynamic>);
+      }
+    } catch (_) {
+      // 형식이 바뀌었거나 깨졌으면 그냥 다시 계산한다 — 지우고 넘어간다
+      _cache.clear();
+    }
+  }
+
+  /// 한 화면에서 6~12개가 연달아 쌓이므로 몰아서 한 번만 쓴다.
+  static void _scheduleWrite() {
+    if (_writePending) return;
+    _writePending = true;
+    Future.delayed(const Duration(seconds: 1), () async {
+      _writePending = false;
+      try {
+        final entries = _cache.entries
+            .where((e) => e.value != null)
+            .toList();
+        // 넘치면 오래 들어온 것부터 버린다 (Map은 삽입 순서를 지킨다)
+        final keep = entries.length > _maxEntries
+            ? entries.sublist(entries.length - _maxEntries)
+            : entries;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(
+            _prefsKey,
+            jsonEncode({for (final e in keep) e.key: e.value!.toJson()}));
+      } catch (_) {
+        // 저장에 실패해도 계산 자체는 멀쩡하다 — 다음에 다시 시도한다
+      }
+    });
+  }
+
   static void clearCache() {
     _cache.clear();
     _combinedCache.clear();
+    // 디스크도 같이 비운다. 안 그러면 다음 실행에 옛 값이 되살아난다.
+    SharedPreferences.getInstance()
+        .then((p) => p.remove(_prefsKey))
+        .catchError((_) => false);
   }
 
   static String _ck(String scope, SettlementPeriod p, PeriodKey k) =>
@@ -435,12 +558,16 @@ class SettlementService {
   /// 캐시를 거치는 단일 포트 결산
   static Future<SettlementResult?> calculateCached(
       Portfolio pf, SettlementPeriod period, PeriodKey key) async {
+    await _loadFromDisk();
     final ck = _ck(pf.id, period, key);
     if (_cache.containsKey(ck)) return _cache[ck];
 
     final r = await calculate(pf, period, key);
     // 진행 중인 기간은 현재가에 따라 바뀌므로 남기지 않는다
-    if (r != null && !r.isCurrentPeriod) _cache[ck] = r;
+    if (r != null && !r.isCurrentPeriod) {
+      _cache[ck] = r;
+      _scheduleWrite();
+    }
     return r;
   }
 
