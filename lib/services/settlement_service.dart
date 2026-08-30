@@ -328,6 +328,22 @@ class SettlementService {
         .fold(0.0, (sum, t) => sum + t.quantity);
   }
 
+  /// [moment] **직전**까지의 보유 수량. 그 순간에 일어난 거래는 안 센다.
+  ///
+  /// 기간 경계는 자정이고 거래에는 시각이 붙어 있다. `holdingsAt(시작 − 1일)`로
+  /// 세면 `시작 − 1일 00:00` 이후의 거래가 전부 빠져 **직전 하루치가 통째로
+  /// 사라진다.** 8/23 12:20에 산 종목이 8/24 시작 주에 "원래 없던 것"이 되어,
+  /// 산 금액 전부가 그 주의 손익으로 잡혔다.
+  static double holdingsBefore(PortfolioItem item, DateTime moment) =>
+      item.transactions
+          .where((t) => t.date.isBefore(moment))
+          .fold(0.0, (sum, t) => sum + t.quantity);
+
+  /// 기간의 **열린 끝**. `range.end`는 마지막 날 자정이므로, 그날 장중에 한
+  /// 거래를 포함하려면 하루를 더한 시점 앞까지를 봐야 한다.
+  static DateTime endExclusive(DateTime end) =>
+      DateTime(end.year, end.month, end.day).add(const Duration(days: 1));
+
   /// 결산에서 빠지는 종목.
   ///
   /// `holdingsAt`은 거래 내역을 더해 그 시점 보유량을 구한다. 그래서 지금
@@ -384,8 +400,8 @@ class SettlementService {
     await Future.wait(pf.items.map((item) async {
       if (item.isCash || item.ticker.isEmpty) return;
       final startShares =
-          holdingsAt(item, range.start.subtract(const Duration(days: 1)));
-      final endShares = holdingsAt(item, effectiveEnd);
+          holdingsBefore(item, range.start);
+      final endShares = holdingsBefore(item, endExclusive(effectiveEnd));
       if (startShares == 0 && endShares == 0) return;
 
       if (isCurrentPeriod) {
@@ -430,8 +446,8 @@ class SettlementService {
         continue;
       }
 
-      final startShares = holdingsAt(item, range.start.subtract(const Duration(days: 1)));
-      final endShares = holdingsAt(item, effectiveEnd);
+      final startShares = holdingsBefore(item, range.start);
+      final endShares = holdingsBefore(item, endExclusive(effectiveEnd));
 
       final startPrice = _priceInBase(prices.first, item.market, pf);
       final endPrice = _priceInBase(prices.last, item.market, pf);
@@ -453,7 +469,10 @@ class SettlementService {
 
     for (final raw in rawItems) {
       for (final tx in raw.item.transactions) {
-        if (!tx.date.isAfter(range.start) || tx.date.isAfter(effectiveEnd)) continue;
+        // 시작·끝 보유량과 **같은 경계**를 써야 한다. 어긋나면 어떤 거래가
+        // 두 번 세어지거나 아무 기간에도 안 들어간다.
+        if (tx.date.isBefore(range.start) ||
+            !tx.date.isBefore(endExclusive(effectiveEnd))) continue;
         final txValueBase = tx.quantity * _priceInBase(tx.price, raw.item.market, pf);
         totalNetCashFlow += txValueBase;
         final daysFromEnd = effectiveEnd.difference(tx.date).inDays;
@@ -481,7 +500,10 @@ class SettlementService {
       double itemNetCF = 0;
       double itemWeightedCF = 0;
       for (final tx in e.item.transactions) {
-        if (!tx.date.isAfter(range.start) || tx.date.isAfter(effectiveEnd)) continue;
+        // 시작·끝 보유량과 **같은 경계**를 써야 한다. 어긋나면 어떤 거래가
+        // 두 번 세어지거나 아무 기간에도 안 들어간다.
+        if (tx.date.isBefore(range.start) ||
+            !tx.date.isBefore(endExclusive(effectiveEnd))) continue;
         final txVal = tx.quantity * _priceInBase(tx.price, e.item.market, pf);
         itemNetCF += txVal;
         final daysFromEnd = effectiveEnd.difference(tx.date).inDays;
@@ -583,8 +605,11 @@ class SettlementService {
   ///
   /// 옛 식으로 낸 값이 캐시에 남아 있으면 새 식으로 다시 계산하지 않아
   /// 틀린 수익률이 그대로 굳는다. v3은 `periodReturn` 도입 때 올렸다.
-  static const String _prefsKey = 'settlement_cache_v3';
-  static const List<String> _staleKeys = ['settlement_cache_v2'];
+  static const String _prefsKey = 'settlement_cache_v4';
+  static const List<String> _staleKeys = [
+    'settlement_cache_v2',
+    'settlement_cache_v3',
+  ];
 
   /// 너무 불어나지 않게 둔다. 주간 5년치를 담고도 남는다.
   static const int _maxEntries = 400;

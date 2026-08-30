@@ -48,6 +48,12 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
   List<CombinedSettlement?> _series = const [];
   bool _loading = false;
 
+  /// 계산이 끝난 칸 수. 진행 표시에 쓴다.
+  ///
+  /// 45초를 `계산 중…` 한 줄로 기다리게 하면 **앱이 멈춘 것으로 읽힌다.**
+  /// 몇 칸 중 몇 칸인지만 알려줘도 기다림의 성질이 달라진다.
+  int _done = 0;
+
   bool _saving = false;
   bool _sharing = false;
   final _screenshotCtrl = ScreenshotController();
@@ -88,7 +94,10 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       setState(() => _series = const []);
       return;
     }
-    setState(() => _loading = true);
+    setState(() {
+      _loading = true;
+      _done = 0;
+    });
 
     final series = await SettlementService.calculateCombinedSeries(
       widget.portfolios,
@@ -100,11 +109,15 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       //
       // 창을 옮기는 중이면 안 그린다 — 아직 옛 기간을 보여주고 있는데
       // 새 창의 결과를 섞으면 라벨과 숫자가 어긋난다.
-      onProgress: targetEnd == _endKey
-          ? (partial) {
-              if (mounted) setState(() => _series = partial);
-            }
-          : null,
+      onProgress: (partial) {
+        if (!mounted) return;
+        setState(() {
+          _done = partial.where((e) => e != null).length;
+          // 창을 옮기는 중이면 결과는 안 그린다 — 아직 옛 기간을 보여주는데
+          // 새 창의 값을 섞으면 라벨과 숫자가 어긋난다. 진행률만 올린다.
+          if (targetEnd == _endKey) _series = partial;
+        });
+      },
     );
 
     if (!mounted) return;
@@ -475,8 +488,8 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
                       // 말해주지 않으면 눌러도 아무 일이 없는 것처럼 보인다
                       _loading
                           ? (_isKo
-                              ? '다른 기간을 불러오는 중…'
-                              : 'Loading another period…')
+                              ? '불러오는 중 · $_barCount칸 중 $_done칸'
+                              : 'Loading · $_done of $_barCount')
                           : inProgress
                               ? (_isKo
                                   ? '진행 중 · 막대를 눌러 기간 선택'
@@ -572,7 +585,9 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
         child: Center(
           child: Text(
             _loading
-                ? (_isKo ? '계산 중…' : 'Calculating…')
+                ? (_isKo
+                    ? '계산 중 · $_barCount칸 중 $_done칸'
+                    : 'Calculating · $_done of $_barCount')
                 : context.l10n.settlementNoHoldings,
             style: TextStyle(fontSize: DS.rowName, color: context.textHint),
           ),

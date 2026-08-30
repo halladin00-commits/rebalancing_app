@@ -432,16 +432,26 @@ class PortfolioProvider extends ChangeNotifier {
         }
       }
       if (pf.priceAuto) {
-        for (final item in pf.items) {
-          if (item.isCash || item.ticker.isEmpty) continue;
-          tried++;
-          final r = await ApiService.fetchStockPrice(item.ticker, item.market);
-          if (r.ok && r.data != null) {
+        final targets = pf.items
+            .where((i) => !i.isCash && i.ticker.isNotEmpty)
+            .toList();
+        tried += targets.length;
+
+        // 종목마다 순서대로 기다리면 **종목 수만큼 왕복이 쌓인다** —
+        // 10종목이면 앱을 켤 때마다 그 시간을 전부 기다린다. 종목 사이에는
+        // 의존이 없으므로 한꺼번에 받는다. 결산 계산도 같은 방식이다.
+        final fetched = await Future.wait(targets.map((item) async =>
+            (item: item, r: await ApiService.fetchStockPrice(
+                item.ticker, item.market))));
+
+        // 저장은 받아온 뒤에 한다 — 동시에 쓰면 서로 덮어쓴다.
+        for (final f in fetched) {
+          if (f.r.ok && f.r.data != null) {
             await updateItem(
               pf.id,
-              item.copyWith(
-                currentPrice: r.data!.currentPrice,
-                previousClose: r.data!.previousClose,
+              f.item.copyWith(
+                currentPrice: f.r.data!.currentPrice,
+                previousClose: f.r.data!.previousClose,
               ),
             );
           } else {
