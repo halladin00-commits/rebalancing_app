@@ -199,7 +199,7 @@ class Portfolio {
     this.exchangeAuto = true,
     this.priceAuto = true,
     this.additionalInvestment = 0,
-    this.rebalancingThreshold = 0.0,
+    this.rebalancingThreshold = 3.0,
     this.fractionalEnabled = false,
     this.fractionalRounding = FractionalRounding.floorCash,
     this.lastUpdated,

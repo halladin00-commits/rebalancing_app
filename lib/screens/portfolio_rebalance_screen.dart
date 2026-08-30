@@ -7,8 +7,8 @@ import '../utils/money_format.dart';
 import '../models/portfolio.dart';
 import '../theme/design_system.dart';
 import '../utils/rebalancer.dart';
+import 'target_weights_screen.dart';
 import '../widgets/brand_header.dart';
-import 'portfolio_settings_screen.dart';
 import '../widgets/weight_bar.dart';
 import 'rebalance_proposal_screen.dart';
 
@@ -38,7 +38,7 @@ class PortfolioRebalanceScreen extends StatelessWidget {
         }
 
         final drifts = Rebalancer.allDrifts(pf);
-        final over = Rebalancer.driftExceeding(pf);
+        final over = Rebalancer.needsAdjusting(pf);
 
         return Scaffold(
           backgroundColor: context.scaffoldBg,
@@ -54,10 +54,19 @@ class PortfolioRebalanceScreen extends StatelessWidget {
                   onPressed: () => Navigator.pop(context),
                 ),
                 actions: [
+                  // 이 화면이 지적하는 것(목표 비중·허용 편차)을 **둘 다**
+                  // 고칠 수 있는 곳으로 보낸다. 예전에는 통화·자동갱신만 있는
+                  // 설정 화면으로 가서, 고치려는 사람을 반대로 보냈다.
                   IconButton(
-                    icon: const Icon(Icons.tune, color: Colors.white),
-                    tooltip: context.l10n.settings,
-                    onPressed: () => _openSettings(context, pf),
+                    icon: const Icon(Icons.balance, color: Colors.white),
+                    tooltip: context.l10n.targetWeightsTitle,
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            TargetWeightsScreen(portfolioId: pf.id),
+                      ),
+                    ),
                   ),
                 ],
                 child: _buildMaxDrift(context, pf, drifts, over, isKo),
@@ -143,7 +152,13 @@ class PortfolioRebalanceScreen extends StatelessWidget {
               ? (isKo
                   ? '${withJosa(worst.item.name, Josa.iGa)} 목표보다 ${worst.drift >= 0 ? '많습니다' : '적습니다'}'
                   : '${worst.item.name} is ${worst.drift >= 0 ? 'over' : 'under'} target')
-              : (isKo ? '모든 종목이 허용 편차 안에 있습니다' : 'All holdings within tolerance'),
+              // 종목이 하나뿐이면 "편차 안에 있다"는 말이 거짓이다 —
+              // 옮길 데가 없어서 조정을 못 하는 것뿐이다.
+              : pf.items.length < 2
+                  ? context.l10n.needMoreItems
+                  : (isKo
+                      ? '모든 종목이 허용 편차 안에 있습니다'
+                      : 'All holdings within tolerance'),
           style: TextStyle(
               fontSize: DS.body,
               fontWeight: FontWeight.w500,
@@ -157,8 +172,10 @@ class PortfolioRebalanceScreen extends StatelessWidget {
 
   Widget _buildList(BuildContext context, Portfolio pf, List<ItemDrift> drifts,
       bool isKo) {
-    final over = Rebalancer.driftExceeding(pf);
+    final over = Rebalancer.needsAdjusting(pf);
     final overIds = over.map((d) => d.item.id).toSet();
+    // 목표 비중 합이 100%여야 조정 제안을 계산할 수 있다
+    final weightsReady = (pf.weightSum - 100).abs() <= 0.01;
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
@@ -241,6 +258,34 @@ class PortfolioRebalanceScreen extends StatelessWidget {
           ),
         ),
 
+        // 목표 비중 합이 100%가 아니면 조정 제안을 계산할 수 없다.
+        // 예전에는 그걸 알면서도 버튼을 눌리게 뒀고, 누르면 빈 화면에
+        // "100%가 아닙니다" 한 줄만 나왔다 — 고치러 갈 길도 없었다.
+        // 여기서 미리 말하고, 버튼도 고치러 가는 것으로 바꾼다.
+        if (!weightsReady) ...[
+          const SizedBox(height: 13),
+          Container(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 13),
+            decoration: BoxDecoration(
+              color: context.warningBg,
+              borderRadius: BorderRadius.circular(DS.listCardRadius),
+            ),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Icon(Icons.info_outline, size: 17, color: context.warningText),
+              const SizedBox(width: 9),
+              Expanded(
+                child: Text(
+                    context.l10n.weightSumNotice(
+                        '${pf.weightSum.toStringAsFixed(2)}%'),
+                    style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        height: 1.55,
+                        color: context.warningText)),
+              ),
+            ]),
+          ),
+        ],
         const SizedBox(height: 16),
         SizedBox(
           height: DS.buttonHeight,
@@ -248,8 +293,9 @@ class PortfolioRebalanceScreen extends StatelessWidget {
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) =>
-                    RebalanceProposalScreen(portfolioId: pf.id),
+                builder: (_) => weightsReady
+                    ? RebalanceProposalScreen(portfolioId: pf.id)
+                    : TargetWeightsScreen(portfolioId: pf.id),
               ),
             ),
             style: ElevatedButton.styleFrom(
@@ -260,7 +306,9 @@ class PortfolioRebalanceScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(DS.buttonRadius)),
             ),
             child: Text(
-              isKo ? '조정 제안 보기' : 'See adjustment plan',
+              weightsReady
+                  ? (isKo ? '조정 제안 보기' : 'See adjustment plan')
+                  : context.l10n.fixTargetWeights,
               style: const TextStyle(
                   fontSize: 14.5, fontWeight: FontWeight.w700),
             ),
@@ -366,28 +414,6 @@ class PortfolioRebalanceScreen extends StatelessWidget {
               fontWeight: FontWeight.w500,
               height: 1.5,
               color: context.textHint),
-        ),
-      ),
-    );
-  }
-
-  void _openSettings(BuildContext context, Portfolio pf) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => PortfolioSettingsScreen(
-        portfolio: pf,
-        onSave: (s) {
-          context.read<PortfolioProvider>().updateSettings(
-                pf.id,
-                currency: s['currency'],
-                commissionEnabled: s['commissionEnabled'],
-                commissionRate: s['commissionRate'],
-                exchangeAuto: s['exchangeAuto'],
-                exchangeRate: s['exchangeRate'],
-                priceAuto: s['priceAuto'],
-              );
-          },
         ),
       ),
     );

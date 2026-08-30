@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../main.dart';
 import '../models/portfolio.dart';
+import '../screens/item_search_screen.dart';
 import '../screens/portfolio_form_screen.dart';
 
 /// 포트폴리오 자체를 다루는 동작 — 이름 변경 · 복제 · 삭제.
@@ -106,4 +107,31 @@ Future<bool> confirmDeletePortfolio(BuildContext context, Portfolio pf) async {
     ),
   );
   return done ?? false;
+}
+
+/// 포트폴리오를 만들고 바로 종목 담기로 이어 준다.
+///
+/// 빈 화면(리밸런싱·결산 탭)에서도 쓴다 — 예전에는 "포트폴리오를 먼저
+/// 만들어야 합니다"라는 회색 글자만 있고 누를 것이 없었다.
+void createPortfolioThenAddItems(BuildContext context) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => PortfolioFormScreen(
+        onSave: (name, emoji) {
+          final pf = Portfolio(id: _uid(), name: name, emoji: emoji);
+          context.read<PortfolioProvider>().addPortfolio(pf);
+          // 폼이 pop 되기 전에 불리므로 프레임이 끝난 뒤에 민다
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!context.mounted) return;
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => ItemSearchScreen(portfolio: pf)),
+            );
+          });
+        },
+      ),
+    ),
+  );
 }

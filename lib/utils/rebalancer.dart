@@ -28,6 +28,17 @@ class Rebalancer {
     return all.where((d) => d.drift.abs() >= threshold && d.drift.abs() > 0).toList();
   }
 
+  /// 사용자에게 **"조정 필요"라고 말해도 되는가.**
+  ///
+  /// 종목이 하나뿐이면 서로 옮길 데가 없어 조정이라는 말 자체가 성립하지
+  /// 않는다. 그런데도 편차가 크다고 빨간 경고를 띄우면, 고칠 수 없는 경고를
+  /// 첫날부터 보게 된다.
+  ///
+  /// 편차 계산(`driftExceeding`)은 그대로 둔다 — 그건 조정 계산에도 쓰이므로
+  /// 건드리면 숫자가 바뀐다. 여기서는 **뭐라고 말할지만** 가른다.
+  static List<ItemDrift> needsAdjusting(Portfolio portfolio) =>
+      portfolio.items.length < 2 ? const [] : driftExceeding(portfolio);
+
   /// 전 종목의 현재 비중과 편차. 편차 절댓값 내림차순.
   static List<ItemDrift> allDrifts(Portfolio portfolio) {
     final items = portfolio.items;

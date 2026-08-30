@@ -136,4 +136,37 @@ void main() {
     expect(shares(r), {'a': 50, 'b': 50});
     expect(r.cash, 0);
   });
+
+  group('종목이 하나뿐이면 "조정 필요"라고 말하지 않는다', () {
+    /// 옮길 데가 없어 조정 자체가 성립하지 않는다. 그런데도 경고를 띄우면
+    /// 첫 사용자가 고칠 수 없는 빨간불을 보게 된다.
+    Portfolio single() => pf([
+          stock(id: 'a', target: 60, shares: 10, price: 10000),
+        ], threshold: 3);
+
+    test('편차가 커도 조정 필요로 세지 않는다', () {
+      final p = single();
+      expect(Rebalancer.driftExceeding(p), isNotEmpty,
+          reason: '편차 계산 자체는 그대로여야 한다');
+      expect(Rebalancer.needsAdjusting(p), isEmpty);
+    });
+
+    test('두 종목부터는 평소대로 센다', () {
+      final p = pf([
+        stock(id: 'a', target: 50, shares: 60, price: 10000),
+        stock(id: 'b', target: 50, shares: 40, price: 10000),
+      ], threshold: 3);
+      expect(Rebalancer.needsAdjusting(p), isNotEmpty);
+    });
+
+    test('현금까지 둘이면 조정이 성립한다', () {
+      final p = pf([
+        stock(id: 'a', target: 60, shares: 10, price: 10000),
+        PortfolioItem(
+            id: 'cash', name: 'cash', ticker: '', market: 'CASH',
+            isCash: true, targetWeight: 40, shares: 0, currentPrice: 1),
+      ], threshold: 3);
+      expect(Rebalancer.needsAdjusting(p), isNotEmpty);
+    });
+  });
 }

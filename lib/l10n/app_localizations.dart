@@ -1963,6 +1963,36 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'거래 내역 없이\n현재 보유만 입력한 종목입니다'**
   String get noTransactionsNote;
+
+  /// No description provided for @weightSumNotice.
+  ///
+  /// In ko, this message translates to:
+  /// **'목표 비중 합계가 {pct}입니다. 100%가 되어야 조정 제안을 계산할 수 있습니다.'**
+  String weightSumNotice(String pct);
+
+  /// No description provided for @fixTargetWeights.
+  ///
+  /// In ko, this message translates to:
+  /// **'목표 비중 맞추기'**
+  String get fixTargetWeights;
+
+  /// No description provided for @needMoreItems.
+  ///
+  /// In ko, this message translates to:
+  /// **'종목을 더 담아야 조정할 수 있습니다'**
+  String get needMoreItems;
+
+  /// No description provided for @itemAdded.
+  ///
+  /// In ko, this message translates to:
+  /// **'{name} 담았습니다'**
+  String itemAdded(String name);
+
+  /// No description provided for @createPortfolioCta.
+  ///
+  /// In ko, this message translates to:
+  /// **'포트폴리오 만들기'**
+  String get createPortfolioCta;
 }
 
 class _AppLocalizationsDelegate

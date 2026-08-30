@@ -1089,4 +1089,23 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get noTransactionsNote =>
       'Holdings entered directly,\nwithout any transactions';
+
+  @override
+  String weightSumNotice(String pct) {
+    return 'Target weights add up to $pct. They need to total 100% before an adjustment plan can be calculated.';
+  }
+
+  @override
+  String get fixTargetWeights => 'Set target weights';
+
+  @override
+  String get needMoreItems => 'Add another holding before you can rebalance';
+
+  @override
+  String itemAdded(String name) {
+    return 'Added $name';
+  }
+
+  @override
+  String get createPortfolioCta => 'Create a portfolio';
 }

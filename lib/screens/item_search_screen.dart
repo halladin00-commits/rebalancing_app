@@ -414,7 +414,15 @@ class _ItemSearchScreenState extends State<ItemSearchScreen> {
           currency: pf.currency,
           onSave: (item) {
             context.read<PortfolioProvider>().addItem(pf.id, item);
-            Navigator.pop(context); // 검색 화면도 닫는다
+            // 검색 화면은 **닫지 않는다.** 종목을 열 개 담으려면 열 번
+            // 처음부터 들어와야 했다. 폼은 스스로 닫히므로 여기 남아
+            // 바로 다음 종목을 담을 수 있다. 다 담았으면 사용자가 닫는다.
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(SnackBar(
+                content: Text(context.l10n.itemAdded(item.name)),
+                duration: const Duration(seconds: 2),
+              ));
           },
         ),
       ),

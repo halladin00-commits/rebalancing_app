@@ -10,6 +10,7 @@ import '../utils/money_format.dart';
 import '../models/portfolio.dart';
 import '../services/settlement_service.dart';
 import '../theme/design_system.dart';
+import '../widgets/portfolio_actions.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/period_jump_sheet.dart';
@@ -243,40 +244,40 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
               if (r == null && !_loading)
                 _buildCannotCompute(context, l10n)
               else
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  if (r != null)
-                    Text(
-                      r.rateAvailable
-                          ? '${r.returnRate >= 0 ? '+' : '−'}${r.returnRate.abs().toStringAsFixed(2)}%'
-                          : '—',
-                      style: TextStyle(
-                        fontSize: DS.sectionTitle,
-                        fontWeight: FontWeight.w700,
-                        color: r.absoluteReturn >= 0
-                            ? pnlColors.onBrandPositive
-                            : pnlColors.onBrandNegative,
-                      ),
-                    ),
-                  if (r != null && r.netCashFlow.abs() > 1) ...[
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        _isKo
-                            ? '순입금 ${fmtMoney(r.netCashFlow.abs(), 'KRW')}은 제외'
-                            : 'Excludes ${fmtMoney(r.netCashFlow.abs(), 'KRW')} net deposits',
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    if (r != null)
+                      Text(
+                        r.rateAvailable
+                            ? '${r.returnRate >= 0 ? '+' : '−'}${r.returnRate.abs().toStringAsFixed(2)}%'
+                            : '—',
                         style: TextStyle(
-                            fontSize: DS.body,
-                            fontWeight: FontWeight.w600,
-                            color: context.onBrandSecondary),
-                        overflow: TextOverflow.ellipsis,
+                          fontSize: DS.sectionTitle,
+                          fontWeight: FontWeight.w700,
+                          color: r.absoluteReturn >= 0
+                              ? pnlColors.onBrandPositive
+                              : pnlColors.onBrandNegative,
+                        ),
                       ),
-                    ),
+                    if (r != null && r.netCashFlow.abs() > 1) ...[
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          _isKo
+                              ? '순입금 ${fmtMoney(r.netCashFlow.abs(), 'KRW')}은 제외'
+                              : 'Excludes ${fmtMoney(r.netCashFlow.abs(), 'KRW')} net deposits',
+                          style: TextStyle(
+                              fontSize: DS.body,
+                              fontWeight: FontWeight.w600,
+                              color: context.onBrandSecondary),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ],
-                ],
-              ),
+                ),
             ],
           ),
         ),
@@ -297,7 +298,9 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
     return Row(children: [
       Flexible(
         child: Text(
-          hasHoldings ? l10n.settlementCannotCompute : l10n.settlementNoHoldings,
+          hasHoldings
+              ? l10n.settlementCannotCompute
+              : l10n.settlementNoHoldings,
           style: TextStyle(
               fontSize: DS.body,
               fontWeight: FontWeight.w600,
@@ -389,8 +392,8 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
   Widget _buildChartCard(BuildContext context, dynamic l10n) {
     final r = _current;
     final range = SettlementService.periodRange(_period, _selected);
-    final inProgress = r?.isCurrentPeriod ??
-        !range.end.isBefore(DateTime.now());
+    final inProgress =
+        r?.isCurrentPeriod ?? !range.end.isBefore(DateTime.now());
 
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
@@ -520,8 +523,8 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       );
     }
 
-    final sumAbs = r.contributions
-        .fold(0.0, (s, c) => s + c.absoluteReturn.abs());
+    final sumAbs =
+        r.contributions.fold(0.0, (s, c) => s + c.absoluteReturn.abs());
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -570,100 +573,100 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) =>
-              PortfolioSettlementScreen(portfolioId: c.portfolioId),
+          builder: (_) => PortfolioSettlementScreen(portfolioId: c.portfolioId),
         ),
       ),
       child: Container(
-      padding: const EdgeInsets.symmetric(vertical: 13),
-      decoration: isLast
-          ? null
-          : BoxDecoration(
-              border: Border(bottom: BorderSide(color: context.dividerColor))),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  c.name,
-                  style: TextStyle(
-                      fontSize: DS.rowName,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -0.2,
-                      color: context.textPrimary),
-                  overflow: TextOverflow.ellipsis,
+        padding: const EdgeInsets.symmetric(vertical: 13),
+        decoration: isLast
+            ? null
+            : BoxDecoration(
+                border:
+                    Border(bottom: BorderSide(color: context.dividerColor))),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    c.name,
+                    style: TextStyle(
+                        fontSize: DS.rowName,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.2,
+                        color: context.textPrimary),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                '$sign${fmtMoney(c.absoluteReturn.abs(), 'KRW')}',
-                style: TextStyle(
-                    fontSize: DS.rowAmount,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.3,
-                    color: color),
-              ),
-              const SizedBox(width: 8),
-              SizedBox(
-                width: 52,
-                child: Text(
-                  c.rateAvailable
-                      ? '${c.returnRate >= 0 ? '+' : '−'}${c.returnRate.abs().toStringAsFixed(2)}%'
-                      : '—',
-                  textAlign: TextAlign.right,
+                const SizedBox(width: 8),
+                Text(
+                  '$sign${fmtMoney(c.absoluteReturn.abs(), 'KRW')}',
                   style: TextStyle(
-                      fontSize: DS.returnPct,
+                      fontSize: DS.rowAmount,
                       fontWeight: FontWeight.w700,
+                      letterSpacing: -0.3,
                       color: color),
                 ),
-              ),
-              Icon(Icons.chevron_right,
-                  size: 18, color: context.textTertiary),
-            ],
-          ),
-          const SizedBox(height: 7),
-          Row(
-            children: [
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(DS.barTrackRadius),
-                  child: SizedBox(
-                    height: DS.barTrackHeight,
-                    // Stack + FractionallySizedBox를 쓰면 자식 없는 ColoredBox의
-                    // 세로 크기가 0이 되어 막대가 안 보인다. flex로 나눈다.
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Expanded(
-                          flex: (share.clamp(0.0, 1.0) * 1000).round(),
-                          child: ColoredBox(color: color),
-                        ),
-                        Expanded(
-                          flex: ((1 - share.clamp(0.0, 1.0)) * 1000).round(),
-                          child: ColoredBox(color: context.trackBg),
-                        ),
-                      ],
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: 52,
+                  child: Text(
+                    c.rateAvailable
+                        ? '${c.returnRate >= 0 ? '+' : '−'}${c.returnRate.abs().toStringAsFixed(2)}%'
+                        : '—',
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                        fontSize: DS.returnPct,
+                        fontWeight: FontWeight.w700,
+                        color: color),
+                  ),
+                ),
+                Icon(Icons.chevron_right,
+                    size: 18, color: context.textTertiary),
+              ],
+            ),
+            const SizedBox(height: 7),
+            Row(
+              children: [
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(DS.barTrackRadius),
+                    child: SizedBox(
+                      height: DS.barTrackHeight,
+                      // Stack + FractionallySizedBox를 쓰면 자식 없는 ColoredBox의
+                      // 세로 크기가 0이 되어 막대가 안 보인다. flex로 나눈다.
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(
+                            flex: (share.clamp(0.0, 1.0) * 1000).round(),
+                            child: ColoredBox(color: color),
+                          ),
+                          Expanded(
+                            flex: ((1 - share.clamp(0.0, 1.0)) * 1000).round(),
+                            child: ColoredBox(color: context.trackBg),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              // 기여도는 무채색 — 손익만 색을 쓴다
-              Text(
-                _isKo
-                    ? '기여 ${(share * 100).toStringAsFixed(0)}% (${c.contribution >= 0 ? '+' : '−'}${c.contribution.abs().toStringAsFixed(2)}%p)'
-                    : '${(share * 100).toStringAsFixed(0)}% (${c.contribution >= 0 ? '+' : '−'}${c.contribution.abs().toStringAsFixed(2)}pp)',
-                style: TextStyle(
-                    fontSize: DS.caption,
-                    fontWeight: FontWeight.w600,
-                    color: context.textTertiary),
-              ),
-            ],
-          ),
-        ],
-      ),
+                const SizedBox(width: 10),
+                // 기여도는 무채색 — 손익만 색을 쓴다
+                Text(
+                  _isKo
+                      ? '기여 ${(share * 100).toStringAsFixed(0)}% (${c.contribution >= 0 ? '+' : '−'}${c.contribution.abs().toStringAsFixed(2)}%p)'
+                      : '${(share * 100).toStringAsFixed(0)}% (${c.contribution >= 0 ? '+' : '−'}${c.contribution.abs().toStringAsFixed(2)}pp)',
+                  style: TextStyle(
+                      fontSize: DS.caption,
+                      fontWeight: FontWeight.w600,
+                      color: context.textTertiary),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -672,17 +675,35 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
-        child: Text(
-          _isKo
-              ? '포트폴리오를 만들고 거래를 기록하면\n기간별 손익을 계산해 드립니다'
-              : 'Create a portfolio and log trades\nto see period returns',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-              fontSize: DS.rowName,
-              fontWeight: FontWeight.w500,
-              height: 1.5,
-              color: context.textHint),
-        ),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Text(
+            _isKo
+                ? '포트폴리오를 만들고 거래를 기록하면\n기간별 손익을 계산해 드립니다'
+                : 'Create a portfolio and log trades\nto see period returns',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                fontSize: DS.rowName,
+                fontWeight: FontWeight.w500,
+                height: 1.5,
+                color: context.textHint),
+          ),
+          const SizedBox(height: 18),
+          // 회색 글자만 두면 무엇을 눌러야 할지 알 수 없다
+          OutlinedButton.icon(
+            onPressed: () => createPortfolioThenAddItems(context),
+            icon: const Icon(Icons.add, size: 18),
+            label: Text(context.l10n.createPortfolioCta,
+                style: const TextStyle(
+                    fontSize: 13.5, fontWeight: FontWeight.w800)),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: context.brandOnLight,
+              side: BorderSide(color: context.brand, width: 1.3),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(DS.buttonRadius)),
+            ),
+          ),
+        ]),
       ),
     );
   }
@@ -716,15 +737,24 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
   }
 
   static String _monthAbbr(int m) => const [
-        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
       ][m - 1];
 
   String _fullRangeLabel(DateTime a, DateTime b) =>
       '${a.year}.${a.month.toString().padLeft(2, '0')}.${a.day.toString().padLeft(2, '0')}'
       ' – '
       '${b.month.toString().padLeft(2, '0')}.${b.day.toString().padLeft(2, '0')}';
-
 
   // ── 이미지 저장 · 공유 ──
 
@@ -911,8 +941,8 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(_isKo ? '기간 손익' : 'Period P&L',
-                    style: TextStyle(
-                        fontSize: 12, color: context.textSecondary)),
+                    style:
+                        TextStyle(fontSize: 12, color: context.textSecondary)),
                 const SizedBox(height: 4),
                 Text(
                   r == null
@@ -928,8 +958,8 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
                   const SizedBox(height: 2),
                   Text(
                     r.rateAvailable
-                          ? '${r.returnRate >= 0 ? '+' : '−'}${r.returnRate.abs().toStringAsFixed(2)}%'
-                          : '—',
+                        ? '${r.returnRate >= 0 ? '+' : '−'}${r.returnRate.abs().toStringAsFixed(2)}%'
+                        : '—',
                     style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -967,9 +997,7 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
                     Text(
                       '${c.absoluteReturn >= 0 ? '+' : '−'}${fmtMoney(c.absoluteReturn.abs(), 'KRW')}',
                       style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: cc),
+                          fontSize: 13, fontWeight: FontWeight.w700, color: cc),
                     ),
                   ],
                 ),

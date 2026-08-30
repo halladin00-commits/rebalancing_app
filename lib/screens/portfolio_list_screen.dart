@@ -858,7 +858,7 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
     int worstCount = 0;
     double worstDrift = 0;
     for (final pf in portfolios) {
-      final over = Rebalancer.driftExceeding(pf);
+      final over = Rebalancer.needsAdjusting(pf);
       if (over.isEmpty) continue;
       final d = over.first.drift;
       if (worst == null || d.abs() > worstDrift.abs()) {

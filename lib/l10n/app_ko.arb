@@ -741,5 +741,24 @@
       }
     }
   },
-  "noTransactionsNote": "거래 내역 없이\n현재 보유만 입력한 종목입니다"
+  "noTransactionsNote": "거래 내역 없이\n현재 보유만 입력한 종목입니다",
+  "weightSumNotice": "목표 비중 합계가 {pct}입니다. 100%가 되어야 조정 제안을 계산할 수 있습니다.",
+  "@weightSumNotice": {
+    "placeholders": {
+      "pct": {
+        "type": "String"
+      }
+    }
+  },
+  "fixTargetWeights": "목표 비중 맞추기",
+  "needMoreItems": "종목을 더 담아야 조정할 수 있습니다",
+  "itemAdded": "{name} 담았습니다",
+  "@itemAdded": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "createPortfolioCta": "포트폴리오 만들기"
 }

@@ -1070,4 +1070,23 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get noTransactionsNote => '거래 내역 없이\n현재 보유만 입력한 종목입니다';
+
+  @override
+  String weightSumNotice(String pct) {
+    return '목표 비중 합계가 $pct입니다. 100%가 되어야 조정 제안을 계산할 수 있습니다.';
+  }
+
+  @override
+  String get fixTargetWeights => '목표 비중 맞추기';
+
+  @override
+  String get needMoreItems => '종목을 더 담아야 조정할 수 있습니다';
+
+  @override
+  String itemAdded(String name) {
+    return '$name 담았습니다';
+  }
+
+  @override
+  String get createPortfolioCta => '포트폴리오 만들기';
 }

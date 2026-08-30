@@ -741,5 +741,24 @@
       }
     }
   },
-  "noTransactionsNote": "Holdings entered directly,\nwithout any transactions"
+  "noTransactionsNote": "Holdings entered directly,\nwithout any transactions",
+  "weightSumNotice": "Target weights add up to {pct}. They need to total 100% before an adjustment plan can be calculated.",
+  "@weightSumNotice": {
+    "placeholders": {
+      "pct": {
+        "type": "String"
+      }
+    }
+  },
+  "fixTargetWeights": "Set target weights",
+  "needMoreItems": "Add another holding before you can rebalance",
+  "itemAdded": "Added {name}",
+  "@itemAdded": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "createPortfolioCta": "Create a portfolio"
 }

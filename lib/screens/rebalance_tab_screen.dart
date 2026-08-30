@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../main.dart';
 import '../models/portfolio.dart';
 import '../theme/design_system.dart';
+import '../widgets/portfolio_actions.dart';
 import '../utils/rebalancer.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/weight_bar.dart';
@@ -18,7 +19,7 @@ class RebalanceTabScreen extends StatelessWidget {
 
   /// 허용 편차를 넘은 포트폴리오 수 — 하단 탭 배지도 이 값을 쓴다.
   static int needsAdjustingCount(List<Portfolio> portfolios) =>
-      portfolios.where((p) => Rebalancer.driftExceeding(p).isNotEmpty).length;
+      portfolios.where((p) => Rebalancer.needsAdjusting(p).isNotEmpty).length;
 
   @override
   Widget build(BuildContext context) {
@@ -46,8 +47,7 @@ class RebalanceTabScreen extends StatelessWidget {
                             child: CircularProgressIndicator(
                                 color: Colors.white, strokeWidth: 2))
                         : const Icon(Icons.refresh, color: Colors.white),
-                    onPressed:
-                        provider.refreshing ? null : provider.refreshAll,
+                    onPressed: provider.refreshing ? null : provider.refreshAll,
                   ),
                 ],
                 child: portfolios.isEmpty
@@ -183,9 +183,8 @@ class RebalanceTabScreen extends StatelessWidget {
           color: context.cardBg,
           borderRadius: BorderRadius.circular(DS.listCardRadius),
           border: Border.all(
-            color: needsAdjusting
-                ? const Color(0xFFE8C99A)
-                : context.cardBorder,
+            color:
+                needsAdjusting ? const Color(0xFFE8C99A) : context.cardBorder,
             width: needsAdjusting ? 1.5 : 1,
           ),
         ),
@@ -216,10 +215,10 @@ class RebalanceTabScreen extends StatelessWidget {
               const SizedBox(height: 13),
               WeightBar(
                 segments: [
-                  for (final d in pf.items.map((i) => drifts
-                      .firstWhere((x) => x.item.id == i.id,
-                          orElse: () => ItemDrift(
-                              item: i, currentWeight: 0, drift: 0))))
+                  for (final d in pf.items.map((i) => drifts.firstWhere(
+                      (x) => x.item.id == i.id,
+                      orElse: () =>
+                          ItemDrift(item: i, currentWeight: 0, drift: 0))))
                     WeightSegment(
                       currentWeight: d.currentWeight,
                       targetWeight: d.item.targetWeight,
@@ -271,8 +270,8 @@ class RebalanceTabScreen extends StatelessWidget {
               const SizedBox(height: 10),
               Text(
                 isKo ? '시세를 받으면 편차를 계산합니다' : 'Drift needs current prices',
-                style: TextStyle(
-                    fontSize: DS.body, color: context.textSecondary),
+                style:
+                    TextStyle(fontSize: DS.body, color: context.textSecondary),
               ),
             ],
           ],
@@ -285,7 +284,9 @@ class RebalanceTabScreen extends StatelessWidget {
       BuildContext context, bool needsAdjusting, bool hasPrices, bool isKo) {
     if (!hasPrices) {
       return _badge(context, isKo ? '계산 불가' : 'No data',
-          fg: context.textSecondary, bg: context.trackBg, weight: FontWeight.w700);
+          fg: context.textSecondary,
+          bg: context.trackBg,
+          weight: FontWeight.w700);
     }
     return needsAdjusting
         ? _badge(context, isKo ? '조정 필요' : 'Adjust',
@@ -314,17 +315,35 @@ class RebalanceTabScreen extends StatelessWidget {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
-        child: Text(
-          isKo
-              ? '포트폴리오를 먼저 만들면\n편차를 진단해 드립니다'
-              : 'Create a portfolio first\nto see drift diagnostics',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-              fontSize: DS.rowName,
-              fontWeight: FontWeight.w500,
-              height: 1.5,
-              color: context.textHint),
-        ),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Text(
+            isKo
+                ? '포트폴리오를 먼저 만들면\n편차를 진단해 드립니다'
+                : 'Create a portfolio first\nto see drift diagnostics',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                fontSize: DS.rowName,
+                fontWeight: FontWeight.w500,
+                height: 1.5,
+                color: context.textHint),
+          ),
+          const SizedBox(height: 18),
+          // 회색 글자만 두면 무엇을 눌러야 할지 알 수 없다
+          OutlinedButton.icon(
+            onPressed: () => createPortfolioThenAddItems(context),
+            icon: const Icon(Icons.add, size: 18),
+            label: Text(context.l10n.createPortfolioCta,
+                style: const TextStyle(
+                    fontSize: 13.5, fontWeight: FontWeight.w800)),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: context.brandOnLight,
+              side: BorderSide(color: context.brand, width: 1.3),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(DS.buttonRadius)),
+            ),
+          ),
+        ]),
       ),
     );
   }
