@@ -705,15 +705,20 @@ class SettlementService {
     SettlementPeriod period,
     PeriodKey endKey, {
     int count = 6,
+    void Function(List<CombinedSettlement?> partial)? onProgress,
   }) async {
     final keys = [
       for (var i = count - 1; i >= 0; i--) shiftKey(period, endKey, -i),
     ];
-    final out = <CombinedSettlement?>[];
-    for (final k in keys) {
-      out.add(isFuture(period, k)
-          ? null
-          : await calculateCombined(portfolios, period, k));
+    final out = List<CombinedSettlement?>.filled(keys.length, null);
+    // **최신 칸부터** 채운다. 사람이 제일 먼저 보는 칸이고, 칸이 열두 개면
+    // 다 끝나길 기다리는 동안 화면이 오래 빈다. 하나 끝날 때마다 알린다.
+    for (var i = keys.length - 1; i >= 0; i--) {
+      final k = keys[i];
+      if (!isFuture(period, k)) {
+        out[i] = await calculateCombined(portfolios, period, k);
+      }
+      onProgress?.call(List.of(out));
     }
     return out;
   }

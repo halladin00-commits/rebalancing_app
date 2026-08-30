@@ -30,7 +30,8 @@ class PortfolioSettlementScreen extends StatefulWidget {
 }
 
 class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
-  static const _barCount = 6;
+  /// 차트 칸 수. 월간만 12칸 — 1년을 한눈에 보려면 열두 달이 있어야 한다.
+  int get _barCount => _period == SettlementPeriod.monthly ? 12 : 6;
 
   SettlementPeriod _period = SettlementPeriod.monthly;
   late PeriodKey _endKey;
@@ -454,8 +455,9 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
                 bars: _buildBars(),
                 selected: _selected,
                 onSelect: (k) => setState(() => _selected = k),
-                showYearBoundary: _period == SettlementPeriod.quarterly ||
-                    _period == SettlementPeriod.weekly,
+                // 월간도 열두 칸이라 해가 바뀌는 자리를 표시해야
+                // 작년 3월과 올해 3월이 안 섞인다
+                showYearBoundary: _period != SettlementPeriod.yearly,
               ),
             ),
         ],
@@ -476,7 +478,7 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
           final isFuture = range.start.isAfter(today);
           return SettlementBar(
             key: k,
-            label: _subLabel(k),
+            label: _barLabel(k),
             amount: isFuture ? null : found?.absoluteReturn,
             inProgress: !isFuture && !range.end.isBefore(today),
           );
@@ -668,6 +670,16 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
         return l10n.settlementYearly;
     }
   }
+
+  /// 차트 막대 밑에 적을 라벨.
+  ///
+  /// 문장('3분기 진행 중')에 쓰는 [_subLabel]과 달리 **칸 폭이 정해져 있다.**
+  /// 월간은 열두 칸이라 한 칸이 29px 남짓이고 '12월'이 잘린다. 해가 바뀌는
+  /// 자리에 연도가 찍히므로 숫자만으로 읽힌다.
+  String _barLabel(PeriodKey key) =>
+      (_period == SettlementPeriod.monthly && _isKo)
+          ? '${key.sub}'
+          : _subLabel(key);
 
   String _subLabel(PeriodKey key) {
     switch (_period) {

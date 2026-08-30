@@ -241,12 +241,19 @@ class SettlementChart extends StatelessWidget {
           ],
         ),
         if (showYear)
-          Text(
-            '${b.key.year}',
-            style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
-                color: context.textDisabled),
+          // 월간은 칸이 열두 개라 한 칸이 좁다. 그냥 두면 `2025`가
+          // `202` / `5`로 쪼개진다 — 줄을 늘리는 대신 글자를 줄인다.
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              '${b.key.year}',
+              maxLines: 1,
+              softWrap: false,
+              style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: context.textDisabled),
+            ),
           ),
       ],
     );

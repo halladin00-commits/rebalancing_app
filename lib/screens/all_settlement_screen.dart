@@ -31,7 +31,11 @@ class AllSettlementScreen extends StatefulWidget {
 }
 
 class _AllSettlementScreenState extends State<AllSettlementScreen> {
-  static const _barCount = 6;
+  /// 차트 칸 수.
+  ///
+  /// 월간만 12칸이다 — 1년을 한눈에 보려면 열두 달이 있어야 한다.
+  /// 나머지는 6칸이면 주간 6주·분기 1년반·연간 6년으로 충분하다.
+  int get _barCount => _period == SettlementPeriod.monthly ? 12 : 6;
 
   SettlementPeriod _period = SettlementPeriod.monthly;
 
@@ -91,6 +95,16 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       _period,
       targetEnd,
       count: _barCount,
+      // 창을 옮기는 중이 아니면 오는 대로 그린다. 열두 칸을 다 기다리면
+      // 화면이 오래 비고, 정작 먼저 보는 건 최신 칸이다.
+      //
+      // 창을 옮기는 중이면 안 그린다 — 아직 옛 기간을 보여주고 있는데
+      // 새 창의 결과를 섞으면 라벨과 숫자가 어긋난다.
+      onProgress: targetEnd == _endKey
+          ? (partial) {
+              if (mounted) setState(() => _series = partial);
+            }
+          : null,
     );
 
     if (!mounted) return;
@@ -515,8 +529,9 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
                 bars: _buildBars(l10n),
                 selected: _selected,
                 onSelect: _selectKey,
-                showYearBoundary: _period == SettlementPeriod.quarterly ||
-                    _period == SettlementPeriod.weekly,
+                // 월간도 열두 칸이라 해가 바뀌는 자리를 표시해야
+                // 작년 3월과 올해 3월이 안 섞인다
+                showYearBoundary: _period != SettlementPeriod.yearly,
               ),
             ),
         ],
@@ -778,7 +793,9 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       case SettlementPeriod.weekly:
         return _isKo ? '${key.sub}주' : 'W${key.sub}';
       case SettlementPeriod.monthly:
-        return _isKo ? '${key.sub}월' : _monthAbbr(key.sub);
+        // 열두 칸이면 한 칸이 29px 남짓이라 '12월'이 잘린다.
+        // 해가 바뀌는 자리에 연도가 찍히므로 숫자만으로 읽힌다.
+        return _isKo ? '${key.sub}' : _monthAbbr(key.sub);
       case SettlementPeriod.quarterly:
         return _isKo ? '${key.sub}분기' : 'Q${key.sub}';
       case SettlementPeriod.yearly:
