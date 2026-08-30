@@ -39,6 +39,19 @@ class Rebalancer {
   static List<ItemDrift> needsAdjusting(Portfolio portfolio) =>
       portfolio.items.length < 2 ? const [] : driftExceeding(portfolio);
 
+  /// 편차를 **낼 수 있는가.** 시세가 하나라도 없으면 못 낸다.
+  ///
+  /// `needsAdjusting`이 비었다는 건 두 가지 뜻이다 — "괜찮다"와 "모르겠다".
+  /// 구분하지 않으면 시세를 하나도 못 받은 앱이 `조정 필요 없음`이라고
+  /// 단언한다. 사용자는 확인했다고 믿고 넘어간다.
+  ///
+  /// 보유 종목이 없으면 잴 것이 없는 것이지 못 재는 게 아니라 true다.
+  static bool canComputeDrift(Portfolio portfolio) {
+    final holdings = portfolio.items.where((i) => !i.isCash).toList();
+    if (holdings.isEmpty) return true;
+    return allDrifts(portfolio).isNotEmpty;
+  }
+
   /// 전 종목의 현재 비중과 편차. 편차 절댓값 내림차순.
   static List<ItemDrift> allDrifts(Portfolio portfolio) {
     final items = portfolio.items;

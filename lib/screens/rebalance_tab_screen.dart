@@ -21,6 +21,13 @@ class RebalanceTabScreen extends StatelessWidget {
   static int needsAdjustingCount(List<Portfolio> portfolios) =>
       portfolios.where((p) => Rebalancer.needsAdjusting(p).isNotEmpty).length;
 
+  /// 시세를 못 받아 **편차를 낼 수 없는** 포트 수.
+  ///
+  /// 이 수를 안 세면 `needsAdjustingCount == 0`이 "괜찮다"와 "모르겠다"를
+  /// 한 덩어리로 만든다.
+  static int unknownDriftCount(List<Portfolio> portfolios) =>
+      portfolios.where((p) => !Rebalancer.canComputeDrift(p)).length;
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -30,6 +37,7 @@ class RebalanceTabScreen extends StatelessWidget {
       builder: (context, provider, _) {
         final portfolios = provider.portfolios;
         final overCount = needsAdjustingCount(portfolios);
+        final unknownCount = unknownDriftCount(portfolios);
 
         return Scaffold(
           backgroundColor: context.scaffoldBg,
@@ -52,7 +60,8 @@ class RebalanceTabScreen extends StatelessWidget {
                 ],
                 child: portfolios.isEmpty
                     ? null
-                    : _buildSummary(context, portfolios, overCount, isKo),
+                    : _buildSummary(
+                        context, portfolios, overCount, unknownCount, isKo),
               ),
               Expanded(
                 child: portfolios.isEmpty
@@ -76,7 +85,7 @@ class RebalanceTabScreen extends StatelessWidget {
   // ── 헤더 요약 ──
 
   Widget _buildSummary(BuildContext context, List<Portfolio> portfolios,
-      int overCount, bool isKo) {
+      int overCount, int unknownCount, bool isKo) {
     final oldest = portfolios
         .where((p) => p.lastUpdated != null)
         .map((p) => p.lastUpdated!)
@@ -99,7 +108,10 @@ class RebalanceTabScreen extends StatelessWidget {
       fontSize: 15,
       fontWeight: FontWeight.w800,
       height: 1.5,
-      color: overCount > 0 ? context.onBrandWarning : context.onBrandAccent,
+      // 못 잰 것도 초록으로 쓰면 문장만 다르고 **느낌은 "괜찮다"**가 된다
+      color: (overCount > 0 || unknownCount > 0)
+          ? context.onBrandWarning
+          : context.onBrandAccent,
     );
 
     return Column(
@@ -119,14 +131,33 @@ class RebalanceTabScreen extends StatelessWidget {
                         style: accent),
                     if (isKo) const TextSpan(text: '가\n허용 편차를 넘었습니다'),
                   ]
-                : [
-                    TextSpan(
-                        text: isKo ? '모든 포트폴리오가\n' : 'All portfolios are\n'),
-                    TextSpan(
-                        text: isKo ? '허용 편차 안' : 'within tolerance',
-                        style: accent),
-                    if (isKo) const TextSpan(text: '에 있습니다'),
-                  ],
+                : unknownCount > 0
+                    // 시세를 못 받으면 편차를 못 낸다. 그런데도 "다 괜찮다"고
+                    // 하면 **모르는 것을 괜찮다고 말하는 것**이다.
+                    ? [
+                        TextSpan(
+                            text: isKo
+                                ? '시세를 받지 못해\n'
+                                : "Can't check "),
+                        TextSpan(
+                            text: isKo
+                                ? '$unknownCount개'
+                                : '$unknownCount of ${portfolios.length}',
+                            style: accent),
+                        TextSpan(
+                            text: isKo
+                                ? ' 포트폴리오는 확인할 수 없습니다'
+                                : '\nwithout current prices'),
+                      ]
+                    : [
+                        TextSpan(
+                            text:
+                                isKo ? '모든 포트폴리오가\n' : 'All portfolios are\n'),
+                        TextSpan(
+                            text: isKo ? '허용 편차 안' : 'within tolerance',
+                            style: accent),
+                        if (isKo) const TextSpan(text: '에 있습니다'),
+                      ],
           ),
         ),
         const SizedBox(height: 13),

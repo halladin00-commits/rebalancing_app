@@ -868,6 +868,10 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
       }
     }
 
+    // 시세가 없어 편차를 못 낸 포트 — "괜찮다"와 섞이면 안 된다
+    final unknownCount =
+        portfolios.where((p) => !Rebalancer.canComputeDrift(p)).length;
+
     final now = DateTime.now();
     final lastMonth = now.month == 1 ? 12 : now.month - 1;
     final driftSign = worstDrift >= 0 ? '+' : '−';
@@ -895,18 +899,36 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                     bodyFg: context.onWarningBody,
                     onTap: () => widget.onNavigateToTab?.call(1),
                   )
-                : _actionCard(
-                    context,
-                    bg: context.brandTint,
-                    fg: context.brand,
-                    icon: Icons.check_circle_outline,
-                    label: isKo ? '비중 유지' : 'On target',
-                    title: isKo ? '조정할 종목 없음' : 'Nothing to adjust',
-                    sub: isKo ? '모두 허용 편차 안' : 'All within tolerance',
-                    titleFg: context.onTintTitle,
-                    bodyFg: context.onTintBody,
-                    onTap: () => widget.onNavigateToTab?.call(1),
-                  ),
+                // 시세를 못 받으면 편차를 못 낸다. 그런데도 초록으로
+                // `조정할 종목 없음`이라고 하면 **모르는 것을 괜찮다고
+                // 말하는 것**이다. 사용자는 확인했다고 믿고 넘어간다.
+                : unknownCount > 0
+                    ? _actionCard(
+                        context,
+                        bg: context.warningBg,
+                        fg: context.warningText,
+                        icon: Icons.help_outline,
+                        label: isKo ? '확인 불가' : "Can't check",
+                        title: isKo ? '시세를 받지 못했습니다' : 'No current prices',
+                        sub: isKo
+                            ? '$unknownCount개 포트폴리오'
+                            : '$unknownCount portfolio(s)',
+                        titleFg: context.onWarningTitle,
+                        bodyFg: context.onWarningBody,
+                        onTap: () => widget.onNavigateToTab?.call(1),
+                      )
+                    : _actionCard(
+                        context,
+                        bg: context.brandTint,
+                        fg: context.brand,
+                        icon: Icons.check_circle_outline,
+                        label: isKo ? '비중 유지' : 'On target',
+                        title: isKo ? '조정할 종목 없음' : 'Nothing to adjust',
+                        sub: isKo ? '모두 허용 편차 안' : 'All within tolerance',
+                        titleFg: context.onTintTitle,
+                        bodyFg: context.onTintBody,
+                        onTap: () => widget.onNavigateToTab?.call(1),
+                      ),
           ),
           const SizedBox(width: 9),
           Expanded(
