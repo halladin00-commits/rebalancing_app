@@ -192,6 +192,7 @@ class PortfolioRebalanceScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               WeightBar(
+                threshold: pf.rebalancingThreshold,
                 segments: [
                   for (final i in pf.items)
                     WeightSegment(

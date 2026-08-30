@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../theme/design_system.dart';
 import '../main.dart';
 
 /// 비중 막대 한 구간.
@@ -20,17 +19,34 @@ class WeightSegment {
 /// 포트폴리오의 현재 비중을 색 구간으로 잇고,
 /// **목표 비중이 끝나는 자리마다 세로선**을 그어 어긋난 정도를 한눈에 보여준다.
 ///
-/// 구간 색은 값의 의미가 없는 구분용이므로 무채색 계열이 아니라
-/// 브랜드 팔레트를 순환시켜 쓴다. 손익색과 섞이지 않게 별도 색을 쓴다.
+/// **구간 색에는 뜻이 있다.** 목표를 넘은 종목은 경고색, 모자란 종목은
+/// 브랜드색, 허용 편차 안이면 회색이다.
+///
+/// 전에는 팔레트를 순서대로 돌려 썼는데, 어느 색이 어느 종목인지 알 방법이
+/// 없었다 — 범례도 없고 눌러도 반응이 없었다. 색은 화면에서 가장 강한
+/// 신호다. 뜻 없이 쓰면 사용자는 뜻을 찾느라 시간을 쓰고, 없다는 걸 알고
+/// 나면 **다음부터는 다른 색도 안 믿는다.**
 class WeightBar extends StatelessWidget {
   final List<WeightSegment> segments;
   final double height;
+
+  /// 허용 편차(%p). 이 안에 들면 회색으로 둔다 — 손댈 일이 없다는 뜻이다.
+  final double threshold;
 
   const WeightBar({
     super.key,
     required this.segments,
     this.height = 14,
+    this.threshold = 0,
   });
+
+  /// 이 구간이 목표에서 얼마나 벗어났는지에 따른 색.
+  Color _colorFor(BuildContext context, WeightSegment s) {
+    final drift = s.currentWeight - s.targetWeight;
+    if (threshold > 0 && drift.abs() < threshold) return context.trackBg;
+    if (drift > 0) return context.warningText;
+    return context.brand;
+  }
 
 
   @override
@@ -75,7 +91,7 @@ class WeightBar extends StatelessWidget {
                               .round()
                               .clamp(0, 100000),
                           child: ColoredBox(
-                              color: chartPalette[i % chartPalette.length]),
+                              color: _colorFor(context, segments[i])),
                         ),
                     ],
                   ),

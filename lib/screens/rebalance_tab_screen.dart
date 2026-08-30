@@ -9,6 +9,7 @@ import '../widgets/brand_header.dart';
 import '../widgets/weight_bar.dart';
 import 'portfolio_detail_screen.dart';
 import 'portfolio_rebalance_screen.dart';
+import 'rebalance_proposal_screen.dart';
 
 /// 리밸런싱 탭 — 포트폴리오별 편차 진단.
 ///
@@ -218,6 +219,12 @@ class RebalanceTabScreen extends StatelessWidget {
                 isKo
                     ? '막대 위의 세로선이 목표 비중 자리입니다.'
                     : 'Where each holding’s target weight sits on the bar.'),
+            _legendRow(context, isKo ? '막대 색' : 'Bar colors',
+                isKo
+                    ? '주황은 목표보다 많은 종목, 초록은 모자란 종목, '
+                        '회색은 허용 편차 안이라 손댈 일이 없는 종목입니다.'
+                    : 'Amber is above target, green is below, '
+                        'grey is within tolerance.'),
           ],
         ),
       ),
@@ -313,7 +320,22 @@ class RebalanceTabScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                _statusBadge(context, needsAdjusting, blocker, isKo),
+                // 앱을 여는 이유의 대부분이 「지금 뭘 사고팔지」인데, 그 답이
+                // 자산→리밸런싱→포트→조정 제안으로 가장 멀었다. 배지를
+                // 눌리게 만들어 새 요소 없이 한 단계를 줄인다.
+                needsAdjusting
+                    ? InkWell(
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => RebalanceProposalScreen(
+                                  portfolioId: pf.id)),
+                        ),
+                        borderRadius: BorderRadius.circular(DS.chipRadius),
+                        child: _statusBadge(
+                            context, needsAdjusting, blocker, isKo),
+                      )
+                    : _statusBadge(context, needsAdjusting, blocker, isKo),
                 const SizedBox(width: 4),
                 Icon(Icons.chevron_right,
                     size: 20, color: context.textTertiary),
@@ -322,6 +344,7 @@ class RebalanceTabScreen extends StatelessWidget {
             if (hasPrices) ...[
               const SizedBox(height: 13),
               WeightBar(
+                threshold: pf.rebalancingThreshold,
                 segments: [
                   for (final d in pf.items.map((i) => drifts.firstWhere(
                       (x) => x.item.id == i.id,
@@ -423,7 +446,8 @@ class RebalanceTabScreen extends StatelessWidget {
       return _badge(context, text, fg: fg, bg: bg, weight: FontWeight.w700);
     }
     return needsAdjusting
-        ? _badge(context, isKo ? '조정 필요' : 'Adjust',
+        ? _badge(context, isKo ? '조정 제안 보기' : 'See plan',
+            arrow: true,
             fg: context.warningText,
             bg: context.warningBg,
             weight: FontWeight.w800)
@@ -434,14 +458,24 @@ class RebalanceTabScreen extends StatelessWidget {
   }
 
   Widget _badge(BuildContext context, String text,
-      {required Color fg, required Color bg, required FontWeight weight}) {
+      {required Color fg,
+      required Color bg,
+      required FontWeight weight,
+      bool arrow = false}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
       decoration: BoxDecoration(
           color: bg, borderRadius: BorderRadius.circular(DS.chipRadius)),
-      child: Text(text,
-          style:
-              TextStyle(fontSize: DS.caption, fontWeight: weight, color: fg)),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Text(text,
+            style:
+                TextStyle(fontSize: DS.caption, fontWeight: weight, color: fg)),
+        // 누를 수 있는 배지에만 화살표를 붙여 라벨과 구분한다
+        if (arrow) ...[
+          const SizedBox(width: 2),
+          Icon(Icons.chevron_right, size: 13, color: fg),
+        ],
+      ]),
     );
   }
 

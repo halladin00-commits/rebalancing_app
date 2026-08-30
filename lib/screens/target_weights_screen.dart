@@ -154,6 +154,27 @@ class _TargetWeightsScreenState extends State<TargetWeightsScreen> {
     );
   }
 
+  bool get _isKo => Localizations.localeOf(context).languageCode == 'ko';
+
+  /// 전 종목에 100을 고르게 나눈다.
+  ///
+  /// 나눠떨어지지 않으면 **마지막 칸이 나머지를 받는다** — 소수점 둘째에서
+  /// 반올림만 하면 합계가 99.99나 100.01이 되어 저장이 막힌다.
+  void _distributeEvenly() {
+    final ids = _ctls.keys.toList();
+    if (ids.isEmpty) return;
+    final each = (100 / ids.length * 100).floorToDouble() / 100;
+    var assigned = 0.0;
+    for (var i = 0; i < ids.length; i++) {
+      final v = i == ids.length - 1
+          ? (100 - assigned)
+          : each;
+      assigned += v;
+      _ctls[ids[i]]!.text = _trim(double.parse(v.toStringAsFixed(2)));
+    }
+    setState(() {});
+  }
+
   /// 합계 막대. 100이 아니면 저장할 수 없으므로 늘 보이게 위에 붙인다.
   Widget _buildSumBar(BuildContext context) {
     final l10n = context.l10n;
@@ -180,6 +201,29 @@ class _TargetWeightsScreenState extends State<TargetWeightsScreen> {
                 fontWeight: FontWeight.w800,
                 letterSpacing: -0.3,
                 color: ok ? context.brandOnLight : context.warningText)),
+        // 균등 분산은 흔한 운용 방식이다(이 사용자의 ISA가 10종목 균등이다).
+        // 열 칸을 손으로 채우는 대신 한 번에 맞춘다.
+        if (_ctls.length > 1) ...[
+          const SizedBox(width: 12),
+          GestureDetector(
+            onTap: _distributeEvenly,
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+              decoration: BoxDecoration(
+                color: context.cardBg,
+                borderRadius: BorderRadius.circular(DS.chipRadius),
+                border: Border.all(color: context.borderColor),
+              ),
+              child: Text(_isKo ? '균등 배분' : 'Split evenly',
+                  style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      color: context.brandOnLight)),
+            ),
+          ),
+        ],
       ]),
     );
   }
@@ -200,11 +244,25 @@ class _TargetWeightsScreenState extends State<TargetWeightsScreen> {
                 overflow: TextOverflow.ellipsis),
             if (current != null) ...[
               const SizedBox(height: 3),
-              Text(l10n.currentWeightIs(current.toStringAsFixed(2)),
+              // 현재값만 회색으로 적어 두면, 열 종목이 전부 `10`으로 똑같이
+              // 보여 **어디가 얼마나 벌어져 있는지** 이 화면에서 알 수 없다.
+              // 고쳐야 할 곳이 목록을 훑는 것만으로 보이게 차이를 적는다.
+              Builder(builder: (_) {
+                final target =
+                    double.tryParse(_ctls[item.id]?.text.trim() ?? '') ?? 0;
+                final gap = current - target;
+                final big = gap.abs() >= 5;
+                return Text(
+                  '${l10n.currentWeightIs(current.toStringAsFixed(2))}'
+                  '  ${gap >= 0 ? '+' : '−'}${gap.abs().toStringAsFixed(2)}%p',
                   style: TextStyle(
                       fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: context.textSecondary)),
+                      fontWeight: big ? FontWeight.w800 : FontWeight.w600,
+                      color: big
+                          ? context.warningText
+                          : context.textSecondary),
+                );
+              }),
             ],
           ]),
         ),

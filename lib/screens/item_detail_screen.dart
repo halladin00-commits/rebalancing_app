@@ -5,6 +5,7 @@ import '../main.dart';
 import '../utils/money_format.dart';
 import '../models/portfolio.dart';
 import '../theme/design_system.dart';
+import '../utils/rebalancer.dart';
 import '../utils/share_format.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/list_card.dart';
@@ -220,6 +221,14 @@ class ItemDetailScreen extends StatelessWidget {
     }
     // 평균 매입가가 거래에서 계산된 값인지 직접 입력인지 밝힌다
     final fromTx = item.transactions.isNotEmpty;
+
+    // 리밸런싱 앱인데 종목 화면에 **목표 대비 어떤지**가 없었다.
+    // 「이거 얼마나 사고팔아야 하지」를 알려면 뒤로 나가 리밸런싱 탭으로
+    // 다시 들어가야 했다. 그 답을 여기 둔다.
+    final drift = Rebalancer.allDrifts(pf)
+        .where((d) => d.item.id == item.id)
+        .firstOrNull;
+
     return ListCard(rows: [
       _kv(context, l10n.holdingQty,
           '${formatShares(item.shares)}${l10n.unitShares}',
@@ -227,7 +236,53 @@ class ItemDetailScreen extends StatelessWidget {
       _kv(context, l10n.avgCost, fmtPrice(item.avgPrice, item.market),
           note: fromTx ? l10n.basedOnTransactions : l10n.enteredDirectly),
       _kv(context, l10n.currentPrice, fmtPrice(item.currentPrice, item.market)),
+      if (drift != null && item.targetWeight > 0)
+        _weightRow(context, drift, pf.rebalancingThreshold),
     ]);
+  }
+
+  /// `현재 58.53% → 목표 10.00%` 와 편차.
+  Widget _weightRow(BuildContext context, ItemDrift d, double threshold) {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final over = threshold > 0 && d.drift.abs() >= threshold;
+    final pp = '${d.drift >= 0 ? '+' : '−'}${d.drift.abs().toStringAsFixed(2)}%p';
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 11),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
+        children: [
+          Expanded(
+            child: Text(isKo ? '비중' : 'Weight',
+                style: TextStyle(
+                    fontSize: DS.rowName,
+                    fontWeight: FontWeight.w600,
+                    color: context.textSecondary)),
+          ),
+          const SizedBox(width: 8),
+          Text('${d.currentWeight.toStringAsFixed(2)}%',
+              style: TextStyle(
+                  fontSize: DS.rowName,
+                  fontWeight: FontWeight.w700,
+                  color: context.textPrimary)),
+          const SizedBox(width: 5),
+          Icon(Icons.arrow_forward, size: 12, color: context.textTertiary),
+          const SizedBox(width: 5),
+          Text('${d.item.targetWeight.toStringAsFixed(2)}%',
+              style: TextStyle(
+                  fontSize: DS.rowName,
+                  fontWeight: FontWeight.w600,
+                  color: context.textSecondary)),
+          const SizedBox(width: 8),
+          Text(pp,
+              style: TextStyle(
+                  fontSize: DS.body,
+                  fontWeight: FontWeight.w800,
+                  color: over ? context.warningText : context.textTertiary)),
+        ],
+      ),
+    );
   }
 
   Widget _kv(BuildContext context, String label, String value, {String? note}) {

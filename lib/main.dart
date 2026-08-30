@@ -438,11 +438,20 @@ class PortfolioProvider extends ChangeNotifier {
         tried += targets.length;
 
         // 종목마다 순서대로 기다리면 **종목 수만큼 왕복이 쌓인다** —
-        // 10종목이면 앱을 켤 때마다 그 시간을 전부 기다린다. 종목 사이에는
-        // 의존이 없으므로 한꺼번에 받는다. 결산 계산도 같은 방식이다.
-        final fetched = await Future.wait(targets.map((item) async =>
-            (item: item, r: await ApiService.fetchStockPrice(
-                item.ticker, item.market))));
+        // 10종목이면 앱을 켤 때마다 그 시간을 전부 기다린다.
+        //
+        // 그렇다고 전부 한꺼번에 던지지는 않는다. 이 코드는 앱을 열 때마다
+        // 도는데, 한도에 걸려 몇 종목이 실패하면 사용자가 매번
+        // `2종목 시세를 못 받았습니다`를 보게 된다. 4개씩 나눠 받는다 —
+        // 직렬보다 4배 빠르면서 한 번에 던지는 요청은 4개를 넘지 않는다.
+        const lanes = 4;
+        final fetched = <({PortfolioItem item, ApiResult<StockPriceData> r})>[];
+        for (var i = 0; i < targets.length; i += lanes) {
+          final chunk = targets.skip(i).take(lanes);
+          fetched.addAll(await Future.wait(chunk.map((item) async =>
+              (item: item, r: await ApiService.fetchStockPrice(
+                  item.ticker, item.market)))));
+        }
 
         // 저장은 받아온 뒤에 한다 — 동시에 쓰면 서로 덮어쓴다.
         for (final f in fetched) {
