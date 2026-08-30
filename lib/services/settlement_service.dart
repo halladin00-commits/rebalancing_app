@@ -62,6 +62,43 @@ class SettlementItemContribution {
       );
 }
 
+/// 기간 수익률과 **그걸 낼 수 있는지**.
+///
+/// 이 함수가 생기기 전에는 같은 화면에서 정의가 갈렸다 — 전체 결산 헤더는
+/// `손익 ÷ 기초자산`, 바로 밑 포트별 행은 Modified Dietz였다. 기간 중 매매가
+/// 없으면 두 식이 같아져 여태 안 드러났고, **하필 리밸런싱한 달에만** 어긋났다.
+/// 실기기에서 헤더 `—`와 그 밑 `+4178.77%`가 같이 떴다. 이제 세 자리가 모두
+/// 여기를 지난다.
+///
+/// 규칙은 셋이다.
+///
+/// 1. **기초자산이 있으면 Modified Dietz** — `손익 ÷ (기초자산 + 가중현금흐름)`.
+///    기간 중 입금을 수익으로 치지 않으려고 있는 식이다.
+/// 2. **기초자산이 0이고 기간 중에 넣었으면 넣은 돈 대비** — `손익 ÷ 순입금`.
+///    기초가 0일 때 Modified Dietz를 쓰면 분모가 기간의 일부만 남아 수익률이
+///    부풀려진다(8/23에 산 8월 결산이 `+2019.74%`로 나왔다). 처음부터 들고
+///    있지 않았다면 "기초 대비"라는 말 자체가 성립하지 않는다. 사람이 아는
+///    값은 **넣은 돈 대비 얼마**다.
+/// 3. **그 외에는 못 낸다.** 0%로 적으면 "정말 0%"와 구분되지 않아 거짓말이 된다.
+({double rate, bool available}) periodReturn({
+  required double absoluteReturn,
+  required double startValue,
+  required double weightedCashFlow,
+  required double netCashFlow,
+}) {
+  if (startValue > 0) {
+    final denom = startValue + weightedCashFlow;
+    if (denom > 0) {
+      return (rate: absoluteReturn / denom * 100, available: true);
+    }
+    return (rate: 0.0, available: false);
+  }
+  if (netCashFlow > 0) {
+    return (rate: absoluteReturn / netCashFlow * 100, available: true);
+  }
+  return (rate: 0.0, available: false);
+}
+
 class SettlementResult {
   final SettlementPeriod period;
   final PeriodKey key;
@@ -80,6 +117,11 @@ class SettlementResult {
   final bool rateAvailable;
 
   final double netCashFlow; // 기간 중 순 투자금 (매수 양수, 매도 음수)
+
+  /// Modified Dietz의 가중 현금흐름. 합산 결산이 **포트별 분모를 더하려면**
+  /// 이 값이 있어야 한다 — 수익률만 받아서는 합칠 수 없다.
+  final double weightedCashFlow;
+
   final bool isCurrentPeriod;
 
   /// 시세를 못 받아 계산에서 빠진 종목 수.
@@ -102,6 +144,7 @@ class SettlementResult {
     required this.returnRate,
     this.rateAvailable = true,
     required this.netCashFlow,
+    this.weightedCashFlow = 0,
     required this.isCurrentPeriod,
     required this.contributions,
     this.missingPriceCount = 0,
@@ -120,6 +163,7 @@ class SettlementResult {
         'rr': returnRate,
         'ra': rateAvailable,
         'cf': netCashFlow,
+        'wc': weightedCashFlow,
         'mp': missingPriceCount,
         'co': contributions.map((c) => c.toJson()).toList(),
       };
@@ -135,6 +179,7 @@ class SettlementResult {
         returnRate: (j['rr'] as num).toDouble(),
         rateAvailable: j['ra'] as bool? ?? true,
         netCashFlow: (j['cf'] as num).toDouble(),
+        weightedCashFlow: (j['wc'] as num?)?.toDouble() ?? 0,
         missingPriceCount: j['mp'] as int? ?? 0,
         isCurrentPeriod: false,
         contributions: [
@@ -418,9 +463,19 @@ class SettlementService {
     }
 
     final absoluteReturn = (totalEnd - totalStart) - totalNetCashFlow;
-    final denominator = totalStart + totalWeightedCashFlow;
-    final rateAvailable = denominator > 0;
-    final returnRate = rateAvailable ? absoluteReturn / denominator * 100 : 0.0;
+    final pr = periodReturn(
+      absoluteReturn: absoluteReturn,
+      startValue: totalStart,
+      weightedCashFlow: totalWeightedCashFlow,
+      netCashFlow: totalNetCashFlow,
+    );
+    final rateAvailable = pr.available;
+    final returnRate = pr.rate;
+
+    // 종목별 기여도는 포트 전체를 100으로 보는 값이라 같은 분모를 쓴다
+    final denominator = totalStart > 0
+        ? totalStart + totalWeightedCashFlow
+        : totalNetCashFlow;
 
     final contributions = rawItems.map((e) {
       double itemNetCF = 0;
@@ -435,8 +490,13 @@ class SettlementService {
       }
       final itemAbsReturn = (e.endVal - e.startVal) - itemNetCF;
       final contrib = denominator > 0 ? itemAbsReturn / denominator * 100 : 0.0;
-      final itemDenom = e.startVal + itemWeightedCF;
-      final itemReturn = itemDenom > 0 ? itemAbsReturn / itemDenom * 100 : 0.0;
+      // 종목 수익률도 포트·합산과 같은 규칙을 지난다
+      final itemReturn = periodReturn(
+        absoluteReturn: itemAbsReturn,
+        startValue: e.startVal,
+        weightedCashFlow: itemWeightedCF,
+        netCashFlow: itemNetCF,
+      ).rate;
       return SettlementItemContribution(
         itemId: e.item.id,
         name: e.item.name,
@@ -460,6 +520,7 @@ class SettlementService {
       returnRate: returnRate,
       rateAvailable: rateAvailable,
       netCashFlow: totalNetCashFlow,
+      weightedCashFlow: totalWeightedCashFlow,
       isCurrentPeriod: isCurrentPeriod,
       contributions: contributions,
       missingPriceCount: missingPrices,
@@ -518,7 +579,12 @@ class SettlementService {
   // 무효화는 `clearCache`가 맡는다 — 거래·시세가 바뀌면 `_save()`가 부른다.
   // 통째로 비우는 방식이라 거칠지만, 돈 계산에서는 정확한 편이 낫다.
 
-  static const String _prefsKey = 'settlement_cache_v2';
+  /// 저장 키. **수익률 계산식이 바뀌면 반드시 올린다.**
+  ///
+  /// 옛 식으로 낸 값이 캐시에 남아 있으면 새 식으로 다시 계산하지 않아
+  /// 틀린 수익률이 그대로 굳는다. v3은 `periodReturn` 도입 때 올렸다.
+  static const String _prefsKey = 'settlement_cache_v3';
+  static const List<String> _staleKeys = ['settlement_cache_v2'];
 
   /// 너무 불어나지 않게 둔다. 주간 5년치를 담고도 남는다.
   static const int _maxEntries = 400;
@@ -531,6 +597,10 @@ class SettlementService {
     _diskLoaded = true;
     try {
       final prefs = await SharedPreferences.getInstance();
+      // 옛 식으로 낸 값은 남겨두면 틀린 채로 굳는다 — 자리째 지운다
+      for (final k in _staleKeys) {
+        if (prefs.containsKey(k)) await prefs.remove(k);
+      }
       final raw = prefs.getString(_prefsKey);
       if (raw == null) return;
       final map = jsonDecode(raw) as Map<String, dynamic>;
@@ -636,7 +706,7 @@ class SettlementService {
     final results = await Future.wait(portfolios.map((pf) async =>
         (pf: pf, r: await calculateCached(pf, period, key))));
 
-    double start = 0, end = 0, abs = 0, netCF = 0;
+    double start = 0, end = 0, abs = 0, netCF = 0, weightedCF = 0;
     bool isCurrent = false;
     DateTime? periodStart, periodEnd;
 
@@ -649,6 +719,7 @@ class SettlementService {
       end += r.endValue * fx;
       abs += r.absoluteReturn * fx;
       netCF += r.netCashFlow * fx;
+      weightedCF += r.weightedCashFlow * fx;
       if (r.isCurrentPeriod) isCurrent = true;
       periodStart ??= r.periodStart;
       periodEnd ??= r.periodEnd;
@@ -676,6 +747,12 @@ class SettlementService {
       ..sort((a, b) => b.absoluteReturn.abs().compareTo(a.absoluteReturn.abs()));
 
     final range = periodRange(period, key);
+    final combinedReturn = periodReturn(
+      absoluteReturn: abs,
+      startValue: start,
+      weightedCashFlow: weightedCF,
+      netCashFlow: netCF,
+    );
     final combined = CombinedSettlement(
       period: period,
       key: key,
@@ -684,8 +761,10 @@ class SettlementService {
       startValue: start,
       endValue: end,
       absoluteReturn: abs,
-      returnRate: start > 0 ? abs / start * 100 : 0.0,
-      rateAvailable: start > 0,
+      // 헤더만 `손익 ÷ 기초자산`을 쓰다가 바로 밑 포트별 행과 어긋났다.
+      // 이제 세 자리가 모두 periodReturn을 지난다.
+      returnRate: combinedReturn.rate,
+      rateAvailable: combinedReturn.available,
       netCashFlow: netCF,
       isCurrentPeriod: isCurrent,
       contributions: contributions,
