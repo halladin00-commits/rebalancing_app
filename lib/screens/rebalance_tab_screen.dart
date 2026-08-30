@@ -10,6 +10,7 @@ import '../widgets/brand_header.dart';
 import '../widgets/weight_bar.dart';
 import 'portfolio_detail_screen.dart';
 import 'portfolio_rebalance_screen.dart';
+import 'target_weights_screen.dart';
 import 'rebalance_proposal_screen.dart';
 
 /// 리밸런싱 탭 — 포트폴리오별 편차 진단.
@@ -282,14 +283,19 @@ class RebalanceTabScreen extends StatelessWidget {
     final hasPrices = blocker == null;
 
     return InkWell(
-      // 종목이 없는 포트는 리밸런싱 화면에 가봐야 볼 게 없다.
-      // 할 일이 있는 자리(종목 추가)로 보낸다.
+      // **막힌 이유마다 갈 곳이 다르다.** 리밸런싱 화면에 보내봐야 거기서도
+      // 같은 이유로 막혀 있으면 사용자는 한 단계 더 들어가서 막힐 뿐이다.
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => blocker == DriftBlocker.noItems
-              ? PortfolioDetailScreen(portfolioId: pf.id)
-              : PortfolioRebalanceScreen(portfolioId: pf.id),
+          builder: (_) => switch (blocker) {
+            // 담을 게 없다 → 종목을 추가할 수 있는 곳
+            DriftBlocker.noItems => PortfolioDetailScreen(portfolioId: pf.id),
+            // 목표가 없다 → 목표를 정하는 곳
+            DriftBlocker.noTargets => TargetWeightsScreen(portfolioId: pf.id),
+            // 시세만 없다 → 편차 화면(새로고침이 거기 있다)
+            _ => PortfolioRebalanceScreen(portfolioId: pf.id),
+          },
         ),
       ),
       borderRadius: BorderRadius.circular(DS.listCardRadius),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,6 +19,14 @@ import 'l10n/app_localizations.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  // **세로로 고정한다.** 가로로 돌리면 자산 탭 헤더가 화면을 다 먹고
+  // `BOTTOM OVERFLOWED BY 69 PIXELS`와 함께 포트폴리오 목록이 사라진다.
+  // 이 앱은 세로로 긴 목록을 훑는 도구라 가로 레이아웃을 따로 만들 이유가
+  // 없다. 태블릿 대응을 하게 되면 그때 푼다.
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
   MobileAds.instance.initialize();
   StockSearchService.initialize();
   NotificationService.initialize();
