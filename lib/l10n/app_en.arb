@@ -207,6 +207,30 @@
       }
     }
   },
+  "tradeMoneyTitle": "Trade amounts",
+  "tradeMoneyLeft": "Left over",
+  "tradeMoneyNeeded": "Need more",
+  "proposalBasisTitle": "Price basis",
+  "proposalBasisAt": "Calculated with prices as of {time}",
+  "@proposalBasisAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "proposalBasisNote": "If prices move before you order, the quantities change too.",
+  "proposalBasisNever": "No prices fetched yet",
+  "proposalCostTitle": "Fees & taxes",
+  "proposalCostWith": "A {rate}% fee is deducted. Taxes are not included, so your fills will differ slightly.",
+  "@proposalCostWith": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "proposalCostWithout": "Fees and taxes are not included, so your fills will differ slightly.",
   "proposalDisclaimer": "This does not place any orders. Record your trades below once you have actually executed them.",
   "noAdjustmentNeeded": "Nothing to adjust right now",
   "cannotCalculate": "Cannot calculate. Check whether any holding is missing a current price.",

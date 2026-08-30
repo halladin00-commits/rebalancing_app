@@ -662,6 +662,66 @@ abstract class AppLocalizations {
   /// **'소수점 {digits}자리에서 버립니다. 예산을 넘지 않게 하려는 것이라 아주 적은 금액이 남습니다.'**
   String roundingFractionalDesc(int digits);
 
+  /// No description provided for @tradeMoneyTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'거래 대금'**
+  String get tradeMoneyTitle;
+
+  /// No description provided for @tradeMoneyLeft.
+  ///
+  /// In ko, this message translates to:
+  /// **'남는 돈'**
+  String get tradeMoneyLeft;
+
+  /// No description provided for @tradeMoneyNeeded.
+  ///
+  /// In ko, this message translates to:
+  /// **'더 필요'**
+  String get tradeMoneyNeeded;
+
+  /// No description provided for @proposalBasisTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'시세 기준'**
+  String get proposalBasisTitle;
+
+  /// No description provided for @proposalBasisAt.
+  ///
+  /// In ko, this message translates to:
+  /// **'{time} 시세로 계산했습니다'**
+  String proposalBasisAt(String time);
+
+  /// No description provided for @proposalBasisNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'주문할 때 가격이 달라져 있으면 수량도 달라집니다.'**
+  String get proposalBasisNote;
+
+  /// No description provided for @proposalBasisNever.
+  ///
+  /// In ko, this message translates to:
+  /// **'아직 시세를 받지 못했습니다'**
+  String get proposalBasisNever;
+
+  /// No description provided for @proposalCostTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'수수료 · 세금'**
+  String get proposalCostTitle;
+
+  /// No description provided for @proposalCostWith.
+  ///
+  /// In ko, this message translates to:
+  /// **'수수료 {rate}%는 빼고 계산했습니다. 세금(증권거래세 등)은 빠져 있어 실제 체결액과 조금 다릅니다.'**
+  String proposalCostWith(String rate);
+
+  /// No description provided for @proposalCostWithout.
+  ///
+  /// In ko, this message translates to:
+  /// **'수수료와 세금(증권거래세 등)은 빠져 있어 실제 체결액과 조금 다릅니다.'**
+  String get proposalCostWithout;
+
   /// No description provided for @proposalDisclaimer.
   ///
   /// In ko, this message translates to:

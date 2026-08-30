@@ -118,12 +118,11 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
                             _buildHeadline(context, pf, rb, trades),
                             const SizedBox(height: 9),
                             ...?_buildSpreadChoice(context, pf, rb, baseDeltas),
+                            ...?_buildCashLedger(context, pf, rb, trades),
                             _buildSectionTitle(context, trades.length),
-                            _buildMoneyBalance(context, pf, trades),
                             const SizedBox(height: 7),
                             _buildProposalCard(context, pf, shown, baseDeltas),
                             const SizedBox(height: 9),
-                            ...?_buildCashLedger(context, pf, rb, trades),
                             _buildRoundingNote(context, pf, rb, trades),
                             ...?_buildOrderNote(context, pf, trades),
                           ],
@@ -466,87 +465,6 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
     );
   }
 
-  /// 매도 합계 · 매수 합계 · 남는 현금.
-  ///
-  /// 「N건을 모두 실행해야 성립」이라고 말하면서 정작 **그 N건의 돈이 맞는지**는
-  /// 안 보여주고 있었다. 사용자가 알아야 할 건 하나다 — 매도 대금으로 매수가
-  /// 되는가, 모자라는가, 남는가. 없으면 일곱 줄을 손으로 더해야 한다.
-  ///
-  /// 체결가는 제안가와 다르고 매도가 일부만 체결될 수도 있다. 총액이 안 보이면
-  /// **어디서 어긋났는지 알 수 없다.**
-  Widget _buildMoneyBalance(BuildContext context, Portfolio pf,
-      List<RebalanceItemResult> trades) {
-    if (trades.isEmpty) return const SizedBox.shrink();
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
-
-    double sell = 0, buy = 0;
-    for (final r in trades) {
-      final item = pf.items.where((i) => i.id == r.id).firstOrNull;
-      if (item == null) continue;
-      final amt = _amountOf(pf, item, r.delta);
-      if (r.delta > 0) {
-        buy += amt;
-      } else {
-        sell += amt;
-      }
-    }
-
-    Widget cell(String label, String value, Color color) => Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label,
-                  style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: context.textSecondary)),
-              const SizedBox(height: 2),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: Text(value,
-                    maxLines: 1,
-                    style: TextStyle(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.3,
-                        color: color)),
-              ),
-            ],
-          ),
-        );
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 9),
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(14, 11, 14, 12),
-        decoration: BoxDecoration(
-          color: context.subtleFill,
-          borderRadius: BorderRadius.circular(DS.cardRadius),
-        ),
-        child: Row(children: [
-          cell(isKo ? '매도 합계' : 'Sell total',
-              sell > 0 ? fmtMoney(sell, pf.currency) : '—', context.textPrimary),
-          const SizedBox(width: 10),
-          cell(isKo ? '매수 합계' : 'Buy total',
-              buy > 0 ? fmtMoney(buy, pf.currency) : '—', context.textPrimary),
-          const SizedBox(width: 10),
-          // **눈으로 검산되는 값이라야 한다.** `rb.cash`는 미배정 현금이라
-          // 현금 종목에 배정된 몫이 빠져 있어, 매도−매수와 안 맞는다.
-          // 그 차이를 설명할 길이 화면에 없으면 사용자는 돈이 샌 줄 안다.
-          // 여기서는 **매도 − 매수**를 그대로 쓴다.
-          cell(
-            sell >= buy
-                ? (isKo ? '남는 돈' : 'Left over')
-                : (isKo ? '더 필요' : 'Need more'),
-            fmtMoney((sell - buy).abs(), pf.currency),
-            sell >= buy ? context.brandOnLight : context.warningText,
-          ),
-        ]),
-      ),
-    );
-  }
-
   /// 종목 통화 → 포트 통화 환산 금액.
   double _amountOf(Portfolio pf, PortfolioItem item, double delta) {
     double fx = 1.0;
@@ -853,10 +771,14 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
         break;
       }
     }
-    if (cash == null) return null;
+    // **거래가 있으면 항상 낸다.** 「N건을 모두 실행해야 성립」이라고 말하면서
+    // 그 N건의 돈이 맞는지는 안 보여주면, 사용자가 일곱 줄을 손으로 더해야 한다.
+    //
+    // 예수금 종목이 없는 포트는 `조정 후 예수금` 대신 매도−매수 차액만 낸다.
+    // 매수가 하나뿐이면 「같은 예수금을 나눠 쓴다」는 설명만 뺀다.
+    if (trades.isEmpty) return null;
 
     final buyCount = trades.where((r) => r.delta > 0).length;
-    if (buyCount < 2) return null;
 
     double proceeds = 0, cost = 0;
     for (final r in trades) {
@@ -868,13 +790,16 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
         proceeds += amt;
       }
     }
-    final after = cash.shares + proceeds - cost;
+    final diff = proceeds - cost;
+    final after = (cash?.shares ?? 0) + diff;
 
     RebalanceItemResult? cashResult;
-    for (final r in rb.results) {
-      if (r.id == cash.id) {
-        cashResult = r;
-        break;
+    if (cash != null) {
+      for (final r in rb.results) {
+        if (r.id == cash.id) {
+          cashResult = r;
+          break;
+        }
       }
     }
 
@@ -912,7 +837,10 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
             textBaseline: TextBaseline.alphabetic,
             children: [
               Expanded(
-                child: Text(l10n.cashLedgerTitle(buyCount),
+                child: Text(
+                    buyCount >= 2
+                        ? l10n.cashLedgerTitle(buyCount)
+                        : l10n.tradeMoneyTitle,
                     style: TextStyle(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w700,
@@ -929,23 +857,37 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
             ],
           ),
           const SizedBox(height: 9),
-          line(l10n.sellProceeds, '+${fmtMoney(proceeds, pf.currency)}',
-              color: context.brandOnLight),
-          const SizedBox(height: 5),
-          line(l10n.buyCostN(buyCount), '−${fmtMoney(cost, pf.currency)}',
-              color: context.danger),
+          if (proceeds > 0) ...[
+            line(l10n.sellProceeds, '+${fmtMoney(proceeds, pf.currency)}',
+                color: context.brandOnLight),
+            const SizedBox(height: 5),
+          ],
+          if (cost > 0)
+            line(l10n.buyCostN(buyCount), '−${fmtMoney(cost, pf.currency)}',
+                color: context.danger),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 6),
             child: Divider(height: 1, color: context.dividerColor),
           ),
-          line(l10n.cashAfterAdjust, fmtMoney(after, pf.currency), bold: true),
-          const SizedBox(height: 9),
-          Text(l10n.cashSharedNote,
-              style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  height: 1.55,
-                  color: context.textSecondary)),
+          // 예수금 종목이 있으면 **조정 후 예수금**이 더 쓸모 있다 —
+          // 실제로 계좌에 얼마가 남는지가 그 값이다. 없으면 차액을 낸다.
+          cash != null
+              ? line(l10n.cashAfterAdjust, fmtMoney(after, pf.currency),
+                  bold: true)
+              : line(
+                  diff >= 0 ? l10n.tradeMoneyLeft : l10n.tradeMoneyNeeded,
+                  fmtMoney(diff.abs(), pf.currency),
+                  bold: true,
+                  color: diff >= 0 ? context.brandOnLight : context.warningText),
+          if (buyCount >= 2) ...[
+            const SizedBox(height: 9),
+            Text(l10n.cashSharedNote,
+                style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    height: 1.55,
+                    color: context.textSecondary)),
+          ],
         ]),
       ),
       const SizedBox(height: 9),
@@ -1032,9 +974,75 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
               height: 1.55,
               color: context.textSecondary),
         ),
+
+        // **이 숫자를 믿기 전에 알아야 할 것**을 같은 자리에 모은다.
+        //
+        // 사용자는 이 화면을 보고 증권사에서 실제로 주문을 낸다. 그런데
+        // 화면은 `8건을 모두 실행하면 −0.70%p`라고 확신에 차서 말할 뿐,
+        // 그 수량이 **언제 시세로 뽑은 것인지**도, **세금이 빠져 있다**는
+        // 것도 말하지 않았다. 둘 다 실제 체결과 어긋나는 원인이다.
+        _noteDivider(context),
+        _noteRow(
+          context,
+          Icons.schedule,
+          l10n.proposalBasisTitle,
+          pf.lastUpdated == null
+              ? l10n.proposalBasisNever
+              : '${l10n.proposalBasisAt(_stamp(pf.lastUpdated!))}\n'
+                  '${l10n.proposalBasisNote}',
+        ),
+        _noteDivider(context),
+        _noteRow(
+          context,
+          Icons.receipt_long_outlined,
+          l10n.proposalCostTitle,
+          pf.commissionEnabled && pf.commissionRate > 0
+              ? l10n.proposalCostWith(_trimZero(pf.commissionRate))
+              : l10n.proposalCostWithout,
+        ),
       ]),
     );
   }
+
+  Widget _noteDivider(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 11),
+        child: Divider(height: 1, thickness: 1, color: context.dividerColor),
+      );
+
+  Widget _noteRow(
+      BuildContext context, IconData icon, String title, String body) {
+    return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Padding(
+        padding: const EdgeInsets.only(top: 1),
+        child: Icon(icon, size: 18, color: context.textSecondary),
+      ),
+      const SizedBox(width: 9),
+      Expanded(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(title,
+              style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
+                  color: context.textPrimary)),
+          const SizedBox(height: 5),
+          Text(body,
+              style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  height: 1.55,
+                  color: context.textSecondary)),
+        ]),
+      ),
+    ]);
+  }
+
+  /// `08.30 15:11`
+  String _stamp(int ms) {
+    final d = DateTime.fromMillisecondsSinceEpoch(ms);
+    String two(int v) => v.toString().padLeft(2, '0');
+    return '${two(d.month)}.${two(d.day)} ${two(d.hour)}:${two(d.minute)}';
+  }
+
 
   // ── 안내 · 빈 상태 · CTA ──
 

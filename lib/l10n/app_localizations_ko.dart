@@ -329,6 +329,40 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get tradeMoneyTitle => '거래 대금';
+
+  @override
+  String get tradeMoneyLeft => '남는 돈';
+
+  @override
+  String get tradeMoneyNeeded => '더 필요';
+
+  @override
+  String get proposalBasisTitle => '시세 기준';
+
+  @override
+  String proposalBasisAt(String time) {
+    return '$time 시세로 계산했습니다';
+  }
+
+  @override
+  String get proposalBasisNote => '주문할 때 가격이 달라져 있으면 수량도 달라집니다.';
+
+  @override
+  String get proposalBasisNever => '아직 시세를 받지 못했습니다';
+
+  @override
+  String get proposalCostTitle => '수수료 · 세금';
+
+  @override
+  String proposalCostWith(String rate) {
+    return '수수료 $rate%는 빼고 계산했습니다. 세금(증권거래세 등)은 빠져 있어 실제 체결액과 조금 다릅니다.';
+  }
+
+  @override
+  String get proposalCostWithout => '수수료와 세금(증권거래세 등)은 빠져 있어 실제 체결액과 조금 다릅니다.';
+
+  @override
   String get proposalDisclaimer =>
       '이 제안은 주문을 내지 않습니다. 실제로 매매하신 뒤 아래 버튼으로 기록하세요.';
 

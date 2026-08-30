@@ -335,6 +335,42 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get tradeMoneyTitle => 'Trade amounts';
+
+  @override
+  String get tradeMoneyLeft => 'Left over';
+
+  @override
+  String get tradeMoneyNeeded => 'Need more';
+
+  @override
+  String get proposalBasisTitle => 'Price basis';
+
+  @override
+  String proposalBasisAt(String time) {
+    return 'Calculated with prices as of $time';
+  }
+
+  @override
+  String get proposalBasisNote =>
+      'If prices move before you order, the quantities change too.';
+
+  @override
+  String get proposalBasisNever => 'No prices fetched yet';
+
+  @override
+  String get proposalCostTitle => 'Fees & taxes';
+
+  @override
+  String proposalCostWith(String rate) {
+    return 'A $rate% fee is deducted. Taxes are not included, so your fills will differ slightly.';
+  }
+
+  @override
+  String get proposalCostWithout =>
+      'Fees and taxes are not included, so your fills will differ slightly.';
+
+  @override
   String get proposalDisclaimer =>
       'This does not place any orders. Record your trades below once you have actually executed them.';
 
