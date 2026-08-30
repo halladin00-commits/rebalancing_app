@@ -201,7 +201,15 @@ class Rebalancer {
       }
     }
 
-    final fractional = portfolio.fractionalEnabled;
+    // 소수점 매매 가능 여부는 **계좌가 아니라 시장**이 정한다.
+    // 국내 상장 종목은 소수점 주문이 안 된다. 계좌 설정 하나로 켜고 끄면,
+    // 해외주식 때문에 켠 설정이 국내 ETF까지 소수점으로 만들어
+    // `2819.1312주` 같은 **그대로는 주문할 수 없는 수량**이 나온다.
+    bool fractionalFor(PortfolioItem item) =>
+        portfolio.fractionalEnabled && !item.isCash && item.market != 'KR';
+
+    final anyFractional = items.any(fractionalFor);
+    final anyInteger = items.any((i) => !i.isCash && !fractionalFor(i));
 
     /// [base]를 목표 금액의 기준으로 삼아 각 종목의 목표 수량을 잡는다.
     /// 현재 비중(currentWeight)은 언제나 실제 총액 기준으로 둔다.
@@ -239,9 +247,10 @@ class Rebalancer {
         } else {
           if (p <= 0) continue; // 안전장치
           final ideal = tv / p;
+          final frac = fractionalFor(item);
           final assigned = locked
               ? item.shares
-              : (fractional
+              : (frac
                   ? (portfolio.fractionalRounding ==
                           FractionalRounding.minDeviation
                       ? roundShares(ideal)
@@ -250,7 +259,7 @@ class Rebalancer {
           out.add(_CalcItem(
               item: item, price: p, currentValue: cv, currentWeight: cw,
               targetValue: tv, ideal: ideal, baseShares: assigned,
-              remainder: (locked || fractional) ? 0 : ideal - assigned,
+              remainder: (locked || frac) ? 0 : ideal - assigned,
               locked: locked));
         }
       }
@@ -265,14 +274,18 @@ class Rebalancer {
 
     var data = allocate(total);
 
-    if (fractional) {
+    // 소수점으로 배분되는 종목은 내림에서 남는 돈이 없어 수수료를 못 덮는다.
+    // 그런 종목이 **하나라도** 있으면 예산에서 수수료를 미리 뺀다.
+    if (anyFractional && cr > 0) {
       // 1차 배분으로 수수료를 어림한 뒤 그만큼 예산을 줄여 다시 배분한다.
       // 수수료율이 0.015% 수준이라 한 번이면 충분히 수렴한다.
-      if (cr > 0) {
-        final est = commissionOf(data);
-        if (est > 0 && est < total) data = allocate(total - est);
-      }
-    } else {
+      final est = commissionOf(data);
+      if (est > 0 && est < total) data = allocate(total - est);
+    }
+
+    // 정수로 배분되는 종목이 있으면 남은 예산을 최대잉여법으로 나눈다.
+    // 한 계좌에 국내(정수)와 해외(소수점)가 섞이면 **둘 다** 돈다.
+    if (anyInteger) {
       // 잠긴 종목은 잔여 예산 배분에서 빠진다
       final stocks = data.where((d) => !d.item.isCash && !d.locked).toList()
         ..sort((a, b) => b.remainder.compareTo(a.remainder));

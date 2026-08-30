@@ -7,6 +7,12 @@ import 'package:rebalancing_app/utils/share_format.dart';
 /// 소수점 거래는 포트폴리오별 설정이고, 기본값은 온주(1주 단위) 거래다.
 /// 켰을 때 목표 비중에 정확히 맞는지, 껐을 때 예전 동작이 그대로인지,
 /// 그리고 잔여 현금이 음수가 되지 않는지를 확인한다.
+///
+/// **종목을 해외(US)로 둔다.** 소수점 매매는 계좌가 아니라 시장이 정하고,
+/// 국내 상장 종목은 소수점 주문이 안 되기 때문이다. 계좌 통화도 USD로 두어
+/// 환산이 끼어들지 않게 했다 — 숫자는 예전 KR/KRW 구성과 똑같다.
+/// 국내 종목이 설정과 무관하게 정수로 나오는지는
+/// `rebalancer_market_fractional_test.dart`가 지킨다.
 void main() {
   PortfolioItem stock({
     required String id,
@@ -18,7 +24,7 @@ void main() {
         id: id,
         name: id,
         ticker: id,
-        market: 'KR',
+        market: 'US',
         targetWeight: target,
         shares: shares,
         currentPrice: price,
@@ -35,6 +41,7 @@ void main() {
       Portfolio(
         id: 'p',
         name: 'p',
+        currency: 'USD',
         items: items,
         fractionalEnabled: fractional,
         rebalancingThreshold: threshold,

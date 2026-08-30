@@ -119,6 +119,7 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
                             const SizedBox(height: 9),
                             ...?_buildSpreadChoice(context, pf, rb, baseDeltas),
                             _buildSectionTitle(context, trades.length),
+                            _buildMoneyBalance(context, pf, trades),
                             const SizedBox(height: 7),
                             _buildProposalCard(context, pf, shown, baseDeltas),
                             const SizedBox(height: 9),
@@ -459,6 +460,87 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
                   fontWeight: FontWeight.w600,
                   color: context.textSecondary)),
         ],
+      ),
+    );
+  }
+
+  /// 매도 합계 · 매수 합계 · 남는 현금.
+  ///
+  /// 「N건을 모두 실행해야 성립」이라고 말하면서 정작 **그 N건의 돈이 맞는지**는
+  /// 안 보여주고 있었다. 사용자가 알아야 할 건 하나다 — 매도 대금으로 매수가
+  /// 되는가, 모자라는가, 남는가. 없으면 일곱 줄을 손으로 더해야 한다.
+  ///
+  /// 체결가는 제안가와 다르고 매도가 일부만 체결될 수도 있다. 총액이 안 보이면
+  /// **어디서 어긋났는지 알 수 없다.**
+  Widget _buildMoneyBalance(BuildContext context, Portfolio pf,
+      List<RebalanceItemResult> trades) {
+    if (trades.isEmpty) return const SizedBox.shrink();
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+
+    double sell = 0, buy = 0;
+    for (final r in trades) {
+      final item = pf.items.where((i) => i.id == r.id).firstOrNull;
+      if (item == null) continue;
+      final amt = _amountOf(pf, item, r.delta);
+      if (r.delta > 0) {
+        buy += amt;
+      } else {
+        sell += amt;
+      }
+    }
+
+    Widget cell(String label, String value, Color color) => Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label,
+                  style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: context.textSecondary)),
+              const SizedBox(height: 2),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(value,
+                    maxLines: 1,
+                    style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.3,
+                        color: color)),
+              ),
+            ],
+          ),
+        );
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 9),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(14, 11, 14, 12),
+        decoration: BoxDecoration(
+          color: context.subtleFill,
+          borderRadius: BorderRadius.circular(DS.cardRadius),
+        ),
+        child: Row(children: [
+          cell(isKo ? '매도 합계' : 'Sell total',
+              sell > 0 ? fmtMoney(sell, pf.currency) : '—', context.textPrimary),
+          const SizedBox(width: 10),
+          cell(isKo ? '매수 합계' : 'Buy total',
+              buy > 0 ? fmtMoney(buy, pf.currency) : '—', context.textPrimary),
+          const SizedBox(width: 10),
+          // **눈으로 검산되는 값이라야 한다.** `rb.cash`는 미배정 현금이라
+          // 현금 종목에 배정된 몫이 빠져 있어, 매도−매수와 안 맞는다.
+          // 그 차이를 설명할 길이 화면에 없으면 사용자는 돈이 샌 줄 안다.
+          // 여기서는 **매도 − 매수**를 그대로 쓴다.
+          cell(
+            sell >= buy
+                ? (isKo ? '남는 돈' : 'Left over')
+                : (isKo ? '더 필요' : 'Need more'),
+            fmtMoney((sell - buy).abs(), pf.currency),
+            sell >= buy ? context.brandOnLight : context.warningText,
+          ),
+        ]),
       ),
     );
   }
