@@ -55,6 +55,15 @@ class Rebalancer {
     return b == null || b == DriftBlocker.noItems;
   }
 
+  /// 이 종목에 **소수점 수량을 쓸 수 있는가.**
+  ///
+  /// 소수점 매매 가능 여부는 계좌가 아니라 **시장**이 정한다. 국내 상장
+  /// 종목은 소수점 주문이 안 된다. 계산과 화면이 각자 판단하면 어긋난다 —
+  /// 설정 화면 미리보기가 국내 종목을 골라 `2819주 → 2819주`처럼
+  /// 똑같은 두 값을 "이렇게 바뀝니다"라고 보여준 적이 있다.
+  static bool allowsFractional(Portfolio portfolio, PortfolioItem item) =>
+      portfolio.fractionalEnabled && !item.isCash && item.market != 'KR';
+
   /// 편차를 못 내는 **이유**. 낼 수 있으면 null.
   ///
   /// 이유를 안 가리면 화면이 하나의 문구로 뭉뚱그린다 — 종목이 0개인
@@ -206,7 +215,7 @@ class Rebalancer {
     // 해외주식 때문에 켠 설정이 국내 ETF까지 소수점으로 만들어
     // `2819.1312주` 같은 **그대로는 주문할 수 없는 수량**이 나온다.
     bool fractionalFor(PortfolioItem item) =>
-        portfolio.fractionalEnabled && !item.isCash && item.market != 'KR';
+        allowsFractional(portfolio, item);
 
     final anyFractional = items.any(fractionalFor);
     final anyInteger = items.any((i) => !i.isCash && !fractionalFor(i));

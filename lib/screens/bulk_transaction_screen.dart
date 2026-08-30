@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../main.dart';
+import '../utils/rebalancer.dart';
 import '../models/portfolio.dart';
 import '../services/review_service.dart';
 import '../theme/design_system.dart';
@@ -285,9 +286,16 @@ class _BulkTransactionScreenState extends State<BulkTransactionScreen> {
         Row(children: [
           Expanded(
               child: _field(l10n.transactionQty, _qtyCtrl[r.id]!,
-                  isInt: !widget.pf.fractionalEnabled)),
+                  // 소수점은 시장이 정한다 — 국내 종목은 늘 정수다
+                  isInt: !Rebalancer.allowsFractional(widget.pf, item))),
           const SizedBox(width: 8),
-          Expanded(child: _field(l10n.transactionPrice, _priceCtrl[r.id]!)),
+          // **단가에 통화를 붙인다.** 금액은 포트 통화(₩)로 적으면서 단가는
+          // 종목 통화(NVIDIA면 $)라, 표시가 없으면 같은 행에 두 통화가
+          // 섞인 채로 구분이 안 된다. 고쳐 넣다가 원화 금액을 달러 칸에
+          // 적기 쉽다.
+          Expanded(
+              child: _field(l10n.transactionPrice, _priceCtrl[r.id]!,
+                  prefix: item.market == 'US' ? '\$' : '₩')),
         ]),
         if (crossesFx) ...[
           const SizedBox(height: 8),
@@ -304,7 +312,8 @@ class _BulkTransactionScreenState extends State<BulkTransactionScreen> {
     );
   }
 
-  Widget _field(String label, TextEditingController ctl, {bool isInt = false}) {
+  Widget _field(String label, TextEditingController ctl,
+      {bool isInt = false, String? prefix}) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(label,
           style: TextStyle(
@@ -334,6 +343,18 @@ class _BulkTransactionScreenState extends State<BulkTransactionScreen> {
           focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(DS.tileRadius),
               borderSide: BorderSide(color: context.brand, width: 1.5)),
+          prefixIcon: prefix == null
+              ? null
+              : Padding(
+                  padding: const EdgeInsets.only(left: 10, right: 2),
+                  child: Text(prefix,
+                      style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: context.textSecondary)),
+                ),
+          prefixIconConstraints:
+              const BoxConstraints(minWidth: 0, minHeight: 0),
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
           isDense: true,

@@ -147,16 +147,29 @@ class FractionalSettingsScreen extends StatelessWidget {
   /// 규칙을 바꾸면 실제 제안이 어떻게 달라지는지 그 자리에서 보여준다.
   Widget _buildPreview(BuildContext context, List<Portfolio> portfolios) {
     final l10n = context.l10n;
-    final pf = portfolios.where((p) => p.fractionalEnabled).firstOrNull;
-    if (pf == null) return const SizedBox.shrink();
-
-    final rb = Rebalancer.calculate(pf);
-    final trade = rb?.results
-        .where((r) => !r.isCash && r.delta != 0)
-        .firstOrNull;
-    if (trade == null) return const SizedBox.shrink();
-
-    final item = pf.items.firstWhere((i) => i.id == trade.id);
+    // **소수점이 실제로 적용되는 종목**을 골라야 한다. 국내 종목을 고르면
+    // 두 칸에 같은 수가 들어가 `2819주 → 2819주`가 되고, 그걸
+    // "이렇게 바뀝니다"라고 말하게 된다.
+    Portfolio? pf;
+    RebalanceItemResult? trade;
+    PortfolioItem? item;
+    for (final p in portfolios.where((p) => p.fractionalEnabled)) {
+      final rb = Rebalancer.calculate(p);
+      if (rb == null) continue;
+      for (final r in rb.results) {
+        if (r.isCash || r.delta == 0) continue;
+        final it = p.items.where((i) => i.id == r.id).firstOrNull;
+        if (it == null || !Rebalancer.allowsFractional(p, it)) continue;
+        pf = p;
+        trade = r;
+        item = it;
+        break;
+      }
+      if (trade != null) break;
+    }
+    if (pf == null || trade == null || item == null) {
+      return const SizedBox.shrink();
+    }
     final whole = trade.delta.abs().truncateToDouble();
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
