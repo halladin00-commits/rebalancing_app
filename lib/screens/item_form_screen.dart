@@ -22,6 +22,15 @@ class ItemFormScreen extends StatefulWidget {
 
   final bool priceAuto;
   final String currency;
+
+  /// **이 종목을 뺀** 나머지 종목들의 목표 비중 합.
+  ///
+  /// 여기서 합계를 막지는 않는다 — 종목을 하나씩 넣는 동안 합계가 100이
+  /// 아닌 건 정상이고, 막으면 첫 종목부터 못 넣는다. 대신 넣는 자리에서
+  /// **얼마가 남았는지 보여준다.** 안 보여주면 60%짜리 하나만 넣어 두고
+  /// 조정 제안 화면에서 막다른 길에 부딪힌 뒤에야 알게 된다.
+  final double otherWeights;
+
   final void Function(PortfolioItem) onSave;
 
   const ItemFormScreen({
@@ -30,6 +39,7 @@ class ItemFormScreen extends StatefulWidget {
     this.preset,
     this.priceAuto = false,
     this.currency = 'KRW',
+    this.otherWeights = 0,
     required this.onSave,
   });
 
@@ -72,10 +82,46 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
         text: (src?.avgPrice ?? 0) == 0 ? '' : _trim(src!.avgPrice));
     _priceCtl = TextEditingController(
         text: (src?.currentPrice ?? 0) == 0 ? '' : _trim(src!.currentPrice));
+    _weightCtl.addListener(_onWeightChanged);
   }
+
+  void _onWeightChanged() => setState(() {});
+
+  /// 목표 비중 칸 옆에 적을 안내.
+  ///
+  /// **경고가 아니라 안내다.** 종목을 하나씩 넣는 동안 합계가 100이 아닌 건
+  /// 정상이므로 저장을 막지 않는다. 다만 얼마가 남았는지는 넣는 자리에서
+  /// 보여야 한다 — 안 그러면 조정 제안 화면에서 막힌 뒤에야 알게 된다.
+  String? _weightNote(dynamic l10n) {
+    // 현금은 목표 비중을 안 쓰는 포트가 많고, 비어 있으면 아직 안 정한 것이다
+    if (_weightCtl.text.trim().isEmpty && widget.otherWeights == 0) return null;
+    final sum = _weightSum;
+    final left = 100 - sum;
+    if (left.abs() < 0.01) return _isKo ? '합계 100%' : 'Total 100%';
+    return left > 0
+        ? (_isKo
+            ? '합계 ${_trim(sum)}% · ${_trim(left)}% 남음'
+            : 'Total ${_trim(sum)}% · ${_trim(left)}% left')
+        : (_isKo
+            ? '합계 ${_trim(sum)}% · ${_trim(-left)}% 초과'
+            : 'Total ${_trim(sum)}% · ${_trim(-left)}% over');
+  }
+
+  Color _weightNoteColor(BuildContext context) =>
+      (_weightSum - 100).abs() < 0.01
+          ? context.brandOnLight
+          : context.warningText;
+
+  bool get _isKo => Localizations.localeOf(context).languageCode == 'ko';
+
+  /// 이 종목까지 넣었을 때의 목표 비중 합
+  double get _weightSum =>
+      widget.otherWeights +
+      (double.tryParse(_weightCtl.text.trim().replaceAll(',', '')) ?? 0);
 
   @override
   void dispose() {
+    _weightCtl.removeListener(_onWeightChanged);
     for (final c in [_nameCtl, _weightCtl, _sharesCtl, _avgCtl, _priceCtl]) {
       c.dispose();
     }
@@ -105,7 +151,10 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
               ListCard(rows: [
                 _textRow(context, l10n.itemName, _nameCtl,
                     hint: l10n.itemNameHint),
-                _numRow(context, l10n.targetWeight, _weightCtl, suffix: '%'),
+                _numRow(context, l10n.targetWeight, _weightCtl,
+                    suffix: '%',
+                    note: _weightNote(l10n),
+                    noteColor: _weightNoteColor(context)),
                 if (!_isCash) ...[
                   _numRow(context, l10n.holdingQty, _sharesCtl,
                       suffix: l10n.unitShares,
@@ -311,23 +360,35 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
       {String? prefix,
       String? suffix,
       bool enabled = true,
-      String? note}) {
+      String? note,
+      Color? noteColor}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(children: [
+        // 라벨이 Expanded로 공간을 다 먹으면 안내가 `…`로 잘린다.
+        // 안내가 있을 때는 몫을 2:3으로 나눈다.
         Expanded(
+          flex: note == null ? 1 : 2,
           child: Text(label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w600,
                   color: context.textSecondary)),
         ),
         if (note != null) ...[
-          Text(note,
-              style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: context.textTertiary)),
+          Expanded(
+            flex: 3,
+            child: Text(note,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.right,
+                style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: noteColor ?? context.textTertiary)),
+          ),
           const SizedBox(width: 8),
         ],
         if (prefix != null)

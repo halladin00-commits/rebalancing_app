@@ -410,6 +410,8 @@ class _ItemSearchScreenState extends State<ItemSearchScreen> {
                       isCash: true,
                     )
                   : null),
+          otherWeights:
+              pf.items.fold<double>(0, (s, i) => s + i.targetWeight),
           priceAuto: pf.priceAuto,
           currency: pf.currency,
           onSave: (item) {

@@ -170,6 +170,9 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
       MaterialPageRoute(
         builder: (_) => ItemFormScreen(
           item: item,
+          otherWeights: pf.items
+              .where((i) => i.id != item?.id)
+              .fold<double>(0, (s, i) => s + i.targetWeight),
           priceAuto: pf.priceAuto,
           currency: pf.currency,
           onSave: (newItem) {
