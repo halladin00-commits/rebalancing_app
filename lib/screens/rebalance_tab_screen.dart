@@ -7,6 +7,7 @@ import '../widgets/portfolio_actions.dart';
 import '../utils/rebalancer.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/weight_bar.dart';
+import 'portfolio_detail_screen.dart';
 import 'portfolio_rebalance_screen.dart';
 
 /// 리밸런싱 탭 — 포트폴리오별 편차 진단.
@@ -47,6 +48,11 @@ class RebalanceTabScreen extends StatelessWidget {
                 title: l10n.tabRebalancing,
                 childPadding: const EdgeInsets.fromLTRB(22, 2, 22, 18),
                 actions: [
+                  IconButton(
+                    icon: const Icon(Icons.help_outline, color: Colors.white),
+                    tooltip: isKo ? '이 화면 읽는 법' : 'Reading this screen',
+                    onPressed: () => showLegend(context),
+                  ),
                   IconButton(
                     icon: provider.refreshing
                         ? const SizedBox(
@@ -165,7 +171,7 @@ class RebalanceTabScreen extends StatelessWidget {
           children: [
             _headerChip(
                 context, isKo ? '허용 편차는 포트별 설정' : 'Tolerance is per portfolio'),
-            const SizedBox(width: 6),
+            _headerChip(context, '  ·  '),
             _headerChip(context, timeStr),
           ],
         ),
@@ -173,20 +179,85 @@ class RebalanceTabScreen extends StatelessWidget {
     );
   }
 
+  /// 이 화면을 읽는 법.
+  ///
+  /// `%p`(퍼센트포인트)는 정확한 용어지만 금융 실무 밖에서는 **`%`의 오타처럼
+  /// 보인다.** 첫 화면부터 모르는 기호가 나오면 「내가 이해 못 할 앱」이라는
+  /// 판단이 먼저 선다. 용어를 바꾸는 대신 **한 번만 가르쳐 준다.**
+  static void showLegend(BuildContext context) {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: context.scaffoldBg,
+      shape: const RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(DS.sheetRadius)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(
+            22, 20, 22, MediaQuery.of(ctx).padding.bottom + 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(isKo ? '이 화면 읽는 법' : 'Reading this screen',
+                style: TextStyle(
+                    fontSize: DS.rowName,
+                    fontWeight: FontWeight.w800,
+                    color: context.textPrimary)),
+            const SizedBox(height: 16),
+            _legendRow(context, '%p',
+                isKo
+                    ? '비중의 차이입니다. 목표가 10%인데 지금 58%면 +48%p입니다.'
+                    : 'A difference in weight. Target 10%, now 58% → +48pp.'),
+            _legendRow(context, isKo ? '허용 편차' : 'Tolerance',
+                isKo
+                    ? '이만큼까지는 그냥 두겠다는 선입니다. 포트폴리오마다 따로 정합니다.'
+                    : "How far you'll let it drift before acting. Set per portfolio."),
+            _legendRow(context, isKo ? '세로선' : 'Tick marks',
+                isKo
+                    ? '막대 위의 세로선이 목표 비중 자리입니다.'
+                    : 'Where each holding’s target weight sits on the bar.'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static Widget _legendRow(BuildContext context, String term, String desc) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 15),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(term,
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: context.brandOnLight)),
+          const SizedBox(height: 3),
+          Text(desc,
+              style: TextStyle(
+                  fontSize: 13,
+                  height: 1.6,
+                  fontWeight: FontWeight.w500,
+                  color: context.textSecondary)),
+        ],
+      ),
+    );
+  }
+
+  /// 헤더의 부가 정보. **알약 모양을 쓰지 않는다.**
+  ///
+  /// 같은 화면에 눌리는 알약(필터 칩)과 안 눌리는 알약(이 자리)이 섞여 있으면
+  /// 사용자는 매번 눌러 확인해야 한다. 알약은 누를 수 있는 것에만 남긴다.
   Widget _headerChip(BuildContext context, String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(DS.chipRadius),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-            fontSize: DS.caption,
-            fontWeight: FontWeight.w700,
-            color: context.onBrandSecondary),
-      ),
+    return Text(
+      text,
+      style: TextStyle(
+          fontSize: DS.caption,
+          fontWeight: FontWeight.w600,
+          color: context.onBrandSecondary),
     );
   }
 
@@ -199,13 +270,19 @@ class RebalanceTabScreen extends StatelessWidget {
 
     // 편차가 가장 큰 종목 (allDrifts는 편차 절댓값 내림차순)
     final maxDrift = drifts.isEmpty ? 0.0 : drifts.first.drift;
-    final hasPrices = drifts.isNotEmpty;
+    final blocker = Rebalancer.driftBlocker(pf);
+    final hasPrices = blocker == null;
 
     return InkWell(
+      // 종목이 없는 포트는 리밸런싱 화면에 가봐야 볼 게 없다.
+      // 할 일이 있는 자리(종목 추가)로 보낸다.
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (_) => PortfolioRebalanceScreen(portfolioId: pf.id)),
+          builder: (_) => blocker == DriftBlocker.noItems
+              ? PortfolioDetailScreen(portfolioId: pf.id)
+              : PortfolioRebalanceScreen(portfolioId: pf.id),
+        ),
       ),
       borderRadius: BorderRadius.circular(DS.listCardRadius),
       child: Container(
@@ -236,7 +313,7 @@ class RebalanceTabScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                _statusBadge(context, needsAdjusting, hasPrices, isKo),
+                _statusBadge(context, needsAdjusting, blocker, isKo),
                 const SizedBox(width: 4),
                 Icon(Icons.chevron_right,
                     size: 20, color: context.textTertiary),
@@ -299,8 +376,19 @@ class RebalanceTabScreen extends StatelessWidget {
               ),
             ] else ...[
               const SizedBox(height: 10),
+              // 이유를 안 가리면 셋 중 둘은 거짓말이 된다
               Text(
-                isKo ? '시세를 받으면 편차를 계산합니다' : 'Drift needs current prices',
+                switch (blocker) {
+                  DriftBlocker.noItems => isKo
+                      ? '종목을 추가하면 편차를 계산합니다'
+                      : 'Add holdings to see drift',
+                  DriftBlocker.noTargets => isKo
+                      ? '목표 비중을 정하면 편차를 계산합니다'
+                      : 'Set target weights to see drift',
+                  DriftBlocker.noPrices => isKo
+                      ? '시세를 받으면 편차를 계산합니다'
+                      : 'Drift needs current prices',
+                },
                 style:
                     TextStyle(fontSize: DS.body, color: context.textSecondary),
               ),
@@ -311,13 +399,28 @@ class RebalanceTabScreen extends StatelessWidget {
     );
   }
 
-  Widget _statusBadge(
-      BuildContext context, bool needsAdjusting, bool hasPrices, bool isKo) {
-    if (!hasPrices) {
-      return _badge(context, isKo ? '계산 불가' : 'No data',
-          fg: context.textSecondary,
-          bg: context.trackBg,
-          weight: FontWeight.w700);
+  Widget _statusBadge(BuildContext context, bool needsAdjusting,
+      DriftBlocker? blocker, bool isKo) {
+    if (blocker != null) {
+      // `계산 불가`는 앱이 고장난 것처럼 들린다. 할 일이 있으면 그걸 말한다.
+      final (text, fg, bg) = switch (blocker) {
+        DriftBlocker.noItems => (
+            isKo ? '종목 없음' : 'Empty',
+            context.textSecondary,
+            context.trackBg
+          ),
+        DriftBlocker.noTargets => (
+            isKo ? '목표 미설정' : 'No targets',
+            context.warningText,
+            context.warningBg
+          ),
+        DriftBlocker.noPrices => (
+            isKo ? '시세 없음' : 'No prices',
+            context.warningText,
+            context.warningBg
+          ),
+      };
+      return _badge(context, text, fg: fg, bg: bg, weight: FontWeight.w700);
     }
     return needsAdjusting
         ? _badge(context, isKo ? '조정 필요' : 'Adjust',

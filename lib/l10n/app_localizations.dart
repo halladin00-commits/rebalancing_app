@@ -515,7 +515,7 @@ abstract class AppLocalizations {
   /// No description provided for @manualEntryHint.
   ///
   /// In ko, this message translates to:
-  /// **'목록에 없으면 직접 등록'**
+  /// **'직접 입력해서 추가'**
   String get manualEntryHint;
 
   /// No description provided for @alreadyInPortfolio.

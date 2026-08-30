@@ -242,7 +242,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get cashAddButton => '예수금 추가';
 
   @override
-  String get manualEntryHint => '목록에 없으면 직접 등록';
+  String get manualEntryHint => '직접 입력해서 추가';
 
   @override
   String alreadyInPortfolio(String name) {

@@ -152,7 +152,11 @@ class _ItemSearchScreenState extends State<ItemSearchScreen> {
       padding: const EdgeInsets.fromLTRB(16, 13, 16, 0),
       child: TextField(
         controller: _ctl,
-        autofocus: true,
+        // **자동 포커스를 쓰지 않는다.** 키보드가 즉시 올라오면 화면 맨 아래
+        // `직접 입력해서 추가`를 덮는다. 티커를 모르는 종목(비상장·소형주)에는
+        // 그쪽이 주 경로인데, 키보드에 가려 있으면 없는 것과 같다.
+        // 검색이 목적인 사람은 어차피 검색창을 누른다.
+        autofocus: false,
         onChanged: _onChanged,
         style: TextStyle(
             fontSize: 14.5,
@@ -250,7 +254,11 @@ class _ItemSearchScreenState extends State<ItemSearchScreen> {
     }
     final list = _filtered;
     if (list.isEmpty) {
-      return _hint(context, Icons.search_off, l10n.searchNoResult);
+      // 결과가 0건이면 다음 행동은 하나뿐이다. 화면 아래 링크를 찾게 두지 않고
+      // 여기로 올린다.
+      return _hint(context, Icons.search_off, l10n.searchNoResult,
+          action: _filter == _Filter.cash ? null : () => _openForm(context),
+          actionLabel: l10n.manualEntryHint);
     }
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 11, 16, 16),
@@ -277,7 +285,8 @@ class _ItemSearchScreenState extends State<ItemSearchScreen> {
     );
   }
 
-  Widget _hint(BuildContext context, IconData icon, String text) {
+  Widget _hint(BuildContext context, IconData icon, String text,
+      {VoidCallback? action, String? actionLabel}) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -291,6 +300,30 @@ class _ItemSearchScreenState extends State<ItemSearchScreen> {
                   height: 1.6,
                   fontWeight: FontWeight.w600,
                   color: context.textTertiary)),
+          if (action != null && actionLabel != null) ...[
+            const SizedBox(height: 16),
+            GestureDetector(
+              onTap: action,
+              behavior: HitTestBehavior.opaque,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
+                decoration: BoxDecoration(
+                  color: context.brand,
+                  borderRadius: BorderRadius.circular(DS.chipRadius),
+                ),
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  const Icon(Icons.edit_note, size: 18, color: Colors.white),
+                  const SizedBox(width: 7),
+                  Text(actionLabel,
+                      style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white)),
+                ]),
+              ),
+            ),
+          ],
         ]),
       ),
     );

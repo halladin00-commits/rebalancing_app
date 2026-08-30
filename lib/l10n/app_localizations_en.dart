@@ -248,7 +248,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cashAddButton => 'Add cash';
 
   @override
-  String get manualEntryHint => 'Not listed? Add it manually';
+  String get manualEntryHint => 'Add manually';
 
   @override
   String alreadyInPortfolio(String name) {

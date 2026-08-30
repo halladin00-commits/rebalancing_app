@@ -15,6 +15,10 @@ class ItemDrift {
   });
 }
 
+/// 편차를 못 내는 이유. 셋은 사용자가 할 일이 서로 다르다 —
+/// 종목을 넣거나, 목표를 정하거나, 시세를 다시 받거나.
+enum DriftBlocker { noItems, noTargets, noPrices }
+
 class Rebalancer {
   /// 허용 편차(`Portfolio.rebalancingThreshold`)를 넘어선 종목을 편차 큰 순으로 반환한다.
   ///
@@ -47,9 +51,28 @@ class Rebalancer {
   ///
   /// 보유 종목이 없으면 잴 것이 없는 것이지 못 재는 게 아니라 true다.
   static bool canComputeDrift(Portfolio portfolio) {
-    final holdings = portfolio.items.where((i) => !i.isCash).toList();
-    if (holdings.isEmpty) return true;
-    return allDrifts(portfolio).isNotEmpty;
+    final b = driftBlocker(portfolio);
+    return b == null || b == DriftBlocker.noItems;
+  }
+
+  /// 편차를 못 내는 **이유**. 낼 수 있으면 null.
+  ///
+  /// 이유를 안 가리면 화면이 하나의 문구로 뭉뚱그린다 — 종목이 0개인
+  /// 포트에 `시세를 받으면 편차를 계산합니다`라고 말하는 식이다. 사용자는
+  /// 그 말을 믿고 **고칠 수 없는 것을 고치려 든다**(새로고침을 반복한다).
+  ///
+  /// 순서가 중요하다. 종목이 없으면 목표도 시세도 물을 필요가 없고,
+  /// 목표가 없으면 시세가 있어도 편차라는 개념이 성립하지 않는다.
+  static DriftBlocker? driftBlocker(Portfolio portfolio) {
+    final holdings = portfolio.items.where((i) => !i.isCash);
+    if (holdings.isEmpty) return DriftBlocker.noItems;
+
+    final targetSum =
+        portfolio.items.fold<double>(0, (s, i) => s + i.targetWeight);
+    if (targetSum <= 0) return DriftBlocker.noTargets;
+
+    if (allDrifts(portfolio).isEmpty) return DriftBlocker.noPrices;
+    return null;
   }
 
   /// 전 종목의 현재 비중과 편차. 편차 절댓값 내림차순.

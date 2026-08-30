@@ -147,7 +147,7 @@
   "filterUs": "Overseas",
   "cashAddHint": "Cash is not searched — you add it directly.\nRecording your account cash as one item\nlets it count toward your weights.",
   "cashAddButton": "Add cash",
-  "manualEntryHint": "Not listed? Add it manually",
+  "manualEntryHint": "Add manually",
   "alreadyInPortfolio": "{name} is already in this portfolio",
   "@alreadyInPortfolio": {
     "placeholders": {

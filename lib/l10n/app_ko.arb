@@ -147,7 +147,7 @@
   "filterUs": "해외",
   "cashAddHint": "예수금은 검색이 아니라 바로 만듭니다.\n계좌에 남은 현금을 한 항목으로 넣어 두면\n비중 계산에 함께 잡힙니다.",
   "cashAddButton": "예수금 추가",
-  "manualEntryHint": "목록에 없으면 직접 등록",
+  "manualEntryHint": "직접 입력해서 추가",
   "alreadyInPortfolio": "{name} 이미 담겨 있습니다",
   "@alreadyInPortfolio": {
     "placeholders": {
