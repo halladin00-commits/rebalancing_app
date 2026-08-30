@@ -63,7 +63,7 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
 
   String _pct(double n) => '${n.toStringAsFixed(2)}%';
   String _pp(double n) =>
-      '${n >= 0 ? '+' : '−'}${n.abs().toStringAsFixed(2)}%p';
+      fmtPp(n, Localizations.localeOf(context).languageCode == 'ko');
 
   @override
   Widget build(BuildContext context) {
@@ -161,8 +161,10 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
         color: context.appBarBg,
         child: SafeArea(
           bottom: false,
-          child: SizedBox(
-            height: 52,
+          // 큰 글씨 설정(접근성)에서 제목+부제가 52px를 넘는다. 고정이면
+          // `BOTTOM OVERFLOWED`가 뜬다 — 최소 높이만 정하고 늘어나게 둔다.
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 52),
             child: Row(children: [
               IconButton(
                 icon: const Icon(Icons.arrow_back, color: Colors.white, size: 22),

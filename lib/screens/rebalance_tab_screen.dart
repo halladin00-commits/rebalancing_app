@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
+import '../utils/money_format.dart';
 import '../models/portfolio.dart';
 import '../theme/design_system.dart';
 import '../widgets/portfolio_actions.dart';
@@ -385,7 +386,7 @@ class RebalanceTabScreen extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    '${maxDrift >= 0 ? '+' : '−'}${maxDrift.abs().toStringAsFixed(2)}%p',
+                    fmtPp(maxDrift, isKo),
                     style: TextStyle(
                       fontSize: DS.sectionTitle,
                       fontWeight: FontWeight.w700,

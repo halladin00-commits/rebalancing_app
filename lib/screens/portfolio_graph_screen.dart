@@ -424,44 +424,61 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
             child: Column(children: [
+              // 전환 버튼은 **캡처 영역 밖**에 둔다.
+              //
+              // 전에는 이 버튼이 캡처 안에 있어서 편집 모드에서만 보였다.
+              // 그래서 평소 화면은 목표 비중을 그리면서 **그게 목표라는 표시가
+              // 어디에도 없었다** — 실제 90/10인 포트가 60/40으로 보였고,
+              // 그 그림이 공유·저장 버튼으로 밖으로 나갔다.
+              Container(
+                decoration: BoxDecoration(
+                  color: context.rowBg,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: context.borderColor),
+                ),
+                child: Row(children: [
+                  _segBtn(context, l10n.targetWeight, !_showCurrent,
+                      () => setState(() {
+                        _showCurrent = false;
+                        _noticeNoData = false;
+                      })),
+                  _segBtn(context, l10n.currentWeight,
+                      _showCurrent && hasCurrent,
+                      hasCurrent
+                          ? () => setState(() {
+                              _showCurrent = true;
+                              _noticeNoData = false;
+                            })
+                          : () => setState(() => _noticeNoData = true)),
+                ]),
+              ),
+              if (_noticeNoData && !hasCurrent)
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Text(l10n.noPriceInfo,
+                      style: TextStyle(fontSize: 11, color: context.warningText),
+                      textAlign: TextAlign.center),
+                ),
+              const SizedBox(height: 12),
               Screenshot(
                 controller: _screenshotCtrl,
                 child: Container(
                   color: context.cardBg,
                   padding: const EdgeInsets.all(20),
                   child: Column(children: [
-                    if (_editMode) ...[
-                      Container(
-                        decoration: BoxDecoration(
-                          color: context.rowBg,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: context.borderColor),
-                        ),
-                        child: Row(children: [
-                          _segBtn(context, l10n.targetWeight, !_showCurrent,
-                              () => setState(() {
-                                _showCurrent = false;
-                                _noticeNoData = false;
-                              })),
-                          _segBtn(context, l10n.currentWeight,
-                              _showCurrent && hasCurrent,
-                              hasCurrent
-                                  ? () => setState(() {
-                                      _showCurrent = true;
-                                      _noticeNoData = false;
-                                    })
-                                  : () => setState(() => _noticeNoData = true)),
-                        ]),
-                      ),
-                      if (_noticeNoData && !hasCurrent)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 6),
-                          child: Text(l10n.noPriceInfo,
-                              style: TextStyle(fontSize: 11, color: context.warningText),
-                              textAlign: TextAlign.center),
-                        ),
-                      const SizedBox(height: 12),
-                    ],
+                    // 내보낸 그림도 **무엇을 그린 것인지 스스로 말해야 한다.**
+                    // 라벨이 없으면 목표 비중 그림이 현재 자산 구성으로 읽힌다.
+                    Text(
+                      _showCurrent && hasCurrent
+                          ? l10n.currentWeight
+                          : l10n.targetWeight,
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.3,
+                          color: context.textSecondary),
+                    ),
+                    const SizedBox(height: 10),
                     AspectRatio(
                       aspectRatio: 1,
                       child: Stack(alignment: Alignment.center, children: [

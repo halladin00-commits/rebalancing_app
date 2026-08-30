@@ -245,7 +245,7 @@ class ItemDetailScreen extends StatelessWidget {
   Widget _weightRow(BuildContext context, ItemDrift d, double threshold) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final over = threshold > 0 && d.drift.abs() >= threshold;
-    final pp = '${d.drift >= 0 ? '+' : '−'}${d.drift.abs().toStringAsFixed(2)}%p';
+    final pp = fmtPp(d.drift, isKo);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 11),

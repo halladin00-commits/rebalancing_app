@@ -68,8 +68,9 @@ class BrandHeader extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SizedBox(
-                height: 48,
+              // 큰 글씨 설정에서 제목이 48px를 넘는다. 최소 높이만 정한다.
+              ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 48),
                 child: Row(
                   children: [
                     if (leading != null)

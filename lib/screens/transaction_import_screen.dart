@@ -73,8 +73,10 @@ class _TransactionImportScreenState extends State<TransactionImportScreen> {
         color: context.appBarBg,
         child: SafeArea(
           bottom: false,
-          child: SizedBox(
-            height: 52,
+          // 큰 글씨 설정(접근성)에서 제목+부제가 52px를 넘는다. 고정이면
+          // `BOTTOM OVERFLOWED`가 뜬다 — 최소 높이만 정하고 늘어나게 둔다.
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 52),
             child: Row(children: [
               IconButton(
                 icon: Icon(plan == null ? Icons.close : Icons.arrow_back,

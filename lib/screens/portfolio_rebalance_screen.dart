@@ -137,7 +137,7 @@ class PortfolioRebalanceScreen extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          '${worst.drift >= 0 ? '+' : '−'}${worst.drift.abs().toStringAsFixed(2)}%p',
+          fmtPp(worst.drift, isKo),
           style: TextStyle(
             fontSize: DS.displayAmount,
             fontWeight: FontWeight.w800,
@@ -331,6 +331,7 @@ class PortfolioRebalanceScreen extends StatelessWidget {
     final driftColor = exceeds
         ? (d.drift >= 0 ? context.danger : context.brandOnLight)
         : context.textTertiary;
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 13),
@@ -356,7 +357,7 @@ class PortfolioRebalanceScreen extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                '${d.drift >= 0 ? '+' : '−'}${d.drift.abs().toStringAsFixed(2)}%p',
+                fmtPp(d.drift, isKo),
                 style: TextStyle(
                     fontSize: DS.returnPct,
                     fontWeight: FontWeight.w700,

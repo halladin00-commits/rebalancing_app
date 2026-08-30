@@ -44,3 +44,16 @@ String fmtPrice(double n, String market) {
 /// 부호를 항상 붙인다 (손익 표기). `+₩12,000` · `−$3.40`
 String fmtSigned(double n, String currency) =>
     '${n >= 0 ? '+' : ''}${fmtMoney(n, currency)}';
+
+// ── 퍼센트포인트 ──
+
+/// 퍼센트포인트 단위 기호. 한국어는 `%p`, 영어권 관례는 `pp`다.
+///
+/// 전에는 화면마다 제각각이었다 — 영어로 보면 같은 줄에
+/// `±3pp`(허용 편차)와 `+30.12%p`(현재 편차)가 나란히 있었다.
+/// **같은 단위를 두 표기로 쓰면 사용자는 다른 것으로 읽는다.**
+String ppUnit(bool isKo) => isKo ? '%p' : 'pp';
+
+/// 부호를 붙인 퍼센트포인트. `+30.12%p` · `−4.51pp`
+String fmtPp(double v, bool isKo, {int digits = 2}) =>
+    '${v >= 0 ? '+' : '−'}${v.abs().toStringAsFixed(digits)}${ppUnit(isKo)}';

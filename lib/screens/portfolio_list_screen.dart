@@ -874,8 +874,6 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
 
     final now = DateTime.now();
     final lastMonth = now.month == 1 ? 12 : now.month - 1;
-    final driftSign = worstDrift >= 0 ? '+' : '−';
-    final driftAbs = worstDrift.abs().toStringAsFixed(2);
 
     // ListView 안에서는 세로 제약이 무한이라 Row에 stretch를 쓸 수 없다.
     // IntrinsicHeight로 두 카드 높이를 먼저 맞춘 뒤 stretch한다.
@@ -893,8 +891,8 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                     label: isKo ? '조정 필요' : 'Needs adjusting',
                     title: worst.name,
                     sub: isKo
-                        ? '$worstCount종목 · 최대 $driftSign$driftAbs%p'
-                        : '$worstCount holdings · max $driftSign$driftAbs' 'pp',
+                        ? '$worstCount종목 · 최대 ${fmtPp(worstDrift, true)}'
+                        : '$worstCount holdings · max ${fmtPp(worstDrift, false)}',
                     titleFg: context.onWarningTitle,
                     bodyFg: context.onWarningBody,
                     onTap: () => widget.onNavigateToTab?.call(1),

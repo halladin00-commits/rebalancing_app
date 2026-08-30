@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../main.dart';
+import '../utils/money_format.dart';
 import '../models/portfolio.dart';
 import '../theme/design_system.dart';
 import '../utils/rebalancer.dart';
@@ -118,8 +119,10 @@ class _TargetWeightsScreenState extends State<TargetWeightsScreen> {
         color: context.appBarBg,
         child: SafeArea(
           bottom: false,
-          child: SizedBox(
-            height: 52,
+          // 큰 글씨 설정(접근성)에서 제목+부제가 52px를 넘는다. 고정이면
+          // `BOTTOM OVERFLOWED`가 뜬다 — 최소 높이만 정하고 늘어나게 둔다.
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 52),
             child: Row(children: [
               IconButton(
                 icon: const Icon(Icons.close, color: Colors.white, size: 22),
@@ -254,7 +257,7 @@ class _TargetWeightsScreenState extends State<TargetWeightsScreen> {
                 final big = gap.abs() >= 5;
                 return Text(
                   '${l10n.currentWeightIs(current.toStringAsFixed(2))}'
-                  '  ${gap >= 0 ? '+' : '−'}${gap.abs().toStringAsFixed(2)}%p',
+                  '  ${fmtPp(gap, _isKo)}',
                   style: TextStyle(
                       fontSize: 11,
                       fontWeight: big ? FontWeight.w800 : FontWeight.w600,
@@ -326,7 +329,7 @@ class _TargetWeightsScreenState extends State<TargetWeightsScreen> {
           ),
         ),
         const SizedBox(width: 3),
-        Text('%p',
+        Text(ppUnit(_isKo),
             style: TextStyle(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w600,
