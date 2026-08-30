@@ -656,6 +656,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get restoreData => '복원';
 
   @override
+  String get noMatchingTransactions => '조건에 맞는 거래가 없습니다';
+
+  @override
+  String get clearFilters => '필터 해제';
+
+  @override
+  String get filterByItem => '종목';
+
+  @override
   String get backupNever => '아직 없음';
 
   @override

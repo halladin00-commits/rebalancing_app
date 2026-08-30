@@ -1280,6 +1280,24 @@ abstract class AppLocalizations {
   /// **'복원'**
   String get restoreData;
 
+  /// No description provided for @noMatchingTransactions.
+  ///
+  /// In ko, this message translates to:
+  /// **'조건에 맞는 거래가 없습니다'**
+  String get noMatchingTransactions;
+
+  /// No description provided for @clearFilters.
+  ///
+  /// In ko, this message translates to:
+  /// **'필터 해제'**
+  String get clearFilters;
+
+  /// No description provided for @filterByItem.
+  ///
+  /// In ko, this message translates to:
+  /// **'종목'**
+  String get filterByItem;
+
   /// No description provided for @backupNever.
   ///
   /// In ko, this message translates to:

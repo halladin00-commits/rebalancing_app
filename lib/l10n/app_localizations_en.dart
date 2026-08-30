@@ -667,6 +667,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get restoreData => 'Restore';
 
   @override
+  String get noMatchingTransactions => 'No transactions match';
+
+  @override
+  String get clearFilters => 'Clear filters';
+
+  @override
+  String get filterByItem => 'Item';
+
+  @override
   String get backupNever => 'Never';
 
   @override
