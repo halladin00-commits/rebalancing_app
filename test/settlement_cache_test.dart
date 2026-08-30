@@ -124,4 +124,51 @@ void main() {
     final j = sample().toJson()..remove('ra');
     expect(SettlementResult.fromJson(j).rateAvailable, isTrue);
   });
+
+  group('덜 받은 값 표시', () {
+    test('빠진 종목이 있으면 덜 받은 값이다', () {
+      final r = SettlementResult(
+        period: SettlementPeriod.monthly,
+        key: const PeriodKey(2026, 3),
+        periodStart: DateTime(2026, 3, 1),
+        periodEnd: DateTime(2026, 3, 31),
+        startValue: 100, endValue: 110,
+        absoluteReturn: 10, returnRate: 10,
+        netCashFlow: 0, isCurrentPeriod: false,
+        contributions: const [],
+        missingPriceCount: 6,
+      );
+      expect(r.isPartial, isTrue);
+      expect(r.missingPriceCount, 6);
+    });
+
+    test('다 받았으면 확정된 값이다', () {
+      expect(sample().isPartial, isFalse);
+      expect(sample().missingPriceCount, 0);
+    });
+
+    test('덜 받았다는 사실이 저장·복원에서 살아남는다', () {
+      // 이걸 잃으면 덜 받은 값이 확정된 것처럼 보인다.
+      final a = SettlementResult(
+        period: SettlementPeriod.yearly,
+        key: const PeriodKey(2025, 0),
+        periodStart: DateTime(2025, 1, 1),
+        periodEnd: DateTime(2025, 12, 31),
+        startValue: 1, endValue: 2,
+        absoluteReturn: 1, returnRate: 100,
+        netCashFlow: 0, isCurrentPeriod: false,
+        contributions: const [],
+        missingPriceCount: 3,
+      );
+      final b = roundTrip(a);
+      expect(b.missingPriceCount, 3);
+      expect(b.isPartial, isTrue);
+    });
+
+    test('옛 형식에는 없던 값이라 0으로 본다', () {
+      final j = sample().toJson()..remove('mp');
+      expect(SettlementResult.fromJson(j).missingPriceCount, 0);
+      expect(SettlementResult.fromJson(j).isPartial, isFalse);
+    });
+  });
 }

@@ -81,6 +81,14 @@ class SettlementResult {
 
   final double netCashFlow; // 기간 중 순 투자금 (매수 양수, 매도 음수)
   final bool isCurrentPeriod;
+
+  /// 시세를 못 받아 계산에서 빠진 종목 수.
+  ///
+  /// 0보다 크면 이 숫자는 **아직 다 받지 못한 값**이다. 남은 종목만으로 낸
+  /// 것이므로 확정된 것처럼 크게 보여주면 안 된다 — 나중에 다 받으면
+  /// 조용히 달라진다.
+  final int missingPriceCount;
+  bool get isPartial => missingPriceCount > 0;
   final List<SettlementItemContribution> contributions;
 
   SettlementResult({
@@ -96,6 +104,7 @@ class SettlementResult {
     required this.netCashFlow,
     required this.isCurrentPeriod,
     required this.contributions,
+    this.missingPriceCount = 0,
   });
 
   /// 마감된 기간만 저장하므로 `isCurrentPeriod`는 늘 false로 되살린다.
@@ -111,6 +120,7 @@ class SettlementResult {
         'rr': returnRate,
         'ra': rateAvailable,
         'cf': netCashFlow,
+        'mp': missingPriceCount,
         'co': contributions.map((c) => c.toJson()).toList(),
       };
 
@@ -125,6 +135,7 @@ class SettlementResult {
         returnRate: (j['rr'] as num).toDouble(),
         rateAvailable: j['ra'] as bool? ?? true,
         netCashFlow: (j['cf'] as num).toDouble(),
+        missingPriceCount: j['mp'] as int? ?? 0,
         isCurrentPeriod: false,
         contributions: [
           for (final c in (j['co'] as List))
@@ -190,6 +201,11 @@ class CombinedSettlement {
   final bool isCurrentPeriod;
   final List<PortfolioContribution> contributions;
 
+  /// 시세를 못 받아 계산에서 빠진 종목 수 (모든 포트 합).
+  /// 0보다 크면 아직 다 받지 못한 값이다.
+  final int missingPriceCount;
+  bool get isPartial => missingPriceCount > 0;
+
   const CombinedSettlement({
     required this.period,
     required this.key,
@@ -203,6 +219,7 @@ class CombinedSettlement {
     required this.netCashFlow,
     required this.isCurrentPeriod,
     required this.contributions,
+    this.missingPriceCount = 0,
   });
 }
 
@@ -356,10 +373,17 @@ class SettlementService {
     double totalEnd = cashValue;
     final rawItems = <({PortfolioItem item, double startVal, double endVal})>[];
 
+    // 시세를 못 받은 종목은 계산에서 빠진다. 그냥 빠뜨리면 **남은 종목만으로
+    // 낸 수익률**이 포트 전체 수익률인 척하게 되므로 몇 개가 빠졌는지 센다.
+    var missingPrices = 0;
+
     for (final item in pf.items) {
       if (item.isCash) continue;
       final prices = cache[item.id];
-      if (prices == null) continue;
+      if (prices == null) {
+        if (item.shares > 0) missingPrices++;
+        continue;
+      }
 
       final startShares = holdingsAt(item, range.start.subtract(const Duration(days: 1)));
       final endShares = holdingsAt(item, effectiveEnd);
@@ -438,6 +462,7 @@ class SettlementService {
       netCashFlow: totalNetCashFlow,
       isCurrentPeriod: isCurrentPeriod,
       contributions: contributions,
+      missingPriceCount: missingPrices,
     );
   }
 
@@ -563,8 +588,9 @@ class SettlementService {
     if (_cache.containsKey(ck)) return _cache[ck];
 
     final r = await calculate(pf, period, key);
-    // 진행 중인 기간은 현재가에 따라 바뀌므로 남기지 않는다
-    if (r != null && !r.isCurrentPeriod) {
+    // 진행 중인 기간은 현재가에 따라 바뀌므로 남기지 않는다.
+    // **덜 받은 값도 남기지 않는다** — 남기면 틀린 수익률이 영영 굳는다.
+    if (r != null && !r.isCurrentPeriod && !r.isPartial) {
       _cache[ck] = r;
       _scheduleWrite();
     }
@@ -663,9 +689,13 @@ class SettlementService {
       netCashFlow: netCF,
       isCurrentPeriod: isCurrent,
       contributions: contributions,
+      // 포트 하나라도 덜 받았으면 합산도 덜 받은 값이다
+      missingPriceCount: results.fold<int>(
+          0, (n, e) => n + (e.r?.missingPriceCount ?? 0)),
     );
 
-    if (!isCurrent) _combinedCache[ck] = combined;
+    // 덜 받은 값은 남기지 않는다 — 남기면 틀린 채로 굳는다
+    if (!isCurrent && !combined.isPartial) _combinedCache[ck] = combined;
     return combined;
   }
 

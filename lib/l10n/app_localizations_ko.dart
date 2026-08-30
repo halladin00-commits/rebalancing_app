@@ -1089,4 +1089,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get createPortfolioCta => '포트폴리오 만들기';
+
+  @override
+  String partialSettlement(int count) {
+    return '아직 다 받지 못한 값입니다 · $count종목 남음';
+  }
 }

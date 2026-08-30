@@ -228,14 +228,37 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
                     fontWeight: FontWeight.w800,
                     letterSpacing: -1.5,
                     height: 1.08,
+                    // 덜 받은 값은 확정된 것처럼 보이면 안 된다
                     color: r == null
                         ? context.onBrandSecondary
                         : (r.absoluteReturn >= 0
-                            ? pnlColors.onBrandPositive
-                            : pnlColors.onBrandNegative),
+                                ? pnlColors.onBrandPositive
+                                : pnlColors.onBrandNegative)
+                            .withValues(alpha: r.isPartial ? 0.45 : 1.0),
                   ),
                 ),
               ),
+              if (r != null && r.isPartial) ...[
+                const SizedBox(height: 5),
+                Row(children: [
+                  SizedBox(
+                    width: 12,
+                    height: 12,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 1.6, color: context.onBrandSecondary),
+                  ),
+                  const SizedBox(width: 7),
+                  Flexible(
+                    child: Text(
+                        context.l10n.partialSettlement(r.missingPriceCount),
+                        style: TextStyle(
+                            fontSize: DS.body,
+                            fontWeight: FontWeight.w600,
+                            color: context.onBrandSecondary),
+                        overflow: TextOverflow.ellipsis),
+                  ),
+                ]),
+              ],
               const SizedBox(height: 6),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.baseline,

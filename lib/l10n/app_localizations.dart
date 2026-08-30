@@ -1993,6 +1993,12 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'포트폴리오 만들기'**
   String get createPortfolioCta;
+
+  /// No description provided for @partialSettlement.
+  ///
+  /// In ko, this message translates to:
+  /// **'아직 다 받지 못한 값입니다 · {count}종목 남음'**
+  String partialSettlement(int count);
 }
 
 class _AppLocalizationsDelegate

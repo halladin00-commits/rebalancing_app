@@ -230,14 +230,37 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
                     fontWeight: FontWeight.w800,
                     letterSpacing: -1.5,
                     height: 1.08,
+                    // 덜 받은 값은 **확정된 것처럼 보이면 안 된다.**
+                    // 사용자가 그대로 옮겨 적는데, 다 받으면 조용히 달라진다.
                     color: r == null
                         ? context.onBrandSecondary
                         : (r.absoluteReturn >= 0
-                            ? pnlColors.onBrandPositive
-                            : pnlColors.onBrandNegative),
+                                ? pnlColors.onBrandPositive
+                                : pnlColors.onBrandNegative)
+                            .withValues(alpha: r.isPartial ? 0.45 : 1.0),
                   ),
                 ),
               ),
+              if (r != null && r.isPartial) ...[
+                const SizedBox(height: 5),
+                Row(children: [
+                  SizedBox(
+                    width: 12,
+                    height: 12,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 1.6, color: context.onBrandSecondary),
+                  ),
+                  const SizedBox(width: 7),
+                  Flexible(
+                    child: Text(l10n.partialSettlement(r.missingPriceCount),
+                        style: TextStyle(
+                            fontSize: DS.body,
+                            fontWeight: FontWeight.w600,
+                            color: context.onBrandSecondary),
+                        overflow: TextOverflow.ellipsis),
+                  ),
+                ]),
+              ],
               const SizedBox(height: 6),
               // 계산이 안 되면 `—` 하나만 남아 왜 비었는지 알 수 없었다.
               // 숫자를 지어내지 않되, 이유와 다음 행동은 준다 (v13e와 같은 원칙)
@@ -256,9 +279,10 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
                         style: TextStyle(
                           fontSize: DS.sectionTitle,
                           fontWeight: FontWeight.w700,
-                          color: r.absoluteReturn >= 0
-                              ? pnlColors.onBrandPositive
-                              : pnlColors.onBrandNegative,
+                          color: (r.absoluteReturn >= 0
+                                  ? pnlColors.onBrandPositive
+                                  : pnlColors.onBrandNegative)
+                              .withValues(alpha: r.isPartial ? 0.45 : 1.0),
                         ),
                       ),
                     if (r != null && r.netCashFlow.abs() > 1) ...[

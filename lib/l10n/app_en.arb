@@ -760,5 +760,13 @@
       }
     }
   },
-  "createPortfolioCta": "Create a portfolio"
+  "createPortfolioCta": "Create a portfolio",
+  "partialSettlement": "Not fully loaded yet · {count} holdings missing",
+  "@partialSettlement": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

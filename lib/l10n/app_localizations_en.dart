@@ -1108,4 +1108,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get createPortfolioCta => 'Create a portfolio';
+
+  @override
+  String partialSettlement(int count) {
+    return 'Not fully loaded yet · $count holdings missing';
+  }
 }

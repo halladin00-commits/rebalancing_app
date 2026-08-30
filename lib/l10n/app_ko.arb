@@ -760,5 +760,13 @@
       }
     }
   },
-  "createPortfolioCta": "포트폴리오 만들기"
+  "createPortfolioCta": "포트폴리오 만들기",
+  "partialSettlement": "아직 다 받지 못한 값입니다 · {count}종목 남음",
+  "@partialSettlement": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }
