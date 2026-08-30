@@ -73,7 +73,13 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
 
   // ── 데이터 ──
 
-  Future<void> _load() async {
+  /// 결산을 불러온다.
+  ///
+  /// [endKey]·[select]는 **받아온 다음에** 반영한다. 먼저 옮겨 놓으면
+  /// 그 기간의 결과가 아직 `_series`에 없어 화면이 통째로 비고, 사용자는
+  /// 방금까지 보던 숫자를 잃는다. 실패하면 아예 못 돌아온다.
+  Future<void> _load({PeriodKey? endKey, PeriodKey? select}) async {
+    final targetEnd = endKey ?? _endKey;
     if (widget.portfolios.isEmpty) {
       setState(() => _series = const []);
       return;
@@ -83,13 +89,20 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
     final series = await SettlementService.calculateCombinedSeries(
       widget.portfolios,
       _period,
-      _endKey,
+      targetEnd,
       count: _barCount,
     );
 
     if (!mounted) return;
     setState(() {
       _series = series;
+      _endKey = targetEnd;
+      if (select != null) {
+        _selected = select;
+      } else if (!_windowKeys(targetEnd).contains(_selected)) {
+        // 선택이 창 밖으로 나갔으면 가장 가까운 칸으로 끌어온다
+        _selected = _windowKeys(targetEnd).last;
+      }
       _loading = false;
     });
   }
@@ -98,6 +111,10 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
     if (_period == p) return;
     setState(() {
       _period = p;
+      // `PeriodKey`는 기간 단위를 식별에 넣지 않는다 — 월간 3월과 분기 3분기가
+      // 둘 다 (2026, 3)이다. 옛 결과를 남겨 두면 단위를 바꾼 직후 **3월 숫자가
+      // 3분기 라벨 밑에 뜬다.** 지어낸 숫자보다 빈 화면이 낫다.
+      _series = const [];
       _endKey = SettlementService.currentKey(p);
       _selected = _endKey;
     });
@@ -114,13 +131,7 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
     final next = SettlementService.shiftKey(_period, _endKey, offset);
     // 미래로는 현재 기간까지만
     if (offset > 0 && SettlementService.isFuture(_period, next)) return;
-    setState(() {
-      _endKey = next;
-      // 선택이 창 밖으로 나가면 가장 가까운 칸으로 끌어온다
-      final keys = _windowKeys(next);
-      if (!keys.contains(_selected)) _selected = keys.last;
-    });
-    _load();
+    _load(endKey: next);
   }
 
   List<PeriodKey> _windowKeys(PeriodKey endKey) => [
@@ -150,11 +161,12 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
     );
     if (picked == null || !mounted) return;
 
-    setState(() {
-      _selected = picked;
-      _endKey = picked;
-    });
-    _load();
+    // 이미 차트에 있는 기간이면 다시 받을 게 없다 — 누르자마자 바뀐다
+    if (_windowKeys(_endKey).contains(picked)) {
+      _selectKey(picked);
+      return;
+    }
+    _load(endKey: picked, select: picked);
   }
 
   // ── 화면 ──
@@ -445,13 +457,19 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      inProgress
+                      // 창을 옮기는 동안에도 보던 기간을 그대로 두므로,
+                      // 말해주지 않으면 눌러도 아무 일이 없는 것처럼 보인다
+                      _loading
                           ? (_isKo
-                              ? '진행 중 · 막대를 눌러 기간 선택'
-                              : 'In progress · tap a bar to pick')
-                          : (_isKo
-                              ? '마감 · 막대를 눌러 기간 선택'
-                              : 'Closed · tap a bar to pick'),
+                              ? '다른 기간을 불러오는 중…'
+                              : 'Loading another period…')
+                          : inProgress
+                              ? (_isKo
+                                  ? '진행 중 · 막대를 눌러 기간 선택'
+                                  : 'In progress · tap a bar to pick')
+                              : (_isKo
+                                  ? '마감 · 막대를 눌러 기간 선택'
+                                  : 'Closed · tap a bar to pick'),
                       style: TextStyle(
                           fontSize: DS.caption,
                           fontWeight: FontWeight.w600,
@@ -635,15 +653,23 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
                 const SizedBox(width: 8),
                 SizedBox(
                   width: 52,
-                  child: Text(
-                    c.rateAvailable
-                        ? '${c.returnRate >= 0 ? '+' : '−'}${c.returnRate.abs().toStringAsFixed(2)}%'
-                        : '—',
-                    textAlign: TextAlign.right,
-                    style: TextStyle(
-                        fontSize: DS.returnPct,
-                        fontWeight: FontWeight.w700,
-                        color: color),
+                  // 칸 너비는 행끼리 맞추려고 고정이다. 네 자리 수익률
+                  // (+4178.77%)은 이 폭을 넘겨 **두 줄로 쪼개졌다.**
+                  // 줄을 늘리는 대신 글자를 줄인다.
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      c.rateAvailable
+                          ? '${c.returnRate >= 0 ? '+' : '−'}${c.returnRate.abs().toStringAsFixed(2)}%'
+                          : '—',
+                      maxLines: 1,
+                      softWrap: false,
+                      style: TextStyle(
+                          fontSize: DS.returnPct,
+                          fontWeight: FontWeight.w700,
+                          color: color),
+                    ),
                   ),
                 ),
                 Icon(Icons.chevron_right,

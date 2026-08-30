@@ -153,4 +153,36 @@ void main() {
       expect(r.end.difference(r.start).inDays, 6);
     });
   });
+
+  group('키만으로는 기간 단위를 구별하지 못한다', () {
+    // 화면이 결산 결과를 `r.key == _selected`로만 찾는다. PeriodKey에는
+    // 단위가 없으므로 월간 3월과 분기 3분기가 같은 키다. 단위 탭을 바꿀 때
+    // 옛 결과를 안 비우면 **3월 손익이 3분기 라벨 밑에 뜬다.**
+    // all_settlement_screen / portfolio_settlement_screen의 _changePeriod가
+    // `_series`를 비우는 이유가 이것이다.
+    test('월간 3월과 분기 3분기가 같은 키다', () {
+      expect(const PeriodKey(2026, 3), const PeriodKey(2026, 3));
+      expect(const PeriodKey(2026, 3).hashCode,
+          const PeriodKey(2026, 3).hashCode);
+    });
+
+    test('가리키는 기간은 전혀 다르다 — 그래서 섞이면 틀린 숫자가 된다', () {
+      final m = SettlementService.periodRange(
+          SettlementPeriod.monthly, const PeriodKey(2026, 3));
+      final q = SettlementService.periodRange(
+          SettlementPeriod.quarterly, const PeriodKey(2026, 3));
+      expect(m.start, DateTime(2026, 3, 1));
+      expect(q.start, DateTime(2026, 7, 1));
+      expect(m.start == q.start, isFalse);
+    });
+
+    test('주간 8주차와 월간 8월도 같은 키다', () {
+      expect(const PeriodKey(2026, 8), const PeriodKey(2026, 8));
+      final w = SettlementService.periodRange(
+          SettlementPeriod.weekly, const PeriodKey(2026, 8));
+      final mo = SettlementService.periodRange(
+          SettlementPeriod.monthly, const PeriodKey(2026, 8));
+      expect(w.start.month, isNot(mo.start.month));
+    });
+  });
 }

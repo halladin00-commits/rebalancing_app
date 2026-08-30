@@ -68,21 +68,33 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
 
   // ── 데이터 ──
 
-  Future<void> _load() async {
+  /// 결산을 불러온다.
+  ///
+  /// [endKey]·[select]는 **받아온 다음에** 반영한다. 먼저 옮겨 놓으면
+  /// 그 기간의 결과가 아직 `_series`에 없어 화면이 통째로 비고, 사용자는
+  /// 방금까지 보던 숫자를 잃는다. 실패하면 아예 못 돌아온다.
+  Future<void> _load({PeriodKey? endKey, PeriodKey? select}) async {
     final pf = _pf;
     if (pf == null) return;
+    final targetEnd = endKey ?? _endKey;
     setState(() => _loading = true);
 
     final series = await SettlementService.calculateSeries(
       pf,
       _period,
-      _endKey,
+      targetEnd,
       count: _barCount,
     );
 
     if (!mounted) return;
     setState(() {
       _series = series;
+      _endKey = targetEnd;
+      if (select != null) {
+        _selected = select;
+      } else if (!_windowKeys(targetEnd).contains(_selected)) {
+        _selected = _windowKeys(targetEnd).last;
+      }
       _loading = false;
     });
   }
@@ -91,6 +103,10 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
     if (_period == p) return;
     setState(() {
       _period = p;
+      // `PeriodKey`는 기간 단위를 식별에 넣지 않는다 — 월간 3월과 분기 3분기가
+      // 둘 다 (2026, 3)이다. 옛 결과를 남겨 두면 단위를 바꾼 직후 **3월 숫자가
+      // 3분기 라벨 밑에 뜬다.** 지어낸 숫자보다 빈 화면이 낫다.
+      _series = const [];
       _endKey = SettlementService.currentKey(p);
       _selected = _endKey;
     });
@@ -100,12 +116,7 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
   void _shiftWindow(int offset) {
     final next = SettlementService.shiftKey(_period, _endKey, offset);
     if (offset > 0 && SettlementService.isFuture(_period, next)) return;
-    setState(() {
-      _endKey = next;
-      final keys = _windowKeys(next);
-      if (!keys.contains(_selected)) _selected = keys.last;
-    });
-    _load();
+    _load(endKey: next);
   }
 
   List<PeriodKey> _windowKeys(PeriodKey endKey) => [
@@ -133,11 +144,12 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
     );
     if (picked == null || !mounted) return;
 
-    setState(() {
-      _selected = picked;
-      _endKey = picked;
-    });
-    _load();
+    // 이미 차트에 있는 기간이면 다시 받을 게 없다 — 누르자마자 바뀐다
+    if (_windowKeys(_endKey).contains(picked)) {
+      setState(() => _selected = picked);
+      return;
+    }
+    _load(endKey: picked, select: picked);
   }
 
   // ── 화면 ──
@@ -384,8 +396,14 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
                     ),
                     const SizedBox(height: 2),
                     Text(
+                      // 창을 옮기는 동안에도 보던 기간을 그대로 두므로,
+                      // 말해주지 않으면 눌러도 아무 일이 없는 것처럼 보인다
+                      _loading
+                          ? (_isKo
+                              ? '다른 기간을 불러오는 중…'
+                              : 'Loading another period…')
                       // 진행 중이면 경과 일수까지 — 아직 안 끝난 값임을 못박는다
-                      inProgress
+                      : inProgress
                           // 어느 기간이 진행 중인지 이름까지 밝힌다 (시안 v22b)
                           ? (_isKo
                               ? '${_subLabel(_selected)} 진행 중 · $elapsed일 경과'
@@ -575,13 +593,21 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
               const SizedBox(width: 8),
               SizedBox(
                 width: 52,
-                child: Text(
-                  '${c.itemReturnPct >= 0 ? '+' : '−'}${c.itemReturnPct.abs().toStringAsFixed(2)}%',
-                  textAlign: TextAlign.right,
-                  style: TextStyle(
-                      fontSize: DS.returnPct,
-                      fontWeight: FontWeight.w700,
-                      color: color),
+                // 칸 너비는 행끼리 맞추려고 고정이다. 네 자리 수익률
+                // (+4178.77%)은 이 폭을 넘겨 **두 줄로 쪼개졌다.**
+                // 줄을 늘리는 대신 글자를 줄인다.
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    '${c.itemReturnPct >= 0 ? '+' : '−'}${c.itemReturnPct.abs().toStringAsFixed(2)}%',
+                    maxLines: 1,
+                    softWrap: false,
+                    style: TextStyle(
+                        fontSize: DS.returnPct,
+                        fontWeight: FontWeight.w700,
+                        color: color),
+                  ),
                 ),
               ),
             ],
