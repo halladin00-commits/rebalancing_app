@@ -353,6 +353,33 @@
   "settlementYearly": "Yearly",
   "backupData": "Backup",
   "restoreData": "Restore",
+  "backupNever": "Never",
+  "backupToday": "Today",
+  "backupYesterday": "Yesterday",
+  "backupDaysAgo": "{days} days ago",
+  "@backupDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "backupMonthsAgo": "{months} months ago",
+  "@backupMonthsAgo": {
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "backupYearsAgo": "{years} years ago",
+  "@backupYearsAgo": {
+    "placeholders": {
+      "years": {
+        "type": "int"
+      }
+    }
+  },
   "backupFailed": "Backup failed",
   "restoreConfirmTitle": "Restore Data",
   "restoreConfirmContent": "Restore {count} portfolios?\nAll current data will be replaced.",

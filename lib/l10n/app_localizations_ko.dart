@@ -656,6 +656,30 @@ class AppLocalizationsKo extends AppLocalizations {
   String get restoreData => '복원';
 
   @override
+  String get backupNever => '아직 없음';
+
+  @override
+  String get backupToday => '오늘';
+
+  @override
+  String get backupYesterday => '어제';
+
+  @override
+  String backupDaysAgo(int days) {
+    return '$days일 전';
+  }
+
+  @override
+  String backupMonthsAgo(int months) {
+    return '$months개월 전';
+  }
+
+  @override
+  String backupYearsAgo(int years) {
+    return '$years년 전';
+  }
+
+  @override
   String get backupFailed => '백업 실패';
 
   @override

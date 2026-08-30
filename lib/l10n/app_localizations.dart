@@ -1280,6 +1280,42 @@ abstract class AppLocalizations {
   /// **'복원'**
   String get restoreData;
 
+  /// No description provided for @backupNever.
+  ///
+  /// In ko, this message translates to:
+  /// **'아직 없음'**
+  String get backupNever;
+
+  /// No description provided for @backupToday.
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘'**
+  String get backupToday;
+
+  /// No description provided for @backupYesterday.
+  ///
+  /// In ko, this message translates to:
+  /// **'어제'**
+  String get backupYesterday;
+
+  /// No description provided for @backupDaysAgo.
+  ///
+  /// In ko, this message translates to:
+  /// **'{days}일 전'**
+  String backupDaysAgo(int days);
+
+  /// No description provided for @backupMonthsAgo.
+  ///
+  /// In ko, this message translates to:
+  /// **'{months}개월 전'**
+  String backupMonthsAgo(int months);
+
+  /// No description provided for @backupYearsAgo.
+  ///
+  /// In ko, this message translates to:
+  /// **'{years}년 전'**
+  String backupYearsAgo(int years);
+
   /// No description provided for @backupFailed.
   ///
   /// In ko, this message translates to:

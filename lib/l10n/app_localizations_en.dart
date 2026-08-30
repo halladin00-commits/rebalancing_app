@@ -667,6 +667,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get restoreData => 'Restore';
 
   @override
+  String get backupNever => 'Never';
+
+  @override
+  String get backupToday => 'Today';
+
+  @override
+  String get backupYesterday => 'Yesterday';
+
+  @override
+  String backupDaysAgo(int days) {
+    return '$days days ago';
+  }
+
+  @override
+  String backupMonthsAgo(int months) {
+    return '$months months ago';
+  }
+
+  @override
+  String backupYearsAgo(int years) {
+    return '$years years ago';
+  }
+
+  @override
   String get backupFailed => 'Backup failed';
 
   @override

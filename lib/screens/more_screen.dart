@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
+import '../l10n/app_localizations.dart';
 import '../models/portfolio.dart';
 import '../services/notification_service.dart';
 import '../services/storage_service.dart';
@@ -9,6 +10,34 @@ import '../widgets/brand_header.dart';
 import '../widgets/disclaimer_dialog.dart';
 import 'notification_settings_screen.dart';
 import 'fractional_settings_screen.dart';
+
+/// 마지막 백업을 어떤 단위로 말할지
+enum BackupAgeUnit { never, today, yesterday, days, months, years }
+
+/// 마지막 백업이 얼마나 지났는지.
+///
+/// 단위를 바꾸는 경계(29→30일, 364→365일)에서 틀리기 쉬워 화면과 떼어 둔다.
+/// [stale]은 "이만하면 한 번 받아둘 때가 됐다"는 뜻이고, 화면에서 색이 바뀐다.
+({BackupAgeUnit unit, int count, bool stale}) backupAge(
+  DateTime? at, {
+  DateTime? now,
+}) {
+  if (at == null) {
+    // 한 번도 안 받아본 사람이 가장 위험하다 — 처음부터 눈에 띄어야 한다.
+    return (unit: BackupAgeUnit.never, count: 0, stale: true);
+  }
+  final days = (now ?? DateTime.now()).difference(at).inDays;
+  final stale = days >= 30;
+  if (days <= 0) return (unit: BackupAgeUnit.today, count: 0, stale: false);
+  if (days == 1) {
+    return (unit: BackupAgeUnit.yesterday, count: 1, stale: false);
+  }
+  if (days < 30) return (unit: BackupAgeUnit.days, count: days, stale: false);
+  if (days < 365) {
+    return (unit: BackupAgeUnit.months, count: days ~/ 30, stale: stale);
+  }
+  return (unit: BackupAgeUnit.years, count: days ~/ 365, stale: stale);
+}
 
 /// 더보기 탭 (v23a).
 ///
@@ -28,11 +57,40 @@ class _MoreScreenState extends State<MoreScreen> {
   bool _notifEnabled = false;
   String _notifFreq = 'weekly';
   List<String> _settlementNotifs = const [];
+  DateTime? _lastBackup;
+  bool _backupLoaded = false;
 
   @override
   void initState() {
     super.initState();
     _loadNotifState();
+    _loadLastBackup();
+  }
+
+  Future<void> _loadLastBackup() async {
+    final at = await StorageService.lastBackupAt();
+    if (!mounted) return;
+    setState(() {
+      _lastBackup = at;
+      _backupLoaded = true;
+    });
+  }
+
+  /// 마지막 백업이 30일보다 오래됐거나 아예 없으면 눈에 띄어야 한다
+  bool get _backupStale => _backupLoaded && backupAge(_lastBackup).stale;
+
+  /// 백업 행 오른쪽에 적을 값. 읽기 전에는 빈 문자열이라 아무것도 안 뜬다.
+  String _backupSummary(AppLocalizations l10n) {
+    if (!_backupLoaded) return '';
+    final age = backupAge(_lastBackup);
+    return switch (age.unit) {
+      BackupAgeUnit.never => l10n.backupNever,
+      BackupAgeUnit.today => l10n.backupToday,
+      BackupAgeUnit.yesterday => l10n.backupYesterday,
+      BackupAgeUnit.days => l10n.backupDaysAgo(age.count),
+      BackupAgeUnit.months => l10n.backupMonthsAgo(age.count),
+      BackupAgeUnit.years => l10n.backupYearsAgo(age.count),
+    };
   }
 
   bool get _isKo => Localizations.localeOf(context).languageCode == 'ko';
@@ -149,10 +207,13 @@ class _MoreScreenState extends State<MoreScreen> {
                     ]),
 
                     _group(context, _isKo ? '데이터 · 앱' : 'Data & app', [
+                      // 값 자리에 'JSON'을 적어봐야 아무도 궁금해하지 않는다.
+                      // 정작 알아야 할 건 "마지막으로 언제 받아뒀나"다.
                       _row(
                         context,
                         label: l10n.backupData,
-                        value: 'JSON',
+                        value: _backupSummary(l10n),
+                        valueColor: _backupStale ? context.warningText : null,
                         onTap: _backup,
                       ),
                       _row(
@@ -274,6 +335,7 @@ class _MoreScreenState extends State<MoreScreen> {
     required String label,
     required String value,
     String? sub,
+    Color? valueColor,
     required VoidCallback onTap,
   }) {
     return InkWell(
@@ -317,7 +379,7 @@ class _MoreScreenState extends State<MoreScreen> {
                   style: TextStyle(
                       fontSize: DS.returnPct,
                       fontWeight: FontWeight.w600,
-                      color: context.textSecondary),
+                      color: valueColor ?? context.textSecondary),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -482,7 +544,9 @@ class _MoreScreenState extends State<MoreScreen> {
     final l10n = context.l10n;
     final portfolios = context.read<PortfolioProvider>().portfolios;
     try {
-      await StorageService.exportPortfolios(portfolios);
+      if (await StorageService.exportPortfolios(portfolios)) {
+        await _loadLastBackup(); // 방금 받아둔 게 목록에 바로 보여야 한다
+      }
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)

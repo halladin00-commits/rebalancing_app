@@ -8,6 +8,7 @@ import '../models/portfolio.dart';
 
 class StorageService {
   static const String _key = 'portfolios_v1';
+  static const String _lastBackupKey = 'last_backup_at_v1';
 
   /// 포트폴리오 목록 불러오기
   static Future<List<Portfolio>> loadPortfolios() async {
@@ -30,8 +31,19 @@ class StorageService {
     await prefs.setString(_key, jsonStr);
   }
 
-  /// 백업 파일 생성 후 공유 시트 열기
-  static Future<void> exportPortfolios(List<Portfolio> portfolios) async {
+  /// 마지막으로 백업을 **실제로 내보낸** 시각. 한 번도 안 했으면 null.
+  static Future<DateTime?> lastBackupAt() async {
+    final prefs = await SharedPreferences.getInstance();
+    final ms = prefs.getInt(_lastBackupKey);
+    return ms == null ? null : DateTime.fromMillisecondsSinceEpoch(ms);
+  }
+
+  /// 백업 파일 생성 후 공유 시트 열기. 실제로 어딘가로 보냈으면 true.
+  ///
+  /// 공유 시트를 그냥 닫으면 파일은 아무 데도 가지 않는다. 그때도 시각을
+  /// 남기면 **백업한 적 없는 사람에게 백업했다고 말하게 된다** — 기기를
+  /// 잃고 나서야 알게 되는 종류의 거짓말이라 보낸 경우에만 기록한다.
+  static Future<bool> exportPortfolios(List<Portfolio> portfolios) async {
     final jsonStr = json.encode(portfolios.map((e) => e.toJson()).toList());
     final dir = await getTemporaryDirectory();
     final now = DateTime.now();
@@ -39,7 +51,11 @@ class StorageService {
         'rebalancing_backup_${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}.json';
     final file = File('${dir.path}/$fname');
     await file.writeAsString(jsonStr);
-    await Share.shareXFiles([XFile(file.path)]);
+    final res = await Share.shareXFiles([XFile(file.path)]);
+    if (res.status != ShareResultStatus.success) return false;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_lastBackupKey, DateTime.now().millisecondsSinceEpoch);
+    return true;
   }
 
   /// 파일 선택 후 포트폴리오 목록 반환 (취소 시 null)

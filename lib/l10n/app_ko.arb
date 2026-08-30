@@ -353,6 +353,33 @@
   "settlementYearly": "연간",
   "backupData": "백업",
   "restoreData": "복원",
+  "backupNever": "아직 없음",
+  "backupToday": "오늘",
+  "backupYesterday": "어제",
+  "backupDaysAgo": "{days}일 전",
+  "@backupDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "backupMonthsAgo": "{months}개월 전",
+  "@backupMonthsAgo": {
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "backupYearsAgo": "{years}년 전",
+  "@backupYearsAgo": {
+    "placeholders": {
+      "years": {
+        "type": "int"
+      }
+    }
+  },
   "backupFailed": "백업 실패",
   "restoreConfirmTitle": "데이터 복원",
   "restoreConfirmContent": "포트폴리오 {count}개를 복원합니다.\n현재 데이터는 모두 교체됩니다.",
