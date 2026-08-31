@@ -754,7 +754,8 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                   titleWeight: FontWeight.w700,
                   childPadding: const EdgeInsets.fromLTRB(0, 2, 0, 16),
                   leading: IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    tooltip: context.l10n.a11yBack,
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
                     onPressed: () async {
                       if (_editMode) {
                         final ok = await _confirmExitEdit();
@@ -777,7 +778,8 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                       )
                     else
                       IconButton(
-                        icon: _refreshing
+                        tooltip: context.l10n.a11yRefresh,
+              icon: _refreshing
                             ? const SizedBox(
                                 width: 20,
                                 height: 20,
@@ -791,7 +793,8 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                       ),
                     if (!_editMode)
                       IconButton(
-                        icon: const Icon(Icons.more_vert, color: Colors.white),
+                        tooltip: context.l10n.a11yMenu,
+              icon: const Icon(Icons.more_vert, color: Colors.white),
                         onPressed: () => _showPortfolioMenu(pf, rb),
                       ),
                   ],
@@ -1140,7 +1143,8 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
               ])),
           IconButton(
             onPressed: () => _showItemForm(pf, item),
-            icon: Container(
+            tooltip: context.l10n.edit,
+              icon: Container(
               width: 28,
               height: 28,
               decoration: BoxDecoration(
@@ -1155,7 +1159,8 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
           ),
           IconButton(
             onPressed: () => _showDeleteConfirm(pf, item),
-            icon: Container(
+            tooltip: context.l10n.a11yRemove,
+              icon: Container(
               width: 28,
               height: 28,
               decoration: BoxDecoration(

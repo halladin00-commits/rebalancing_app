@@ -15,14 +15,31 @@ class AssetSparkline extends StatelessWidget {
     required this.points,
     required this.color,
     this.height = 46,
+    this.semanticsLabel,
   });
+
+  /// 스크린 리더에게 읽어줄 문장. 없으면 시작→끝 값으로 만든다.
+  final String? semanticsLabel;
 
   @override
   Widget build(BuildContext context) {
+    // 캔버스에 그린 선은 스크린 리더에게 아무것도 아니다.
+    // 이 선이 말하려는 건 "얼마에서 얼마로"다 — 그걸 문장으로 준다.
+    final label = semanticsLabel ??
+        (points.length < 2
+            ? ''
+            : '${points.first.totalKrw.round()} → ${points.last.totalKrw.round()}');
+
     return SizedBox(
       height: height,
       width: double.infinity,
-      child: CustomPaint(painter: _SparklinePainter(points, color)),
+      child: Semantics(
+        label: label,
+        image: true,
+        child: ExcludeSemantics(
+          child: CustomPaint(painter: _SparklinePainter(points, color)),
+        ),
+      ),
     );
   }
 }

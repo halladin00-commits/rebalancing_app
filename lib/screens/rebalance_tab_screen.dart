@@ -57,7 +57,8 @@ class RebalanceTabScreen extends StatelessWidget {
                     onPressed: () => showLegend(context),
                   ),
                   IconButton(
-                    icon: provider.refreshing
+                    tooltip: context.l10n.a11yRefresh,
+              icon: provider.refreshing
                         ? const SizedBox(
                             width: 20,
                             height: 20,

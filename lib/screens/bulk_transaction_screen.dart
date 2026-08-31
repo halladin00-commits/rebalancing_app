@@ -152,7 +152,8 @@ class _BulkTransactionScreenState extends State<BulkTransactionScreen> {
             constraints: const BoxConstraints(minHeight: 52),
             child: Row(children: [
               IconButton(
-                icon: const Icon(Icons.close, color: Colors.white, size: 22),
+                tooltip: context.l10n.a11yClose,
+              icon: const Icon(Icons.close, color: Colors.white, size: 22),
                 onPressed: () => Navigator.pop(context, false),
               ),
               Expanded(

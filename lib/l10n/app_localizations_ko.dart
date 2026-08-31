@@ -373,6 +373,24 @@ class AppLocalizationsKo extends AppLocalizations {
   String get cannotCalculate => '계산할 수 없습니다. 현재가가 없는 종목이 있는지 확인해 주세요.';
 
   @override
+  String get a11yBack => '뒤로';
+
+  @override
+  String get a11yClose => '닫기';
+
+  @override
+  String get a11yRefresh => '새로고침';
+
+  @override
+  String get a11yMenu => '메뉴 열기';
+
+  @override
+  String get a11yClearInput => '입력 지우기';
+
+  @override
+  String get a11yRemove => '빼기';
+
+  @override
   String get cancel => '취소';
 
   @override

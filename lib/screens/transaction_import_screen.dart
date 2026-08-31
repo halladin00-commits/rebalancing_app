@@ -79,7 +79,8 @@ class _TransactionImportScreenState extends State<TransactionImportScreen> {
             constraints: const BoxConstraints(minHeight: 52),
             child: Row(children: [
               IconButton(
-                icon: Icon(plan == null ? Icons.close : Icons.arrow_back,
+                tooltip: context.l10n.a11yClose,
+              icon: Icon(plan == null ? Icons.close : Icons.arrow_back,
                     color: Colors.white, size: 22),
                 onPressed: () {
                   // 2단계에서 뒤로 가면 고른 파일을 버리고 처음으로 돌아간다

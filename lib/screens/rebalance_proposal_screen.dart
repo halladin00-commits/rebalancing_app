@@ -166,7 +166,8 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
             constraints: const BoxConstraints(minHeight: 52),
             child: Row(children: [
               IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white, size: 22),
+                tooltip: context.l10n.a11yBack,
+              icon: const Icon(Icons.arrow_back, color: Colors.white, size: 22),
                 onPressed: () => Navigator.pop(context),
               ),
               Expanded(

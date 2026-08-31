@@ -740,6 +740,42 @@ abstract class AppLocalizations {
   /// **'계산할 수 없습니다. 현재가가 없는 종목이 있는지 확인해 주세요.'**
   String get cannotCalculate;
 
+  /// No description provided for @a11yBack.
+  ///
+  /// In ko, this message translates to:
+  /// **'뒤로'**
+  String get a11yBack;
+
+  /// No description provided for @a11yClose.
+  ///
+  /// In ko, this message translates to:
+  /// **'닫기'**
+  String get a11yClose;
+
+  /// No description provided for @a11yRefresh.
+  ///
+  /// In ko, this message translates to:
+  /// **'새로고침'**
+  String get a11yRefresh;
+
+  /// No description provided for @a11yMenu.
+  ///
+  /// In ko, this message translates to:
+  /// **'메뉴 열기'**
+  String get a11yMenu;
+
+  /// No description provided for @a11yClearInput.
+  ///
+  /// In ko, this message translates to:
+  /// **'입력 지우기'**
+  String get a11yClearInput;
+
+  /// No description provided for @a11yRemove.
+  ///
+  /// In ko, this message translates to:
+  /// **'빼기'**
+  String get a11yRemove;
+
   /// No description provided for @cancel.
   ///
   /// In ko, this message translates to:

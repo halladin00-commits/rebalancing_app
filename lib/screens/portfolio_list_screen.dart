@@ -549,7 +549,8 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                 childPadding: const EdgeInsets.fromLTRB(22, 4, 22, 16),
                 actions: [
                   IconButton(
-                      icon: provider.refreshing
+                      tooltip: context.l10n.a11yRefresh,
+              icon: provider.refreshing
                           ? const SizedBox(
                               width: 20,
                               height: 20,
@@ -559,7 +560,8 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                       onPressed: provider.refreshing ? null : _doRefreshAll,
                     ),
                   IconButton(
-                    icon: const Icon(Icons.more_vert, color: Colors.white),
+                    tooltip: context.l10n.a11yMenu,
+              icon: const Icon(Icons.more_vert, color: Colors.white),
                     onPressed: () => _showListMenu(portfolios),
                   ),
                 ],

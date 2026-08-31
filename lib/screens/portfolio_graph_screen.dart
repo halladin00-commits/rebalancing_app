@@ -371,7 +371,8 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
                 titleSize: 17,
                 titleWeight: FontWeight.w700,
                 leading: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  tooltip: context.l10n.a11yBack,
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
                   onPressed: () => Navigator.pop(context),
                 ),
                 actions: [
@@ -482,9 +483,26 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
                     AspectRatio(
                       aspectRatio: 1,
                       child: Stack(alignment: Alignment.center, children: [
-                        CustomPaint(
-                          painter: _DonutPainter(items: displayItems, portfolio: pf),
-                          child: Container(),
+                        // 차트는 캔버스에 그려져 **스크린 리더가 읽을 게 없다.**
+                        // 그림 대신 읽을 문장을 준다 — 무엇을 몇 %로 담았는지가
+                        // 이 그림이 전하려는 전부다.
+                        Semantics(
+                          label: [
+                            _showCurrent && hasCurrent
+                                ? l10n.currentWeight
+                                : l10n.targetWeight,
+                            for (final it in displayItems)
+                              '${_nameForItem(pf, it)} '
+                                  '${it.targetWeight.toStringAsFixed(1)}%',
+                          ].join(', '),
+                          image: true,
+                          child: ExcludeSemantics(
+                            child: CustomPaint(
+                              painter: _DonutPainter(
+                                  items: displayItems, portfolio: pf),
+                              child: Container(),
+                            ),
+                          ),
                         ),
                         GestureDetector(
                           onTap: () => _showTitleEdit(pf),

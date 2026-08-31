@@ -352,7 +352,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,
             ),
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            tooltip: context.l10n.a11yBack,
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
           ),
           child: Text(
             isKo

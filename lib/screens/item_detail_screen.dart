@@ -96,7 +96,8 @@ class ItemDetailScreen extends StatelessWidget {
       titleSize: 15,
       titleWeight: FontWeight.w700,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Colors.white),
+        tooltip: context.l10n.a11yBack,
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
         onPressed: () => Navigator.pop(context),
       ),
       titleWidget: Row(children: [
@@ -116,7 +117,8 @@ class ItemDetailScreen extends StatelessWidget {
       ]),
       actions: [
         IconButton(
-          icon: const Icon(Icons.more_vert, color: Colors.white),
+          tooltip: context.l10n.a11yMenu,
+              icon: const Icon(Icons.more_vert, color: Colors.white),
           onPressed: () => _showMenu(context, pf, item),
         ),
       ],

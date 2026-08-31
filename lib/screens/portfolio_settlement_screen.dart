@@ -178,7 +178,8 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
                 titleWeight: FontWeight.w700,
                 childPadding: const EdgeInsets.fromLTRB(0, 2, 0, 16),
                 leading: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  tooltip: context.l10n.a11yBack,
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
                   onPressed: () => Navigator.pop(context),
                 ),
                 actions: [

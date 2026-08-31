@@ -382,6 +382,24 @@ class AppLocalizationsEn extends AppLocalizations {
       'Cannot calculate. Check whether any holding is missing a current price.';
 
   @override
+  String get a11yBack => 'Back';
+
+  @override
+  String get a11yClose => 'Close';
+
+  @override
+  String get a11yRefresh => 'Refresh';
+
+  @override
+  String get a11yMenu => 'Open menu';
+
+  @override
+  String get a11yClearInput => 'Clear';
+
+  @override
+  String get a11yRemove => 'Remove';
+
+  @override
   String get cancel => 'Cancel';
 
   @override

@@ -114,7 +114,8 @@ class _ItemSearchScreenState extends State<ItemSearchScreen> {
             constraints: const BoxConstraints(minHeight: 52),
             child: Row(children: [
               IconButton(
-                icon: const Icon(Icons.close, color: Colors.white, size: 22),
+                tooltip: context.l10n.a11yClose,
+              icon: const Icon(Icons.close, color: Colors.white, size: 22),
                 onPressed: () => Navigator.pop(context),
               ),
               Expanded(
@@ -172,7 +173,8 @@ class _ItemSearchScreenState extends State<ItemSearchScreen> {
           suffixIcon: _ctl.text.isEmpty
               ? null
               : IconButton(
-                  icon: Icon(Icons.cancel,
+                  tooltip: context.l10n.a11yClearInput,
+              icon: Icon(Icons.cancel,
                       size: 18, color: context.textTertiary),
                   onPressed: () {
                     _ctl.clear();

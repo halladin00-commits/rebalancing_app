@@ -112,7 +112,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
               titleSize: 17,
               titleWeight: FontWeight.w700,
               leading: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                tooltip: context.l10n.a11yBack,
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
                 onPressed: () => Navigator.pop(context),
               ),
               childPadding: const EdgeInsets.fromLTRB(22, 0, 22, 16),
