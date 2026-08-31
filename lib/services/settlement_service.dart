@@ -99,6 +99,18 @@ class SettlementItemContribution {
   return (rate: 0.0, available: false);
 }
 
+/// 기여 %p의 분모.
+///
+/// [periodReturn]과 **같은 분모**여야 기여를 다 더했을 때 기간 수익률이
+/// 된다. 기초자산만 분모로 쓰면 기간 중 넣은 돈이 빠져, 돈을 넣어가며
+/// 키운 기간에는 기여 합이 헤더의 몇 배로 튄다.
+double contributionDenominator({
+  required double startValue,
+  required double weightedCashFlow,
+  required double netCashFlow,
+}) =>
+    startValue > 0 ? startValue + weightedCashFlow : netCashFlow;
+
 class SettlementResult {
   final SettlementPeriod period;
   final PeriodKey key;
@@ -492,9 +504,11 @@ class SettlementService {
     final returnRate = pr.rate;
 
     // 종목별 기여도는 포트 전체를 100으로 보는 값이라 같은 분모를 쓴다
-    final denominator = totalStart > 0
-        ? totalStart + totalWeightedCashFlow
-        : totalNetCashFlow;
+    final denominator = contributionDenominator(
+      startValue: totalStart,
+      weightedCashFlow: totalWeightedCashFlow,
+      netCashFlow: totalNetCashFlow,
+    );
 
     final contributions = rawItems.map((e) {
       double itemNetCF = 0;
@@ -753,6 +767,16 @@ class SettlementService {
 
     if (rows.isEmpty) return null;
 
+    // 기여 %p는 **헤더 수익률과 같은 분모**를 써야 더해서 헤더가 된다.
+    // 기초자산만 쓰면 기간 중 넣은 돈이 분모에서 빠져, 처음부터 돈을
+    // 넣어가며 키운 해에는 기여 합이 헤더의 몇 배로 튄다
+    // (2026년: 기여 50.21%p + 5.41%p인데 헤더는 +16.45%).
+    final denom = contributionDenominator(
+      startValue: start,
+      weightedCashFlow: weightedCF,
+      netCashFlow: netCF,
+    );
+
     final contributions = rows.map((e) {
       final pfStart = e.r.startValue * e.fx;
       final pfAbs = e.r.absoluteReturn * e.fx;
@@ -766,7 +790,7 @@ class SettlementService {
         returnRate: e.r.returnRate,
         rateAvailable: e.r.rateAvailable,
         // 전체 분모로 나눠 %p로 만든다
-        contribution: start > 0 ? pfAbs / start * 100 : 0.0,
+        contribution: denom > 0 ? pfAbs / denom * 100 : 0.0,
       );
     }).toList()
       ..sort((a, b) => b.absoluteReturn.abs().compareTo(a.absoluteReturn.abs()));
