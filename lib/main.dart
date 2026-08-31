@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -570,9 +572,24 @@ class PortfolioProvider extends ChangeNotifier {
     await _save();
   }
 
+  /// 백업 파일로 데이터를 통째로 갈아끼운다 (복원).
+  ///
+  /// 백업에는 **백업을 뜬 시점의 현재가**가 같이 들어 있다. 그대로 두면
+  /// 자산 화면이 며칠 전 가격으로 총자산을 보여주고, 결산은 그 가격을
+  /// 진행 중인 기간의 끝값으로 써서 손익 부호까지 뒤집힌다.
+  /// 시세 자동 갱신은 자산 탭이 처음 뜰 때 한 번만 도는 터라, 복원으로는
+  /// 다시 돌지 않는다 — 여기서 직접 받는다.
+  ///
+  /// 결산 캐시도 비운다. 캐시 키가 포트 id라 같은 id로 다른 데이터가
+  /// 들어오면 옛 계산 결과가 그대로 붙는다.
   Future<void> replaceAll(List<Portfolio> portfolios) async {
     _portfolios = portfolios;
+    SettlementService.clearCache();
     await _save();
+    // 기다리지 않는다 — 복원한 목록은 바로 보여주고, 시세는 들어오는 대로
+    // 갈아끼운다. 여기서 기다리면 확인을 누른 뒤 십수 초 동안 아무 일도
+    // 일어나지 않는 것처럼 보인다.
+    unawaited(refreshAll());
   }
 
   Portfolio? getPortfolio(String id) {
