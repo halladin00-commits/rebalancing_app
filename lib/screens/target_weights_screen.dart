@@ -72,7 +72,7 @@ class _TargetWeightsScreenState extends State<TargetWeightsScreen> {
           backgroundColor: context.scaffoldBg,
           body: Column(children: [
             _buildHeader(context, pf),
-            _buildSumBar(context),
+            _buildSumBar(context, drifts),
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 13, 16, 16),
@@ -180,7 +180,7 @@ class _TargetWeightsScreenState extends State<TargetWeightsScreen> {
   }
 
   /// 합계 막대. 100이 아니면 저장할 수 없으므로 늘 보이게 위에 붙인다.
-  Widget _buildSumBar(BuildContext context) {
+  Widget _buildSumBar(BuildContext context, Map<String, double> current) {
     final l10n = context.l10n;
     final sum = _sum;
     final ok = (sum - 100).abs() < 0.01;
@@ -205,31 +205,69 @@ class _TargetWeightsScreenState extends State<TargetWeightsScreen> {
                 fontWeight: FontWeight.w800,
                 letterSpacing: -0.3,
                 color: ok ? context.brandOnLight : context.warningText)),
-        // 균등 분산은 흔한 운용 방식이다(이 사용자의 ISA가 10종목 균등이다).
-        // 열 칸을 손으로 채우는 대신 한 번에 맞춘다.
+        // 열 칸을 손으로 채우는 대신 한 번에 맞추는 두 가지.
+        //
+        // **균등 배분** — 흔한 운용 방식이다(이 사용자의 ISA가 10종목 균등).
+        // **현재 비중으로** — 「지금 구성이 마음에 든다, 이걸 유지하자」에
+        //   답한다. 감으로 만든 포트를 앱이 그 자리에 붙들어 두게 하는 것이라
+        //   어떤 포트에서든 쓸모가 있다. 시세를 못 받으면 현재 비중을 모르므로
+        //   그때는 안 낸다.
         if (_ctls.length > 1) ...[
-          const SizedBox(width: 12),
-          GestureDetector(
-            onTap: _distributeEvenly,
-            behavior: HitTestBehavior.opaque,
-            child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
-              decoration: BoxDecoration(
-                color: context.cardBg,
-                borderRadius: BorderRadius.circular(DS.chipRadius),
-                border: Border.all(color: context.borderColor),
-              ),
-              child: Text(_isKo ? '균등 배분' : 'Split evenly',
-                  style: TextStyle(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w700,
-                      color: context.brandOnLight)),
-            ),
-          ),
+          const SizedBox(width: 8),
+          if (current.isNotEmpty)
+            _sumAction(context, _isKo ? '현재 비중으로' : 'Use current',
+                () => _copyCurrent(current)),
+          if (current.isNotEmpty) const SizedBox(width: 6),
+          _sumAction(context, _isKo ? '균등 배분' : 'Split evenly',
+              _distributeEvenly),
         ],
       ]),
     );
+  }
+
+  Widget _sumAction(BuildContext context, String label, VoidCallback onTap) =>
+      GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: context.cardBg,
+            borderRadius: BorderRadius.circular(DS.chipRadius),
+            border: Border.all(color: context.borderColor),
+          ),
+          child: Text(label,
+              style: TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
+                  color: context.brandOnLight)),
+        ),
+      );
+
+  /// 지금 비중을 그대로 목표로 삼는다.
+  ///
+  /// 반올림하면 합계가 99.99나 100.01이 되어 저장이 막힌다.
+  /// **가장 큰 종목이 나머지를 받는다** — 거기서 흡수하는 오차가 가장 작다.
+  void _copyCurrent(Map<String, double> current) {
+    final ids = _ctls.keys.where(current.containsKey).toList();
+    if (ids.isEmpty) return;
+    ids.sort((a, b) => current[b]!.compareTo(current[a]!));
+
+    var assigned = 0.0;
+    for (var i = 1; i < ids.length; i++) {
+      final v = double.parse(current[ids[i]]!.toStringAsFixed(2));
+      assigned += v;
+      _ctls[ids[i]]!.text = _trim(v);
+    }
+    // 가장 큰 것이 마지막에 나머지를 받는다
+    _ctls[ids.first]!.text =
+        _trim(double.parse((100 - assigned).toStringAsFixed(2)));
+
+    // 현재 비중을 못 구한 종목은 0으로 둔다 — 지어내지 않는다
+    for (final id in _ctls.keys.where((k) => !current.containsKey(k))) {
+      _ctls[id]!.text = '0';
+    }
+    setState(() {});
   }
 
   Widget _buildRow(BuildContext context, PortfolioItem item, double? current) {
