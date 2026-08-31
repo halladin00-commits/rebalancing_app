@@ -332,6 +332,27 @@ class RebalancingApp extends StatelessWidget {
               hintStyle: const TextStyle(color: Color(0xFFA39B8C)),
             ),
           ),
+          // **넓은 화면에서는 폭을 묶는다.**
+          //
+          // 태블릿(800dp)에서 그대로 늘리면 목록 한 줄이 화면을 가로질러,
+          // 왼쪽 끝 종목명과 오른쪽 끝 금액 사이가 텅 빈다. 눈이 한 줄을
+          // 따라가느라 읽기가 더 어려워진다 — 넓어서 좋을 게 없는 화면이다.
+          //
+          // 이 앱은 세로로 긴 목록을 훑는 도구다. 폰에서 잘 읽히는 폭
+          // (560dp)을 넘지 않게 가운데로 모으고, 남는 자리는 배경으로 둔다.
+          // 폰에서는 화면이 이보다 좁아 아무것도 달라지지 않는다.
+          builder: (context, child) {
+            if (child == null) return const SizedBox.shrink();
+            return ColoredBox(
+              color: const Color(0xFFFBF8F1),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 560),
+                  child: child,
+                ),
+              ),
+            );
+          },
           home: const _AppEntryPoint(),
         );
       },
