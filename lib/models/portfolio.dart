@@ -180,6 +180,18 @@ class Portfolio {
   FractionalRounding fractionalRounding;
 
   int? lastUpdated;
+
+  /// 마지막으로 **리밸런싱을 실행한** 시각 (epoch ms). 한 적 없으면 null.
+  ///
+  /// 리밸런싱 규율은 보통 둘 중 하나이거나 병행이다 —
+  /// **밴드**(허용 편차를 넘으면)와 **기간**(반년·1년마다). 이 앱은 밴드만
+  /// 있었다. 마지막으로 언제 손봤는지가 어디에도 없으니 기간 쪽 판단을
+  /// 할 수가 없었다.
+  ///
+  /// 조정 제안에서 거래를 일괄 기록할 때만 찍는다. 종목 하나를 사는 건
+  /// 리밸런싱이 아니다 — **아무 거래에나 찍으면 이 값이 아무 뜻도 없어진다.**
+  int? lastRebalancedAt;
+
   List<PortfolioItem> items;
 
   // 그래프 커스터마이즈
@@ -203,6 +215,7 @@ class Portfolio {
     this.fractionalEnabled = false,
     this.fractionalRounding = FractionalRounding.floorCash,
     this.lastUpdated,
+    this.lastRebalancedAt,
     List<PortfolioItem>? items,
     String? graphTitle,
     Map<String, String>? graphColors,
@@ -312,6 +325,7 @@ class Portfolio {
     'fractionalEnabled': fractionalEnabled,
     'fractionalRounding': fractionalRounding.name,
     'lastUpdated': lastUpdated,
+    'lastRebalancedAt': lastRebalancedAt,
     'items': items.map((e) => e.toJson()).toList(),
     'graphTitle': graphTitle,
     'graphColors': graphColors,
@@ -337,6 +351,9 @@ class Portfolio {
       orElse: () => FractionalRounding.floorCash,
     ),
     lastUpdated: json['lastUpdated'],
+    // 옛 저장본에는 이 키가 없다. null이면 화면이 「기록 없음」이라고
+    // 말한다 — 없는 날짜를 지어내지 않는다.
+    lastRebalancedAt: json['lastRebalancedAt'],
     items: (json['items'] as List<dynamic>?)
             ?.map((e) => PortfolioItem.fromJson(e))
             .toList() ??
@@ -369,6 +386,7 @@ class Portfolio {
     bool? fractionalEnabled,
     FractionalRounding? fractionalRounding,
     int? lastUpdated,
+    int? lastRebalancedAt,
     List<PortfolioItem>? items,
     String? graphTitle,
     Map<String, String>? graphColors,
@@ -389,6 +407,7 @@ class Portfolio {
     fractionalEnabled: fractionalEnabled ?? this.fractionalEnabled,
     fractionalRounding: fractionalRounding ?? this.fractionalRounding,
     lastUpdated: lastUpdated ?? this.lastUpdated,
+    lastRebalancedAt: lastRebalancedAt ?? this.lastRebalancedAt,
     items: items ?? this.items.map((e) => e.copyWith()).toList(),
     graphTitle: graphTitle ?? this.graphTitle,
     graphColors: graphColors ?? Map.from(this.graphColors),

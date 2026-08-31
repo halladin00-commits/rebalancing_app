@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
 import '../l10n/app_localizations.dart';
+import '../utils/elapsed.dart';
 import '../models/portfolio.dart';
 import '../services/notification_service.dart';
 import '../services/storage_service.dart';
@@ -10,34 +11,6 @@ import '../widgets/brand_header.dart';
 import '../widgets/disclaimer_dialog.dart';
 import 'notification_settings_screen.dart';
 import 'fractional_settings_screen.dart';
-
-/// 마지막 백업을 어떤 단위로 말할지
-enum BackupAgeUnit { never, today, yesterday, days, months, years }
-
-/// 마지막 백업이 얼마나 지났는지.
-///
-/// 단위를 바꾸는 경계(29→30일, 364→365일)에서 틀리기 쉬워 화면과 떼어 둔다.
-/// [stale]은 "이만하면 한 번 받아둘 때가 됐다"는 뜻이고, 화면에서 색이 바뀐다.
-({BackupAgeUnit unit, int count, bool stale}) backupAge(
-  DateTime? at, {
-  DateTime? now,
-}) {
-  if (at == null) {
-    // 한 번도 안 받아본 사람이 가장 위험하다 — 처음부터 눈에 띄어야 한다.
-    return (unit: BackupAgeUnit.never, count: 0, stale: true);
-  }
-  final days = (now ?? DateTime.now()).difference(at).inDays;
-  final stale = days >= 30;
-  if (days <= 0) return (unit: BackupAgeUnit.today, count: 0, stale: false);
-  if (days == 1) {
-    return (unit: BackupAgeUnit.yesterday, count: 1, stale: false);
-  }
-  if (days < 30) return (unit: BackupAgeUnit.days, count: days, stale: false);
-  if (days < 365) {
-    return (unit: BackupAgeUnit.months, count: days ~/ 30, stale: stale);
-  }
-  return (unit: BackupAgeUnit.years, count: days ~/ 365, stale: stale);
-}
 
 /// 더보기 탭 (v23a).
 ///
@@ -77,19 +50,19 @@ class _MoreScreenState extends State<MoreScreen> {
   }
 
   /// 마지막 백업이 30일보다 오래됐거나 아예 없으면 눈에 띄어야 한다
-  bool get _backupStale => _backupLoaded && backupAge(_lastBackup).stale;
+  bool get _backupStale => _backupLoaded && elapsedSince(_lastBackup).stale;
 
   /// 백업 행 오른쪽에 적을 값. 읽기 전에는 빈 문자열이라 아무것도 안 뜬다.
   String _backupSummary(AppLocalizations l10n) {
     if (!_backupLoaded) return '';
-    final age = backupAge(_lastBackup);
+    final age = elapsedSince(_lastBackup);
     return switch (age.unit) {
-      BackupAgeUnit.never => l10n.backupNever,
-      BackupAgeUnit.today => l10n.backupToday,
-      BackupAgeUnit.yesterday => l10n.backupYesterday,
-      BackupAgeUnit.days => l10n.backupDaysAgo(age.count),
-      BackupAgeUnit.months => l10n.backupMonthsAgo(age.count),
-      BackupAgeUnit.years => l10n.backupYearsAgo(age.count),
+      ElapsedUnit.never => l10n.backupNever,
+      ElapsedUnit.today => l10n.backupToday,
+      ElapsedUnit.yesterday => l10n.backupYesterday,
+      ElapsedUnit.days => l10n.backupDaysAgo(age.count),
+      ElapsedUnit.months => l10n.backupMonthsAgo(age.count),
+      ElapsedUnit.years => l10n.backupYearsAgo(age.count),
     };
   }
 

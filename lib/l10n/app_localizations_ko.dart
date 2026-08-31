@@ -373,6 +373,30 @@ class AppLocalizationsKo extends AppLocalizations {
   String get cannotCalculate => '계산할 수 없습니다. 현재가가 없는 종목이 있는지 확인해 주세요.';
 
   @override
+  String get lastRebalancedNever => '조정 기록 없음';
+
+  @override
+  String get lastRebalancedToday => '오늘 조정';
+
+  @override
+  String get lastRebalancedYesterday => '어제 조정';
+
+  @override
+  String lastRebalancedDaysAgo(int days) {
+    return '$days일 전 조정';
+  }
+
+  @override
+  String lastRebalancedMonthsAgo(int months) {
+    return '$months개월 전 조정';
+  }
+
+  @override
+  String lastRebalancedYearsAgo(int years) {
+    return '$years년 전 조정';
+  }
+
+  @override
   String get a11yBack => '뒤로';
 
   @override

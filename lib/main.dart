@@ -569,6 +569,17 @@ class PortfolioProvider extends ChangeNotifier {
     }
   }
 
+  /// 리밸런싱을 실행한 날을 남긴다.
+  ///
+  /// 조정 제안에서 거래를 **일괄 기록할 때만** 부른다. 사용자가 고른
+  /// 거래 일자를 그대로 쓴다 — 실제로 체결한 날이 그날이기 때문이다.
+  Future<void> markRebalanced(String pfId, DateTime when) async {
+    final pf = getPortfolio(pfId);
+    if (pf == null) return;
+    pf.lastRebalancedAt = when.millisecondsSinceEpoch;
+    await _save();
+  }
+
   Future<void> updateItem(String pfId, PortfolioItem item) async {
     final pf = getPortfolio(pfId);
     if (pf != null) {

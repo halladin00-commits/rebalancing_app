@@ -5,6 +5,7 @@ import '../utils/money_format.dart';
 import '../models/portfolio.dart';
 import '../theme/design_system.dart';
 import '../widgets/portfolio_actions.dart';
+import '../utils/elapsed.dart';
 import '../utils/rebalancer.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/weight_bar.dart';
@@ -181,6 +182,29 @@ class RebalanceTabScreen extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  /// 「마지막으로 언제 조정했나」.
+  ///
+  /// 리밸런싱 규율은 **밴드**(허용 편차를 넘으면)와 **기간**(반년·1년마다)
+  /// 둘 중 하나이거나 병행이다. 이 앱은 밴드만 있었다 — 편차가 안 넘으면
+  /// `유지`라고만 말하고, 그 상태로 2년이 지나도 아무 말이 없었다.
+  ///
+  /// 규칙을 새로 강요하지는 않는다. **사실만 적는다** — 판단은 사용자 몫이다.
+  static String lastRebalancedLabel(BuildContext context, Portfolio pf) {
+    final l10n = context.l10n;
+    final at = pf.lastRebalancedAt == null
+        ? null
+        : DateTime.fromMillisecondsSinceEpoch(pf.lastRebalancedAt!);
+    final age = elapsedSince(at);
+    return switch (age.unit) {
+      ElapsedUnit.never => l10n.lastRebalancedNever,
+      ElapsedUnit.today => l10n.lastRebalancedToday,
+      ElapsedUnit.yesterday => l10n.lastRebalancedYesterday,
+      ElapsedUnit.days => l10n.lastRebalancedDaysAgo(age.count),
+      ElapsedUnit.months => l10n.lastRebalancedMonthsAgo(age.count),
+      ElapsedUnit.years => l10n.lastRebalancedYearsAgo(age.count),
+    };
   }
 
   /// 이 화면을 읽는 법.
@@ -372,8 +396,8 @@ class RebalanceTabScreen extends StatelessWidget {
                   Expanded(
                     child: Text(
                       isKo
-                          ? '${pf.items.length}종목 · 세로선이 목표 비중'
-                          : '${pf.items.length} holdings · lines are targets',
+                          ? '${pf.items.length}종목 · ${lastRebalancedLabel(context, pf)}'
+                          : '${pf.items.length} holdings · ${lastRebalancedLabel(context, pf)}',
                       style: TextStyle(
                           fontSize: DS.body,
                           fontWeight: FontWeight.w500,

@@ -740,6 +740,42 @@ abstract class AppLocalizations {
   /// **'계산할 수 없습니다. 현재가가 없는 종목이 있는지 확인해 주세요.'**
   String get cannotCalculate;
 
+  /// No description provided for @lastRebalancedNever.
+  ///
+  /// In ko, this message translates to:
+  /// **'조정 기록 없음'**
+  String get lastRebalancedNever;
+
+  /// No description provided for @lastRebalancedToday.
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘 조정'**
+  String get lastRebalancedToday;
+
+  /// No description provided for @lastRebalancedYesterday.
+  ///
+  /// In ko, this message translates to:
+  /// **'어제 조정'**
+  String get lastRebalancedYesterday;
+
+  /// No description provided for @lastRebalancedDaysAgo.
+  ///
+  /// In ko, this message translates to:
+  /// **'{days}일 전 조정'**
+  String lastRebalancedDaysAgo(int days);
+
+  /// No description provided for @lastRebalancedMonthsAgo.
+  ///
+  /// In ko, this message translates to:
+  /// **'{months}개월 전 조정'**
+  String lastRebalancedMonthsAgo(int months);
+
+  /// No description provided for @lastRebalancedYearsAgo.
+  ///
+  /// In ko, this message translates to:
+  /// **'{years}년 전 조정'**
+  String lastRebalancedYearsAgo(int years);
+
   /// No description provided for @a11yBack.
   ///
   /// In ko, this message translates to:

@@ -518,6 +518,14 @@ class _BulkTransactionScreenState extends State<BulkTransactionScreen> {
     await provider.updateCashAndResidual(
         widget.pf.id, cashItems, widget.rb.cash);
 
+    // **여기가 리밸런싱을 실행한 순간이다.** 이 시각을 남겨야 「마지막으로
+    // 언제 손봤나」에 답할 수 있다 — 밴드(허용 편차)만 있고 기간이 없으면
+    // 반년·1년마다 하는 규율을 지킬 수가 없다.
+    //
+    // 거래 하나를 따로 넣는 화면에서는 찍지 않는다. 종목 하나를 사는 건
+    // 리밸런싱이 아니고, 아무 거래에나 찍으면 이 값이 아무 뜻도 없어진다.
+    await provider.markRebalanced(widget.pf.id, _date);
+
     if (!mounted) return;
     ReviewService.onRebalancingApplied();
     Navigator.pop(context, true);

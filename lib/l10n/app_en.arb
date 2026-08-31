@@ -235,6 +235,33 @@
   "noAdjustmentNeeded": "Nothing to adjust right now",
   "cannotCalculate": "Cannot calculate. Check whether any holding is missing a current price.",
   "@@locale": "en",
+  "lastRebalancedNever": "Never rebalanced",
+  "lastRebalancedToday": "Rebalanced today",
+  "lastRebalancedYesterday": "Rebalanced yesterday",
+  "lastRebalancedDaysAgo": "Rebalanced {days}d ago",
+  "@lastRebalancedDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "lastRebalancedMonthsAgo": "Rebalanced {months}mo ago",
+  "@lastRebalancedMonthsAgo": {
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "lastRebalancedYearsAgo": "Rebalanced {years}y ago",
+  "@lastRebalancedYearsAgo": {
+    "placeholders": {
+      "years": {
+        "type": "int"
+      }
+    }
+  },
   "a11yBack": "Back",
   "a11yClose": "Close",
   "a11yRefresh": "Refresh",

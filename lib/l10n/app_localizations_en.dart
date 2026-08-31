@@ -382,6 +382,30 @@ class AppLocalizationsEn extends AppLocalizations {
       'Cannot calculate. Check whether any holding is missing a current price.';
 
   @override
+  String get lastRebalancedNever => 'Never rebalanced';
+
+  @override
+  String get lastRebalancedToday => 'Rebalanced today';
+
+  @override
+  String get lastRebalancedYesterday => 'Rebalanced yesterday';
+
+  @override
+  String lastRebalancedDaysAgo(int days) {
+    return 'Rebalanced ${days}d ago';
+  }
+
+  @override
+  String lastRebalancedMonthsAgo(int months) {
+    return 'Rebalanced ${months}mo ago';
+  }
+
+  @override
+  String lastRebalancedYearsAgo(int years) {
+    return 'Rebalanced ${years}y ago';
+  }
+
+  @override
   String get a11yBack => 'Back';
 
   @override

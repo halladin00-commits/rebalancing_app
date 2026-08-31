@@ -934,6 +934,13 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
       ? v.toStringAsFixed(0)
       : v.toStringAsFixed(1);
 
+  /// 수수료율 표기. `0.015`처럼 **셋째 자리까지** 간다.
+  ///
+  /// 허용 편차용 `_trimZero`는 한 자리에서 잘라 `0.015`를 `0.0`으로
+  /// 만든다 — 화면이 「수수료 0.0%는 빼고 계산했습니다」라고 말하게 된다.
+  String _rate(double v) =>
+      v.toStringAsFixed(3).replaceFirst(RegExp(r'\.?0+$'), '');
+
   // ── 반올림 안내 ──
 
   Widget _buildRoundingNote(BuildContext context, Portfolio pf,
@@ -998,7 +1005,7 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
           Icons.receipt_long_outlined,
           l10n.proposalCostTitle,
           pf.commissionEnabled && pf.commissionRate > 0
-              ? l10n.proposalCostWith(_trimZero(pf.commissionRate))
+              ? l10n.proposalCostWith(_rate(pf.commissionRate))
               : l10n.proposalCostWithout,
         ),
       ]),

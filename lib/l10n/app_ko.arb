@@ -235,6 +235,33 @@
   "noAdjustmentNeeded": "지금은 조정할 것이 없습니다",
   "cannotCalculate": "계산할 수 없습니다. 현재가가 없는 종목이 있는지 확인해 주세요.",
   "@@locale": "ko",
+  "lastRebalancedNever": "조정 기록 없음",
+  "lastRebalancedToday": "오늘 조정",
+  "lastRebalancedYesterday": "어제 조정",
+  "lastRebalancedDaysAgo": "{days}일 전 조정",
+  "@lastRebalancedDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "lastRebalancedMonthsAgo": "{months}개월 전 조정",
+  "@lastRebalancedMonthsAgo": {
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "lastRebalancedYearsAgo": "{years}년 전 조정",
+  "@lastRebalancedYearsAgo": {
+    "placeholders": {
+      "years": {
+        "type": "int"
+      }
+    }
+  },
   "a11yBack": "뒤로",
   "a11yClose": "닫기",
   "a11yRefresh": "새로고침",
