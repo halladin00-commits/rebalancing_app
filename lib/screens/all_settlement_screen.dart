@@ -58,18 +58,67 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
   bool _sharing = false;
   final _screenshotCtrl = ScreenshotController();
 
+  /// 마지막으로 계산에 쓴 시세 기준 시각.
+  ///
+  /// 진행 중인 기간의 끝값은 **현재가**다. 앱을 켠 직후나 복원 직후엔
+  /// 아직 갱신 전 가격이 들어 있고, 그 값으로 계산한 손익이 화면에 남는다.
+  /// 시세가 들어와도 포트폴리오 목록 자체는 같은 객체라 `didUpdateWidget`의
+  /// 리스트 비교로는 안 걸린다 — 기준 시각을 따로 본다.
+  int _loadedStamp = 0;
+
+  int get _priceStamp {
+    var m = 0;
+    for (final p in widget.portfolios) {
+      final t = p.lastUpdated;
+      if (t != null && t > m) m = t;
+    }
+    return m;
+  }
+
   @override
   void initState() {
     super.initState();
     _endKey = SettlementService.currentKey(_period);
     _selected = _endKey;
+    _loadedStamp = _priceStamp;
     _load();
   }
 
   @override
   void didUpdateWidget(AllSettlementScreen old) {
     super.didUpdateWidget(old);
-    if (old.portfolios != widget.portfolios) _load();
+    if (old.portfolios != widget.portfolios) {
+      _loadedStamp = _priceStamp;
+      _load();
+    } else if (_priceStamp != _loadedStamp) {
+      _loadedStamp = _priceStamp;
+      _refreshLive();
+    }
+  }
+
+  /// 시세가 갱신됐을 때 **진행 중인 칸만** 다시 계산한다.
+  ///
+  /// 전체를 다시 부르면 지난 기간까지 지웠다 그리느라 차트가 깜빡인다.
+  /// 현재가에 영향받는 칸은 진행 중인 하나뿐이다.
+  Future<void> _refreshLive() async {
+    if (_loading || _series.isEmpty) {
+      // 아직 첫 계산 중이면 그 결과가 옛 가격으로 나온다 — 통째로 다시 부른다
+      _load();
+      return;
+    }
+    final keys = _windowKeys(_endKey);
+    for (var i = 0; i < keys.length && i < _series.length; i++) {
+      if (_series[i]?.isCurrentPeriod != true) continue;
+      final r = await SettlementService.calculateCombined(
+          widget.portfolios, _period, keys[i],
+          useCache: false);
+      if (!mounted) return;
+      setState(() {
+        final next = List<CombinedSettlement?>.of(_series);
+        if (i < next.length) next[i] = r;
+        _series = next;
+      });
+    }
   }
 
   bool get _isKo => Localizations.localeOf(context).languageCode == 'ko';

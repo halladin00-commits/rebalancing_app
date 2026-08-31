@@ -42,12 +42,38 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
   bool _sharing = false;
   final _screenshotCtrl = ScreenshotController();
 
+  /// 계산에 쓴 시세 기준 시각.
+  ///
+  /// 진행 중인 기간의 끝값은 현재가다. 앱을 켠 직후엔 아직 갱신 전 가격이라
+  /// 그 값으로 낸 손익이 화면에 굳는다 — 시세가 들어오면 다시 계산한다.
+  int _loadedStamp = 0;
+  PortfolioProvider? _provider;
+
   @override
   void initState() {
     super.initState();
     _endKey = SettlementService.currentKey(_period);
     _selected = _endKey;
-    WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _loadedStamp = _pf?.lastUpdated ?? 0;
+      _provider = context.read<PortfolioProvider>()..addListener(_onPrices);
+      _load();
+    });
+  }
+
+  @override
+  void dispose() {
+    _provider?.removeListener(_onPrices);
+    super.dispose();
+  }
+
+  void _onPrices() {
+    if (!mounted) return;
+    final s = _pf?.lastUpdated ?? 0;
+    if (s == _loadedStamp) return;
+    _loadedStamp = s;
+    _load();
   }
 
   bool get _isKo => Localizations.localeOf(context).languageCode == 'ko';
