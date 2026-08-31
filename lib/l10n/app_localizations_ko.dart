@@ -397,6 +397,48 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get undoLastTitle => '마지막 기록 되돌리기';
+
+  @override
+  String undoFromProposal(int count, String when) {
+    return '조정 제안 $count건 · $when';
+  }
+
+  @override
+  String undoFromImport(int count, String when) {
+    return '업로드 $count건 · $when';
+  }
+
+  @override
+  String get undoConfirmTitle => '되돌릴까요?';
+
+  @override
+  String undoConfirmTrades(int count) {
+    return '거래 $count건을 지웁니다.';
+  }
+
+  @override
+  String undoConfirmItems(int count) {
+    return '이 업로드가 만든 종목 $count개도 함께 지웁니다.';
+  }
+
+  @override
+  String get undoConfirmCash => '예수금도 기록 전으로 돌아갑니다.';
+
+  @override
+  String undoDone(int count) {
+    return '$count건을 되돌렸습니다';
+  }
+
+  @override
+  String undoKeptItems(String names) {
+    return '$names은(는) 그 뒤에 넣은 거래가 있어 남겼습니다';
+  }
+
+  @override
+  String get undoAction => '되돌리기';
+
+  @override
   String get a11yBack => '뒤로';
 
   @override

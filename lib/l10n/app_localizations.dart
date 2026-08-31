@@ -776,6 +776,66 @@ abstract class AppLocalizations {
   /// **'{years}년 전 조정'**
   String lastRebalancedYearsAgo(int years);
 
+  /// No description provided for @undoLastTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'마지막 기록 되돌리기'**
+  String get undoLastTitle;
+
+  /// No description provided for @undoFromProposal.
+  ///
+  /// In ko, this message translates to:
+  /// **'조정 제안 {count}건 · {when}'**
+  String undoFromProposal(int count, String when);
+
+  /// No description provided for @undoFromImport.
+  ///
+  /// In ko, this message translates to:
+  /// **'업로드 {count}건 · {when}'**
+  String undoFromImport(int count, String when);
+
+  /// No description provided for @undoConfirmTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'되돌릴까요?'**
+  String get undoConfirmTitle;
+
+  /// No description provided for @undoConfirmTrades.
+  ///
+  /// In ko, this message translates to:
+  /// **'거래 {count}건을 지웁니다.'**
+  String undoConfirmTrades(int count);
+
+  /// No description provided for @undoConfirmItems.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 업로드가 만든 종목 {count}개도 함께 지웁니다.'**
+  String undoConfirmItems(int count);
+
+  /// No description provided for @undoConfirmCash.
+  ///
+  /// In ko, this message translates to:
+  /// **'예수금도 기록 전으로 돌아갑니다.'**
+  String get undoConfirmCash;
+
+  /// No description provided for @undoDone.
+  ///
+  /// In ko, this message translates to:
+  /// **'{count}건을 되돌렸습니다'**
+  String undoDone(int count);
+
+  /// No description provided for @undoKeptItems.
+  ///
+  /// In ko, this message translates to:
+  /// **'{names}은(는) 그 뒤에 넣은 거래가 있어 남겼습니다'**
+  String undoKeptItems(String names);
+
+  /// No description provided for @undoAction.
+  ///
+  /// In ko, this message translates to:
+  /// **'되돌리기'**
+  String get undoAction;
+
   /// No description provided for @a11yBack.
   ///
   /// In ko, this message translates to:

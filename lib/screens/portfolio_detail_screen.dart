@@ -8,6 +8,7 @@ import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import '../main.dart';
+import '../services/undo_service.dart';
 import '../utils/money_format.dart';
 import '../models/portfolio.dart';
 import '../utils/rebalancer.dart';
@@ -41,6 +42,9 @@ class PortfolioDetailScreen extends StatefulWidget {
 
 class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
   bool _editMode = false;
+
+  /// 되돌릴 수 있는 마지막 묶음. 없으면 메뉴에 항목이 안 나온다.
+  UndoBatch? _undo;
   bool _refreshing = false;
   bool _savingAsset = false;
   bool _sharingAsset = false;
@@ -476,8 +480,12 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
   }
 
   /// 포트 메뉴 (시안 v13d). 시안에 FAB는 없다 — 액션은 이 시트에 모은다.
-  void _showPortfolioMenu(Portfolio pf, RebalanceResult? rb) {
+  Future<void> _showPortfolioMenu(Portfolio pf, RebalanceResult? rb) async {
     final l10n = context.l10n;
+    // 메뉴를 열 때 읽는다. 화면에 들어올 때만 읽으면, 업로드나 일괄 기록을
+    // 하고 돌아온 직후에 항목이 안 보인다.
+    _undo = await UndoService.load(pf.id);
+    if (!mounted) return;
     showModalBottomSheet(
       context: context,
       backgroundColor: context.scaffoldBg,
@@ -489,7 +497,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
       ),
       builder: (sheetCtx) {
         Widget row(IconData icon, String label, VoidCallback onTap,
-            {String? hint, bool danger = false}) {
+            {String? hint, String? subtitle, bool danger = false}) {
           final fg = danger ? context.danger : context.textPrimary;
           return ListTile(
             leading: Icon(icon,
@@ -497,6 +505,14 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
             title: Text(label,
                 style: TextStyle(
                     fontSize: 14, fontWeight: FontWeight.w600, color: fg)),
+            // 무엇을 되돌리는지 눌러보기 전에 알아야 한다
+            subtitle: subtitle == null
+                ? null
+                : Text(subtitle,
+                    style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: context.textTertiary)),
             trailing: hint == null
                 ? null
                 : Text(hint,
@@ -565,6 +581,13 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                             )),
                     row(Icons.upload_file, l10n.excelImportTitle,
                         () => _openImport(context, pf)),
+                    // 한 번에 수십 건이 들어가는 두 경로(조정 제안 일괄 기록 ·
+                    // 거래내역 업로드) 뒤에만 나온다. 되돌릴 게 없으면 안 낸다 —
+                    // 늘 있는 항목이면 무엇을 되돌리는지 알 수 없다.
+                    if (_undo != null)
+                      row(Icons.undo, l10n.undoLastTitle,
+                          () => _confirmUndo(pf, _undo!),
+                          subtitle: _undoSubtitle(l10n, _undo!)),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4),
                       child: Divider(height: 1, color: context.dividerColor),
@@ -633,6 +656,73 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
   /// 예전에는 여기서 바텀시트를 띄우고 그 안에서 파일을 골라 **바로 저장**했다.
   /// 지금은 두 단계 화면이 그 일을 하고, 저장 전에 무엇이 들어가는지 보여준다.
   /// 시트는 같은 내용을 한 번 더 묻는 단계일 뿐이라 없앴다.
+  String _undoSubtitle(dynamic l10n, UndoBatch b) {
+    final d = DateTime.fromMillisecondsSinceEpoch(b.at);
+    String two(int v) => v.toString().padLeft(2, '0');
+    final when = '${two(d.month)}.${two(d.day)} ${two(d.hour)}:${two(d.minute)}';
+    return b.kind == UndoBatch.kindImport
+        ? l10n.undoFromImport(b.count, when)
+        : l10n.undoFromProposal(b.count, when);
+  }
+
+  /// **무엇이 사라지는지 먼저 말하고 묻는다.** 되돌리기도 되돌릴 수 없다.
+  Future<void> _confirmUndo(Portfolio pf, UndoBatch b) async {
+    final l10n = context.l10n;
+    final lines = <String>[
+      l10n.undoConfirmTrades(b.count),
+      if (b.createdItemIds.isNotEmpty)
+        l10n.undoConfirmItems(b.createdItemIds.length),
+      if (b.cashItemId != null) l10n.undoConfirmCash,
+    ];
+
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: context.cardBg,
+        title: Text(l10n.undoConfirmTitle,
+            style: TextStyle(fontSize: 16, color: context.textPrimary)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final t in lines)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Text(t,
+                    style: TextStyle(
+                        fontSize: 13,
+                        height: 1.5,
+                        color: context.textSecondary)),
+              ),
+          ],
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l10n.cancel)),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(l10n.undoAction,
+                  style: TextStyle(color: context.danger))),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+
+    final provider = context.read<PortfolioProvider>();
+    final kept = await provider.undoBatch(b);
+    await UndoService.clear(b.portfolioId);
+    if (!mounted) return;
+    setState(() => _undo = null);
+
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(kept.isEmpty
+          ? l10n.undoDone(b.count)
+          : '${l10n.undoDone(b.count)}\n'
+              '${l10n.undoKeptItems(kept.join(", "))}'),
+    ));
+  }
+
   Future<void> _openImport(BuildContext context, Portfolio pf) async {
     final l10n = context.l10n;
     final result = await Navigator.push<ImportResult?>(

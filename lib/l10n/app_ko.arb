@@ -262,6 +262,64 @@
       }
     }
   },
+  "undoLastTitle": "마지막 기록 되돌리기",
+  "undoFromProposal": "조정 제안 {count}건 · {when}",
+  "@undoFromProposal": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "undoFromImport": "업로드 {count}건 · {when}",
+  "@undoFromImport": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "undoConfirmTitle": "되돌릴까요?",
+  "undoConfirmTrades": "거래 {count}건을 지웁니다.",
+  "@undoConfirmTrades": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "undoConfirmItems": "이 업로드가 만든 종목 {count}개도 함께 지웁니다.",
+  "@undoConfirmItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "undoConfirmCash": "예수금도 기록 전으로 돌아갑니다.",
+  "undoDone": "{count}건을 되돌렸습니다",
+  "@undoDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "undoKeptItems": "{names}은(는) 그 뒤에 넣은 거래가 있어 남겼습니다",
+  "@undoKeptItems": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "undoAction": "되돌리기",
   "a11yBack": "뒤로",
   "a11yClose": "닫기",
   "a11yRefresh": "새로고침",

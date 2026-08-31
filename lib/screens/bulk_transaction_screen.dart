@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../main.dart';
+import '../services/undo_service.dart';
 import '../utils/rebalancer.dart';
 import '../models/portfolio.dart';
 import '../services/review_service.dart';
@@ -497,6 +498,14 @@ class _BulkTransactionScreenState extends State<BulkTransactionScreen> {
     final provider = context.read<PortfolioProvider>();
     final stamp = DateTime.now().millisecondsSinceEpoch;
 
+    // 되돌리기용으로 **바꾸기 전 상태**를 먼저 붙잡는다.
+    // 기록한 뒤에 읽으면 이미 바뀐 값이라 되돌릴 수가 없다.
+    final pfNow = provider.getPortfolio(widget.pf.id);
+    final cashItem = pfNow?.items.where((i) => i.isCash).firstOrNull;
+    final undoTx = <({String itemId, String txId})>[];
+    final lastRebalancedBefore = pfNow?.lastRebalancedAt;
+    final cashBefore = cashItem?.shares;
+
     for (var i = 0; i < _tradeable.length; i++) {
       final r = _tradeable[i];
       final qty = _qty(r.id);
@@ -509,6 +518,7 @@ class _BulkTransactionScreenState extends State<BulkTransactionScreen> {
         price: price,
       );
       await provider.upsertTransaction(widget.pf.id, r.id, tx);
+      undoTx.add((itemId: r.id, txId: tx.id));
     }
 
     final cashItems = widget.rb.results
@@ -525,6 +535,18 @@ class _BulkTransactionScreenState extends State<BulkTransactionScreen> {
     // 거래 하나를 따로 넣는 화면에서는 찍지 않는다. 종목 하나를 사는 건
     // 리밸런싱이 아니고, 아무 거래에나 찍으면 이 값이 아무 뜻도 없어진다.
     await provider.markRebalanced(widget.pf.id, _date);
+
+    // 한 번에 수십 건이 들어간다. 잘못 눌렀거나 실제로는 체결이 안 됐으면
+    // 하나씩 지우게 두지 않는다.
+    await UndoService.save(UndoBatch(
+      portfolioId: widget.pf.id,
+      kind: UndoBatch.kindProposal,
+      at: stamp,
+      transactions: undoTx,
+      cashItemId: cashItem?.id,
+      cashBefore: cashBefore,
+      lastRebalancedBefore: lastRebalancedBefore,
+    ));
 
     if (!mounted) return;
     ReviewService.onRebalancingApplied();

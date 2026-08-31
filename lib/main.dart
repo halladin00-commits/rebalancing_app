@@ -9,6 +9,7 @@ import 'services/storage_service.dart';
 import 'services/api_service.dart';
 import 'services/asset_history_service.dart';
 import 'services/settlement_service.dart';
+import 'services/undo_service.dart';
 import 'screens/main_shell.dart';
 import 'screens/onboarding_screen.dart';
 import 'services/stock_search_service.dart';
@@ -567,6 +568,70 @@ class PortfolioProvider extends ChangeNotifier {
       pf.items.add(item);
       await _save();
     }
+  }
+
+  /// 묶음 하나를 통째로 되돌린다.
+  ///
+  /// 되돌릴 수 없는 것을 조용히 넘기지 않는다 — 이미 사용자가 손댄
+  /// 종목은 남기고, **무엇이 남았는지 돌려준다.** 화면이 그걸 말해준다.
+  ///
+  /// 반환: 남겨둔 종목 이름들 (그 뒤에 다른 거래가 붙어 못 지운 것).
+  Future<List<String>> undoBatch(UndoBatch batch) async {
+    final pf = getPortfolio(batch.portfolioId);
+    if (pf == null) return const [];
+
+    // 1. 거래를 뺀다
+    for (final t in batch.transactions) {
+      final item = pf.items.where((i) => i.id == t.itemId).firstOrNull;
+      if (item == null) continue;
+      item.transactions.removeWhere((x) => x.id == t.txId);
+      _recalcFromTransactions(item);
+    }
+
+    // 2. 예수금을 되돌린다
+    if (batch.cashItemId != null && batch.cashBefore != null) {
+      final cash = pf.items.where((i) => i.id == batch.cashItemId).firstOrNull;
+      if (cash != null) cash.shares = batch.cashBefore!;
+    }
+
+    // 3. 조정 시각을 되돌린다
+    pf.lastRebalancedAt = batch.lastRebalancedBefore;
+
+    // 4. 업로드가 만든 종목을 지운다.
+    //    **그 뒤에 다른 거래가 붙었으면 남긴다** — 사용자가 손댄 것을
+    //    되돌리기가 말없이 지우면 안 된다.
+    final kept = <String>[];
+    for (final id in batch.createdItemIds) {
+      final item = pf.items.where((i) => i.id == id).firstOrNull;
+      if (item == null) continue;
+      if (item.transactions.isEmpty) {
+        pf.items.removeWhere((i) => i.id == id);
+      } else {
+        kept.add(item.name);
+      }
+    }
+
+    await _save();
+    return kept;
+  }
+
+  /// 거래 내역만으로 보유 수량과 평균 단가를 다시 만든다.
+  void _recalcFromTransactions(PortfolioItem item) {
+    if (item.transactions.isEmpty) {
+      item.shares = 0;
+      item.avgPrice = 0;
+      return;
+    }
+    double shares = 0, cost = 0;
+    for (final t in item.transactions) {
+      shares += t.quantity;
+      if (t.quantity > 0) cost += t.quantity * t.price;
+    }
+    item.shares = shares;
+    final bought = item.transactions
+        .where((t) => t.quantity > 0)
+        .fold(0.0, (s, t) => s + t.quantity);
+    item.avgPrice = bought > 0 ? cost / bought : 0;
   }
 
   /// 리밸런싱을 실행한 날을 남긴다.

@@ -12,6 +12,8 @@ import '../utils/csv_parser.dart';
 import 'import_analyzer.dart';
 import 'import_plan.dart';
 
+import 'undo_service.dart';
+
 export 'import_plan.dart' show ImportResult, ImportPlan;
 
 /// 거래내역 파일을 읽어 들이는 일 (시안 v17b·v17c).
@@ -168,6 +170,8 @@ class ExcelImportService {
     Map<String, String> links = const {},
   }) async {
     final createdItems = <String>[];
+    final createdIds = <String>[];       // 되돌릴 때 지울 종목
+    final undoTx = <({String itemId, String txId})>[];
     final resolved = <String, String>{};
 
     // 새로 만들어 달라는 것부터 만든다
@@ -178,6 +182,7 @@ class ExcelImportService {
         final row = plan.unlinked.firstWhere((r) => r.key == u.label);
         final id = _uid();
         await provider.addItem(pf.id, newItemFrom(row, id));
+        createdIds.add(id);
         resolved[u.label] = id;
         createdItems.add(u.name.isNotEmpty ? u.name : u.ticker);
       } else {
@@ -191,17 +196,27 @@ class ExcelImportService {
     for (final r in finalPlan.ready) {
       final itemId = r.matchedItemId;
       if (itemId == null) continue;
-      await provider.upsertTransaction(
-        pf.id,
-        itemId,
-        StockTransaction(
-          id: _uid(),
-          date: r.date,
-          quantity: r.isBuy ? r.qty : -r.qty,
-          price: r.price,
-        ),
+      final tx = StockTransaction(
+        id: _uid(),
+        date: r.date,
+        quantity: r.isBuy ? r.qty : -r.qty,
+        price: r.price,
       );
+      await provider.upsertTransaction(pf.id, itemId, tx);
+      undoTx.add((itemId: itemId, txId: tx.id));
       added++;
+    }
+
+    // 한 번에 수십 건이 들어간다. 파일을 잘못 골랐거나 열이 어긋났으면
+    // 하나씩 지우게 두지 않는다. 이 업로드가 **만든 종목까지** 기억한다.
+    if (undoTx.isNotEmpty || createdIds.isNotEmpty) {
+      await UndoService.save(UndoBatch(
+        portfolioId: pf.id,
+        kind: UndoBatch.kindImport,
+        at: DateTime.now().millisecondsSinceEpoch,
+        transactions: undoTx,
+        createdItemIds: createdIds,
+      ));
     }
 
     return ImportResult(

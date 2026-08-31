@@ -406,6 +406,48 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get undoLastTitle => 'Undo last record';
+
+  @override
+  String undoFromProposal(int count, String when) {
+    return 'Proposal · $count trades · $when';
+  }
+
+  @override
+  String undoFromImport(int count, String when) {
+    return 'Import · $count trades · $when';
+  }
+
+  @override
+  String get undoConfirmTitle => 'Undo this?';
+
+  @override
+  String undoConfirmTrades(int count) {
+    return '$count transactions will be removed.';
+  }
+
+  @override
+  String undoConfirmItems(int count) {
+    return '$count holdings created by this import will also be removed.';
+  }
+
+  @override
+  String get undoConfirmCash => 'Cash returns to what it was.';
+
+  @override
+  String undoDone(int count) {
+    return 'Undid $count transactions';
+  }
+
+  @override
+  String undoKeptItems(String names) {
+    return 'Kept $names — they have transactions added since';
+  }
+
+  @override
+  String get undoAction => 'Undo';
+
+  @override
   String get a11yBack => 'Back';
 
   @override

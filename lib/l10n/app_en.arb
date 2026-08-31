@@ -262,6 +262,64 @@
       }
     }
   },
+  "undoLastTitle": "Undo last record",
+  "undoFromProposal": "Proposal · {count} trades · {when}",
+  "@undoFromProposal": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "undoFromImport": "Import · {count} trades · {when}",
+  "@undoFromImport": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "undoConfirmTitle": "Undo this?",
+  "undoConfirmTrades": "{count} transactions will be removed.",
+  "@undoConfirmTrades": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "undoConfirmItems": "{count} holdings created by this import will also be removed.",
+  "@undoConfirmItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "undoConfirmCash": "Cash returns to what it was.",
+  "undoDone": "Undid {count} transactions",
+  "@undoDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "undoKeptItems": "Kept {names} — they have transactions added since",
+  "@undoKeptItems": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "undoAction": "Undo",
   "a11yBack": "Back",
   "a11yClose": "Close",
   "a11yRefresh": "Refresh",
