@@ -40,6 +40,12 @@ class SparklinePanel extends StatelessWidget {
   /// 선 색. 오름/내림에 따라 호출부가 정한다.
   final Color color;
 
+  /// 안 켠 날의 자산을 계산해 채우는 중인가.
+  ///
+  /// 처음 켠 날이나 오래 쉬었다 들어온 날은 종목 수만큼 시세를 받아야 해서
+  /// 몇 초 걸린다. 그동안 빈 선을 보여주면 **기록이 없는 것과 구분되지 않는다.**
+  final bool building;
+
   const SparklinePanel({
     super.key,
     required this.points,
@@ -47,6 +53,7 @@ class SparklinePanel extends StatelessWidget {
     required this.onPeriodChanged,
     required this.asOf,
     required this.color,
+    this.building = false,
   });
 
   /// 선을 그릴 만큼 점이 있는가.
@@ -59,6 +66,8 @@ class SparklinePanel extends StatelessWidget {
       children: [
         SizedBox(
           height: 46,
+          // 채우는 중에도 이미 있는 선은 계속 보여준다 — 지웠다 그리면
+          // 깜빡이고, 사용자는 뭐가 사라졌다고 읽는다.
           child: _hasEnough
               ? AssetSparkline(points: points, color: color)
               : _buildPlaceholder(context),
@@ -92,7 +101,9 @@ class SparklinePanel extends StatelessWidget {
           ),
         ),
         Center(
-          child: Text(
+          child: building
+              ? _buildBusy(context)
+              : Text(
             context.l10n.sparklinePending(AssetHistoryService.minPointsForChart),
             textAlign: TextAlign.center,
             style: TextStyle(
@@ -101,6 +112,30 @@ class SparklinePanel extends StatelessWidget {
                 height: 1.45,
                 color: Colors.white.withValues(alpha: 0.9)),
           ),
+        ),
+      ],
+    );
+  }
+
+  /// 채우는 중. 왜 비어 있는지 대신 **언제 채워지는지**를 적는다.
+  Widget _buildBusy(BuildContext context) {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          width: 13,
+          height: 13,
+          child: CircularProgressIndicator(
+              strokeWidth: 2, color: Colors.white.withValues(alpha: 0.85)),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          isKo ? '자산 추이를 계산하는 중' : 'Building asset history',
+          style: TextStyle(
+              fontSize: DS.caption,
+              fontWeight: FontWeight.w600,
+              color: Colors.white.withValues(alpha: 0.9)),
         ),
       ],
     );

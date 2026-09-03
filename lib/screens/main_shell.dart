@@ -28,6 +28,10 @@ class _MainShellState extends State<MainShell> {
   int _index = 0;
   final _listKey = GlobalKey<PortfolioListScreenState>();
 
+  /// 자산 탭에서 넘어온 「이 기간을 열어달라」 요청.
+  SettlementJump? _jump;
+  int _jumpSeq = 0;
+
   // 종료 확인 팝업에 붙는 광고
   BannerAd? _exitBanner;
   bool _exitBannerLoaded = false;
@@ -161,9 +165,14 @@ class _MainShellState extends State<MainShell> {
             PortfolioListScreen(
               key: _listKey,
               onNavigateToTab: (i) => setState(() => _index = i),
+              onOpenSettlement: (period, key) => setState(() {
+                _jump = SettlementJump(
+                    period: period, key: key, nonce: ++_jumpSeq);
+                _index = 2;
+              }),
             ),
             const RebalanceTabScreen(),
-            AllSettlementScreen(portfolios: portfolios),
+            AllSettlementScreen(portfolios: portfolios, jump: _jump),
             MoreScreen(
               onNavigateToTab: (i) => setState(() => _index = i),
             ),

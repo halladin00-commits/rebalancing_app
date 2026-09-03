@@ -461,8 +461,8 @@ class SettlementService {
       final startShares = holdingsBefore(item, range.start);
       final endShares = holdingsBefore(item, endExclusive(effectiveEnd));
 
-      final startPrice = _priceInBase(prices.first, item.market, pf);
-      final endPrice = _priceInBase(prices.last, item.market, pf);
+      final startPrice = priceInBase(prices.first, item.market, pf);
+      final endPrice = priceInBase(prices.last, item.market, pf);
 
       final startVal = startShares * startPrice;
       final endVal = endShares * endPrice;
@@ -485,7 +485,7 @@ class SettlementService {
         // 두 번 세어지거나 아무 기간에도 안 들어간다.
         if (tx.date.isBefore(range.start) ||
             !tx.date.isBefore(endExclusive(effectiveEnd))) continue;
-        final txValueBase = tx.quantity * _priceInBase(tx.price, raw.item.market, pf);
+        final txValueBase = tx.quantity * priceInBase(tx.price, raw.item.market, pf);
         totalNetCashFlow += txValueBase;
         final daysFromEnd = effectiveEnd.difference(tx.date).inDays;
         final weight = periodDays > 0 ? daysFromEnd / periodDays : 0.0;
@@ -518,7 +518,7 @@ class SettlementService {
         // 두 번 세어지거나 아무 기간에도 안 들어간다.
         if (tx.date.isBefore(range.start) ||
             !tx.date.isBefore(endExclusive(effectiveEnd))) continue;
-        final txVal = tx.quantity * _priceInBase(tx.price, e.item.market, pf);
+        final txVal = tx.quantity * priceInBase(tx.price, e.item.market, pf);
         itemNetCF += txVal;
         final daysFromEnd = effectiveEnd.difference(tx.date).inDays;
         final weight = periodDays > 0 ? daysFromEnd / periodDays : 0.0;
@@ -853,7 +853,11 @@ class SettlementService {
 
   // ── 헬퍼 ──
 
-  static double _priceInBase(double price, String market, Portfolio pf) {
+  /// 종목 원 통화의 가격을 **포트 기준통화**로 옮긴다.
+  ///
+  /// 자산 추이 메우기도 같은 규칙을 써야 한다 — 환산 규칙이 두 군데로
+  /// 갈라지면 같은 날의 자산이 화면마다 달라진다.
+  static double priceInBase(double price, String market, Portfolio pf) {
     if (market == 'US' && pf.currency == 'KRW') return price * pf.exchangeRate;
     if (market == 'KR' && pf.currency == 'USD') return price / pf.exchangeRate;
     return price;

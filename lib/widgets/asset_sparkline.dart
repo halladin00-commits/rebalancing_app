@@ -44,6 +44,20 @@ class AssetSparkline extends StatelessWidget {
   }
 }
 
+/// 점 [i]가 놓일 가로 비율(0~1).
+///
+/// **날짜로 잡는다.** 기록은 앱을 켠 날에만 남으므로, 순번으로 잡으면
+/// 하루 간격과 두 달 간격이 똑같이 한 칸이 된다 — 안 켠 동안에도 매일
+/// 기록된 것처럼 보인다.
+double sparklineX(List<AssetPoint> points, int i) {
+  if (points.length < 2) return 0;
+  final t0 = points.first.date.millisecondsSinceEpoch;
+  final span = points.last.date.millisecondsSinceEpoch - t0;
+  // 같은 날 점이 여러 개일 수는 없지만(하루 한 점), 0으로 나누지 않는다
+  if (span <= 0) return i / (points.length - 1);
+  return (points[i].date.millisecondsSinceEpoch - t0) / span;
+}
+
 class _SparklinePainter extends CustomPainter {
   final List<AssetPoint> points;
   final Color color;
@@ -70,9 +84,7 @@ class _SparklinePainter extends CustomPainter {
     final usableH = size.height - padTop - padBottom;
 
     Offset at(int i) {
-      final x = points.length == 1
-          ? 0.0
-          : size.width * (i / (points.length - 1));
+      final x = size.width * sparklineX(points, i);
       final t = (values[i] - lo) / (hi - lo); // 0(최저) ~ 1(최고)
       final y = padTop + usableH * (1 - t);
       return Offset(x, y);

@@ -22,9 +22,35 @@ import 'portfolio_settlement_screen.dart';
 ///
 /// 기간 칩과 주차 드롭다운 대신 **차트가 기간 선택 컨트롤**이다.
 /// 어떤 기간을 왜 골랐는지가 이웃 기간과 함께 화면에 남는다.
+/// 다른 탭에서 "이 기간을 열어달라"고 넘기는 요청.
+///
+/// 자산 탭의 `결산 준비` 카드는 **지난달** 수익률을 적어 둔다. 눌렀는데
+/// 이번 달이 열리면 카드가 말한 숫자가 화면 어디에도 없다.
+class SettlementJump {
+  final SettlementPeriod period;
+  final PeriodKey key;
+
+  /// 같은 카드를 다시 눌러도 반영되도록 누를 때마다 새 값을 넣는다.
+  final int nonce;
+
+  const SettlementJump({
+    required this.period,
+    required this.key,
+    required this.nonce,
+  });
+}
+
 class AllSettlementScreen extends StatefulWidget {
   final List<Portfolio> portfolios;
-  const AllSettlementScreen({super.key, required this.portfolios});
+
+  /// 다른 탭이 지정한 기간. 없으면 현재 기간으로 연다.
+  final SettlementJump? jump;
+
+  const AllSettlementScreen({
+    super.key,
+    required this.portfolios,
+    this.jump,
+  });
 
   @override
   State<AllSettlementScreen> createState() => _AllSettlementScreenState();
@@ -75,18 +101,47 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
     return m;
   }
 
+  /// 이미 반영한 이동 요청. 같은 요청을 두 번 처리하지 않는다.
+  int? _appliedJump;
+
   @override
   void initState() {
     super.initState();
+    final j = widget.jump;
+    if (j != null) _period = j.period;
     _endKey = SettlementService.currentKey(_period);
     _selected = _endKey;
     _loadedStamp = _priceStamp;
-    _load();
+    if (j != null) {
+      _appliedJump = j.nonce;
+      _jumpTo(j);
+    } else {
+      _load();
+    }
+  }
+
+  /// 요청한 기간을 고른 채로 연다.
+  ///
+  /// 창은 되도록 **현재 기간을 오른쪽 끝**으로 둔다 — 지난달만 덩그러니
+  /// 놓이면 앞뒤 기간과 견줄 수 없다. 창 밖이면 그때만 창을 옮긴다.
+  void _jumpTo(SettlementJump j) {
+    _period = j.period;
+    final end = SettlementService.currentKey(j.period);
+    final target = _windowKeys(end).contains(j.key) ? end : j.key;
+    _load(endKey: target, select: j.key);
   }
 
   @override
   void didUpdateWidget(AllSettlementScreen old) {
     super.didUpdateWidget(old);
+    final j = widget.jump;
+    if (j != null && j.nonce != _appliedJump) {
+      _appliedJump = j.nonce;
+      _loadedStamp = _priceStamp;
+      setState(() => _period = j.period);
+      _jumpTo(j);
+      return;
+    }
     if (old.portfolios != widget.portfolios) {
       _loadedStamp = _priceStamp;
       _load();

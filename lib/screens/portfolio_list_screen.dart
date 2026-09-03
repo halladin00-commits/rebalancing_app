@@ -26,7 +26,17 @@ class PortfolioListScreen extends StatefulWidget {
   /// 액션 카드에서 다른 탭으로 보내기 위한 콜백 (MainShell이 넘긴다).
   final void Function(int index)? onNavigateToTab;
 
-  const PortfolioListScreen({super.key, this.onNavigateToTab});
+  /// 결산 탭을 **특정 기간**으로 연다.
+  ///
+  /// `결산 준비` 카드는 지난달 숫자를 적어 두는데, 그냥 탭만 바꾸면
+  /// 이번 달이 열려 카드가 말한 값을 화면에서 찾을 수 없다.
+  final void Function(SettlementPeriod period, PeriodKey key)? onOpenSettlement;
+
+  const PortfolioListScreen({
+    super.key,
+    this.onNavigateToTab,
+    this.onOpenSettlement,
+  });
   @override
   State<PortfolioListScreen> createState() => PortfolioListScreenState();
 }
@@ -48,6 +58,7 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
   @override
   void initState() {
     super.initState();
+    _scroll.addListener(_onScroll);
     _loadHistory();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _autoRefreshIfStale();
@@ -57,6 +68,13 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
             context.read<PortfolioProvider>().portfolios);
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _scroll.removeListener(_onScroll);
+    _scroll.dispose();
+    super.dispose();
   }
 
   void _autoRefreshIfStale() {
@@ -527,10 +545,82 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
     );
   }
 
+  /// 마지막으로 반영한 기록 갱신 번호.
+  int _seenHistorySeq = 0;
+
+  // ── 접히는 헤더 ──
+  //
+  // 딥그린 헤더가 세로의 34%를 먹는다. 조정·결산 카드 10%, 광고·탭바·시스템
+  // 내비 17%를 빼면 정작 포트 목록에 22%밖에 안 남는다 — 세 개만 돼도 스크롤이다.
+  // 목록을 올리는 동안에는 총자산 한 줄만 남기고 접는다.
+
+  final ScrollController _scroll = ScrollController();
+
+  bool _collapsed = false;
+
+  /// 헤더 실제 높이를 재기 위한 키. 글자 크기 설정에 따라 달라지므로
+  /// 상수로 박아 두면 안 된다.
+  final GlobalKey _headerKey = GlobalKey();
+  double? _expandedH;
+  double? _collapsedH;
+
+  /// 접어서 되찾은 높이.
+  ///
+  /// 아직 한 번도 접어 본 적이 없으면 **넉넉히** 잡는다. 실제보다 적게 잡으면
+  /// 접는 순간 스크롤할 거리가 줄어 목록이 위로 튕기고, 그러면 다시 펴진다 —
+  /// 접히지 않는 것처럼 보인다. 많이 잡아도 한 프레임 뒤 실측값으로 바뀐다.
+  double get _collapseGain {
+    final e = _expandedH, c = _collapsedH;
+    if (e == null || c == null) return 420;
+    return (e - c).clamp(0.0, 500.0);
+  }
+
+  /// 접히면 화면(뷰포트)이 그만큼 커진다. 그대로 두면 **스크롤할 거리가
+  /// 줄어** 목록이 도로 위로 튕기고, 그러면 다시 펴지고, 또 접힌다.
+  /// 되찾은 만큼 목록 아래에 돌려주면 스크롤 총량이 그대로라 되먹임이 없다.
+  double get _bottomPad => 100 + (_collapsed ? _collapseGain : 0);
+
+  void _measureHeader() {
+    if (!mounted) return;
+    final ctx = _headerKey.currentContext;
+    if (ctx == null) return;
+    final h = ctx.size?.height;
+    if (h == null || h <= 0) return;
+    final known = _collapsed ? _collapsedH : _expandedH;
+    if (known != null && (known - h).abs() < 0.5) return;
+    // 처음 잰 값으로 여백을 바로잡는다 — 어림값으로 남겨 두면 목록 아래가 뜬다
+    setState(() {
+      if (_collapsed) {
+        _collapsedH = h;
+      } else {
+        _expandedH = h;
+      }
+    });
+  }
+
+  void _onScroll() {
+    if (!_scroll.hasClients) return;
+    final p = _scroll.position;
+    // 접힌 뒤에는 맨 위 가까이 와야 다시 편다 — 경계에서 깜빡이지 않게.
+    //
+    // 접는 기준을 낮게 잡는다. 포트가 둘뿐이면 스크롤할 거리가 얼마 안 되는데,
+    // 그 정도만 밀어도 「목록을 보러 왔다」는 뜻이다.
+    final next = _collapsed ? p.pixels > 16 : p.pixels > 40;
+    if (next != _collapsed) setState(() => _collapsed = next);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<PortfolioProvider>(
       builder: (context, provider, _) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => _measureHeader());
+        // 빈 날을 메우고 나면 다시 읽는다 — 안 그러면 다음에 앱을 켤 때까지
+        // 방금 채운 날들이 화면에 안 나온다.
+        if (provider.historySeq != _seenHistorySeq) {
+          _seenHistorySeq = provider.historySeq;
+          WidgetsBinding.instance
+              .addPostFrameCallback((_) => _loadHistory());
+        }
         if (!provider.loaded) {
           return const Scaffold(
               body: Center(child: CircularProgressIndicator()));
@@ -543,9 +633,14 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
           body: Column(
             children: [
               BrandHeader(
-                // 시안 기준 21px · 글자는 흰색 78% — 로고가 총자산 금액을 이기지 않게 한다
-                titleWidget: AppLogo(
-                    iconSize: 21, textColor: context.onBrandSecondary),
+                key: _headerKey,
+                // 접히면 로고 자리에 총자산을 올린다. 스크롤 중에 알아야 하는 건
+                // 앱 이름이 아니라 지금 얼마인지다.
+                titleWidget: _collapsed
+                    ? _buildCompactTotal(context, portfolios)
+                    // 시안 기준 21px · 글자는 흰색 78% — 로고가 총자산 금액을 이기지 않게 한다
+                    : AppLogo(
+                        iconSize: 21, textColor: context.onBrandSecondary),
                 childPadding: const EdgeInsets.fromLTRB(22, 4, 22, 16),
                 actions: [
                   IconButton(
@@ -567,15 +662,18 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                 ],
                 // 포트가 없을 때도 `총 자산 ₩0`을 보인다 (시안 v17d) —
                 // 첫 진입만 헤더가 다르면 다른 앱처럼 보인다.
-                child: _buildTotalAssets(context, portfolios),
+                child: _collapsed
+                    ? null
+                    : _buildTotalAssets(context, portfolios),
               ),
               Expanded(
                 child: Stack(
                   children: [
                     Positioned.fill(
                       child: ListView(
+                              controller: _scroll,
                               padding:
-                                  const EdgeInsets.fromLTRB(16, 14, 16, 100),
+                                  EdgeInsets.fromLTRB(16, 14, 16, _bottomPad),
                               children: [
                                 if (portfolios.isNotEmpty) ...[
                                   _buildActionCards(context, portfolios),
@@ -599,6 +697,82 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
   }
 
   // ── 딥그린 헤더: 총자산 ──
+
+  /// 접힌 헤더의 한 줄 — 총자산과 전일대비.
+  ///
+  /// 목록을 훑는 동안 필요한 건 그 둘뿐이다. 평가손익·자산 추이·기간 탭은
+  /// 맨 위로 올리면 다시 나온다.
+  Widget _buildCompactTotal(BuildContext context, List<Portfolio> portfolios) {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final pnlColors = context.watch<PnlColorNotifier>();
+    final displayCur = context.watch<MainCurrencyNotifier>().currency;
+
+    if (portfolios.isEmpty) {
+      return AppLogo(iconSize: 21, textColor: context.onBrandSecondary);
+    }
+
+    double totalKrw = 0, dayKrw = 0;
+    var hasDay = false;
+    final rates = portfolios
+        .where((p) => p.exchangeRate > 0)
+        .map((p) => p.exchangeRate)
+        .toList();
+    final avgRate =
+        rates.isNotEmpty ? rates.reduce((a, b) => a + b) / rates.length : 1370.0;
+
+    for (final pf in portfolios) {
+      totalKrw += _toKrw(pf.totalValue, pf);
+      if (pf.hasDayData) {
+        dayKrw += _toKrw(pf.dayPnL, pf);
+        hasDay = true;
+      }
+    }
+    final total = displayCur == 'USD' ? totalKrw / avgRate : totalKrw;
+    final day = displayCur == 'USD' ? dayKrw / avgRate : dayKrw;
+    final dayPct = (total - day) > 0 ? day / (total - day) * 100 : 0.0;
+    final up = day >= 0;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Flexible(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              fmtMoney(total, displayCur),
+              maxLines: 1,
+              style: const TextStyle(
+                fontSize: 19,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+                letterSpacing: -0.6,
+              ),
+            ),
+          ),
+        ),
+        if (hasDay) ...[
+          const SizedBox(width: 9),
+          Text(
+            '${up ? '+' : '−'}${dayPct.abs().toStringAsFixed(2)}%',
+            style: TextStyle(
+              fontSize: DS.caption,
+              fontWeight: FontWeight.w700,
+              color: up ? pnlColors.onBrandPositive : pnlColors.onBrandNegative,
+            ),
+          ),
+          const SizedBox(width: 2),
+          Text(
+            isKo ? '전일대비' : 'today',
+            style: TextStyle(
+                fontSize: 10.5,
+                fontWeight: FontWeight.w600,
+                color: context.onBrandSecondary),
+          ),
+        ],
+      ],
+    );
+  }
 
   Widget _buildTotalAssets(BuildContext context, List<Portfolio> portfolios) {
     final l10n = context.l10n;
@@ -743,6 +917,7 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
             setState(() => _sparkPeriod = p);
             _loadHistory();
           },
+          building: context.watch<PortfolioProvider>().backfilling,
           // 갱신에 실패했으면 시각만 적지 않고 실패 사실을 함께 적는다
           asOf: context.watch<PortfolioProvider>().lastRefreshFailed > 0
               ? l10n.refreshFailedNote(timeStr)
@@ -874,8 +1049,13 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
     final unknownCount =
         portfolios.where((p) => !Rebalancer.canComputeDrift(p)).length;
 
-    final now = DateTime.now();
-    final lastMonth = now.month == 1 ? 12 : now.month - 1;
+    // 카드에 적는 달과 눌렀을 때 열리는 달은 **같은 값에서 나와야 한다.**
+    final lastMonthKey = SettlementService.shiftKey(
+      SettlementPeriod.monthly,
+      SettlementService.currentKey(SettlementPeriod.monthly),
+      -1,
+    );
+    final lastMonth = lastMonthKey.sub;
 
     // ListView 안에서는 세로 제약이 무한이라 Row에 stretch를 쓸 수 없다.
     // IntrinsicHeight로 두 카드 높이를 먼저 맞춘 뒤 stretch한다.
@@ -947,7 +1127,14 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                       '${_lastMonthReturn!.abs().toStringAsFixed(2)}%'),
               titleFg: context.onTintTitle,
               bodyFg: context.onTintBody,
-              onTap: () => widget.onNavigateToTab?.call(2),
+              onTap: () {
+                if (widget.onOpenSettlement != null) {
+                  widget.onOpenSettlement!(
+                      SettlementPeriod.monthly, lastMonthKey);
+                } else {
+                  widget.onNavigateToTab?.call(2);
+                }
+              },
             ),
           ),
         ],

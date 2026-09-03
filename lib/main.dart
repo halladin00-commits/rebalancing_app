@@ -9,6 +9,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'models/portfolio.dart';
 import 'services/storage_service.dart';
 import 'services/api_service.dart';
+import 'services/asset_backfill_service.dart';
 import 'services/asset_history_service.dart';
 import 'services/settlement_service.dart';
 import 'services/undo_service.dart';
@@ -223,6 +224,13 @@ extension AppColors on BuildContext {
   Color get appBarBg => const Color(0xFF0E4F49);
   Color get brandOnLight => const Color(0xFF3D5C58); // 밝은 배경 위 브랜드 텍스트
   Color get brandTint => const Color(0xFFE6EEEC);    // 브랜드 옅은 배경
+
+  /// 편차 막대에서 **허용 편차 안**인 구간.
+  ///
+  /// 트랙 배경(trackBg)과 같은 색을 쓰면 모두 정상일 때 막대가 통째로 비어
+  /// 보인다 — 종목이 몇 개인지도, 무엇을 보라는 건지도 알 수 없다.
+  /// 경고색·브랜드색을 이기지 않으면서 「점검했고 괜찮다」로 읽히는 톤.
+  Color get weightOkFill => const Color(0xFFA9C7BF);
   Color get onBrandAccent => const Color(0xFF8FE7B0); // 딥그린 위 강조 숫자
   Color get onBrandSecondary => Colors.white.withValues(alpha: 0.72);
   Color get onBrandWarning => const Color(0xFFF2C36B);
@@ -430,6 +438,15 @@ class PortfolioProvider extends ChangeNotifier {
   /// 시세 갱신 중 여부. 자산 탭과 리밸런싱 탭이 같은 상태를 본다.
   bool get refreshing => _refreshing;
 
+  bool _backfilling = false;
+
+  /// 자산 추이의 빈 날을 메우는 중인가. 화면은 이걸 보고 `업데이트 중`을 띄운다.
+  bool get backfilling => _backfilling;
+
+  /// 메우기가 끝날 때마다 오르는 번호. 화면이 기록을 다시 읽는 신호다.
+  int _historySeq = 0;
+  int get historySeq => _historySeq;
+
   int _lastFailed = 0;
   int _lastTried = 0;
 
@@ -511,6 +528,31 @@ class PortfolioProvider extends ChangeNotifier {
 
     _refreshing = false;
     notifyListeners();
+
+    // 안 켠 날의 자산도 채운다. 기다리지 않는다 — 시세는 이미 화면에 있고,
+    // 추이는 채워지는 대로 다시 그리면 된다.
+    unawaited(_backfillHistory());
+  }
+
+  /// 앱을 켜지 않은 날의 자산을 거래 내역 + 과거 종가로 계산해 채운다.
+  ///
+  /// 기록만 쌓는 방식은 선을 **접속 기록**으로 만든다. 며칠 쉬면 그 사이가
+  /// 통째로 비고, 앱 구조를 모르는 사람에게는 데이터가 사라진 것으로 보인다.
+  Future<void> _backfillHistory() async {
+    if (_backfilling) return;
+    final pending = await AssetBackfillService.pendingRange(_portfolios);
+    if (pending == null) return;
+
+    _backfilling = true;
+    notifyListeners();
+    try {
+      final filled = await AssetBackfillService.run(_portfolios);
+      if (filled > 0) _historySeq++;
+    } catch (_) {
+      // 못 채워도 기록은 그대로다 — 다음 새로고침에 다시 시도한다
+    }
+    _backfilling = false;
+    notifyListeners();
   }
 
   /// 갱신 직후의 총자산(원화 환산)을 자산 추이 그래프의 재료로 남긴다.
@@ -585,6 +627,9 @@ class PortfolioProvider extends ChangeNotifier {
   Future<void> replaceAll(List<Portfolio> portfolios) async {
     _portfolios = portfolios;
     SettlementService.clearCache();
+    // 자산 추이 기록은 옛 포트의 것이다. 메운 표시도 같이 지워 다시 채우게 한다.
+    await AssetHistoryService.clear();
+    await AssetBackfillService.reset();
     await _save();
     // 기다리지 않는다 — 복원한 목록은 바로 보여주고, 시세는 들어오는 대로
     // 갈아끼운다. 여기서 기다리면 확인을 누른 뒤 십수 초 동안 아무 일도

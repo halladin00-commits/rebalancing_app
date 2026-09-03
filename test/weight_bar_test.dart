@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:rebalancing_app/main.dart';
 import 'package:rebalancing_app/widgets/weight_bar.dart';
 
 /// 비중 막대는 자식 없는 `ColoredBox`를 `Row`에 넣어 그린다.
@@ -19,10 +20,10 @@ void main() {
     );
   }
 
-  /// Scaffold 배경 등 바깥 위젯이 섞이지 않도록 WeightBar 하위로 한정한다.
+  /// 칸만 집어낸다 — 종목 사이 구분선도 색 상자라 섞이면 개수·너비가 틀어진다.
   Finder segmentsIn() => find.descendant(
         of: find.byType(WeightBar),
-        matching: find.byType(ColoredBox),
+        matching: find.byType(WeightBarSegmentBox),
       );
 
   Finder markersIn() => find.descendant(
@@ -81,5 +82,69 @@ void main() {
 
     // 구간 3개 → 경계 2개 (30%, 60%)
     expect(markersIn(), findsNWidgets(2));
+  });
+
+  testWidgets('허용 편차 안인 칸은 트랙 배경색과 달라야 한다', (tester) async {
+    // 같은 색이면 모두 정상일 때 막대가 통째로 빈 것처럼 보인다.
+    late BuildContext ctx;
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: Builder(builder: (c) {
+          ctx = c;
+          return const Center(
+            child: SizedBox(
+              width: 300,
+              child: WeightBar(
+                threshold: 5,
+                segments: [
+                  WeightSegment(currentWeight: 50, targetWeight: 50),
+                  WeightSegment(currentWeight: 50, targetWeight: 50),
+                ],
+              ),
+            ),
+          );
+        }),
+      ),
+    ));
+
+    final colors = segmentsIn()
+        .evaluate()
+        .map((e) => (e.widget as WeightBarSegmentBox).color)
+        .toList();
+    expect(colors, hasLength(2));
+    for (final c in colors) {
+      expect(c, isNot(ctx.trackBg), reason: '트랙과 같은 색이면 빈 막대로 보인다');
+      expect(c, ctx.weightOkFill);
+    }
+  });
+
+  testWidgets('허용을 넘으면 경고색, 모자라면 브랜드색', (tester) async {
+    late BuildContext ctx;
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: Builder(builder: (c) {
+          ctx = c;
+          return const Center(
+            child: SizedBox(
+              width: 300,
+              child: WeightBar(
+                threshold: 1,
+                segments: [
+                  WeightSegment(currentWeight: 60, targetWeight: 50),
+                  WeightSegment(currentWeight: 40, targetWeight: 50),
+                ],
+              ),
+            ),
+          );
+        }),
+      ),
+    ));
+
+    final colors = segmentsIn()
+        .evaluate()
+        .map((e) => (e.widget as WeightBarSegmentBox).color)
+        .toList();
+    expect(colors[0], ctx.warningText);
+    expect(colors[1], ctx.brand);
   });
 }

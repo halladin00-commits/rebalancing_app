@@ -99,6 +99,73 @@ class ApiService {
     }
   }
 
+  /// 기간 안의 **날짜별 종가 전부**를 받는다.
+  ///
+  /// [fetchWeekPrices]는 양 끝 두 값만 쓰는데, 자산 추이를 메우려면 그 사이
+  /// 날들이 다 필요하다. 야후 차트 API는 어차피 기간 전체를 한 번에 주므로
+  /// **호출 횟수는 똑같다** — 버리던 값을 쓰는 것뿐이다.
+  static Future<ApiResult<Map<DateTime, double>>> fetchDailyCloses(
+    String ticker,
+    String market,
+    DateTime start,
+    DateTime end,
+  ) async {
+    if (ticker.isEmpty) return ApiResult.error('티커 없음');
+    try {
+      if (market == 'KR') {
+        var clean = ticker;
+        if (clean.startsWith('A') && clean.length > 1) {
+          final rest = clean.substring(1);
+          if (rest.contains(RegExp(r'^[0-9]'))) clean = rest;
+        }
+        if (clean.isEmpty) return ApiResult.error('유효하지 않은 종목코드');
+        final r = await _fetchYahooDailyCloses('$clean.KS', start, end);
+        if (r.ok) return r;
+        return await _fetchYahooDailyCloses('$clean.KQ', start, end);
+      }
+      return await _fetchYahooDailyCloses(ticker, start, end);
+    } catch (e) {
+      return ApiResult.error('$ticker: $e');
+    }
+  }
+
+  static Future<ApiResult<Map<DateTime, double>>> _fetchYahooDailyCloses(
+      String symbol, DateTime start, DateTime end) async {
+    try {
+      final p1 = start.millisecondsSinceEpoch ~/ 1000;
+      final p2 = end.add(const Duration(days: 1)).millisecondsSinceEpoch ~/ 1000;
+      final url =
+          'https://query1.finance.yahoo.com/v8/finance/chart/$symbol?interval=1d&period1=$p1&period2=$p2';
+      final response = await http
+          .get(Uri.parse(url), headers: {'User-Agent': 'Mozilla/5.0'})
+          .timeout(const Duration(seconds: 15));
+      if (response.statusCode != 200) {
+        return ApiResult.error('HTTP ${response.statusCode}');
+      }
+
+      final data = json.decode(response.body);
+      final result = data['chart']?['result']?[0];
+      final stamps = result?['timestamp'];
+      final closes = result?['indicators']?['quote']?[0]?['close'];
+      if (stamps == null || closes == null) return ApiResult.error('데이터 없음');
+
+      // 거래소 시간대의 장 시작 시각이 찍혀 온다. 날짜만 쓰므로 현지 날짜로 자른다.
+      final out = <DateTime, double>{};
+      final ts = stamps as List;
+      final cs = closes as List;
+      for (var i = 0; i < ts.length && i < cs.length; i++) {
+        final c = cs[i];
+        if (c is! num) continue; // 휴장일은 null로 온다
+        final d = DateTime.fromMillisecondsSinceEpoch((ts[i] as num).toInt() * 1000);
+        out[DateTime(d.year, d.month, d.day)] = c.toDouble();
+      }
+      if (out.isEmpty) return ApiResult.error('유효한 종가 없음');
+      return ApiResult.success(out);
+    } catch (e) {
+      return ApiResult.error('$symbol: $e');
+    }
+  }
+
   static Future<ApiResult<({double first, double last})>> _fetchYahooPeriodPrices(
       String symbol, DateTime start, DateTime end) async {
     try {

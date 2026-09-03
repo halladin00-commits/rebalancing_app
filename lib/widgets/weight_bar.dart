@@ -41,9 +41,13 @@ class WeightBar extends StatelessWidget {
   });
 
   /// 이 구간이 목표에서 얼마나 벗어났는지에 따른 색.
+  ///
+  /// 허용 안인 구간을 **트랙 배경색과 같게 두면 안 된다.** 모두 정상일 때
+  /// 막대가 통째로 빈 것처럼 보여, 종목이 몇 개인지도 무엇을 보라는 건지도
+  /// 알 수 없다. 차분한 초록으로 채워 「점검했고 괜찮다」를 남긴다.
   Color _colorFor(BuildContext context, WeightSegment s) {
     final drift = s.currentWeight - s.targetWeight;
-    if (threshold > 0 && drift.abs() < threshold) return context.trackBg;
+    if (threshold > 0 && drift.abs() < threshold) return context.weightOkFill;
     if (drift > 0) return context.warningText;
     return context.brand;
   }
@@ -85,14 +89,21 @@ class WeightBar extends StatelessWidget {
                     // 이게 없으면 자식 없는 ColoredBox의 세로 크기가 0이 된다.
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      for (var i = 0; i < segments.length; i++)
+                      for (var i = 0; i < segments.length; i++) ...[
+                        // 종목 사이 실선. 같은 색 구간이 이어질 때 몇 개인지
+                        // 셀 수 있어야 한다 — 안 그으면 한 덩어리로 보인다.
+                        if (i > 0)
+                          SizedBox(
+                              width: 1.5,
+                              child: ColoredBox(color: context.cardBg)),
                         Expanded(
                           flex: (segments[i].currentWeight.clamp(0, 100) * 1000)
                               .round()
                               .clamp(0, 100000),
-                          child: ColoredBox(
-                              color: _colorFor(context, segments[i])),
+                          child: WeightBarSegmentBox(
+                              _colorFor(context, segments[i])),
                         ),
+                      ],
                     ],
                   ),
                 ),
@@ -123,4 +134,16 @@ class WeightBar extends StatelessWidget {
       ),
     );
   }
+}
+
+/// 막대 한 칸.
+///
+/// 그냥 `ColoredBox`로 두면 종목 사이 구분선과 구별할 방법이 없다 —
+/// 테스트가 칸 너비를 재려면 칸만 집어낼 수 있어야 한다.
+class WeightBarSegmentBox extends StatelessWidget {
+  final Color color;
+  const WeightBarSegmentBox(this.color, {super.key});
+
+  @override
+  Widget build(BuildContext context) => ColoredBox(color: color);
 }

@@ -786,11 +786,21 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
 
   // ── Build ──
 
+  /// 마지막으로 반영한 기록 갱신 번호.
+  ///
+  /// 빈 날을 메우고 나면 다시 읽는다 — 안 그러면 다음에 앱을 켤 때까지
+  /// 방금 채운 날들이 화면에 안 나온다.
+  int _seenHistorySeq = 0;
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return Consumer<PortfolioProvider>(
       builder: (context, provider, _) {
+        if (provider.historySeq != _seenHistorySeq) {
+          _seenHistorySeq = provider.historySeq;
+          WidgetsBinding.instance.addPostFrameCallback((_) => _loadHistory());
+        }
         final pf = provider.getPortfolio(widget.portfolioId);
         if (pf == null) {
           return Scaffold(body: Center(child: Text(l10n.portfolioNotFound)));
@@ -1002,6 +1012,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                     setState(() => _sparkPeriod = p);
                     _loadHistory();
                   },
+                  building: context.watch<PortfolioProvider>().backfilling,
                   asOf: isKo
                       ? '${_fmtTimeShort(pf.lastUpdated)} 기준'
                       : 'as of ${_fmtTimeShort(pf.lastUpdated)}',

@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'asset_backfill_service.dart';
+
 /// 총자산 기록의 한 점.
 class AssetPoint {
   final DateTime date;
@@ -115,6 +117,47 @@ class AssetHistoryService {
     }
     points.sort((a, b) => a.date.compareTo(b.date));
     return points;
+  }
+
+  /// 계산해 낸 날짜별 자산 중 **기록이 없는 날만** 채운다.
+  ///
+  /// 이미 있는 날은 건드리지 않는다 — 그날 실제로 재던 값이 더 정확하다
+  /// (예수금 잔액처럼 소급 계산으로는 알 수 없는 것이 들어 있다).
+  ///
+  /// 채운 날 수를 돌려준다.
+  static Future<int> fillMissing(List<DailyAssets> daily) async {
+    if (daily.isEmpty) return 0;
+    final prefs = await SharedPreferences.getInstance();
+    final total = _decode(prefs.getString(_key));
+    final byPf = _decodeNested(prefs.getString(_pfKey));
+
+    final cutoff = DateTime.now().subtract(const Duration(days: _retentionDays));
+    var filled = 0;
+    for (final d in daily) {
+      if (d.date.isBefore(cutoff)) continue;
+      final k = _dayKey(d.date);
+      if (!total.containsKey(k)) {
+        total[k] = d.totalKrw;
+        filled++;
+      }
+      if (!byPf.containsKey(k) && d.byPortfolio.isNotEmpty) {
+        byPf[k] = Map<String, double>.from(d.byPortfolio);
+      }
+    }
+    if (filled == 0) return 0;
+
+    total.removeWhere((k, _) {
+      final dd = DateTime.tryParse(k);
+      return dd == null || dd.isBefore(cutoff);
+    });
+    byPf.removeWhere((k, _) {
+      final dd = DateTime.tryParse(k);
+      return dd == null || dd.isBefore(cutoff);
+    });
+
+    await prefs.setString(_key, json.encode(total));
+    await prefs.setString(_pfKey, json.encode(byPf));
+    return filled;
   }
 
   /// 기록 전체 삭제 (백업 복원 등으로 자산이 완전히 바뀔 때).
