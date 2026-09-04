@@ -52,3 +52,4 @@ key.properties
 
 # tools/shot.sh가 남기는 원본 캡처 (줄인 것만 docs/review/에 둔다)
 raw.png
+docs/review/*.apk
