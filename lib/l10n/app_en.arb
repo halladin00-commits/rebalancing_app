@@ -132,7 +132,7 @@
   "spark3m": "3M",
   "spark6m": "6M",
   "spark1y": "1Y",
-  "sparklinePending": "Your trend appears once\n{count} days are recorded",
+  "sparklinePending": "Your trend appears once {count} days are recorded",
   "@sparklinePending": {
     "placeholders": {
       "count": {
@@ -145,7 +145,7 @@
   "filterAll": "All",
   "filterKr": "Korea",
   "filterUs": "Overseas",
-  "cashAddHint": "Add the cash sitting in your account\nso it counts toward weights.",
+  "cashAddHint": "Add the cash sitting in your account so it counts toward weights.",
   "cashAddButton": "Add cash",
   "manualEntryHint": "Add manually",
   "alreadyInPortfolio": "{name} is already in this portfolio",
@@ -454,7 +454,7 @@
   },
   "notice": "Notice",
   "dayChange": "Day Change",
-  "disclaimerAgreeCheckbox": "I have read and agree\nto all of the above.",
+  "disclaimerAgreeCheckbox": "I have read and agree to all of the above.",
   "validationNonNegative": "Enter 0 or more",
   "validationPositive": "Enter more than 0",
   "validationExchangeRatePositive": "Exchange rate must be greater than 0.",
@@ -884,7 +884,7 @@
       }
     }
   },
-  "noTransactionsNote": "Holdings entered directly,\nwithout any transactions",
+  "noTransactionsNote": "Holdings entered directly, without any transactions",
   "weightSumNotice": "Target weights add up to {pct}. They need to total 100% before an adjustment plan can be calculated.",
   "@weightSumNotice": {
     "placeholders": {

@@ -467,7 +467,7 @@ abstract class AppLocalizations {
   /// No description provided for @sparklinePending.
   ///
   /// In ko, this message translates to:
-  /// **'{count}일치는 모여야\n자산 추이가 그려집니다'**
+  /// **'{count}일치는 모여야 자산 추이가 그려집니다'**
   String sparklinePending(int count);
 
   /// No description provided for @searchPrompt.
@@ -503,7 +503,7 @@ abstract class AppLocalizations {
   /// No description provided for @cashAddHint.
   ///
   /// In ko, this message translates to:
-  /// **'계좌에 남은 현금을 넣어 두면\n비중 계산에 함께 잡힙니다.'**
+  /// **'계좌에 남은 현금을 넣어 두면 비중 계산에 함께 잡힙니다.'**
   String get cashAddHint;
 
   /// No description provided for @cashAddButton.
@@ -1391,7 +1391,7 @@ abstract class AppLocalizations {
   /// No description provided for @disclaimerAgreeCheckbox.
   ///
   /// In ko, this message translates to:
-  /// **'위 내용을 전부 확인하였으며\n동의합니다.'**
+  /// **'위 내용을 모두 확인했으며 동의합니다.'**
   String get disclaimerAgreeCheckbox;
 
   /// No description provided for @validationNonNegative.
@@ -2195,7 +2195,7 @@ abstract class AppLocalizations {
   /// No description provided for @noTransactionsNote.
   ///
   /// In ko, this message translates to:
-  /// **'거래 내역 없이\n현재 보유만 입력한 종목입니다'**
+  /// **'거래 내역 없이 현재 보유만 입력한 종목입니다'**
   String get noTransactionsNote;
 
   /// No description provided for @weightSumNotice.

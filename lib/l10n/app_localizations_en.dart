@@ -221,7 +221,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String sparklinePending(int count) {
-    return 'Your trend appears once\n$count days are recorded';
+    return 'Your trend appears once $count days are recorded';
   }
 
   @override
@@ -241,7 +241,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cashAddHint =>
-      'Add the cash sitting in your account\nso it counts toward weights.';
+      'Add the cash sitting in your account so it counts toward weights.';
 
   @override
   String get cashAddButton => 'Add cash';
@@ -743,7 +743,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get disclaimerAgreeCheckbox =>
-      'I have read and agree\nto all of the above.';
+      'I have read and agree to all of the above.';
 
   @override
   String get validationNonNegative => 'Enter 0 or more';
@@ -1234,7 +1234,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noTransactionsNote =>
-      'Holdings entered directly,\nwithout any transactions';
+      'Holdings entered directly, without any transactions';
 
   @override
   String weightSumNotice(String pct) {

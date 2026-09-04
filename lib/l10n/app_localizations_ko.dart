@@ -214,7 +214,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String sparklinePending(int count) {
-    return '$count일치는 모여야\n자산 추이가 그려집니다';
+    return '$count일치는 모여야 자산 추이가 그려집니다';
   }
 
   @override
@@ -233,7 +233,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get filterUs => '해외';
 
   @override
-  String get cashAddHint => '계좌에 남은 현금을 넣어 두면\n비중 계산에 함께 잡힙니다.';
+  String get cashAddHint => '계좌에 남은 현금을 넣어 두면 비중 계산에 함께 잡힙니다.';
 
   @override
   String get cashAddButton => '예수금 추가';
@@ -728,7 +728,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get dayChange => '전일대비';
 
   @override
-  String get disclaimerAgreeCheckbox => '위 내용을 전부 확인하였으며\n동의합니다.';
+  String get disclaimerAgreeCheckbox => '위 내용을 모두 확인했으며 동의합니다.';
 
   @override
   String get validationNonNegative => '0 이상으로 입력해 주세요';
@@ -1210,7 +1210,7 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get noTransactionsNote => '거래 내역 없이\n현재 보유만 입력한 종목입니다';
+  String get noTransactionsNote => '거래 내역 없이 현재 보유만 입력한 종목입니다';
 
   @override
   String weightSumNotice(String pct) {
