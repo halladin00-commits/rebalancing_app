@@ -88,12 +88,31 @@ void main() {
   });
 
   group('결산 알림 기준', () {
-    test('주간 결산은 월요일 — 토요일은 아직 그 주가 안 끝났다', () {
-      // 결산의 한 주는 월~일(ISO)이다. 다 끝난 다음 날은 월요일이다.
-      final sunday = at(2026, 9, 13, 23, 0);
-      final next = NotificationService.nextWeekday(sunday, DateTime.monday, 9, 0);
-      expect(next, at(2026, 9, 14, 9, 0));
-      expect(next.isAfter(sunday), isTrue);
+    test('주간 결산은 토요일 — 금요일 마감이면 숫자가 굳는다', () {
+      // 달력으로는 일요일에 끝나지만 주말에는 장이 안 열린다.
+      final thu = at(2026, 9, 10, 9, 0);
+      final next = NotificationService.nextWeekday(thu, DateTime.saturday, 13, 0);
+      expect(next, at(2026, 9, 12, 13, 0));
+      expect(next.weekday, DateTime.saturday);
+    });
+
+    test('토요일 13시는 어느 시간대에서도 미국 금요일 마감 뒤다', () {
+      // 미국 정규장 마감 16:00 ET = 금 20:00(서머타임) ~ 21:00 UTC.
+      // 9시로 당기면 UTC+13 이상에서만 마감 전에 걸린다 — 그래서 기본이 13시다.
+      for (final zone in [
+        'Pacific/Kiritimati', // UTC+14, 세상에서 가장 이른 곳
+        'Pacific/Auckland',
+        'Asia/Seoul',
+        'Europe/London',
+        'America/New_York',
+        'Pacific/Honolulu',
+      ]) {
+        final loc = tz.getLocation(zone);
+        final sat = tz.TZDateTime(loc, 2026, 9, 5, 13, 0);
+        final fridayCloseEst = tz.TZDateTime.utc(2026, 9, 4, 21, 0);
+        expect(sat.toUtc().isAfter(fridayCloseEst), isTrue,
+            reason: '$zone 토요일 13시가 금요일 마감보다 이르다');
+      }
     });
 
     test('분기 결산은 1·4·7·10월 1일', () {

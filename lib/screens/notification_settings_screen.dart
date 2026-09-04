@@ -31,7 +31,7 @@ class _NotificationSettingsScreenState
   int _day = DateTime.monday;
   int _monthDay = 1;
   TimeOfDay _time = const TimeOfDay(hour: 9, minute: 0);
-  TimeOfDay _settlementTime = const TimeOfDay(hour: 9, minute: 0);
+  TimeOfDay _settlementTime = const TimeOfDay(hour: 13, minute: 0);
   final _settlement = <String, bool>{};
 
   /// 시스템에서 이 앱의 알림이 켜져 있는가. 앱 안의 스위치와 별개다.

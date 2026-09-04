@@ -234,7 +234,7 @@ class NotificationService {
   /// 결산 알림 시각. 네 가지에 같이 적용된다 — 종류마다 따로 두면
   /// 고를 것만 늘고, 실제로 다르게 쓸 이유가 없다.
   static Future<int> getSettlementHour() async =>
-      (await SharedPreferences.getInstance()).getInt(_keySettlementHour) ?? 9;
+      (await SharedPreferences.getInstance()).getInt(_keySettlementHour) ?? 13;
 
   static Future<int> getSettlementMinute() async =>
       (await SharedPreferences.getInstance()).getInt(_keySettlementMinute) ?? 0;
@@ -286,7 +286,7 @@ class NotificationService {
   static Future<void> _scheduleSettlement(
       String type, SharedPreferences prefs) async {
     final isKo = (prefs.getString('locale') ?? 'ko') == 'ko';
-    final h = prefs.getInt(_keySettlementHour) ?? 9;
+    final h = prefs.getInt(_keySettlementHour) ?? 13;
     final m = prefs.getInt(_keySettlementMinute) ?? 0;
 
     final details = NotificationDetails(
@@ -307,9 +307,13 @@ class NotificationService {
         await _plugin.cancel(_settlementWeeklyId);
         await _plugin.zonedSchedule(
           _settlementWeeklyId, title, body,
-          // 주 결산은 월~일이다. **토요일은 아직 그 주가 안 끝났다** —
-          // 다 끝난 다음 날인 월요일에 알린다.
-          nextWeekday(now, DateTime.monday, h, m),
+          // 달력으로는 일요일에 끝나지만, **숫자는 금요일 마감에 이미 굳는다.**
+          // 주말에는 국내장도 미국장도 열리지 않아 토요일에 봐도 값이 같다.
+          // 주말을 맞으며 지난 주를 돌아보는 자리가 더 맞다.
+          //
+          // 기본 13시면 어느 시간대에서 보든 미국 금요일 마감(20~21시 UTC)
+          // 뒤다. 9시로 당기면 UTC+13 이상에서만 마감 전에 걸린다.
+          nextWeekday(now, DateTime.saturday, h, m),
           details,
           androidScheduleMode: AndroidScheduleMode.inexact,
           uiLocalNotificationDateInterpretation:

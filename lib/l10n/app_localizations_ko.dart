@@ -42,7 +42,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get settlementNotifNote =>
-      '각 기간이 끝난 다음 날, 아래에서 고른 시각에 알려줍니다. 결산 화면을 열어 확인하라는 알림입니다.';
+      '주간은 토요일, 월간·분기·연간은 다음 기간 첫날에 알려줍니다. 그때는 그 기간의 장이 다 끝나 숫자가 더 바뀌지 않습니다.';
 
   @override
   String get addPortfolioTitle => '포트폴리오 만들기';

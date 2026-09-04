@@ -43,7 +43,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settlementNotifNote =>
-      'Sent the day after each period ends, at the time you pick below, so you can open the Returns tab and review.';
+      'Weekly on Saturday; monthly, quarterly and yearly on the first day of the next period. Markets are closed by then, so the numbers are final.';
 
   @override
   String get addPortfolioTitle => 'New portfolio';
