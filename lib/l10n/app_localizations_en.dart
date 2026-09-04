@@ -42,8 +42,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notifRebalanceSection => 'Rebalancing reminders';
 
   @override
-  String get settlementNotifNote =>
-      'Weekly on Saturday; monthly, quarterly and yearly on the first day of the next period. Markets are closed by then, so the numbers are final.';
+  String get settlementNotifNote => 'Sent when each period ends.';
 
   @override
   String get addPortfolioTitle => 'New portfolio';
@@ -1262,11 +1261,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get notifSystemOff => 'Notifications are turned off for this app';
+  String get notifSystemOff => 'Notifications are off for this app';
 
   @override
   String get notifSystemOffHint =>
-      'Turn them on in your phone settings for the options below to work';
+      'Turn them on for the settings below to work';
 
   @override
   String get notifOpenSettings => 'Open settings';
@@ -1276,7 +1275,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notifPermissionBody =>
-      'Turn on notifications for this app in your phone settings. Without it we can\'t remind you at the time you picked.';
+      'Turn on notifications for this app in your phone settings.';
 
   @override
   String get notifFrequencyLabel => 'Repeat';
@@ -1302,13 +1301,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get notifDayCapHint =>
-      'Days 29-31 don\'t exist in every month, so you can pick up to 28';
+  String get notifDayCapHint => 'Some months don\'t have days 29-31';
 
   @override
   String get settlementNotifTime => 'Reminder time';
 
   @override
-  String get settlementNotifTimeHint =>
-      'Applies to all four settlement reminders';
+  String get settlementNotifTimeHint => 'Applies to all settlement reminders';
 }

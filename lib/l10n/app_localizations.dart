@@ -161,7 +161,7 @@ abstract class AppLocalizations {
   /// No description provided for @settlementNotifNote.
   ///
   /// In ko, this message translates to:
-  /// **'주간은 토요일, 월간·분기·연간은 다음 기간 첫날에 알려줍니다. 그때는 그 기간의 장이 다 끝나 숫자가 더 바뀌지 않습니다.'**
+  /// **'각 기간이 끝나면 알려드립니다.'**
   String get settlementNotifNote;
 
   /// No description provided for @addPortfolioTitle.
@@ -2237,13 +2237,13 @@ abstract class AppLocalizations {
   /// No description provided for @notifSystemOff.
   ///
   /// In ko, this message translates to:
-  /// **'시스템에서 이 앱의 알림이 꺼져 있습니다'**
+  /// **'휴대폰에서 알림이 꺼져 있습니다'**
   String get notifSystemOff;
 
   /// No description provided for @notifSystemOffHint.
   ///
   /// In ko, this message translates to:
-  /// **'휴대폰 설정에서 알림을 켜야 아래 설정이 동작합니다'**
+  /// **'켜야 아래 설정이 동작합니다'**
   String get notifSystemOffHint;
 
   /// No description provided for @notifOpenSettings.
@@ -2261,7 +2261,7 @@ abstract class AppLocalizations {
   /// No description provided for @notifPermissionBody.
   ///
   /// In ko, this message translates to:
-  /// **'휴대폰 설정 → 알림에서 이 앱의 알림을 켜 주세요. 그래야 지정한 시각에 알려드릴 수 있습니다.'**
+  /// **'휴대폰 설정에서 이 앱의 알림을 켜 주세요.'**
   String get notifPermissionBody;
 
   /// No description provided for @notifFrequencyLabel.
@@ -2309,7 +2309,7 @@ abstract class AppLocalizations {
   /// No description provided for @notifDayCapHint.
   ///
   /// In ko, this message translates to:
-  /// **'29~31일은 없는 달이 있어 28일까지만 고를 수 있습니다'**
+  /// **'29~31일은 없는 달이 있습니다'**
   String get notifDayCapHint;
 
   /// No description provided for @settlementNotifTime.
@@ -2321,7 +2321,7 @@ abstract class AppLocalizations {
   /// No description provided for @settlementNotifTimeHint.
   ///
   /// In ko, this message translates to:
-  /// **'네 가지 결산 알림에 같이 적용됩니다'**
+  /// **'모든 결산 알림에 적용됩니다'**
   String get settlementNotifTimeHint;
 }
 

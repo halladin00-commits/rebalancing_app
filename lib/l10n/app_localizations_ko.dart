@@ -41,8 +41,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get notifRebalanceSection => '리밸런싱 점검 알림';
 
   @override
-  String get settlementNotifNote =>
-      '주간은 토요일, 월간·분기·연간은 다음 기간 첫날에 알려줍니다. 그때는 그 기간의 장이 다 끝나 숫자가 더 바뀌지 않습니다.';
+  String get settlementNotifNote => '각 기간이 끝나면 알려드립니다.';
 
   @override
   String get addPortfolioTitle => '포트폴리오 만들기';
@@ -1241,10 +1240,10 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get notifSystemOff => '시스템에서 이 앱의 알림이 꺼져 있습니다';
+  String get notifSystemOff => '휴대폰에서 알림이 꺼져 있습니다';
 
   @override
-  String get notifSystemOffHint => '휴대폰 설정에서 알림을 켜야 아래 설정이 동작합니다';
+  String get notifSystemOffHint => '켜야 아래 설정이 동작합니다';
 
   @override
   String get notifOpenSettings => '설정 열기';
@@ -1253,8 +1252,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get notifPermissionTitle => '알림 권한이 필요합니다';
 
   @override
-  String get notifPermissionBody =>
-      '휴대폰 설정 → 알림에서 이 앱의 알림을 켜 주세요. 그래야 지정한 시각에 알려드릴 수 있습니다.';
+  String get notifPermissionBody => '휴대폰 설정에서 이 앱의 알림을 켜 주세요.';
 
   @override
   String get notifFrequencyLabel => '주기';
@@ -1280,11 +1278,11 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get notifDayCapHint => '29~31일은 없는 달이 있어 28일까지만 고를 수 있습니다';
+  String get notifDayCapHint => '29~31일은 없는 달이 있습니다';
 
   @override
   String get settlementNotifTime => '알림 시간';
 
   @override
-  String get settlementNotifTimeHint => '네 가지 결산 알림에 같이 적용됩니다';
+  String get settlementNotifTimeHint => '모든 결산 알림에 적용됩니다';
 }
