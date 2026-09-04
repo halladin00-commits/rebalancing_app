@@ -20,6 +20,13 @@ enum SparkPeriod {
 
   const SparkPeriod(this.days);
   final int days;
+
+  /// 다음 기간. 마지막이면 처음으로 돌아온다.
+  ///
+  /// 기간 칩 다섯 개를 늘어놓는 대신 **버튼 하나를 눌러 넘긴다.** 칩 다섯은
+  /// 헤더 안에서 가장 시끄러운 줄이었는데, 정작 자주 바꾸는 값이 아니다.
+  SparkPeriod get next =>
+      SparkPeriod.values[(index + 1) % SparkPeriod.values.length];
 }
 
 /// 딥그린 헤더 안의 자산 추이 패널.
@@ -64,17 +71,24 @@ class SparklinePanel extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(
-          height: 46,
-          // 채우는 중에도 이미 있는 선은 계속 보여준다 — 지웠다 그리면
-          // 깜빡이고, 사용자는 뭐가 사라졌다고 읽는다.
-          child: _hasEnough
-              ? AssetSparkline(points: points, color: color)
-              : _buildPlaceholder(context),
+        // 그래프 자체도 누르면 다음 기간으로 간다 — 증권 앱들이 쓰는 방식이고,
+        // 작은 칩보다 훨씬 큰 과녁이다.
+        GestureDetector(
+          onTap: () => onPeriodChanged(period.next),
+          behavior: HitTestBehavior.opaque,
+          child: SizedBox(
+            height: 46,
+            // 채우는 중에도 이미 있는 선은 계속 보여준다 — 지웠다 그리면
+            // 깜빡이고, 사용자는 뭐가 사라졌다고 읽는다.
+            child: _hasEnough
+                ? AssetSparkline(points: points, color: color)
+                : _buildPlaceholder(context),
+          ),
         ),
         const SizedBox(height: 6),
         Row(children: [
-          Expanded(child: _buildPeriodTabs(context)),
+          _buildPeriodButton(context),
+          const Spacer(),
           const SizedBox(width: 8),
           Text(asOf,
               style: TextStyle(
@@ -151,39 +165,68 @@ class SparklinePanel extends StatelessWidget {
     ];
   }
 
-  // ── 기간 탭 ──
+  // ── 기간 버튼 ──
 
-  Widget _buildPeriodTabs(BuildContext context) {
+  static String periodLabel(BuildContext context, SparkPeriod p) {
     final l10n = context.l10n;
-    final labels = {
-      SparkPeriod.week: l10n.spark1w,
-      SparkPeriod.month: l10n.spark1m,
-      SparkPeriod.quarter: l10n.spark3m,
-      SparkPeriod.half: l10n.spark6m,
-      SparkPeriod.year: l10n.spark1y,
-    };
+    switch (p) {
+      case SparkPeriod.week:
+        return l10n.spark1w;
+      case SparkPeriod.month:
+        return l10n.spark1m;
+      case SparkPeriod.quarter:
+        return l10n.spark3m;
+      case SparkPeriod.half:
+        return l10n.spark6m;
+      case SparkPeriod.year:
+        return l10n.spark1y;
+    }
+  }
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        for (final p in SparkPeriod.values)
-          GestureDetector(
-            onTap: () => onPeriodChanged(p),
-            behavior: HitTestBehavior.opaque,
-            child: Padding(
-              // 터치 영역을 벌리되 글자 사이는 좁게 둔다
-              padding: const EdgeInsets.fromLTRB(0, 4, 13, 4),
-              child: Text(
-                labels[p]!,
-                style: TextStyle(
-                  fontSize: DS.caption,
-                  fontWeight: p == period ? FontWeight.w800 : FontWeight.w500,
-                  color: p == period ? Colors.white : context.onBrandSecondary,
+  /// 누를 때마다 다음 기간으로 넘어가는 버튼 하나.
+  ///
+  /// 칩 다섯을 늘어놓으면 헤더에서 가장 시끄러운 줄이 되는데, 정작 기간은
+  /// 자주 바꾸는 값이 아니다. 대신 **지금 어느 기간인지**는 늘 또렷해야 해서
+  /// 배경을 깔아 다른 글자와 구분한다.
+  Widget _buildPeriodButton(BuildContext context) {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final now = periodLabel(context, period);
+    final next = periodLabel(context, period.next);
+
+    return Semantics(
+      button: true,
+      label: isKo ? '기간 $now. 누르면 $next' : 'Period $now. Tap for $next',
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: () => onPeriodChanged(period.next),
+        behavior: HitTestBehavior.opaque,
+        child: Padding(
+          // 과녁을 벌린다 — 칩 자체는 작아도 누르는 자리는 넓게
+          padding: const EdgeInsets.fromLTRB(0, 3, 10, 3),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(10, 4, 8, 4),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.16),
+              borderRadius: BorderRadius.circular(DS.chipRadius),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  now,
+                  style: const TextStyle(
+                      fontSize: DS.caption,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white),
                 ),
-              ),
+                const SizedBox(width: 5),
+                Icon(Icons.autorenew_rounded,
+                    size: 12, color: context.onBrandSecondary),
+              ],
             ),
           ),
-      ],
+        ),
+      ),
     );
   }
 }
