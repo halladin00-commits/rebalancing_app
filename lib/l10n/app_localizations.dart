@@ -215,7 +215,7 @@ abstract class AppLocalizations {
   /// No description provided for @autoUpdateSection.
   ///
   /// In ko, this message translates to:
-  /// **'자동 갱신'**
+  /// **'자동 새로고침'**
   String get autoUpdateSection;
 
   /// No description provided for @thresholdNote.
@@ -245,7 +245,7 @@ abstract class AppLocalizations {
   /// No description provided for @itemFormNote.
   ///
   /// In ko, this message translates to:
-  /// **'수량을 넣으면 그 날짜의 매수 거래가 하나 만들어집니다. 결산은 거래를 기준으로 계산합니다.'**
+  /// **'수량을 넣으면 그 날짜의 매수 거래가 하나 만들어집니다.'**
   String get itemFormNote;
 
   /// No description provided for @cashFormNote.
@@ -383,13 +383,13 @@ abstract class AppLocalizations {
   /// No description provided for @refreshPartialFail.
   ///
   /// In ko, this message translates to:
-  /// **'{count}종목 시세를 못 받았습니다 · 마지막 값 유지'**
+  /// **'{count}종목은 예전 시세 그대로입니다'**
   String refreshPartialFail(int count);
 
   /// No description provided for @refreshFailedNote.
   ///
   /// In ko, this message translates to:
-  /// **'갱신 실패 · {time} 시세'**
+  /// **'새로고침 실패 · {time} 시세'**
   String refreshFailedNote(String time);
 
   /// No description provided for @refreshRetry.
@@ -419,7 +419,7 @@ abstract class AppLocalizations {
   /// No description provided for @excludedSheetBody.
   ///
   /// In ko, this message translates to:
-  /// **'아래 종목은 지금 보유 중이지만, 이 기간까지의 거래 기록이 없어 결산 계산에 잡히지 않습니다.\n\n자산과 리밸런싱에는 아무 영향이 없습니다 — 결산만 계산할 수 없습니다. 늘어난 금액이 매수 때문인지 주가 상승 때문인지 구분할 방법이 없어서입니다.\n\n종목 상세에서 실제 매수 거래를 넣으면 그때부터 결산에 포함됩니다.'**
+  /// **'아래 종목은 이 기간의 거래 기록이 없어 결산에만 안 잡힙니다. 자산과 리밸런싱에는 그대로 들어갑니다.\n\n종목 상세에서 매수 거래를 넣으면 결산에도 들어갑니다.'**
   String get excludedSheetBody;
 
   /// No description provided for @excludedNoHistory.
@@ -467,7 +467,7 @@ abstract class AppLocalizations {
   /// No description provided for @sparklinePending.
   ///
   /// In ko, this message translates to:
-  /// **'새로고침 {count}일치가 모이면\n여기에 자산 추이가 그려집니다'**
+  /// **'{count}일치는 모여야\n자산 추이가 그려집니다'**
   String sparklinePending(int count);
 
   /// No description provided for @searchPrompt.
@@ -503,7 +503,7 @@ abstract class AppLocalizations {
   /// No description provided for @cashAddHint.
   ///
   /// In ko, this message translates to:
-  /// **'예수금은 검색이 아니라 바로 만듭니다.\n계좌에 남은 현금을 한 항목으로 넣어 두면\n비중 계산에 함께 잡힙니다.'**
+  /// **'계좌에 남은 현금을 넣어 두면\n비중 계산에 함께 잡힙니다.'**
   String get cashAddHint;
 
   /// No description provided for @cashAddButton.
@@ -551,7 +551,7 @@ abstract class AppLocalizations {
   /// No description provided for @transactionAffectsAvg.
   ///
   /// In ko, this message translates to:
-  /// **'저장하면 보유 수량과 평균 매수단가가 이 거래를 반영해 다시 계산됩니다.'**
+  /// **'저장하면 보유 수량과 평단도 같이 바뀝니다.'**
   String get transactionAffectsAvg;
 
   /// No description provided for @validationQtyPositive.
@@ -737,7 +737,7 @@ abstract class AppLocalizations {
   /// No description provided for @cannotCalculate.
   ///
   /// In ko, this message translates to:
-  /// **'계산할 수 없습니다. 현재가가 없는 종목이 있는지 확인해 주세요.'**
+  /// **'시세를 못 받은 종목이 있어 계산할 수 없습니다'**
   String get cannotCalculate;
 
   /// No description provided for @lastRebalancedNever.
@@ -959,25 +959,25 @@ abstract class AppLocalizations {
   /// No description provided for @neverUpdated.
   ///
   /// In ko, this message translates to:
-  /// **'업데이트 전'**
+  /// **'아직 안 받음'**
   String get neverUpdated;
 
   /// No description provided for @toastAutoSettingRequired.
   ///
   /// In ko, this message translates to:
-  /// **'설정에서 환율 또는 주가를 자동으로 변경해 주세요'**
+  /// **'포트 설정에서 환율·시세 자동 조회를 켜 주세요'**
   String get toastAutoSettingRequired;
 
   /// No description provided for @updateFailed.
   ///
   /// In ko, this message translates to:
-  /// **'업데이트 실패: {msg}'**
+  /// **'시세를 받지 못했습니다: {msg}'**
   String updateFailed(String msg);
 
   /// No description provided for @updateSuccessCount.
   ///
   /// In ko, this message translates to:
-  /// **'{count}건 업데이트 완료'**
+  /// **'{count}종목 새로고침했습니다'**
   String updateSuccessCount(int count);
 
   /// No description provided for @portfolioNotFound.
@@ -989,7 +989,7 @@ abstract class AppLocalizations {
   /// No description provided for @additionalInvestmentHint.
   ///
   /// In ko, this message translates to:
-  /// **'예: 1000000 또는 -500000'**
+  /// **'더 넣을 돈. 뺄 돈은 −를 붙이세요'**
   String get additionalInvestmentHint;
 
   /// No description provided for @evaluationAmount.
@@ -1073,7 +1073,7 @@ abstract class AppLocalizations {
   /// No description provided for @editItem.
   ///
   /// In ko, this message translates to:
-  /// **'항목 편집'**
+  /// **'종목 편집'**
   String get editItem;
 
   /// No description provided for @displayName.
@@ -1139,7 +1139,7 @@ abstract class AppLocalizations {
   /// No description provided for @notifPermissionDenied.
   ///
   /// In ko, this message translates to:
-  /// **'알림 권한이 거부됐습니다. 설정에서 허용해 주세요.'**
+  /// **'휴대폰 설정에서 이 앱의 알림을 켜 주세요'**
   String get notifPermissionDenied;
 
   /// No description provided for @targetWeight.
@@ -1157,7 +1157,7 @@ abstract class AppLocalizations {
   /// No description provided for @noPriceInfo.
   ///
   /// In ko, this message translates to:
-  /// **'현재가 정보가 없습니다. 새로고침 후 다시 시도해주세요.'**
+  /// **'아직 시세를 받지 못했습니다. 새로고침해 주세요'**
   String get noPriceInfo;
 
   /// No description provided for @tapToEdit.
@@ -1169,7 +1169,7 @@ abstract class AppLocalizations {
   /// No description provided for @dragToReorder.
   ///
   /// In ko, this message translates to:
-  /// **'항목을 길게 눌러 드래그하면 순서를 바꿀 수 있습니다'**
+  /// **'길게 눌러 끌면 순서가 바뀝니다'**
   String get dragToReorder;
 
   /// No description provided for @disclaimerTitle.
@@ -1343,7 +1343,7 @@ abstract class AppLocalizations {
   /// No description provided for @stockPriceSetting.
   ///
   /// In ko, this message translates to:
-  /// **'주가'**
+  /// **'시세'**
   String get stockPriceSetting;
 
   /// No description provided for @language.
@@ -1397,13 +1397,13 @@ abstract class AppLocalizations {
   /// No description provided for @validationNonNegative.
   ///
   /// In ko, this message translates to:
-  /// **'0 이상의 값을 입력해주세요.'**
+  /// **'0 이상으로 입력해 주세요'**
   String get validationNonNegative;
 
   /// No description provided for @validationPositive.
   ///
   /// In ko, this message translates to:
-  /// **'0보다 큰 값을 입력해주세요.'**
+  /// **'0보다 크게 입력해 주세요'**
   String get validationPositive;
 
   /// No description provided for @validationExchangeRatePositive.
@@ -1547,13 +1547,13 @@ abstract class AppLocalizations {
   /// No description provided for @restoreSuccess.
   ///
   /// In ko, this message translates to:
-  /// **'복원 완료: 포트폴리오 {count}개'**
+  /// **'포트폴리오 {count}개를 복원했습니다'**
   String restoreSuccess(int count);
 
   /// No description provided for @restoreFailed.
   ///
   /// In ko, this message translates to:
-  /// **'복원 실패: 올바른 백업 파일이 아닙니다'**
+  /// **'올바른 백업 파일이 아닙니다'**
   String get restoreFailed;
 
   /// No description provided for @notifReminder.
@@ -1715,7 +1715,7 @@ abstract class AppLocalizations {
   /// No description provided for @allItemsInRange.
   ///
   /// In ko, this message translates to:
-  /// **'{count}개 항목 전부 범위 안.'**
+  /// **'{count}종목 전부 허용 편차 안.'**
   String allItemsInRange(int count);
 
   /// No description provided for @togetherNTrades.

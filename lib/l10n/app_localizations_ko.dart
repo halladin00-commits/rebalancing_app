@@ -68,7 +68,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get createAndAddStocks => '만들고 종목 담기';
 
   @override
-  String get autoUpdateSection => '자동 갱신';
+  String get autoUpdateSection => '자동 새로고침';
 
   @override
   String get thresholdNote =>
@@ -84,8 +84,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get itemNameHint => '예: TIGER 미국S&P500';
 
   @override
-  String get itemFormNote =>
-      '수량을 넣으면 그 날짜의 매수 거래가 하나 만들어집니다. 결산은 거래를 기준으로 계산합니다.';
+  String get itemFormNote => '수량을 넣으면 그 날짜의 매수 거래가 하나 만들어집니다.';
 
   @override
   String get cashFormNote => '예수금은 계좌에 남은 현금입니다. 비중 계산에 함께 잡힙니다.';
@@ -164,12 +163,12 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String refreshPartialFail(int count) {
-    return '$count종목 시세를 못 받았습니다 · 마지막 값 유지';
+    return '$count종목은 예전 시세 그대로입니다';
   }
 
   @override
   String refreshFailedNote(String time) {
-    return '갱신 실패 · $time 시세';
+    return '새로고침 실패 · $time 시세';
   }
 
   @override
@@ -188,7 +187,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get excludedSheetBody =>
-      '아래 종목은 지금 보유 중이지만, 이 기간까지의 거래 기록이 없어 결산 계산에 잡히지 않습니다.\n\n자산과 리밸런싱에는 아무 영향이 없습니다 — 결산만 계산할 수 없습니다. 늘어난 금액이 매수 때문인지 주가 상승 때문인지 구분할 방법이 없어서입니다.\n\n종목 상세에서 실제 매수 거래를 넣으면 그때부터 결산에 포함됩니다.';
+      '아래 종목은 이 기간의 거래 기록이 없어 결산에만 안 잡힙니다. 자산과 리밸런싱에는 그대로 들어갑니다.\n\n종목 상세에서 매수 거래를 넣으면 결산에도 들어갑니다.';
 
   @override
   String get excludedNoHistory => '거래 기록 없음';
@@ -215,7 +214,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String sparklinePending(int count) {
-    return '새로고침 $count일치가 모이면\n여기에 자산 추이가 그려집니다';
+    return '$count일치는 모여야\n자산 추이가 그려집니다';
   }
 
   @override
@@ -234,8 +233,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get filterUs => '해외';
 
   @override
-  String get cashAddHint =>
-      '예수금은 검색이 아니라 바로 만듭니다.\n계좌에 남은 현금을 한 항목으로 넣어 두면\n비중 계산에 함께 잡힙니다.';
+  String get cashAddHint => '계좌에 남은 현금을 넣어 두면\n비중 계산에 함께 잡힙니다.';
 
   @override
   String get cashAddButton => '예수금 추가';
@@ -263,8 +261,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get saveTransaction => '거래 저장';
 
   @override
-  String get transactionAffectsAvg =>
-      '저장하면 보유 수량과 평균 매수단가가 이 거래를 반영해 다시 계산됩니다.';
+  String get transactionAffectsAvg => '저장하면 보유 수량과 평단도 같이 바뀝니다.';
 
   @override
   String get validationQtyPositive => '수량을 0보다 크게 입력해 주세요';
@@ -369,7 +366,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get noAdjustmentNeeded => '지금은 조정할 것이 없습니다';
 
   @override
-  String get cannotCalculate => '계산할 수 없습니다. 현재가가 없는 종목이 있는지 확인해 주세요.';
+  String get cannotCalculate => '시세를 못 받은 종목이 있어 계산할 수 없습니다';
 
   @override
   String get lastRebalancedNever => '조정 기록 없음';
@@ -500,26 +497,26 @@ class AppLocalizationsKo extends AppLocalizations {
   String get appExitContent => '앱을 종료하시겠습니까?';
 
   @override
-  String get neverUpdated => '업데이트 전';
+  String get neverUpdated => '아직 안 받음';
 
   @override
-  String get toastAutoSettingRequired => '설정에서 환율 또는 주가를 자동으로 변경해 주세요';
+  String get toastAutoSettingRequired => '포트 설정에서 환율·시세 자동 조회를 켜 주세요';
 
   @override
   String updateFailed(String msg) {
-    return '업데이트 실패: $msg';
+    return '시세를 받지 못했습니다: $msg';
   }
 
   @override
   String updateSuccessCount(int count) {
-    return '$count건 업데이트 완료';
+    return '$count종목 새로고침했습니다';
   }
 
   @override
   String get portfolioNotFound => '포트폴리오를 찾을 수 없습니다';
 
   @override
-  String get additionalInvestmentHint => '예: 1000000 또는 -500000';
+  String get additionalInvestmentHint => '더 넣을 돈. 뺄 돈은 −를 붙이세요';
 
   @override
   String get evaluationAmount => '평가금액';
@@ -565,7 +562,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get editCenterText => '중앙 텍스트 수정';
 
   @override
-  String get editItem => '항목 편집';
+  String get editItem => '종목 편집';
 
   @override
   String get displayName => '표시 이름';
@@ -598,7 +595,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get capture => '캡처';
 
   @override
-  String get notifPermissionDenied => '알림 권한이 거부됐습니다. 설정에서 허용해 주세요.';
+  String get notifPermissionDenied => '휴대폰 설정에서 이 앱의 알림을 켜 주세요';
 
   @override
   String get targetWeight => '목표 비중';
@@ -607,13 +604,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get currentWeight => '현재 비중';
 
   @override
-  String get noPriceInfo => '현재가 정보가 없습니다. 새로고침 후 다시 시도해주세요.';
+  String get noPriceInfo => '아직 시세를 받지 못했습니다. 새로고침해 주세요';
 
   @override
   String get tapToEdit => '탭하여 수정';
 
   @override
-  String get dragToReorder => '항목을 길게 눌러 드래그하면 순서를 바꿀 수 있습니다';
+  String get dragToReorder => '길게 눌러 끌면 순서가 바뀝니다';
 
   @override
   String get disclaimerTitle => '서비스 이용 안내 및 면책고지';
@@ -705,7 +702,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get exchangeRateInput => '환율 (1 USD)';
 
   @override
-  String get stockPriceSetting => '주가';
+  String get stockPriceSetting => '시세';
 
   @override
   String get language => '언어';
@@ -734,10 +731,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get disclaimerAgreeCheckbox => '위 내용을 전부 확인하였으며\n동의합니다.';
 
   @override
-  String get validationNonNegative => '0 이상의 값을 입력해주세요.';
+  String get validationNonNegative => '0 이상으로 입력해 주세요';
 
   @override
-  String get validationPositive => '0보다 큰 값을 입력해주세요.';
+  String get validationPositive => '0보다 크게 입력해 주세요';
 
   @override
   String get validationExchangeRatePositive => '환율은 0보다 큰 값이어야 합니다.';
@@ -818,11 +815,11 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String restoreSuccess(int count) {
-    return '복원 완료: 포트폴리오 $count개';
+    return '포트폴리오 $count개를 복원했습니다';
   }
 
   @override
-  String get restoreFailed => '복원 실패: 올바른 백업 파일이 아닙니다';
+  String get restoreFailed => '올바른 백업 파일이 아닙니다';
 
   @override
   String get notifReminder => '리밸런싱 알림';
@@ -918,7 +915,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String allItemsInRange(int count) {
-    return '$count개 항목 전부 범위 안.';
+    return '$count종목 전부 허용 편차 안.';
   }
 
   @override

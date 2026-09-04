@@ -25,12 +25,12 @@
   "hintTargetsInRebalanceTab": "목표 비중은 종목을 담은 뒤 리밸런싱 탭에서 정합니다.",
   "hintThenAddStocks": "만들면 바로 종목 검색으로 넘어갑니다.",
   "createAndAddStocks": "만들고 종목 담기",
-  "autoUpdateSection": "자동 갱신",
+  "autoUpdateSection": "자동 새로고침",
   "thresholdNote": "편차가 이 값보다 작은 종목은 조정 제안에서 빠집니다. 0이면 모든 종목을 조정합니다.",
   "itemEditNote": "보유 수량은 거래 내역에서 계산됩니다. 바꾸려면 거래를 추가하거나 고치세요.",
   "itemName": "종목명",
   "itemNameHint": "예: TIGER 미국S&P500",
-  "itemFormNote": "수량을 넣으면 그 날짜의 매수 거래가 하나 만들어집니다. 결산은 거래를 기준으로 계산합니다.",
+  "itemFormNote": "수량을 넣으면 그 날짜의 매수 거래가 하나 만들어집니다.",
   "cashFormNote": "예수금은 계좌에 남은 현금입니다. 비중 계산에 함께 잡힙니다.",
   "validationNameRequired": "종목명을 입력해 주세요",
   "deleteLosesItems": "종목 {items}개 · 거래 {txs}건이 함께 지워집니다.",
@@ -87,7 +87,7 @@
   "previewWholeShares": "주 단위",
   "previewFractional": "소수점",
   "noPortfolios": "포트폴리오가 없습니다",
-  "refreshPartialFail": "{count}종목 시세를 못 받았습니다 · 마지막 값 유지",
+  "refreshPartialFail": "{count}종목은 예전 시세 그대로입니다",
   "@refreshPartialFail": {
     "placeholders": {
       "count": {
@@ -95,7 +95,7 @@
       }
     }
   },
-  "refreshFailedNote": "갱신 실패 · {time} 시세",
+  "refreshFailedNote": "새로고침 실패 · {time} 시세",
   "@refreshFailedNote": {
     "placeholders": {
       "time": {
@@ -117,7 +117,7 @@
   },
   "excludedFixLink": "자세히",
   "excludedSheetTitle": "결산에서 빠진 종목",
-  "excludedSheetBody": "아래 종목은 지금 보유 중이지만, 이 기간까지의 거래 기록이 없어 결산 계산에 잡히지 않습니다.\n\n자산과 리밸런싱에는 아무 영향이 없습니다 — 결산만 계산할 수 없습니다. 늘어난 금액이 매수 때문인지 주가 상승 때문인지 구분할 방법이 없어서입니다.\n\n종목 상세에서 실제 매수 거래를 넣으면 그때부터 결산에 포함됩니다.",
+  "excludedSheetBody": "아래 종목은 이 기간의 거래 기록이 없어 결산에만 안 잡힙니다. 자산과 리밸런싱에는 그대로 들어갑니다.\n\n종목 상세에서 매수 거래를 넣으면 결산에도 들어갑니다.",
   "excludedNoHistory": "거래 기록 없음",
   "lastMonthReturn": "전월 {rate}",
   "@lastMonthReturn": {
@@ -132,7 +132,7 @@
   "spark3m": "3개월",
   "spark6m": "6개월",
   "spark1y": "1년",
-  "sparklinePending": "새로고침 {count}일치가 모이면\n여기에 자산 추이가 그려집니다",
+  "sparklinePending": "{count}일치는 모여야\n자산 추이가 그려집니다",
   "@sparklinePending": {
     "placeholders": {
       "count": {
@@ -145,7 +145,7 @@
   "filterAll": "전체",
   "filterKr": "국내",
   "filterUs": "해외",
-  "cashAddHint": "예수금은 검색이 아니라 바로 만듭니다.\n계좌에 남은 현금을 한 항목으로 넣어 두면\n비중 계산에 함께 잡힙니다.",
+  "cashAddHint": "계좌에 남은 현금을 넣어 두면\n비중 계산에 함께 잡힙니다.",
   "cashAddButton": "예수금 추가",
   "manualEntryHint": "직접 입력해서 추가",
   "alreadyInPortfolio": "{name} 이미 담겨 있습니다",
@@ -167,7 +167,7 @@
   "editTransaction": "거래 수정",
   "transactionAmount": "거래금액",
   "saveTransaction": "거래 저장",
-  "transactionAffectsAvg": "저장하면 보유 수량과 평균 매수단가가 이 거래를 반영해 다시 계산됩니다.",
+  "transactionAffectsAvg": "저장하면 보유 수량과 평단도 같이 바뀝니다.",
   "validationQtyPositive": "수량을 0보다 크게 입력해 주세요",
   "validationPricePositive": "단가를 0보다 크게 입력해 주세요",
   "validationSellExceeds": "보유 수량({owned})보다 많이 팔 수 없습니다",
@@ -233,7 +233,7 @@
   "proposalCostWithout": "수수료와 세금(증권거래세 등)은 빠져 있어 실제 체결액과 조금 다릅니다.",
   "proposalDisclaimer": "이 제안은 주문을 내지 않습니다. 실제로 매매하신 뒤 아래 버튼으로 기록하세요.",
   "noAdjustmentNeeded": "지금은 조정할 것이 없습니다",
-  "cannotCalculate": "계산할 수 없습니다. 현재가가 없는 종목이 있는지 확인해 주세요.",
+  "cannotCalculate": "시세를 못 받은 종목이 있어 계산할 수 없습니다",
   "@@locale": "ko",
   "lastRebalancedNever": "조정 기록 없음",
   "lastRebalancedToday": "오늘 조정",
@@ -347,9 +347,9 @@
     }
   },
   "appExitContent": "앱을 종료하시겠습니까?",
-  "neverUpdated": "업데이트 전",
-  "toastAutoSettingRequired": "설정에서 환율 또는 주가를 자동으로 변경해 주세요",
-  "updateFailed": "업데이트 실패: {msg}",
+  "neverUpdated": "아직 안 받음",
+  "toastAutoSettingRequired": "포트 설정에서 환율·시세 자동 조회를 켜 주세요",
+  "updateFailed": "시세를 받지 못했습니다: {msg}",
   "@updateFailed": {
     "placeholders": {
       "msg": {
@@ -357,7 +357,7 @@
       }
     }
   },
-  "updateSuccessCount": "{count}건 업데이트 완료",
+  "updateSuccessCount": "{count}종목 새로고침했습니다",
   "@updateSuccessCount": {
     "placeholders": {
       "count": {
@@ -366,7 +366,7 @@
     }
   },
   "portfolioNotFound": "포트폴리오를 찾을 수 없습니다",
-  "additionalInvestmentHint": "예: 1000000 또는 -500000",
+  "additionalInvestmentHint": "더 넣을 돈. 뺄 돈은 −를 붙이세요",
   "evaluationAmount": "평가금액",
   "weightWarning": "목표 비중 합계: {pct} (100%가 아닙니다)",
   "@weightWarning": {
@@ -394,7 +394,7 @@
     }
   },
   "editCenterText": "중앙 텍스트 수정",
-  "editItem": "항목 편집",
+  "editItem": "종목 편집",
   "displayName": "표시 이름",
   "colorLabel": "색상",
   "portfolioEmpty": "포트폴리오 없음",
@@ -405,12 +405,12 @@
   "saveImage": "이미지 저장",
   "shareImage": "이미지 공유",
   "capture": "캡처",
-  "notifPermissionDenied": "알림 권한이 거부됐습니다. 설정에서 허용해 주세요.",
+  "notifPermissionDenied": "휴대폰 설정에서 이 앱의 알림을 켜 주세요",
   "targetWeight": "목표 비중",
   "currentWeight": "현재 비중",
-  "noPriceInfo": "현재가 정보가 없습니다. 새로고침 후 다시 시도해주세요.",
+  "noPriceInfo": "아직 시세를 받지 못했습니다. 새로고침해 주세요",
   "tapToEdit": "탭하여 수정",
-  "dragToReorder": "항목을 길게 눌러 드래그하면 순서를 바꿀 수 있습니다",
+  "dragToReorder": "길게 눌러 끌면 순서가 바뀝니다",
   "disclaimerTitle": "서비스 이용 안내 및 면책고지",
   "disclaimerSectionPurpose": "목적",
   "disclaimerTextPurpose": "본 앱(Rebalancing)은 개인 투자자의 포트폴리오 리밸런싱 계산 및 거래 내역 기반 기간별 수익률 분석을 돕기 위한 참고용 도구입니다. 어떠한 경우에도 금융투자 조언, 투자 권유, 자산 운용 서비스를 제공하지 않습니다.",
@@ -439,7 +439,7 @@
   "feeRate": "수수료율",
   "exchangeRateSetting": "환율",
   "exchangeRateInput": "환율 (1 USD)",
-  "stockPriceSetting": "주가",
+  "stockPriceSetting": "시세",
   "language": "언어",
   "portfolioAddBtn": "포트폴리오 추가",
   "holdingsSection": "구성 종목",
@@ -455,8 +455,8 @@
   "notice": "공지사항",
   "dayChange": "전일대비",
   "disclaimerAgreeCheckbox": "위 내용을 전부 확인하였으며\n동의합니다.",
-  "validationNonNegative": "0 이상의 값을 입력해주세요.",
-  "validationPositive": "0보다 큰 값을 입력해주세요.",
+  "validationNonNegative": "0 이상으로 입력해 주세요",
+  "validationPositive": "0보다 크게 입력해 주세요",
   "validationExchangeRatePositive": "환율은 0보다 큰 값이어야 합니다.",
   "tabAssets": "자산",
   "tabRebalancing": "리밸런싱",
@@ -508,7 +508,7 @@
       }
     }
   },
-  "restoreSuccess": "복원 완료: 포트폴리오 {count}개",
+  "restoreSuccess": "포트폴리오 {count}개를 복원했습니다",
   "@restoreSuccess": {
     "placeholders": {
       "count": {
@@ -516,7 +516,7 @@
       }
     }
   },
-  "restoreFailed": "복원 실패: 올바른 백업 파일이 아닙니다",
+  "restoreFailed": "올바른 백업 파일이 아닙니다",
   "notifReminder": "리밸런싱 알림",
   "notifEnableDesc": "정기 리밸런싱 점검 알림",
   "notifEnableHint": "지정한 주기마다 앱 알림을 보내드립니다",
@@ -592,7 +592,7 @@
       }
     }
   },
-  "allItemsInRange": "{count}개 항목 전부 범위 안.",
+  "allItemsInRange": "{count}종목 전부 허용 편차 안.",
   "@allItemsInRange": {
     "placeholders": {
       "count": {

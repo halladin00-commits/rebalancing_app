@@ -70,7 +70,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createAndAddStocks => 'Create & add holdings';
 
   @override
-  String get autoUpdateSection => 'Auto update';
+  String get autoUpdateSection => 'Auto refresh';
 
   @override
   String get thresholdNote =>
@@ -88,7 +88,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get itemFormNote =>
-      'Entering a quantity creates one buy transaction on that date. Returns are computed from transactions.';
+      'Entering a quantity creates one buy transaction on that date.';
 
   @override
   String get cashFormNote =>
@@ -170,12 +170,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String refreshPartialFail(int count) {
-    return 'Could not update $count holdings · last prices kept';
+    return '$count holdings still show older prices';
   }
 
   @override
   String refreshFailedNote(String time) {
-    return 'Update failed · prices from $time';
+    return 'Refresh failed · prices from $time';
   }
 
   @override
@@ -194,7 +194,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get excludedSheetBody =>
-      'You hold these now, but there are no transactions covering this period, so they are not counted in returns.\n\nYour assets and rebalancing are unaffected — only returns cannot be computed, because there is no way to tell a purchase apart from a price rise.\n\nAdd the actual buy transaction on the holding page and it will be included from then on.';
+      'These holdings have no trades in this period, so they\'re left out of Returns only. Assets and Rebalance still include them.\n\nAdd a buy transaction from the holding\'s page to include it.';
 
   @override
   String get excludedNoHistory => 'no transactions';
@@ -221,7 +221,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String sparklinePending(int count) {
-    return 'Your trend appears here once\n$count days of refreshes are recorded';
+    return 'Your trend appears once\n$count days are recorded';
   }
 
   @override
@@ -241,7 +241,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cashAddHint =>
-      'Cash is not searched — you add it directly.\nRecording your account cash as one item\nlets it count toward your weights.';
+      'Add the cash sitting in your account\nso it counts toward weights.';
 
   @override
   String get cashAddButton => 'Add cash';
@@ -270,7 +270,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transactionAffectsAvg =>
-      'Saving recalculates your quantity and average cost from this transaction.';
+      'Saving updates your quantity and average cost too.';
 
   @override
   String get validationQtyPositive => 'Enter a quantity greater than 0';
@@ -377,8 +377,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noAdjustmentNeeded => 'Nothing to adjust right now';
 
   @override
-  String get cannotCalculate =>
-      'Cannot calculate. Check whether any holding is missing a current price.';
+  String get cannotCalculate => 'Can\'t calculate — some prices are missing';
 
   @override
   String get lastRebalancedNever => 'Never rebalanced';
@@ -509,27 +508,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appExitContent => 'Exit the app?';
 
   @override
-  String get neverUpdated => 'Never updated';
+  String get neverUpdated => 'Not fetched yet';
 
   @override
   String get toastAutoSettingRequired =>
-      'Please enable auto exchange rate or price in Settings';
+      'Turn on auto price and FX in portfolio settings';
 
   @override
   String updateFailed(String msg) {
-    return 'Update failed: $msg';
+    return 'Couldn\'t get prices: $msg';
   }
 
   @override
   String updateSuccessCount(int count) {
-    return '$count updated';
+    return 'Refreshed $count holdings';
   }
 
   @override
   String get portfolioNotFound => 'Portfolio not found';
 
   @override
-  String get additionalInvestmentHint => 'e.g. 1000000 or -500000';
+  String get additionalInvestmentHint =>
+      'Money to add. Use − to take money out';
 
   @override
   String get evaluationAmount => 'Evaluation Amount';
@@ -575,7 +575,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editCenterText => 'Edit Center Text';
 
   @override
-  String get editItem => 'Edit Item';
+  String get editItem => 'Edit holding';
 
   @override
   String get displayName => 'Display Name';
@@ -609,7 +609,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notifPermissionDenied =>
-      'Notification permission denied. Please allow it in Settings.';
+      'Turn on notifications for this app in your phone settings';
 
   @override
   String get targetWeight => 'Target Weight';
@@ -618,13 +618,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get currentWeight => 'Current Weight';
 
   @override
-  String get noPriceInfo => 'No price data. Refresh and try again.';
+  String get noPriceInfo => 'No prices yet. Pull to refresh';
 
   @override
   String get tapToEdit => 'Tap to edit';
 
   @override
-  String get dragToReorder => 'Long-press and drag to reorder';
+  String get dragToReorder => 'Press and hold, then drag to reorder';
 
   @override
   String get disclaimerTitle => 'Terms of Use & Disclaimer';
@@ -716,7 +716,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exchangeRateInput => 'Rate (1 USD)';
 
   @override
-  String get stockPriceSetting => 'Stock Price';
+  String get stockPriceSetting => 'Prices';
 
   @override
   String get language => 'Language';
@@ -746,10 +746,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'I have read and agree\nto all of the above.';
 
   @override
-  String get validationNonNegative => 'Please enter a value of 0 or greater.';
+  String get validationNonNegative => 'Enter 0 or more';
 
   @override
-  String get validationPositive => 'Please enter a value greater than 0.';
+  String get validationPositive => 'Enter more than 0';
 
   @override
   String get validationExchangeRatePositive =>
@@ -831,11 +831,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String restoreSuccess(int count) {
-    return 'Restored: $count portfolios';
+    return 'Restored $count portfolios';
   }
 
   @override
-  String get restoreFailed => 'Restore failed: invalid backup file';
+  String get restoreFailed => 'That\'s not a valid backup file';
 
   @override
   String get notifReminder => 'Rebalancing Reminders';
@@ -933,7 +933,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String allItemsInRange(int count) {
-    return 'All $count holdings within range.';
+    return 'All $count holdings are within tolerance.';
   }
 
   @override

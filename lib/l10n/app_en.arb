@@ -25,12 +25,12 @@
   "hintTargetsInRebalanceTab": "Set target weights in the Rebalance tab after adding holdings.",
   "hintThenAddStocks": "You will go straight to stock search.",
   "createAndAddStocks": "Create & add holdings",
-  "autoUpdateSection": "Auto update",
+  "autoUpdateSection": "Auto refresh",
   "thresholdNote": "Holdings drifting less than this are left alone. Set 0 to adjust everything.",
   "itemEditNote": "Quantity is computed from transactions. Add or edit a transaction to change it.",
   "itemName": "Name",
   "itemNameHint": "e.g. Vanguard S&P 500",
-  "itemFormNote": "Entering a quantity creates one buy transaction on that date. Returns are computed from transactions.",
+  "itemFormNote": "Entering a quantity creates one buy transaction on that date.",
   "cashFormNote": "Cash is what is left in the account. It counts toward your weights.",
   "validationNameRequired": "Enter a name",
   "deleteLosesItems": "{items} holdings and {txs} transactions go with it.",
@@ -87,7 +87,7 @@
   "previewWholeShares": "Whole shares",
   "previewFractional": "Fractional",
   "noPortfolios": "No portfolios yet",
-  "refreshPartialFail": "Could not update {count} holdings · last prices kept",
+  "refreshPartialFail": "{count} holdings still show older prices",
   "@refreshPartialFail": {
     "placeholders": {
       "count": {
@@ -95,7 +95,7 @@
       }
     }
   },
-  "refreshFailedNote": "Update failed · prices from {time}",
+  "refreshFailedNote": "Refresh failed · prices from {time}",
   "@refreshFailedNote": {
     "placeholders": {
       "time": {
@@ -117,7 +117,7 @@
   },
   "excludedFixLink": "Details",
   "excludedSheetTitle": "Excluded from returns",
-  "excludedSheetBody": "You hold these now, but there are no transactions covering this period, so they are not counted in returns.\n\nYour assets and rebalancing are unaffected — only returns cannot be computed, because there is no way to tell a purchase apart from a price rise.\n\nAdd the actual buy transaction on the holding page and it will be included from then on.",
+  "excludedSheetBody": "These holdings have no trades in this period, so they're left out of Returns only. Assets and Rebalance still include them.\n\nAdd a buy transaction from the holding's page to include it.",
   "excludedNoHistory": "no transactions",
   "lastMonthReturn": "Last month {rate}",
   "@lastMonthReturn": {
@@ -132,7 +132,7 @@
   "spark3m": "3M",
   "spark6m": "6M",
   "spark1y": "1Y",
-  "sparklinePending": "Your trend appears here once\n{count} days of refreshes are recorded",
+  "sparklinePending": "Your trend appears once\n{count} days are recorded",
   "@sparklinePending": {
     "placeholders": {
       "count": {
@@ -145,7 +145,7 @@
   "filterAll": "All",
   "filterKr": "Korea",
   "filterUs": "Overseas",
-  "cashAddHint": "Cash is not searched — you add it directly.\nRecording your account cash as one item\nlets it count toward your weights.",
+  "cashAddHint": "Add the cash sitting in your account\nso it counts toward weights.",
   "cashAddButton": "Add cash",
   "manualEntryHint": "Add manually",
   "alreadyInPortfolio": "{name} is already in this portfolio",
@@ -167,7 +167,7 @@
   "editTransaction": "Edit transaction",
   "transactionAmount": "Amount",
   "saveTransaction": "Save transaction",
-  "transactionAffectsAvg": "Saving recalculates your quantity and average cost from this transaction.",
+  "transactionAffectsAvg": "Saving updates your quantity and average cost too.",
   "validationQtyPositive": "Enter a quantity greater than 0",
   "validationPricePositive": "Enter a price greater than 0",
   "validationSellExceeds": "You cannot sell more than you hold ({owned})",
@@ -233,7 +233,7 @@
   "proposalCostWithout": "Fees and taxes are not included, so your fills will differ slightly.",
   "proposalDisclaimer": "This does not place any orders. Record your trades below once you have actually executed them.",
   "noAdjustmentNeeded": "Nothing to adjust right now",
-  "cannotCalculate": "Cannot calculate. Check whether any holding is missing a current price.",
+  "cannotCalculate": "Can't calculate — some prices are missing",
   "@@locale": "en",
   "lastRebalancedNever": "Never rebalanced",
   "lastRebalancedToday": "Rebalanced today",
@@ -347,9 +347,9 @@
     }
   },
   "appExitContent": "Exit the app?",
-  "neverUpdated": "Never updated",
-  "toastAutoSettingRequired": "Please enable auto exchange rate or price in Settings",
-  "updateFailed": "Update failed: {msg}",
+  "neverUpdated": "Not fetched yet",
+  "toastAutoSettingRequired": "Turn on auto price and FX in portfolio settings",
+  "updateFailed": "Couldn't get prices: {msg}",
   "@updateFailed": {
     "placeholders": {
       "msg": {
@@ -357,7 +357,7 @@
       }
     }
   },
-  "updateSuccessCount": "{count} updated",
+  "updateSuccessCount": "Refreshed {count} holdings",
   "@updateSuccessCount": {
     "placeholders": {
       "count": {
@@ -366,7 +366,7 @@
     }
   },
   "portfolioNotFound": "Portfolio not found",
-  "additionalInvestmentHint": "e.g. 1000000 or -500000",
+  "additionalInvestmentHint": "Money to add. Use − to take money out",
   "evaluationAmount": "Evaluation Amount",
   "weightWarning": "Target weight: {pct} (not 100%)",
   "@weightWarning": {
@@ -394,7 +394,7 @@
     }
   },
   "editCenterText": "Edit Center Text",
-  "editItem": "Edit Item",
+  "editItem": "Edit holding",
   "displayName": "Display Name",
   "colorLabel": "Color",
   "portfolioEmpty": "No Portfolio",
@@ -405,12 +405,12 @@
   "saveImage": "Save Image",
   "shareImage": "Share Image",
   "capture": "Capture",
-  "notifPermissionDenied": "Notification permission denied. Please allow it in Settings.",
+  "notifPermissionDenied": "Turn on notifications for this app in your phone settings",
   "targetWeight": "Target Weight",
   "currentWeight": "Current Weight",
-  "noPriceInfo": "No price data. Refresh and try again.",
+  "noPriceInfo": "No prices yet. Pull to refresh",
   "tapToEdit": "Tap to edit",
-  "dragToReorder": "Long-press and drag to reorder",
+  "dragToReorder": "Press and hold, then drag to reorder",
   "disclaimerTitle": "Terms of Use & Disclaimer",
   "disclaimerSectionPurpose": "Purpose",
   "disclaimerTextPurpose": "This app (Rebalancing) is a reference tool to help individual investors calculate portfolio rebalancing and analyze period-based returns from transaction history. It does not provide financial investment advice, investment recommendations, or asset management services under any circumstances.",
@@ -439,7 +439,7 @@
   "feeRate": "Fee Rate",
   "exchangeRateSetting": "Exchange Rate",
   "exchangeRateInput": "Rate (1 USD)",
-  "stockPriceSetting": "Stock Price",
+  "stockPriceSetting": "Prices",
   "language": "Language",
   "portfolioAddBtn": "Add Portfolio",
   "holdingsSection": "Holdings",
@@ -455,8 +455,8 @@
   "notice": "Notice",
   "dayChange": "Day Change",
   "disclaimerAgreeCheckbox": "I have read and agree\nto all of the above.",
-  "validationNonNegative": "Please enter a value of 0 or greater.",
-  "validationPositive": "Please enter a value greater than 0.",
+  "validationNonNegative": "Enter 0 or more",
+  "validationPositive": "Enter more than 0",
   "validationExchangeRatePositive": "Exchange rate must be greater than 0.",
   "tabAssets": "Assets",
   "tabRebalancing": "Rebalance",
@@ -508,7 +508,7 @@
       }
     }
   },
-  "restoreSuccess": "Restored: {count} portfolios",
+  "restoreSuccess": "Restored {count} portfolios",
   "@restoreSuccess": {
     "placeholders": {
       "count": {
@@ -516,7 +516,7 @@
       }
     }
   },
-  "restoreFailed": "Restore failed: invalid backup file",
+  "restoreFailed": "That's not a valid backup file",
   "notifReminder": "Rebalancing Reminders",
   "notifEnableDesc": "Periodic rebalancing reminders",
   "notifEnableHint": "We'll send you a reminder at the set interval",
@@ -592,7 +592,7 @@
       }
     }
   },
-  "allItemsInRange": "All {count} holdings within range.",
+  "allItemsInRange": "All {count} holdings are within tolerance.",
   "@allItemsInRange": {
     "placeholders": {
       "count": {

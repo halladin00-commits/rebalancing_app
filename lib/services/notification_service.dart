@@ -302,8 +302,8 @@ class NotificationService {
 
     switch (type) {
       case 'weekly':
-        final title = isKo ? '주간 결산을 확인해보세요 📊' : 'Check last week\'s performance 📊';
-        final body  = isKo ? '지난 한 주 포트폴리오 성과를 분석해보세요.' : 'Review your weekly portfolio performance.';
+        final title = isKo ? '지난주 결산이 나왔어요 📊' : 'Last week is in 📊';
+        final body  = isKo ? '결산 탭에서 확인해 보세요.' : 'Open the Returns tab to see it.';
         await _plugin.cancel(_settlementWeeklyId);
         await _plugin.zonedSchedule(
           _settlementWeeklyId, title, body,
@@ -322,8 +322,8 @@ class NotificationService {
         );
 
       case 'monthly':
-        final title = isKo ? '월간 결산을 확인해보세요 📊' : 'Check last month\'s performance 📊';
-        final body  = isKo ? '지난 달 포트폴리오 성과를 분석해보세요.' : 'Review your monthly portfolio performance.';
+        final title = isKo ? '지난달 결산이 나왔어요 📊' : 'Last month is in 📊';
+        final body  = isKo ? '결산 탭에서 확인해 보세요.' : 'Open the Returns tab to see it.';
         await _plugin.cancel(_settlementMonthlyId);
         await _plugin.zonedSchedule(
           _settlementMonthlyId, title, body,
@@ -336,8 +336,8 @@ class NotificationService {
         );
 
       case 'quarterly':
-        final title = isKo ? '분기 결산을 확인해보세요 📊' : 'Check last quarter\'s performance 📊';
-        final body  = isKo ? '지난 분기 포트폴리오 성과를 분석해보세요.' : 'Review your quarterly portfolio performance.';
+        final title = isKo ? '지난 분기 결산이 나왔어요 📊' : 'Last quarter is in 📊';
+        final body  = isKo ? '결산 탭에서 확인해 보세요.' : 'Open the Returns tab to see it.';
         for (var i = 0; i < _quarterlyIds.length; i++) {
           await _plugin.cancel(_quarterlyIds[i]);
           await _plugin.zonedSchedule(
@@ -352,8 +352,8 @@ class NotificationService {
         }
 
       case 'yearly':
-        final title = isKo ? '연간 결산을 확인해보세요 📊' : 'Check last year\'s performance 📊';
-        final body  = isKo ? '지난 한 해 포트폴리오 성과를 분석해보세요.' : 'Review your yearly portfolio performance.';
+        final title = isKo ? '작년 결산이 나왔어요 📊' : 'Last year is in 📊';
+        final body  = isKo ? '결산 탭에서 확인해 보세요.' : 'Open the Returns tab to see it.';
         await _plugin.cancel(_settlementYearlyId);
         await _plugin.zonedSchedule(
           _settlementYearlyId, title, body,
