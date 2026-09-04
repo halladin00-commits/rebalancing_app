@@ -183,6 +183,37 @@ class SparklinePanel extends StatelessWidget {
     }
   }
 
+  /// 다섯 단계 중 지금 어디인지 — 가로줄 다섯을 쌓고 그 자리만 밝힌다.
+  ///
+  /// 처음엔 회전 화살표를 썼는데, 바로 옆 헤더에 **새로고침 버튼이 있어**
+  /// 같은 뜻으로 읽혔다. 눌러서 값이 바뀌는 컨트롤에 필요한 건 「다시」가
+  /// 아니라 **몇 단계 중 몇 번째인지**다. 위가 짧은 기간(1주), 아래로 갈수록
+  /// 길어지고, 누르면 한 칸씩 내려간다.
+  Widget _buildLevels(BuildContext context) {
+    const barH = 1.6;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      // 왼쪽을 맞춰 쌓는다 — 지금 자리만 길게 빼서 색을 못 가려도 읽히게
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (var i = 0; i < SparkPeriod.values.length; i++) ...[
+          if (i > 0) const SizedBox(height: 2),
+          Container(
+            key: ValueKey('sparkLevel$i'),
+            width: i == period.index ? 11 : 7,
+            height: barH,
+            decoration: BoxDecoration(
+              color: i == period.index
+                  ? Colors.white
+                  : Colors.white.withValues(alpha: 0.34),
+              borderRadius: BorderRadius.circular(barH / 2),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
   /// 누를 때마다 다음 기간으로 넘어가는 버튼 하나.
   ///
   /// 칩 다섯을 늘어놓으면 헤더에서 가장 시끄러운 줄이 되는데, 정작 기간은
@@ -212,6 +243,8 @@ class SparklinePanel extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
+                _buildLevels(context),
+                const SizedBox(width: 6),
                 Text(
                   now,
                   style: const TextStyle(
@@ -219,9 +252,6 @@ class SparklinePanel extends StatelessWidget {
                       fontWeight: FontWeight.w800,
                       color: Colors.white),
                 ),
-                const SizedBox(width: 5),
-                Icon(Icons.autorenew_rounded,
-                    size: 12, color: context.onBrandSecondary),
               ],
             ),
           ),
