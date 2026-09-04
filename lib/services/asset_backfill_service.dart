@@ -195,6 +195,25 @@ List<DailyAssets> buildDailyAssets({
   // 종목별로 「그날까지의 마지막 종가」를 끌고 가기 위한 커서
   final lastClose = <String, double>{};
 
+  // 거래도 날짜순으로 한 번만 훑는다.
+  //
+  // 날마다 `holdingsBefore`로 전체 거래를 다시 세면 **날 × 거래** 번이 된다.
+  // 1년치(250일) × 종목 96개 × 거래 90건이면 2천만 번이라 화면이 멈춘다
+  // (8개 포트를 복원하니 실제로 ANR이 났다). 날짜순으로 커서를 밀면
+  // 날 + 거래 번으로 끝난다.
+  final txs = <String, List<StockTransaction>>{};
+  final cursor = <String, int>{};
+  final shares = <String, double>{};
+  for (final pf in portfolios) {
+    for (final it in pf.items) {
+      if (it.isCash) continue;
+      txs[it.id] = [...it.transactions]
+        ..sort((a, b) => a.date.compareTo(b.date));
+      cursor[it.id] = 0;
+      shares[it.id] = 0;
+    }
+  }
+
   final out = <DailyAssets>[];
   for (final d in sorted) {
     final endExclusive = d.add(const Duration(days: 1));
@@ -203,6 +222,19 @@ List<DailyAssets> buildDailyAssets({
     for (final e in closesByItemId.entries) {
       final c = e.value[d];
       if (c != null) lastClose[e.key] = c;
+    }
+
+    // 이 날까지의 거래를 이어서 반영한다
+    for (final id in txs.keys) {
+      final list = txs[id]!;
+      var i = cursor[id]!;
+      var q = shares[id]!;
+      while (i < list.length && list[i].date.isBefore(endExclusive)) {
+        q += list[i].quantity;
+        i++;
+      }
+      cursor[id] = i;
+      shares[id] = q;
     }
 
     var total = 0.0;
@@ -218,11 +250,11 @@ List<DailyAssets> buildDailyAssets({
           pfValue += it.shares;
           continue;
         }
-        final shares = SettlementService.holdingsBefore(it, endExclusive);
-        if (shares == 0) continue;
+        final q = shares[it.id] ?? 0;
+        if (q == 0) continue;
         final close = lastClose[it.id];
         if (close == null) continue; // 아직 그 종목의 첫 종가 전
-        pfValue += shares * SettlementService.priceInBase(close, it.market, pf);
+        pfValue += q * SettlementService.priceInBase(close, it.market, pf);
         anyHolding = true;
       }
       if (pfValue <= 0) continue;

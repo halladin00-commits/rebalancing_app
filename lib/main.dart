@@ -516,23 +516,26 @@ class PortfolioProvider extends ChangeNotifier {
                   item.ticker, item.market)))));
         }
 
-        // 저장은 받아온 뒤에 한다 — 동시에 쓰면 서로 덮어쓴다.
+        // 받아온 값은 **메모리에만** 반영한다. 종목마다 저장하면 열두 종목이면
+        // 파일을 열두 번 쓰고 화면을 열두 번 다시 그린다. 저장은 마지막에 한 번.
         for (final f in fetched) {
           if (f.r.ok && f.r.data != null) {
-            await updateItem(
-              pf.id,
-              f.item.copyWith(
+            final idx = pf.items.indexWhere((i) => i.id == f.item.id);
+            if (idx != -1) {
+              pf.items[idx] = pf.items[idx].copyWith(
                 currentPrice: f.r.data!.currentPrice,
                 previousClose: f.r.data!.previousClose,
-              ),
-            );
+              );
+            }
           } else {
             failed++;
           }
         }
       }
-      await updateLastRefreshed(pf.id);
+      pf.lastUpdated = DateTime.now().millisecondsSinceEpoch;
     }
+    // 시세만 바뀌었다 — 결산 캐시는 그대로 둔다
+    await _save(settlementAffected: false);
 
     _lastFailed = failed;
     _lastTried = tried;
@@ -597,10 +600,18 @@ class PortfolioProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> _save() async {
+  /// 저장하고 알린다.
+  ///
+  /// [settlementAffected]가 참이면 결산 캐시를 비운다. **시세가 바뀐 것만으로는
+  /// 비우지 않는다** — 지난 기간의 결산은 그때의 과거 종가로 계산하므로 지금
+  /// 시세와 무관하고, 진행 중인 기간은 애초에 캐시하지 않는다.
+  ///
+  /// 예전에는 무조건 비웠다. 새로고침 한 번이 종목 수만큼 `_save()`를 부르니
+  /// 앱을 열 때마다 캐시가 열두 번 날아갔고, 결산 탭은 매번 12개월치를 처음부터
+  /// 다시 받아 계산했다.
+  Future<void> _save({bool settlementAffected = true}) async {
     await StorageService.savePortfolios(_portfolios);
-    // 거래·시세가 바뀌면 결산 계산 결과가 달라진다
-    SettlementService.clearCache();
+    if (settlementAffected) SettlementService.clearCache();
     notifyListeners();
   }
 
@@ -893,7 +904,7 @@ class PortfolioProvider extends ChangeNotifier {
     final pf = getPortfolio(pfId);
     if (pf != null) {
       pf.lastUpdated = DateTime.now().millisecondsSinceEpoch;
-      await _save();
+      await _save(settlementAffected: false);
     }
   }
 

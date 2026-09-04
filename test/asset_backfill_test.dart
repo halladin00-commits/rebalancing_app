@@ -213,4 +213,45 @@ void main() {
     expect(AssetBackfillService.firstTransactionDay([pf]), d1);
     expect(AssetBackfillService.firstTransactionDay([]), isNull);
   });
+
+  test('종목·거래가 많아도 빨리 끝난다 — 날마다 전체 거래를 다시 세지 않는다', () {
+    // 8개 포트 × 12종목 × 거래 90건 × 1년치. 예전 방식(날마다 전체 거래 스캔)은
+    // 2천만 번을 돌아 실기기에서 ANR이 났다.
+    final start = DateTime(2025, 9, 1);
+    final pfs = <Portfolio>[];
+    final closes = <String, Map<DateTime, double>>{};
+    for (var p = 0; p < 8; p++) {
+      final items = <PortfolioItem>[];
+      for (var i = 0; i < 12; i++) {
+        final id = 'p${p}_i$i';
+        items.add(PortfolioItem(
+          id: id,
+          name: id,
+          ticker: id,
+          market: 'KR',
+          transactions: [
+            for (var t = 0; t < 90; t++)
+              buy(start.add(Duration(days: t * 4)), 1, 1000)
+          ],
+        ));
+        closes[id] = {
+          for (var d = 0; d < 365; d++) start.add(Duration(days: d)): 1000
+        };
+      }
+      pfs.add(Portfolio(
+          id: 'p$p', name: 'p$p', currency: 'KRW', items: items));
+    }
+
+    final sw = Stopwatch()..start();
+    final out = buildDailyAssets(
+      portfolios: pfs,
+      closesByItemId: closes,
+      from: start,
+      to: start.add(const Duration(days: 364)),
+    );
+    sw.stop();
+    expect(out, isNotEmpty);
+    expect(sw.elapsedMilliseconds, lessThan(1500),
+        reason: '${sw.elapsedMilliseconds}ms — 화면이 멈출 만큼 느리다');
+  });
 }

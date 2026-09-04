@@ -126,6 +126,13 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
   /// 놓이면 앞뒤 기간과 견줄 수 없다. 창 밖이면 그때만 창을 옮긴다.
   void _jumpTo(SettlementJump j) {
     _period = j.period;
+    // 이미 화면에 있는 기간이면 **고르기만 한다.** 다시 부르면 열두 칸이
+    // 통째로 비었다 차올라, 계산할 게 없는데도 계산하는 것처럼 보인다.
+    if (_windowKeys(_endKey).contains(j.key) &&
+        _series.any((e) => e?.key == j.key)) {
+      setState(() => _selected = j.key);
+      return;
+    }
     final end = SettlementService.currentKey(j.period);
     final target = _windowKeys(end).contains(j.key) ? end : j.key;
     _load(endKey: target, select: j.key);

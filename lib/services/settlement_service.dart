@@ -827,6 +827,13 @@ class SettlementService {
     return combined;
   }
 
+  /// 이미 계산해 둔 합산 결과. 없으면 null. **네트워크를 쓰지 않는다.**
+  ///
+  /// 진행 중인 기간은 캐시하지 않으므로 늘 null이 나온다 — 현재가에 따라
+  /// 값이 바뀌는 칸이라 그게 맞다.
+  static CombinedSettlement? peekCombined(SettlementPeriod p, PeriodKey k) =>
+      _combinedCache[_ck('__all__', p, k)];
+
   /// 전체 합산의 최근 [count]개 기간 (차트용)
   static Future<List<CombinedSettlement?>> calculateCombinedSeries(
     List<Portfolio> portfolios,
@@ -839,13 +846,21 @@ class SettlementService {
       for (var i = count - 1; i >= 0; i--) shiftKey(period, endKey, -i),
     ];
     final out = List<CombinedSettlement?>.filled(keys.length, null);
-    // **최신 칸부터** 채운다. 사람이 제일 먼저 보는 칸이고, 칸이 열두 개면
-    // 다 끝나길 기다리는 동안 화면이 오래 빈다. 하나 끝날 때마다 알린다.
+
+    // **이미 계산해 둔 칸을 먼저 깐다.** 차트를 옆으로 밀면 새로 보이는 달은
+    // 하나뿐인데, 열두 칸이 통째로 비었다 차오르면 다 다시 계산하는 것처럼
+    // 보인다. 실제로도 진행 표시가 0/12부터 다시 시작했다.
+    for (var i = 0; i < keys.length; i++) {
+      if (isFuture(period, keys[i])) continue;
+      out[i] = peekCombined(period, keys[i]);
+    }
+    if (out.any((e) => e != null)) onProgress?.call(List.of(out));
+
+    // 남은 칸은 **최신부터** 채운다. 사람이 제일 먼저 보는 칸이다.
     for (var i = keys.length - 1; i >= 0; i--) {
       final k = keys[i];
-      if (!isFuture(period, k)) {
-        out[i] = await calculateCombined(portfolios, period, k);
-      }
+      if (out[i] != null || isFuture(period, k)) continue;
+      out[i] = await calculateCombined(portfolios, period, k);
       onProgress?.call(List.of(out));
     }
     return out;

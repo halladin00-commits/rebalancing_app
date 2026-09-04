@@ -16,7 +16,7 @@ import 'item_search_screen.dart';
 import 'portfolio_reorder_screen.dart';
 import 'transaction_import_screen.dart';
 import '../widgets/app_logo.dart';
-import '../widgets/brand_header.dart';
+import '../widgets/collapsing_header.dart';
 import '../widgets/sparkline_panel.dart';
 import '../services/settlement_service.dart';
 import '../widgets/dashed_border_box.dart';
@@ -58,7 +58,6 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
   @override
   void initState() {
     super.initState();
-    _scroll.addListener(_onScroll);
     _loadHistory();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _autoRefreshIfStale();
@@ -72,7 +71,6 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
 
   @override
   void dispose() {
-    _scroll.removeListener(_onScroll);
     _scroll.dispose();
     super.dispose();
   }
@@ -556,64 +554,21 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
 
   final ScrollController _scroll = ScrollController();
 
-  bool _collapsed = false;
-
-  /// 헤더 실제 높이를 재기 위한 키. 글자 크기 설정에 따라 달라지므로
-  /// 상수로 박아 두면 안 된다.
-  final GlobalKey _headerKey = GlobalKey();
-  double? _expandedH;
-  double? _collapsedH;
-
-  /// 접어서 되찾은 높이.
+  /// 헤더 본문(총자산 블록)의 실제 높이.
   ///
-  /// 아직 한 번도 접어 본 적이 없으면 **넉넉히** 잡는다. 실제보다 적게 잡으면
-  /// 접는 순간 스크롤할 거리가 줄어 목록이 위로 튕기고, 그러면 다시 펴진다 —
-  /// 접히지 않는 것처럼 보인다. 많이 잡아도 한 프레임 뒤 실측값으로 바뀐다.
-  double get _collapseGain {
-    final e = _expandedH, c = _collapsedH;
-    if (e == null || c == null) return 420;
-    return (e - c).clamp(0.0, 500.0);
-  }
+  /// 글자 크기 설정과 내용에 따라 달라져 상수로 박을 수 없다. 한 번 재서
+  /// 슬리버에 넘긴다. 재기 전에는 어림값으로 그리고, 잰 뒤 바로 맞춘다.
+  double _bodyH = 250;
 
-  /// 접히면 화면(뷰포트)이 그만큼 커진다. 그대로 두면 **스크롤할 거리가
-  /// 줄어** 목록이 도로 위로 튕기고, 그러면 다시 펴지고, 또 접힌다.
-  /// 되찾은 만큼 목록 아래에 돌려주면 스크롤 총량이 그대로라 되먹임이 없다.
-  double get _bottomPad => 100 + (_collapsed ? _collapseGain : 0);
-
-  void _measureHeader() {
-    if (!mounted) return;
-    final ctx = _headerKey.currentContext;
-    if (ctx == null) return;
-    final h = ctx.size?.height;
-    if (h == null || h <= 0) return;
-    final known = _collapsed ? _collapsedH : _expandedH;
-    if (known != null && (known - h).abs() < 0.5) return;
-    // 처음 잰 값으로 여백을 바로잡는다 — 어림값으로 남겨 두면 목록 아래가 뜬다
-    setState(() {
-      if (_collapsed) {
-        _collapsedH = h;
-      } else {
-        _expandedH = h;
-      }
-    });
-  }
-
-  void _onScroll() {
-    if (!_scroll.hasClients) return;
-    final p = _scroll.position;
-    // 접힌 뒤에는 맨 위 가까이 와야 다시 편다 — 경계에서 깜빡이지 않게.
-    //
-    // 접는 기준을 낮게 잡는다. 포트가 둘뿐이면 스크롤할 거리가 얼마 안 되는데,
-    // 그 정도만 밀어도 「목록을 보러 왔다」는 뜻이다.
-    final next = _collapsed ? p.pixels > 16 : p.pixels > 40;
-    if (next != _collapsed) setState(() => _collapsed = next);
+  void _setBodyH(double h) {
+    if ((_bodyH - h).abs() < 0.5) return;
+    if (mounted) setState(() => _bodyH = h);
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<PortfolioProvider>(
       builder: (context, provider, _) {
-        WidgetsBinding.instance.addPostFrameCallback((_) => _measureHeader());
         // 빈 날을 메우고 나면 다시 읽는다 — 안 그러면 다음에 앱을 켤 때까지
         // 방금 채운 날들이 화면에 안 나온다.
         if (provider.historySeq != _seenHistorySeq) {
@@ -630,22 +585,27 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
             provider.portfolios, context.watch<PortfolioSortNotifier>().sort);
         return Scaffold(
           backgroundColor: context.scaffoldBg,
-          body: Column(
-            children: [
-              BrandHeader(
-                key: _headerKey,
-                // 접히면 로고 자리에 총자산을 올린다. 스크롤 중에 알아야 하는 건
-                // 앱 이름이 아니라 지금 얼마인지다.
-                titleWidget: _collapsed
-                    ? _buildCompactTotal(context, portfolios)
-                    // 시안 기준 21px · 글자는 흰색 78% — 로고가 총자산 금액을 이기지 않게 한다
-                    : AppLogo(
-                        iconSize: 21, textColor: context.onBrandSecondary),
-                childPadding: const EdgeInsets.fromLTRB(22, 4, 22, 16),
-                actions: [
-                  IconButton(
+          body: CustomScrollView(
+            controller: _scroll,
+            slivers: [
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: CollapsingHeaderDelegate(
+                  background: context.appBarBg,
+                  topInset: MediaQuery.paddingOf(context).top,
+                  titleHeight: 48 *
+                      MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.6),
+                  bodyHeight: _bodyH,
+                  // 시안 기준 21px · 글자는 흰색 78% — 로고가 총자산 금액을 이기지 않게 한다
+                  expandedTitle: AppLogo(
+                      iconSize: 21, textColor: context.onBrandSecondary),
+                  // 접히면 로고 자리에 총자산을 올린다. 스크롤 중에 알아야 하는 건
+                  // 앱 이름이 아니라 지금 얼마인지다.
+                  collapsedTitle: _buildCompactTotal(context, portfolios),
+                  actions: [
+                    IconButton(
                       tooltip: context.l10n.a11yRefresh,
-              icon: provider.refreshing
+                      icon: provider.refreshing
                           ? const SizedBox(
                               width: 20,
                               height: 20,
@@ -654,39 +614,36 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                           : const Icon(Icons.refresh, color: Colors.white),
                       onPressed: provider.refreshing ? null : _doRefreshAll,
                     ),
-                  IconButton(
-                    tooltip: context.l10n.a11yMenu,
-              icon: const Icon(Icons.more_vert, color: Colors.white),
-                    onPressed: () => _showListMenu(portfolios),
-                  ),
-                ],
-                // 포트가 없을 때도 `총 자산 ₩0`을 보인다 (시안 v17d) —
-                // 첫 진입만 헤더가 다르면 다른 앱처럼 보인다.
-                child: _collapsed
-                    ? null
-                    : _buildTotalAssets(context, portfolios),
-              ),
-              Expanded(
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                      child: ListView(
-                              controller: _scroll,
-                              padding:
-                                  EdgeInsets.fromLTRB(16, 14, 16, _bottomPad),
-                              children: [
-                                if (portfolios.isNotEmpty) ...[
-                                  _buildActionCards(context, portfolios),
-                                  const SizedBox(height: 10),
-                                  _buildPortfolioCard(context, portfolios),
-                                  const SizedBox(height: 10),
-                                ] else
-                                  _buildFirstRun(context),
-                                _buildAddCard(context),
-                              ],
-                            ),
+                    IconButton(
+                      tooltip: context.l10n.a11yMenu,
+                      icon: const Icon(Icons.more_vert, color: Colors.white),
+                      onPressed: () => _showListMenu(portfolios),
                     ),
                   ],
+                  body: MeasureSize(
+                    onHeight: _setBodyH,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(22, 4, 22, 16),
+                      // 포트가 없을 때도 `총 자산 ₩0`을 보인다 (시안 v17d) —
+                      // 첫 진입만 헤더가 다르면 다른 앱처럼 보인다.
+                      child: _buildTotalAssets(context, portfolios),
+                    ),
+                  ),
+                ),
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    if (portfolios.isNotEmpty) ...[
+                      _buildActionCards(context, portfolios),
+                      const SizedBox(height: 10),
+                      _buildPortfolioCard(context, portfolios),
+                      const SizedBox(height: 10),
+                    ] else
+                      _buildFirstRun(context),
+                    _buildAddCard(context),
+                  ]),
                 ),
               ),
             ],
