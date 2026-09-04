@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
 import '../l10n/app_localizations.dart';
@@ -29,6 +30,8 @@ class MoreScreen extends StatefulWidget {
 class _MoreScreenState extends State<MoreScreen> {
   bool _notifEnabled = false;
   String _notifFreq = 'weekly';
+  int _notifDay = DateTime.monday;
+  TimeOfDay _notifTime = const TimeOfDay(hour: 9, minute: 0);
   List<String> _settlementNotifs = const [];
   DateTime? _lastBackup;
   bool _backupLoaded = false;
@@ -72,14 +75,19 @@ class _MoreScreenState extends State<MoreScreen> {
   Future<void> _loadNotifState() async {
     final enabled = await NotificationService.isEnabled();
     final freq = await NotificationService.getFrequency();
+    final day = await NotificationService.getDay();
+    final hour = await NotificationService.getHour();
+    final minute = await NotificationService.getMinute();
     final types = <String>[];
-    for (final t in ['weekly', 'monthly', 'quarterly', 'yearly']) {
+    for (final t in NotificationService.settlementTypes) {
       if (await NotificationService.isSettlementEnabled(t)) types.add(t);
     }
     if (!mounted) return;
     setState(() {
       _notifEnabled = enabled;
       _notifFreq = freq;
+      _notifDay = day;
+      _notifTime = TimeOfDay(hour: hour, minute: minute);
       _settlementNotifs = types;
     });
   }
@@ -164,11 +172,7 @@ class _MoreScreenState extends State<MoreScreen> {
                       _row(
                         context,
                         label: l10n.notifReminder,
-                        value: _notifEnabled
-                            ? (_notifFreq == 'weekly'
-                                ? l10n.notifWeekly
-                                : l10n.notifMonthly)
-                            : (_isKo ? '꺼짐' : 'Off'),
+                        value: _notifSummary(context, l10n),
                         onTap: _openNotifSettings,
                       ),
                       _row(
@@ -243,6 +247,23 @@ class _MoreScreenState extends State<MoreScreen> {
       return _isKo ? '±$s%p' : '±${s}pp';
     }
     return _isKo ? '포트별 다름' : 'Varies';
+  }
+
+  /// 목록에 적을 리밸런싱 알림 요약.
+  ///
+  /// 예전에는 `매주 월요일 오전 9시`를 문자열로 박아 뒀다. 이제 요일과 시간을
+  /// 고를 수 있으므로, 박아 두면 **고른 값과 다른 값이 목록에 적힌다.**
+  String _notifSummary(BuildContext context, dynamic l10n) {
+    if (!_notifEnabled) return _isKo ? '꺼짐' : 'Off';
+    final time = MaterialLocalizations.of(context).formatTimeOfDay(_notifTime);
+    if (_notifFreq == 'weekly') {
+      final d = DateTime(2026, 1, 4 + _notifDay.clamp(1, 7));
+      final locale = Localizations.localeOf(context).toLanguageTag();
+      final name = DateFormat.E(locale).format(d);
+      return _isKo ? '매주 $name · $time' : '$name · $time';
+    }
+    final day = _notifDay.clamp(1, 28);
+    return _isKo ? '매월 $day일 · $time' : 'Day $day · $time';
   }
 
   String _settlementNotifSummary(dynamic l10n) {

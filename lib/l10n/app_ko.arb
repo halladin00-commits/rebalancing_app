@@ -16,7 +16,7 @@
     }
   },
   "notifRebalanceSection": "리밸런싱 점검 알림",
-  "settlementNotifNote": "각 기간이 끝난 다음 날 아침에 알려줍니다. 결산 화면을 열어 확인하라는 알림입니다.",
+  "settlementNotifNote": "각 기간이 끝난 다음 날, 아래에서 고른 시각에 알려줍니다. 결산 화면을 열어 확인하라는 알림입니다.",
   "addPortfolioTitle": "포트폴리오 만들기",
   "renamePortfolio": "이름 변경",
   "portfolioNameLabel": "이름",
@@ -520,8 +520,6 @@
   "notifReminder": "리밸런싱 알림",
   "notifEnableDesc": "정기 리밸런싱 점검 알림",
   "notifEnableHint": "지정한 주기마다 앱 알림을 보내드립니다",
-  "notifWeekly": "매주 월요일 오전 9시",
-  "notifMonthly": "매월 1일 오전 9시",
   "purchaseDateLabel": "매수 일자",
   "transactionHistory": "거래 내역",
   "addTransaction": "거래 추가",
@@ -910,6 +908,28 @@
   "@partialSettlement": {
     "placeholders": {
       "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notifSystemOff": "시스템에서 이 앱의 알림이 꺼져 있습니다",
+  "notifSystemOffHint": "휴대폰 설정에서 알림을 켜야 아래 설정이 동작합니다",
+  "notifOpenSettings": "설정 열기",
+  "notifPermissionTitle": "알림 권한이 필요합니다",
+  "notifPermissionBody": "휴대폰 설정 → 알림에서 이 앱의 알림을 켜 주세요. 그래야 지정한 시각에 알려드릴 수 있습니다.",
+  "notifFrequencyLabel": "주기",
+  "notifWeekdayLabel": "요일",
+  "notifDayLabel": "일자",
+  "notifTimeLabel": "시간",
+  "notifEveryWeek": "매주",
+  "notifEveryMonth": "매월",
+  "notifDayOfMonth": "{day}일",
+  "notifDayCapHint": "29~31일은 없는 달이 있어 28일까지만 고를 수 있습니다",
+  "settlementNotifTime": "알림 시간",
+  "settlementNotifTimeHint": "네 가지 결산 알림에 같이 적용됩니다",
+  "@notifDayOfMonth": {
+    "placeholders": {
+      "day": {
         "type": "int"
       }
     }

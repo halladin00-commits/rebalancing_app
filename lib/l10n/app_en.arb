@@ -16,7 +16,7 @@
     }
   },
   "notifRebalanceSection": "Rebalancing reminders",
-  "settlementNotifNote": "Sent the morning after each period ends, so you can open the Returns tab and review.",
+  "settlementNotifNote": "Sent the day after each period ends, at the time you pick below, so you can open the Returns tab and review.",
   "addPortfolioTitle": "New portfolio",
   "renamePortfolio": "Rename",
   "portfolioNameLabel": "Name",
@@ -520,8 +520,6 @@
   "notifReminder": "Rebalancing Reminders",
   "notifEnableDesc": "Periodic rebalancing reminders",
   "notifEnableHint": "We'll send you a reminder at the set interval",
-  "notifWeekly": "Every Monday at 9 AM",
-  "notifMonthly": "1st of each month at 9 AM",
   "purchaseDateLabel": "Purchase Date",
   "transactionHistory": "Transactions",
   "addTransaction": "Add Transaction",
@@ -910,6 +908,28 @@
   "@partialSettlement": {
     "placeholders": {
       "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notifSystemOff": "Notifications are turned off for this app",
+  "notifSystemOffHint": "Turn them on in your phone settings for the options below to work",
+  "notifOpenSettings": "Open settings",
+  "notifPermissionTitle": "Notification permission needed",
+  "notifPermissionBody": "Turn on notifications for this app in your phone settings. Without it we can't remind you at the time you picked.",
+  "notifFrequencyLabel": "Repeat",
+  "notifWeekdayLabel": "Day",
+  "notifDayLabel": "Date",
+  "notifTimeLabel": "Time",
+  "notifEveryWeek": "Weekly",
+  "notifEveryMonth": "Monthly",
+  "notifDayOfMonth": "Day {day}",
+  "notifDayCapHint": "Days 29-31 don't exist in every month, so you can pick up to 28",
+  "settlementNotifTime": "Reminder time",
+  "settlementNotifTimeHint": "Applies to all four settlement reminders",
+  "@notifDayOfMonth": {
+    "placeholders": {
+      "day": {
         "type": "int"
       }
     }

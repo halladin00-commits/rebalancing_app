@@ -42,7 +42,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get settlementNotifNote =>
-      '각 기간이 끝난 다음 날 아침에 알려줍니다. 결산 화면을 열어 확인하라는 알림입니다.';
+      '각 기간이 끝난 다음 날, 아래에서 고른 시각에 알려줍니다. 결산 화면을 열어 확인하라는 알림입니다.';
 
   @override
   String get addPortfolioTitle => '포트폴리오 만들기';
@@ -835,12 +835,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get notifEnableHint => '지정한 주기마다 앱 알림을 보내드립니다';
 
   @override
-  String get notifWeekly => '매주 월요일 오전 9시';
-
-  @override
-  String get notifMonthly => '매월 1일 오전 9시';
-
-  @override
   String get purchaseDateLabel => '매수 일자';
 
   @override
@@ -1245,4 +1239,52 @@ class AppLocalizationsKo extends AppLocalizations {
   String partialSettlement(int count) {
     return '아직 다 받지 못한 값입니다 · $count종목 남음';
   }
+
+  @override
+  String get notifSystemOff => '시스템에서 이 앱의 알림이 꺼져 있습니다';
+
+  @override
+  String get notifSystemOffHint => '휴대폰 설정에서 알림을 켜야 아래 설정이 동작합니다';
+
+  @override
+  String get notifOpenSettings => '설정 열기';
+
+  @override
+  String get notifPermissionTitle => '알림 권한이 필요합니다';
+
+  @override
+  String get notifPermissionBody =>
+      '휴대폰 설정 → 알림에서 이 앱의 알림을 켜 주세요. 그래야 지정한 시각에 알려드릴 수 있습니다.';
+
+  @override
+  String get notifFrequencyLabel => '주기';
+
+  @override
+  String get notifWeekdayLabel => '요일';
+
+  @override
+  String get notifDayLabel => '일자';
+
+  @override
+  String get notifTimeLabel => '시간';
+
+  @override
+  String get notifEveryWeek => '매주';
+
+  @override
+  String get notifEveryMonth => '매월';
+
+  @override
+  String notifDayOfMonth(int day) {
+    return '$day일';
+  }
+
+  @override
+  String get notifDayCapHint => '29~31일은 없는 달이 있어 28일까지만 고를 수 있습니다';
+
+  @override
+  String get settlementNotifTime => '알림 시간';
+
+  @override
+  String get settlementNotifTimeHint => '네 가지 결산 알림에 같이 적용됩니다';
 }

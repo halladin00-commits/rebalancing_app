@@ -392,6 +392,21 @@ class _AppEntryPointState extends State<_AppEntryPoint> {
     _checkOnboarding();
   }
 
+  bool _promptsDone = false;
+
+  /// 첫 실행에 물어볼 것들. 순서가 있다 — 면책 고지를 먼저 받고 알림을 묻는다.
+  ///
+  /// 알림 권한은 **여기서 한 번** 묻는다. 예전에는 안 묻고 기본값만 켜 뒀는데,
+  /// 그러면 설정 화면은 켜져 있다고 하면서 알림은 한 번도 오지 않는다.
+  /// 껐다 다시 켜야 시스템이 물어보는 게 유일한 방법이었다.
+  Future<void> _firstRunPrompts() async {
+    if (_promptsDone) return;
+    _promptsDone = true;
+    if (!mounted) return;
+    await DisclaimerDialog.showIfNeeded(context);
+    await NotificationService.setUpOnFirstRun();
+  }
+
   Future<void> _checkOnboarding() async {
     final prefs = await SharedPreferences.getInstance();
     final done = prefs.getBool('onboarding_done') ?? false;
@@ -415,10 +430,8 @@ class _AppEntryPointState extends State<_AppEntryPoint> {
       );
     }
 
-    // 첫 전환 시 공지사항 팝업
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      DisclaimerDialog.showIfNeeded(context);
-    });
+    // 첫 전환 시 공지사항 팝업 → 그다음 알림 권한
+    WidgetsBinding.instance.addPostFrameCallback((_) => _firstRunPrompts());
 
     return const MainShell();
   }

@@ -43,7 +43,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settlementNotifNote =>
-      'Sent the morning after each period ends, so you can open the Returns tab and review.';
+      'Sent the day after each period ends, at the time you pick below, so you can open the Returns tab and review.';
 
   @override
   String get addPortfolioTitle => 'New portfolio';
@@ -849,12 +849,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'We\'ll send you a reminder at the set interval';
 
   @override
-  String get notifWeekly => 'Every Monday at 9 AM';
-
-  @override
-  String get notifMonthly => '1st of each month at 9 AM';
-
-  @override
   String get purchaseDateLabel => 'Purchase Date';
 
   @override
@@ -1266,4 +1260,55 @@ class AppLocalizationsEn extends AppLocalizations {
   String partialSettlement(int count) {
     return 'Not fully loaded yet · $count holdings missing';
   }
+
+  @override
+  String get notifSystemOff => 'Notifications are turned off for this app';
+
+  @override
+  String get notifSystemOffHint =>
+      'Turn them on in your phone settings for the options below to work';
+
+  @override
+  String get notifOpenSettings => 'Open settings';
+
+  @override
+  String get notifPermissionTitle => 'Notification permission needed';
+
+  @override
+  String get notifPermissionBody =>
+      'Turn on notifications for this app in your phone settings. Without it we can\'t remind you at the time you picked.';
+
+  @override
+  String get notifFrequencyLabel => 'Repeat';
+
+  @override
+  String get notifWeekdayLabel => 'Day';
+
+  @override
+  String get notifDayLabel => 'Date';
+
+  @override
+  String get notifTimeLabel => 'Time';
+
+  @override
+  String get notifEveryWeek => 'Weekly';
+
+  @override
+  String get notifEveryMonth => 'Monthly';
+
+  @override
+  String notifDayOfMonth(int day) {
+    return 'Day $day';
+  }
+
+  @override
+  String get notifDayCapHint =>
+      'Days 29-31 don\'t exist in every month, so you can pick up to 28';
+
+  @override
+  String get settlementNotifTime => 'Reminder time';
+
+  @override
+  String get settlementNotifTimeHint =>
+      'Applies to all four settlement reminders';
 }

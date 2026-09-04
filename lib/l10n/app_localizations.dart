@@ -161,7 +161,7 @@ abstract class AppLocalizations {
   /// No description provided for @settlementNotifNote.
   ///
   /// In ko, this message translates to:
-  /// **'각 기간이 끝난 다음 날 아침에 알려줍니다. 결산 화면을 열어 확인하라는 알림입니다.'**
+  /// **'각 기간이 끝난 다음 날, 아래에서 고른 시각에 알려줍니다. 결산 화면을 열어 확인하라는 알림입니다.'**
   String get settlementNotifNote;
 
   /// No description provided for @addPortfolioTitle.
@@ -1574,18 +1574,6 @@ abstract class AppLocalizations {
   /// **'지정한 주기마다 앱 알림을 보내드립니다'**
   String get notifEnableHint;
 
-  /// No description provided for @notifWeekly.
-  ///
-  /// In ko, this message translates to:
-  /// **'매주 월요일 오전 9시'**
-  String get notifWeekly;
-
-  /// No description provided for @notifMonthly.
-  ///
-  /// In ko, this message translates to:
-  /// **'매월 1일 오전 9시'**
-  String get notifMonthly;
-
   /// No description provided for @purchaseDateLabel.
   ///
   /// In ko, this message translates to:
@@ -2245,6 +2233,96 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'아직 다 받지 못한 값입니다 · {count}종목 남음'**
   String partialSettlement(int count);
+
+  /// No description provided for @notifSystemOff.
+  ///
+  /// In ko, this message translates to:
+  /// **'시스템에서 이 앱의 알림이 꺼져 있습니다'**
+  String get notifSystemOff;
+
+  /// No description provided for @notifSystemOffHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'휴대폰 설정에서 알림을 켜야 아래 설정이 동작합니다'**
+  String get notifSystemOffHint;
+
+  /// No description provided for @notifOpenSettings.
+  ///
+  /// In ko, this message translates to:
+  /// **'설정 열기'**
+  String get notifOpenSettings;
+
+  /// No description provided for @notifPermissionTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'알림 권한이 필요합니다'**
+  String get notifPermissionTitle;
+
+  /// No description provided for @notifPermissionBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'휴대폰 설정 → 알림에서 이 앱의 알림을 켜 주세요. 그래야 지정한 시각에 알려드릴 수 있습니다.'**
+  String get notifPermissionBody;
+
+  /// No description provided for @notifFrequencyLabel.
+  ///
+  /// In ko, this message translates to:
+  /// **'주기'**
+  String get notifFrequencyLabel;
+
+  /// No description provided for @notifWeekdayLabel.
+  ///
+  /// In ko, this message translates to:
+  /// **'요일'**
+  String get notifWeekdayLabel;
+
+  /// No description provided for @notifDayLabel.
+  ///
+  /// In ko, this message translates to:
+  /// **'일자'**
+  String get notifDayLabel;
+
+  /// No description provided for @notifTimeLabel.
+  ///
+  /// In ko, this message translates to:
+  /// **'시간'**
+  String get notifTimeLabel;
+
+  /// No description provided for @notifEveryWeek.
+  ///
+  /// In ko, this message translates to:
+  /// **'매주'**
+  String get notifEveryWeek;
+
+  /// No description provided for @notifEveryMonth.
+  ///
+  /// In ko, this message translates to:
+  /// **'매월'**
+  String get notifEveryMonth;
+
+  /// No description provided for @notifDayOfMonth.
+  ///
+  /// In ko, this message translates to:
+  /// **'{day}일'**
+  String notifDayOfMonth(int day);
+
+  /// No description provided for @notifDayCapHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'29~31일은 없는 달이 있어 28일까지만 고를 수 있습니다'**
+  String get notifDayCapHint;
+
+  /// No description provided for @settlementNotifTime.
+  ///
+  /// In ko, this message translates to:
+  /// **'알림 시간'**
+  String get settlementNotifTime;
+
+  /// No description provided for @settlementNotifTimeHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'네 가지 결산 알림에 같이 적용됩니다'**
+  String get settlementNotifTimeHint;
 }
 
 class _AppLocalizationsDelegate

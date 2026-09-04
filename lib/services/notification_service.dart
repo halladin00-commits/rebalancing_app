@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -29,7 +30,19 @@ class NotificationService {
   static const _settlementYearlyId  = 2007;
   static const _quarterlyIds    = [2003, 2004, 2005, 2006];
   static const _quarterlyMonths = [1, 4, 7, 10];
-  static const _settlementHour  = 13;
+  static const _keySettlementHour   = 'settlement_notif_hour';
+  static const _keySettlementMinute = 'settlement_notif_minute';
+
+  /// 첫 실행에 권한을 물어봤는가.
+  ///
+  /// 예전에는 기본값이 **켬**인데 권한은 안 물어봤다. 그래서 설정 화면은
+  /// 켜져 있다고 하는데 알림은 한 번도 오지 않았고, **껐다 다시 켜야**
+  /// 시스템이 권한을 물었다. 스위치가 사실과 다른 상태였다.
+  static const _keyPermissionAsked = 'notif_permission_asked_v1';
+
+  /// 시스템 알림 설정을 여는 통로. 권한을 두 번 거부하면 안드로이드가
+  /// 더 이상 창을 띄우지 않아서, 직접 보내주는 수밖에 없다.
+  static const _channel = MethodChannel('com.xaxavoo.rebalancing/settings');
 
   static Future<void> initialize() async {
     tz_data.initializeTimeZones();
@@ -42,24 +55,76 @@ class NotificationService {
 
     final prefs = await SharedPreferences.getInstance();
 
-    // 리밸런싱 알림 복원
-    if (prefs.getBool(_keyEnabled) != false) {
+    // **켜 둔 것만** 되살린다. 예전에는 값이 없으면 켠 것으로 쳤는데,
+    // 권한을 물어본 적이 없어 실제로는 아무것도 오지 않았다.
+    if (prefs.getBool(_keyEnabled) == true) {
       await _schedule(prefs);
     }
-
-    // 결산 알림 복원
-    for (final type in ['weekly', 'monthly', 'quarterly', 'yearly']) {
-      final key = _settlementKey(type);
-      if (prefs.getBool(key) != false) {
+    for (final type in settlementTypes) {
+      if (prefs.getBool(_settlementKey(type)) == true) {
         await _scheduleSettlement(type, prefs);
       }
+    }
+  }
+
+  static const settlementTypes = ['weekly', 'monthly', 'quarterly', 'yearly'];
+
+  // ── 권한 ──
+
+  /// 첫 실행에 한 번 묻고, 답에 따라 기본값을 정한다.
+  ///
+  /// 허용하면 켠 채로, 거부하면 끈 채로 시작한다. **스위치가 켜져 있는데
+  /// 알림은 안 오는 상태**를 만들지 않는 것이 핵심이다. 거부한 사람이
+  /// 나중에 스위치를 켜면 그때 시스템이 다시 묻는다.
+  ///
+  /// 이미 쓰던 사람의 선택은 건드리지 않는다 — 값이 없는 항목만 채운다.
+  static Future<bool> setUpOnFirstRun() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool(_keyPermissionAsked) == true) return await isGranted();
+
+    final granted = await requestPermission();
+    await prefs.setBool(_keyPermissionAsked, true);
+
+    if (!prefs.containsKey(_keyEnabled)) {
+      await prefs.setBool(_keyEnabled, granted);
+    }
+    for (final t in settlementTypes) {
+      final k = _settlementKey(t);
+      if (!prefs.containsKey(k)) await prefs.setBool(k, granted);
+    }
+
+    if (prefs.getBool(_keyEnabled) == true) await _schedule(prefs);
+    for (final t in settlementTypes) {
+      if (prefs.getBool(_settlementKey(t)) == true) {
+        await _scheduleSettlement(t, prefs);
+      }
+    }
+    return granted;
+  }
+
+  /// 시스템에서 이 앱의 알림이 켜져 있는가.
+  ///
+  /// 앱 안의 스위치와 별개다. 사용자가 휴대폰 설정에서 꺼 버리면 앱은
+  /// 켜져 있다고 믿는 채로 아무것도 못 보낸다 — 화면에서 알려줘야 한다.
+  static Future<bool> isGranted() async {
+    final android = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    return await android?.areNotificationsEnabled() ?? true;
+  }
+
+  /// 이 앱의 시스템 알림 설정 화면을 연다.
+  static Future<void> openSystemSettings() async {
+    try {
+      await _channel.invokeMethod('openNotificationSettings');
+    } catch (_) {
+      // 못 열어도 앱은 멀쩡하다 — 사용자가 직접 찾아가는 수밖에
     }
   }
 
   // ── 리밸런싱 알림 ──
 
   static Future<bool> isEnabled() async =>
-      (await SharedPreferences.getInstance()).getBool(_keyEnabled) ?? true;
+      (await SharedPreferences.getInstance()).getBool(_keyEnabled) ?? false;
 
   static Future<String> getFrequency() async =>
       (await SharedPreferences.getInstance()).getString(_keyFrequency) ?? 'weekly';
@@ -68,7 +133,7 @@ class NotificationService {
       (await SharedPreferences.getInstance()).getInt(_keyDay) ?? DateTime.monday;
 
   static Future<int> getHour() async =>
-      (await SharedPreferences.getInstance()).getInt(_keyHour) ?? 13;
+      (await SharedPreferences.getInstance()).getInt(_keyHour) ?? 9;
 
   static Future<int> getMinute() async =>
       (await SharedPreferences.getInstance()).getInt(_keyMinute) ?? 0;
@@ -79,18 +144,22 @@ class NotificationService {
     return await android?.requestNotificationsPermission() ?? false;
   }
 
+  /// 안 넘긴 값은 **그대로 둔다.**
+  ///
+  /// 예전에는 기본값으로 덮어써서, 주기만 바꿔도 사용자가 고른 요일·시간이
+  /// 월요일 9시로 되돌아갔다.
   static Future<void> enable(
     String frequency, {
-    int day = DateTime.monday,
-    int hour = 9,
-    int minute = 0,
+    int? day,
+    int? hour,
+    int? minute,
   }) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_keyEnabled, true);
     await prefs.setString(_keyFrequency, frequency);
-    await prefs.setInt(_keyDay, day);
-    await prefs.setInt(_keyHour, hour);
-    await prefs.setInt(_keyMinute, minute);
+    if (day != null) await prefs.setInt(_keyDay, day);
+    if (hour != null) await prefs.setInt(_keyHour, hour);
+    if (minute != null) await prefs.setInt(_keyMinute, minute);
     await _schedule(prefs);
   }
 
@@ -130,7 +199,7 @@ class NotificationService {
     if (frequency == 'weekly') {
       await _plugin.zonedSchedule(
         _notifId, title, body,
-        _nextWeekday(now, day, hour, minute),
+        nextWeekday(now, day, hour, minute),
         details,
         androidScheduleMode: AndroidScheduleMode.inexact,
         uiLocalNotificationDateInterpretation:
@@ -140,7 +209,7 @@ class NotificationService {
     } else {
       await _plugin.zonedSchedule(
         _notifId, title, body,
-        _nextDayOfMonth(now, day, hour, minute),
+        nextDayOfMonth(now, day, hour, minute),
         details,
         androidScheduleMode: AndroidScheduleMode.inexact,
         uiLocalNotificationDateInterpretation:
@@ -162,8 +231,28 @@ class NotificationService {
     }
   }
 
+  /// 결산 알림 시각. 네 가지에 같이 적용된다 — 종류마다 따로 두면
+  /// 고를 것만 늘고, 실제로 다르게 쓸 이유가 없다.
+  static Future<int> getSettlementHour() async =>
+      (await SharedPreferences.getInstance()).getInt(_keySettlementHour) ?? 9;
+
+  static Future<int> getSettlementMinute() async =>
+      (await SharedPreferences.getInstance()).getInt(_keySettlementMinute) ?? 0;
+
+  /// 시각을 바꾸고, 켜져 있는 알림을 새 시각으로 다시 예약한다.
+  static Future<void> setSettlementTime(int hour, int minute) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_keySettlementHour, hour);
+    await prefs.setInt(_keySettlementMinute, minute);
+    for (final t in settlementTypes) {
+      if (prefs.getBool(_settlementKey(t)) == true) {
+        await _scheduleSettlement(t, prefs);
+      }
+    }
+  }
+
   static Future<bool> isSettlementEnabled(String type) async =>
-      (await SharedPreferences.getInstance()).getBool(_settlementKey(type)) ?? true;
+      (await SharedPreferences.getInstance()).getBool(_settlementKey(type)) ?? false;
 
   static Future<void> enableSettlement(String type) async {
     final prefs = await SharedPreferences.getInstance();
@@ -172,7 +261,7 @@ class NotificationService {
   }
 
   static Future<void> disableAllSettlements() async {
-    for (final t in ['weekly', 'monthly', 'quarterly', 'yearly']) {
+    for (final t in settlementTypes) {
       await disableSettlement(t);
     }
   }
@@ -197,6 +286,8 @@ class NotificationService {
   static Future<void> _scheduleSettlement(
       String type, SharedPreferences prefs) async {
     final isKo = (prefs.getString('locale') ?? 'ko') == 'ko';
+    final h = prefs.getInt(_keySettlementHour) ?? 9;
+    final m = prefs.getInt(_keySettlementMinute) ?? 0;
 
     final details = NotificationDetails(
       android: AndroidNotificationDetails(
@@ -216,7 +307,9 @@ class NotificationService {
         await _plugin.cancel(_settlementWeeklyId);
         await _plugin.zonedSchedule(
           _settlementWeeklyId, title, body,
-          _nextWeekday(now, DateTime.saturday, _settlementHour, 0),
+          // 주 결산은 월~일이다. **토요일은 아직 그 주가 안 끝났다** —
+          // 다 끝난 다음 날인 월요일에 알린다.
+          nextWeekday(now, DateTime.monday, h, m),
           details,
           androidScheduleMode: AndroidScheduleMode.inexact,
           uiLocalNotificationDateInterpretation:
@@ -230,7 +323,7 @@ class NotificationService {
         await _plugin.cancel(_settlementMonthlyId);
         await _plugin.zonedSchedule(
           _settlementMonthlyId, title, body,
-          _nextDayOfMonth(now, 1, _settlementHour, 0),
+          nextDayOfMonth(now, 1, h, m),
           details,
           androidScheduleMode: AndroidScheduleMode.inexact,
           uiLocalNotificationDateInterpretation:
@@ -245,7 +338,7 @@ class NotificationService {
           await _plugin.cancel(_quarterlyIds[i]);
           await _plugin.zonedSchedule(
             _quarterlyIds[i], title, body,
-            _nextSpecificDate(_quarterlyMonths[i], 1, _settlementHour, 0),
+            nextSpecificDate(_quarterlyMonths[i], 1, h, m),
             details,
             androidScheduleMode: AndroidScheduleMode.inexact,
             uiLocalNotificationDateInterpretation:
@@ -260,7 +353,7 @@ class NotificationService {
         await _plugin.cancel(_settlementYearlyId);
         await _plugin.zonedSchedule(
           _settlementYearlyId, title, body,
-          _nextSpecificDate(1, 1, _settlementHour, 0),
+          nextSpecificDate(1, 1, h, m),
           details,
           androidScheduleMode: AndroidScheduleMode.inexact,
           uiLocalNotificationDateInterpretation:
@@ -272,7 +365,10 @@ class NotificationService {
 
   // ── 헬퍼 ──
 
-  static tz.TZDateTime _nextWeekday(
+  /// [from] **뒤**의 가장 가까운 [weekday] 요일 [hour]:[minute].
+  ///
+  /// 같은 요일이라도 시각이 이미 지났으면 다음 주로 넘긴다.
+  static tz.TZDateTime nextWeekday(
       tz.TZDateTime from, int weekday, int hour, int minute) {
     var dt = tz.TZDateTime(tz.local, from.year, from.month, from.day, hour, minute);
     while (dt.weekday != weekday || !dt.isAfter(from)) {
@@ -281,7 +377,12 @@ class NotificationService {
     return dt;
   }
 
-  static tz.TZDateTime _nextDayOfMonth(
+  /// [from] 뒤의 가장 가까운 매월 [day]일 [hour]:[minute].
+  ///
+  /// **없는 날짜를 넘기지 말 것.** 31일을 달라고 하면 Dart가 조용히 다음 달로
+  /// 넘겨 버려서(2월 31일 → 3월 3일), 사용자가 고른 날과 다른 날에 울린다.
+  /// 그래서 화면에서는 28일까지만 고르게 한다.
+  static tz.TZDateTime nextDayOfMonth(
       tz.TZDateTime from, int day, int hour, int minute) {
     try {
       var dt = tz.TZDateTime(tz.local, from.year, from.month, day, hour, minute);
@@ -302,7 +403,7 @@ class NotificationService {
     }
   }
 
-  static tz.TZDateTime _nextSpecificDate(
+  static tz.TZDateTime nextSpecificDate(
       int month, int day, int hour, int minute) {
     final now = tz.TZDateTime.now(tz.local);
     var dt = tz.TZDateTime(tz.local, now.year, month, day, hour, minute);
