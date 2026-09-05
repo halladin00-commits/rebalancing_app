@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -12,6 +13,7 @@ import '../services/settlement_service.dart';
 import '../theme/design_system.dart';
 import '../widgets/portfolio_actions.dart';
 import '../widgets/brand_header.dart';
+import '../widgets/collapsing_header.dart';
 import '../widgets/period_jump_sheet.dart';
 import '../widgets/settlement_chart.dart';
 import '../widgets/settlement_capture_card.dart';
@@ -80,6 +82,9 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
   /// 45초를 `계산 중…` 한 줄로 기다리게 하면 **앱이 멈춘 것으로 읽힌다.**
   /// 몇 칸 중 몇 칸인지만 알려줘도 기다림의 성질이 달라진다.
   int _done = 0;
+
+  /// 헤더 본문의 실제 높이. 글자 크기 설정에 따라 달라져 한 번 재서 쓴다.
+  double _bodyH = 250;
 
   bool _saving = false;
   bool _sharing = false;
@@ -238,9 +243,13 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       return;
     }
 
-    setState(() {
-      _loading = true;
-      _done = 0;
+    // 캐시가 다 없어도 디스크에서 읽어 오는 정도면 몇 밀리초다. 그 사이에
+    // `불러오는 중`을 띄웠다 지우면 깜빡이기만 하고, 사용자는 매번 다시
+    // 계산하는 줄 안다. **오래 걸릴 때만** 띄운다.
+    var finished = false;
+    _done = 0;
+    final loaderTimer = Timer(const Duration(milliseconds: 350), () {
+      if (!finished && mounted) setState(() => _loading = true);
     });
 
     final series = await SettlementService.calculateCombinedSeries(
@@ -264,6 +273,8 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       },
     );
 
+    finished = true;
+    loaderTimer.cancel();
     if (!mounted) return;
     setState(() {
       _series = series;
@@ -367,36 +378,122 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
 
     return Scaffold(
       backgroundColor: context.scaffoldBg,
-      body: Column(
-        children: [
-          BrandHeader(
-            title: l10n.tabSettlement,
-            childPadding: const EdgeInsets.fromLTRB(0, 2, 0, 16),
-            actions: [
-              if (_current != null)
-                IconButton(
-                  icon: const Icon(Icons.ios_share, color: Colors.white),
-                  tooltip: l10n.capture,
-                  onPressed: _showCaptureSheet,
+      body: widget.portfolios.isEmpty
+          ? Column(children: [
+              BrandHeader(
+                title: l10n.tabSettlement,
+                childPadding: const EdgeInsets.fromLTRB(0, 2, 0, 16),
+                child: _buildHeaderBody(context, l10n),
+              ),
+              Expanded(child: _buildEmpty(context)),
+            ])
+          : CustomScrollView(
+              slivers: [
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: CollapsingHeaderDelegate(
+                    background: context.appBarBg,
+                    topInset: MediaQuery.paddingOf(context).top,
+                    titleHeight: 48 *
+                        MediaQuery.textScalerOf(context)
+                            .scale(1)
+                            .clamp(1.0, 1.6),
+                    bodyHeight: _bodyH,
+                    expandedTitle: Text(
+                      l10n.tabSettlement,
+                      style: const TextStyle(
+                          fontSize: 19,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          letterSpacing: -0.3),
+                    ),
+                    collapsedTitle: _buildCompactHeader(context),
+                    actions: [
+                      if (_current != null)
+                        IconButton(
+                          icon:
+                              const Icon(Icons.ios_share, color: Colors.white),
+                          tooltip: l10n.capture,
+                          onPressed: _showCaptureSheet,
+                        ),
+                    ],
+                    body: MeasureSize(
+                      onHeight: (h) {
+                        if ((_bodyH - h).abs() < 0.5) return;
+                        if (mounted) setState(() => _bodyH = h);
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 2, 0, 16),
+                        child: _buildHeaderBody(context, l10n),
+                      ),
+                    ),
+                  ),
                 ),
-            ],
-            child: _buildHeaderBody(context, l10n),
-          ),
-          Expanded(
-            child: widget.portfolios.isEmpty
-                ? _buildEmpty(context)
-                : ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
-                    children: [
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
                       _buildExcluded(context),
                       _buildChartCard(context, l10n),
                       const SizedBox(height: 14),
                       _buildContributions(context),
-                    ],
+                    ]),
                   ),
+                ),
+              ],
+            ),
+    );
+  }
+
+  /// 헤더가 접혔을 때 제목 자리에 남는 한 줄.
+  ///
+  /// 종목이 많으면 기여 목록을 보려고 계속 밀게 되는데, 그때도 **지금 어느
+  /// 기간의 얼마를 보는 중인지**는 남아 있어야 한다.
+  Widget _buildCompactHeader(BuildContext context) {
+    final r = _current;
+    final pnl = context.watch<PnlColorNotifier>();
+    if (r == null) {
+      return Text(
+        context.l10n.tabSettlement,
+        style: const TextStyle(
+            fontSize: 19, fontWeight: FontWeight.w800, color: Colors.white),
+      );
+    }
+    final up = r.absoluteReturn >= 0;
+    final color = up ? pnl.onBrandPositive : pnl.onBrandNegative;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text(settlementPeriodLabel(context, _period, _selected),
+            style: TextStyle(
+                fontSize: DS.body,
+                fontWeight: FontWeight.w700,
+                color: context.onBrandSecondary)),
+        const SizedBox(width: 7),
+        Flexible(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              '${up ? '+' : '−'}${fmtMoney(r.absoluteReturn.abs(), 'KRW')}',
+              maxLines: 1,
+              style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.5,
+                  color: color),
+            ),
           ),
-        ],
-      ),
+        ),
+        const SizedBox(width: 7),
+        Text(
+          r.rateAvailable
+              ? '${r.returnRate >= 0 ? '+' : '−'}${r.returnRate.abs().toStringAsFixed(2)}%'
+              : '—',
+          style: TextStyle(
+              fontSize: DS.caption, fontWeight: FontWeight.w700, color: color),
+        ),
+      ],
     );
   }
 
@@ -997,9 +1094,13 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (_) => Padding(
-        padding: EdgeInsets.fromLTRB(
-            20, 16, 20, MediaQuery.of(ctx).padding.bottom + 20),
+      // 시트 안에서 `MediaQuery.padding.bottom`은 이미 소비돼 0으로 온다 —
+      // 그걸 더해 봐야 네비바를 못 비킨다. SafeArea에 맡긴다.
+      useSafeArea: true,
+      builder: (_) => SafeArea(
+        top: false,
+        child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1060,6 +1161,7 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
             ]),
           ],
         ),
+      ),
       ),
     );
   }

@@ -158,6 +158,11 @@ class SettlementCaptureCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
+                    Text(isKo ? '수익률 ' : 'return ',
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: context.textSecondary)),
                     Text(
                       rateAvailable
                           ? '${returnRate >= 0 ? '+' : '−'}${returnRate.abs().toStringAsFixed(2)}%'
@@ -179,7 +184,7 @@ class SettlementCaptureCard extends StatelessWidget {
                           context,
                           startValue <= 0 && netCashFlow > 0
                               ? (isKo ? '넣은 돈' : 'invested')
-                              : (isKo ? '시작' : 'start'),
+                              : (isKo ? '시작 평가금액' : 'start value'),
                           startValue <= 0 && netCashFlow > 0
                               ? netCashFlow
                               : startValue,
@@ -188,8 +193,8 @@ class SettlementCaptureCard extends StatelessWidget {
                         _tile(
                           context,
                           inProgress
-                              ? (isKo ? '지금' : 'now')
-                              : (isKo ? '끝' : 'end'),
+                              ? (isKo ? '지금 평가금액' : 'value now')
+                              : (isKo ? '마감 평가금액' : 'closing value'),
                           endValue,
                         ),
                       ],

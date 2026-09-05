@@ -452,14 +452,24 @@ class SettlementService {
 
     for (final item in pf.items) {
       if (item.isCash) continue;
-      final prices = cache[item.id];
-      if (prices == null) {
-        if (item.shares > 0) missingPrices++;
-        continue;
-      }
 
       final startShares = holdingsBefore(item, range.start);
       final endShares = holdingsBefore(item, endExclusive(effectiveEnd));
+
+      // **그 기간에 갖고 있지 않았으면 빠뜨린 게 아니다.**
+      //
+      // 지금 들고 있다는 이유로(`item.shares > 0`) 「시세를 못 받았다」에
+      // 세고 있었다. 작년에 산 종목 하나 때문에 그 이전 달이 전부 `덜 받은
+      // 값`이 되고, 덜 받은 값은 캐시하지 않으므로 **결산 탭을 열 때마다
+      // 그 달들을 처음부터 다시 받아 계산했다.** 「12칸 중 6칸」이 계속
+      // 뜬 이유다.
+      if (startShares == 0 && endShares == 0) continue;
+
+      final prices = cache[item.id];
+      if (prices == null) {
+        missingPrices++;
+        continue;
+      }
 
       final startPrice = priceInBase(prices.first, item.market, pf);
       final endPrice = priceInBase(prices.last, item.market, pf);

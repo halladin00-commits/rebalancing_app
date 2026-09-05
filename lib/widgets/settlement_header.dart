@@ -111,6 +111,13 @@ class SettlementHeaderBody extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
+              // 퍼센트에 이름이 없으면 무엇의 비율인지 알 수 없다 —
+              // 비중일 수도, 기여도일 수도 있는 화면이다.
+              Text(isKo ? '수익률 ' : 'return ',
+                  style: TextStyle(
+                      fontSize: DS.caption,
+                      fontWeight: FontWeight.w600,
+                      color: context.onBrandSecondary)),
               Text(
                 rateAvailable
                     ? '${returnRate >= 0 ? '+' : '−'}${returnRate.abs().toStringAsFixed(2)}%'
@@ -190,17 +197,21 @@ class SettlementHeaderBody extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // `시작`·`끝`만으로는 **무엇의** 시작인지 안 보인다. 이 앱은 이미
+          // `평가금액`이라는 말을 쓰고 있으니(포트 상세 헤더) 그걸 붙인다.
           _tile(
             context,
             fromNothing
                 ? (isKo ? '넣은 돈' : 'invested')
-                : (isKo ? '시작' : 'start'),
+                : (isKo ? '시작 평가금액' : 'start value'),
             fromNothing ? netCashFlow : startValue,
           ),
           const SizedBox(width: 9),
           _tile(
             context,
-            inProgress ? (isKo ? '지금' : 'now') : (isKo ? '끝' : 'end'),
+            inProgress
+                ? (isKo ? '지금 평가금액' : 'value now')
+                : (isKo ? '마감 평가금액' : 'closing value'),
             endValue,
           ),
         ],
