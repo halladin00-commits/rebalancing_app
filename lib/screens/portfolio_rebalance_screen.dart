@@ -8,6 +8,7 @@ import '../models/portfolio.dart';
 import '../theme/design_system.dart';
 import '../utils/rebalancer.dart';
 import 'target_weights_screen.dart';
+import '../widgets/bottom_banner_ad.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/weight_bar.dart';
 import 'rebalance_proposal_screen.dart';
@@ -77,6 +78,9 @@ class PortfolioRebalanceScreen extends StatelessWidget {
                     ? _buildNoPrices(context, isKo)
                     : _buildList(context, pf, drifts, isKo),
               ),
+              // 편차를 들여다보는 화면이라 체류가 길다. 배너를 둔다 —
+              // 다음 화면(조정 제안)은 돈을 계산하는 자리라 넣지 않는다.
+              const SafeArea(top: false, child: BottomBannerAd()),
             ],
           ),
         );
@@ -179,11 +183,8 @@ class PortfolioRebalanceScreen extends StatelessWidget {
     final weightsReady = (pf.weightSum - 100).abs() <= 0.01;
 
     return ListView(
-      // 시스템 네비게이션 바(3버튼)만큼 더 띄운다. 탭 화면은 셸의 탭바가
-      // SafeArea를 잡아 주지만, 밀어서 연 화면에는 아무것도 없다 — 그대로 두면
-      // 마지막 버튼이 네비바에 잘린다.
-      padding: EdgeInsets.fromLTRB(
-          16, 14, 16, 24 + MediaQuery.paddingOf(context).bottom),
+      // 아래는 배너가 자리를 잡는다 (배너가 SafeArea를 쓴다).
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
       children: [
         // 전체 비중 한눈에
         Container(

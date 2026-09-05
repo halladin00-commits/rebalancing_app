@@ -18,13 +18,32 @@ const double kBannerHeight = 50.0;
 class _BottomBannerAdState extends State<BottomBannerAd> {
   BannerAd? _ad;
   bool _loaded = false;
+  bool _requested = false;
+
+  /// 실제로 잡을 높이. 적응형 크기를 못 받으면 예전 고정 높이를 쓴다.
+  double _height = kBannerHeight;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // 화면 폭을 알아야 적응형 크기를 물어볼 수 있다 — initState에서는 못 한다.
+    if (_requested) return;
+    _requested = true;
+    _load();
+  }
+
+  Future<void> _load() async {
+    final width = MediaQuery.sizeOf(context).width.truncate();
+    // **적응형 배너.** 320×50 고정보다 기기 폭을 꽉 채워 단가가 높다.
+    // 세로 고정 앱이라 방향은 portrait로 묻는다.
+    final size = await AdSize.getAnchoredAdaptiveBannerAdSize(
+        Orientation.portrait, width);
+    if (!mounted) return;
+    if (size != null) _height = size.height.toDouble();
+
     _ad = AdService.createBanner(
       adUnitId: AdService.mainBannerId,
-      size: AdSize.banner,
+      size: size ?? AdSize.banner,
       onLoaded: () {
         if (mounted) setState(() => _loaded = true);
       },
@@ -32,6 +51,7 @@ class _BottomBannerAdState extends State<BottomBannerAd> {
         _ad = null;
       },
     );
+    if (mounted) setState(() {});
   }
 
   @override
@@ -42,10 +62,10 @@ class _BottomBannerAdState extends State<BottomBannerAd> {
 
   @override
   Widget build(BuildContext context) {
-    // 항상 50px 자리 예약 — 광고가 없으면 빈 공간, 있으면 광고 표시
+    // 광고가 없어도 자리를 비워 둔다 — 뒤늦게 떠서 화면이 튀지 않게.
     return SizedBox(
       width: double.infinity,
-      height: kBannerHeight,
+      height: _height,
       child: (_loaded && _ad != null)
           ? Center(
               child: SizedBox(

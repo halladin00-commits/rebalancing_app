@@ -10,6 +10,7 @@ import '../models/portfolio.dart';
 import '../services/settlement_service.dart';
 import '../theme/design_system.dart';
 import '../widgets/app_logo.dart';
+import '../widgets/bottom_banner_ad.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/period_jump_sheet.dart';
 import '../widgets/settlement_chart.dart';
@@ -220,10 +221,8 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
               ),
               Expanded(
                 child: ListView(
-                  // 밀어서 연 화면이라 아래를 잡아 주는 게 없다 — 시스템
-                  // 네비게이션 바만큼 더 띄우지 않으면 마지막 카드가 잘린다.
-                  padding: EdgeInsets.fromLTRB(
-                      16, 14, 16, 24 + MediaQuery.paddingOf(context).bottom),
+                  // 아래는 배너가 자리를 잡는다 (배너가 SafeArea를 쓴다).
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
                   children: [
                     _buildExcluded(context, pf),
                     _buildChartCard(context, pf),
@@ -232,6 +231,9 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
                   ],
                 ),
               ),
+              // 공유 이미지는 `captureFromWidget`으로 따로 그린다 — 화면에
+              // 배너를 붙여도 저장·공유한 그림에는 안 들어간다.
+              const SafeArea(top: false, child: BottomBannerAd()),
             ],
           ),
         );
