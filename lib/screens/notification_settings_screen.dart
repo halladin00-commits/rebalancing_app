@@ -135,7 +135,8 @@ class _NotificationSettingsScreenState
           child: !_loaded
               ? const Center(child: CircularProgressIndicator())
               : ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                  padding: EdgeInsets.fromLTRB(
+                      16, 16, 16, 24 + MediaQuery.paddingOf(context).bottom),
                   children: [
                     if (!_granted) ...[
                       _permissionBanner(context),

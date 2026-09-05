@@ -317,7 +317,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     final keys = groups.keys.toList()..sort((a, b) => b.compareTo(a));
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
+      padding: EdgeInsets.fromLTRB(
+          16, 14, 16, 24 + MediaQuery.paddingOf(context).bottom),
       children: [
         for (final k in keys) ...[
           _buildGroupTitle(context, pf, k, groups[k]!),

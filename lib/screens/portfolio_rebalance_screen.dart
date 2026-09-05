@@ -179,7 +179,11 @@ class PortfolioRebalanceScreen extends StatelessWidget {
     final weightsReady = (pf.weightSum - 100).abs() <= 0.01;
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
+      // 시스템 네비게이션 바(3버튼)만큼 더 띄운다. 탭 화면은 셸의 탭바가
+      // SafeArea를 잡아 주지만, 밀어서 연 화면에는 아무것도 없다 — 그대로 두면
+      // 마지막 버튼이 네비바에 잘린다.
+      padding: EdgeInsets.fromLTRB(
+          16, 14, 16, 24 + MediaQuery.paddingOf(context).bottom),
       children: [
         // 전체 비중 한눈에
         Container(

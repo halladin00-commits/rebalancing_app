@@ -26,6 +26,7 @@ import 'target_weights_screen.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/bottom_banner_ad.dart';
 import '../widgets/brand_header.dart';
+import '../widgets/collapsing_header.dart';
 import '../widgets/dashed_border_box.dart';
 import '../widgets/list_card.dart';
 import '../widgets/sparkline_panel.dart';
@@ -786,6 +787,9 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
 
   // ── Build ──
 
+  /// 헤더 본문의 실제 높이. 글자 크기 설정에 따라 달라져 한 번 재서 쓴다.
+  double _bodyH = 250;
+
   /// 마지막으로 반영한 기록 갱신 번호.
   ///
   /// 빈 날을 메우고 나면 다시 읽는다 — 안 그러면 다음에 앱을 켤 때까지
@@ -848,7 +852,10 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
             backgroundColor: context.scaffoldBg,
             body: Column(
               children: [
-                BrandHeader(
+                // 편집 모드는 순서를 끌어 옮기는 목록이라 슬리버로 바꾸기
+                // 까다롭고, 오래 머무는 화면도 아니다. 헤더를 그대로 둔다.
+                if (_editMode)
+                  BrandHeader(
                   title: '${pf.emoji} ${pf.name}',
                   titleSize: 17,
                   titleWeight: FontWeight.w700,
@@ -898,13 +905,19 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                         onPressed: () => _showPortfolioMenu(pf, rb),
                       ),
                   ],
-                  child: _buildHeaderBody(context, pf, rb, hasPnl, hasDayChange,
-                      totalPnl, totalCost, totalDayChange, totalPrevValue),
-                ),
+                    child: _buildHeaderBody(context, pf, rb, hasPnl,
+                        hasDayChange, totalPnl, totalCost, totalDayChange,
+                        totalPrevValue),
+                  ),
                 Expanded(
-                  child: _buildAssetView(context, pf, rb),
+                  child: _editMode
+                      ? _buildAssetView(context, pf, rb)
+                      : _buildScrollBody(context, pf, rb, hasPnl, hasDayChange,
+                          totalPnl, totalCost, totalDayChange, totalPrevValue),
                 ),
-                const BottomBannerAd(),
+                // 광고도 네비바 위로 올린다. 이 화면은 셸 밖이라 SafeArea가 없어
+                // 그대로 두면 배너가 시스템 버튼에 깔린다.
+                const SafeArea(top: false, child: BottomBannerAd()),
               ],
             ),
           ),
@@ -1094,6 +1107,165 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
   }
 
   // ── Tab: 자산현황 ──
+
+  /// 접히는 헤더 + 종목 목록.
+  ///
+  /// 자산 탭과 같은 문제였다 — 딥그린 헤더가 화면의 3분의 1을 먹어서 종목이
+  /// 열 개만 돼도 목록을 보려면 계속 밀어야 한다. 목록을 올리는 동안에는
+  /// 평가금액 한 줄만 남긴다.
+  Widget _buildScrollBody(
+    BuildContext context,
+    Portfolio pf,
+    RebalanceResult? rb,
+    bool hasPnl,
+    bool hasDayChange,
+    double totalPnl,
+    double totalCost,
+    double totalDayChange,
+    double totalPrevValue,
+  ) {
+    final l10n = context.l10n;
+    return CustomScrollView(
+      slivers: [
+        SliverPersistentHeader(
+          pinned: true,
+          delegate: CollapsingHeaderDelegate(
+            background: context.appBarBg,
+            topInset: MediaQuery.paddingOf(context).top,
+            titleHeight:
+                48 * MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.6),
+            bodyHeight: _bodyH,
+            leading: IconButton(
+              tooltip: l10n.a11yBack,
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
+            expandedTitle: Text(
+              '${pf.emoji} ${pf.name}',
+              style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  letterSpacing: -0.3),
+              overflow: TextOverflow.ellipsis,
+            ),
+            collapsedTitle: _buildCompactValue(context, pf, hasDayChange,
+                totalDayChange, totalPrevValue),
+            actions: [
+              IconButton(
+                tooltip: l10n.a11yRefresh,
+                icon: _refreshing
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                            color: Colors.white, strokeWidth: 2))
+                    : Icon(Icons.refresh,
+                        color: (pf.exchangeAuto || pf.priceAuto)
+                            ? Colors.white
+                            : context.onBrandSecondary),
+                onPressed: () => _doRefresh(pf),
+              ),
+              IconButton(
+                tooltip: l10n.a11yMenu,
+                icon: const Icon(Icons.more_vert, color: Colors.white),
+                onPressed: () => _showPortfolioMenu(pf, rb),
+              ),
+            ],
+            body: MeasureSize(
+              onHeight: (h) {
+                if ((_bodyH - h).abs() < 0.5) return;
+                if (mounted) setState(() => _bodyH = h);
+              },
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(0, 2, 0, 16),
+                child: _buildHeaderBody(context, pf, rb, hasPnl, hasDayChange,
+                    totalPnl, totalCost, totalDayChange, totalPrevValue),
+              ),
+            ),
+          ),
+        ),
+        if (pf.items.isEmpty)
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: _buildEmptyState(context, pf),
+          )
+        else
+          SliverPadding(
+            padding: EdgeInsets.fromLTRB(
+                16, 14, 16, 24 + MediaQuery.paddingOf(context).bottom),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                SectionTitle(
+                  title: l10n.holdingsSection,
+                  trailing: _holdingsSummary(context, pf),
+                ),
+                const SizedBox(height: DS.cardGap),
+                ListCard(
+                  rows: [
+                    for (final item in pf.items)
+                      _buildHoldingRow(context, pf, item, rb),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                _buildSlimAddCard(context, pf),
+              ]),
+            ),
+          ),
+      ],
+    );
+  }
+
+  /// 접힌 헤더의 한 줄 — 평가금액과 전일대비.
+  Widget _buildCompactValue(BuildContext context, Portfolio pf,
+      bool hasDayChange, double totalDayChange, double totalPrevValue) {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final pnlColors = context.watch<PnlColorNotifier>();
+    final cur = pf.currency;
+    final pct = totalPrevValue > 0 ? totalDayChange / totalPrevValue * 100 : 0.0;
+    final up = totalDayChange >= 0;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Flexible(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              fmtMoney(pf.totalValue, cur),
+              maxLines: 1,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+                letterSpacing: -0.5,
+              ),
+            ),
+          ),
+        ),
+        if (hasDayChange) ...[
+          const SizedBox(width: 8),
+          Text(
+            '${up ? '+' : '−'}${pct.abs().toStringAsFixed(2)}%',
+            style: TextStyle(
+              fontSize: DS.caption,
+              fontWeight: FontWeight.w700,
+              color: up ? pnlColors.onBrandPositive : pnlColors.onBrandNegative,
+            ),
+          ),
+          const SizedBox(width: 2),
+          Text(
+            isKo ? '전일대비' : 'today',
+            style: TextStyle(
+                fontSize: 10.5,
+                fontWeight: FontWeight.w600,
+                color: context.onBrandSecondary),
+          ),
+        ],
+      ],
+    );
+  }
 
   Widget _buildAssetView(
       BuildContext context, Portfolio pf, RebalanceResult? rb) {

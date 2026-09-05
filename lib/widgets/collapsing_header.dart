@@ -31,6 +31,9 @@ class CollapsingHeaderDelegate extends SliverPersistentHeaderDelegate {
   /// 접히며 사라지는 본문.
   final Widget body;
 
+  /// 제목 행 왼쪽 (뒤로가기 등). 없으면 좌측 패딩만.
+  final Widget? leading;
+
   /// 제목 행 오른쪽 버튼들.
   final List<Widget> actions;
 
@@ -44,6 +47,7 @@ class CollapsingHeaderDelegate extends SliverPersistentHeaderDelegate {
     required this.collapsedTitle,
     required this.body,
     required this.background,
+    this.leading,
     this.actions = const [],
   });
 
@@ -78,7 +82,10 @@ class CollapsingHeaderDelegate extends SliverPersistentHeaderDelegate {
               SizedBox(
                 height: titleHeight,
                 child: Row(children: [
-                  const SizedBox(width: DS.screenPaddingH),
+                  if (leading != null)
+                    leading!
+                  else
+                    const SizedBox(width: DS.screenPaddingH),
                   Expanded(
                     child: Stack(
                       alignment: Alignment.centerLeft,
@@ -133,6 +140,7 @@ class CollapsingHeaderDelegate extends SliverPersistentHeaderDelegate {
       old.topInset != topInset ||
       old.titleHeight != titleHeight ||
       old.background != background ||
+      old.leading != leading ||
       old.expandedTitle != expandedTitle ||
       old.collapsedTitle != collapsedTitle ||
       old.body != body ||

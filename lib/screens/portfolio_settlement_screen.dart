@@ -220,7 +220,10 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
               ),
               Expanded(
                 child: ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
+                  // 밀어서 연 화면이라 아래를 잡아 주는 게 없다 — 시스템
+                  // 네비게이션 바만큼 더 띄우지 않으면 마지막 카드가 잘린다.
+                  padding: EdgeInsets.fromLTRB(
+                      16, 14, 16, 24 + MediaQuery.paddingOf(context).bottom),
                   children: [
                     _buildExcluded(context, pf),
                     _buildChartCard(context, pf),

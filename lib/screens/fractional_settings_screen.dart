@@ -48,7 +48,8 @@ class FractionalSettingsScreen extends StatelessWidget {
                       child: Text(l10n.noPortfolios,
                           style: TextStyle(color: context.textTertiary)))
                   : ListView(
-                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
+                      padding: EdgeInsets.fromLTRB(16, 14, 16,
+                          24 + MediaQuery.paddingOf(context).bottom),
                       children: [
                         SectionTitle(title: l10n.fractionalPerAccount),
                         const SizedBox(height: DS.cardGap),

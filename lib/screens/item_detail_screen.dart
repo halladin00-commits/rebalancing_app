@@ -45,7 +45,8 @@ class ItemDetailScreen extends StatelessWidget {
               _buildHeader(context, pf, item),
               Expanded(
                 child: ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 13, 16, 24),
+                  padding: EdgeInsets.fromLTRB(
+                      16, 13, 16, 24 + MediaQuery.paddingOf(context).bottom),
                   children: [
                     _buildSummaryCard(context, pf, item),
                     const SizedBox(height: 13),

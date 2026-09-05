@@ -423,7 +423,8 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
 
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
+                  padding: EdgeInsets.fromLTRB(
+                      16, 16, 16, 40 + MediaQuery.paddingOf(context).bottom),
             child: Column(children: [
               // 전환 버튼은 **캡처 영역 밖**에 둔다.
               //
