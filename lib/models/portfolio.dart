@@ -228,6 +228,15 @@ class Portfolio {
         graphOrder = graphOrder ?? [];
 
   /// 총 자산 평가액
+  /// 환율이 이 포트의 계산에 들어가는가.
+  ///
+  /// 종목 통화와 포트 기준통화가 같으면 환율은 아무 데도 안 쓰인다 —
+  /// 국내 종목만 담은 원화 포트가 그렇다. 환율이 흔들릴 때마다 결산을
+  /// 다시 계산할 이유가 없다.
+  bool get usesExchangeRate => items.any((i) =>
+      (i.market == 'US' && currency == 'KRW') ||
+      (i.market == 'KR' && currency == 'USD'));
+
   double get totalValue {
     return items.fold(0.0, (sum, item) {
       if (item.isCash) return sum + item.shares;

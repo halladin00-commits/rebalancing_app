@@ -6,14 +6,23 @@ import '../services/settlement_service.dart';
 import '../theme/design_system.dart';
 import '../utils/money_format.dart';
 
-/// 결산 헤더의 「무엇을 얼마나」 부분.
+/// 결산 헤더의 「어느 기간에 얼마」 부분.
 ///
-/// 예전에는 큰 금액 하나와 퍼센트만 있었다. 그 숫자가 **무엇의 값인지**,
-/// **얼마에서 얼마가 된 것인지**가 없어서, 처음 보는 사람은 읽을 수가 없다.
-/// 전체 결산 탭과 포트별 결산이 같은 모양이어야 해서 한 곳에 둔다.
+/// 큰 금액 하나와 퍼센트만 있으면, 그 숫자가 **무엇의 값인지** 알 수 없다.
+/// 그렇다고 줄을 계속 아래로 쌓으면 헤더만 길어진다. 세 층으로 나눈다.
+///
+///   1. 어느 기간인지          `9월 손익 · 9.01 – 9.30`    (+ 진행 중/마감)
+///   2. 얼마인지               `−₩690,530` ······ `−0.18%`  좌우로
+///   3. 무엇에서 무엇이 됐는지  `시작` / `지금` 타일 두 개
+///
+/// 자산 탭의 `평가손익 · 전일대비` 타일과 같은 모양이라, 처음 보는 화면이
+/// 아니게 된다.
 class SettlementHeaderBody extends StatelessWidget {
   /// 이 기간이 무엇인지 — `8월`, `36주`, `3분기`, `2026년`.
   final String periodLabel;
+
+  /// 기간의 실제 날짜 — `9.01 – 9.30`.
+  final String rangeLabel;
 
   /// 기간 손익 (기준통화).
   final double? absoluteReturn;
@@ -22,7 +31,7 @@ class SettlementHeaderBody extends StatelessWidget {
   final double returnRate;
   final bool rateAvailable;
 
-  /// 기간 시작·끝 평가금액. 얼마에서 얼마가 됐는지.
+  /// 기간 시작·끝 평가금액.
   final double startValue;
   final double endValue;
 
@@ -43,6 +52,7 @@ class SettlementHeaderBody extends StatelessWidget {
   const SettlementHeaderBody({
     super.key,
     required this.periodLabel,
+    required this.rangeLabel,
     required this.absoluteReturn,
     required this.returnRate,
     required this.rateAvailable,
@@ -67,39 +77,40 @@ class SettlementHeaderBody extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 무엇의 값인지. 큰 숫자만 있으면 읽는 사람이 짐작해야 한다.
-        Text(
-          isKo ? '$periodLabel 손익' : '$periodLabel P&L',
-          style: TextStyle(
-              fontSize: DS.body,
-              fontWeight: FontWeight.w600,
-              color: context.onBrandSecondary),
-        ),
-        const SizedBox(height: 3),
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.centerLeft,
-          child: Text(
-            abs == null
-                ? '—'
-                : '${up ? '+' : '−'}${fmtMoney(abs.abs(), currency)}',
-            style: TextStyle(
-              fontSize: DS.displayAmount,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -1.5,
-              height: 1.08,
-              color: abs == null ? context.onBrandSecondary : color,
-            ),
-          ),
-        ),
-        if (abs == null)
-          ...[if (fallback != null) ...[const SizedBox(height: 6), fallback!]]
-        else ...[
-          const SizedBox(height: 5),
+        _periodLine(context, isKo),
+        const SizedBox(height: 4),
+        if (abs == null) ...[
+          Text('—',
+              style: TextStyle(
+                  fontSize: DS.displayAmount,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -1.5,
+                  height: 1.08,
+                  color: context.onBrandSecondary)),
+          if (fallback != null) ...[const SizedBox(height: 6), fallback!],
+        ] else ...[
+          // 금액과 퍼센트를 좌우로 — 세로로 쌓으면 한 줄이 그냥 비어 있다.
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    '${up ? '+' : '−'}${fmtMoney(abs.abs(), currency)}',
+                    style: TextStyle(
+                      fontSize: DS.displayAmount,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -1.5,
+                      height: 1.08,
+                      color: color,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
               Text(
                 rateAvailable
                     ? '${returnRate >= 0 ? '+' : '−'}${returnRate.abs().toStringAsFixed(2)}%'
@@ -109,68 +120,126 @@ class SettlementHeaderBody extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                     color: color),
               ),
-              if (netCashFlow.abs() > 1) ...[
-                const SizedBox(width: 8),
-                Flexible(
-                  child: Text(
-                    isKo
-                        ? '넣고 뺀 돈 ${fmtMoney(netCashFlow.abs(), currency)}은 빼고'
-                        : 'excludes ${fmtMoney(netCashFlow.abs(), currency)} in/out',
-                    style: TextStyle(
-                        fontSize: DS.body,
-                        fontWeight: FontWeight.w600,
-                        color: context.onBrandSecondary),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
             ],
           ),
-          const SizedBox(height: 11),
-          Container(height: 1, color: Colors.white.withValues(alpha: 0.13)),
-          const SizedBox(height: 9),
-          _basis(context, isKo),
+          const SizedBox(height: 12),
+          _basisTiles(context, isKo),
+          if (netCashFlow.abs() > 1) ...[
+            const SizedBox(height: 7),
+            Text(
+              isKo
+                  ? '넣고 뺀 돈 ${fmtMoney(netCashFlow.abs(), currency)}은 수익률에서 뺐습니다'
+                  : 'Excludes ${fmtMoney(netCashFlow.abs(), currency)} moved in or out',
+              style: TextStyle(
+                  fontSize: DS.caption,
+                  fontWeight: FontWeight.w600,
+                  color: context.onBrandSecondary),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ],
       ],
     );
   }
 
-  /// 얼마에서 얼마가 됐는지.
+  /// `9월 손익 · 9.01 – 9.30` + 진행 중/마감.
+  ///
+  /// 어느 기간을 보고 있는지가 헤더에 없으면, 막대를 눌러 옮겨 놓고도
+  /// 지금 무엇을 보는 중인지 매번 차트에서 다시 찾아야 한다.
+  Widget _periodLine(BuildContext context, bool isKo) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Flexible(
+          child: Text(
+            isKo ? '$periodLabel 손익 · $rangeLabel' : '$periodLabel · $rangeLabel',
+            style: TextStyle(
+                fontSize: DS.body,
+                fontWeight: FontWeight.w600,
+                color: context.onBrandSecondary),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.14),
+            borderRadius: BorderRadius.circular(DS.chipRadius),
+          ),
+          child: Text(
+            inProgress
+                ? (isKo ? '진행 중' : 'in progress')
+                : (isKo ? '마감' : 'closed'),
+            style: const TextStyle(
+                fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.white),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// 얼마에서 얼마가 됐는지 — 자산 탭의 손익 타일과 같은 모양.
   ///
   /// 기간이 시작될 때 가진 게 없었으면(그 사이에 만든 포트) 기초자산이 0이라
   /// `시작 ₩0`이 된다. 그때 수익률의 기준은 **넣은 돈**이므로 그렇게 적는다 —
   /// 화면과 계산이 같은 것을 가리켜야 한다.
-  Widget _basis(BuildContext context, bool isKo) {
+  Widget _basisTiles(BuildContext context, bool isKo) {
     final fromNothing = startValue <= 0 && netCashFlow > 0;
-    final fromLabel = fromNothing
-        ? (isKo ? '넣은 돈' : 'invested')
-        : (isKo ? '시작' : 'start');
-    final fromValue = fromNothing ? netCashFlow : startValue;
-    final toLabel = inProgress ? (isKo ? '지금' : 'now') : (isKo ? '끝' : 'end');
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _tile(
+            context,
+            fromNothing
+                ? (isKo ? '넣은 돈' : 'invested')
+                : (isKo ? '시작' : 'start'),
+            fromNothing ? netCashFlow : startValue,
+          ),
+          const SizedBox(width: 9),
+          _tile(
+            context,
+            inProgress ? (isKo ? '지금' : 'now') : (isKo ? '끝' : 'end'),
+            endValue,
+          ),
+        ],
+      ),
+    );
+  }
 
-    final labelStyle = TextStyle(
-        fontSize: DS.caption,
-        fontWeight: FontWeight.w600,
-        color: context.onBrandSecondary);
-    const valueStyle = TextStyle(
-        fontSize: DS.body, fontWeight: FontWeight.w700, color: Colors.white);
-
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      alignment: Alignment.centerLeft,
-      child: Row(children: [
-        Text(fromLabel, style: labelStyle),
-        const SizedBox(width: 5),
-        Text(fmtMoney(fromValue, currency), style: valueStyle),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Icon(Icons.arrow_forward,
-              size: 13, color: context.onBrandSecondary),
+  Widget _tile(BuildContext context, String label, double value) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.10),
+          borderRadius: BorderRadius.circular(13),
         ),
-        Text(toLabel, style: labelStyle),
-        const SizedBox(width: 5),
-        Text(fmtMoney(endValue, currency), style: valueStyle),
-      ]),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label,
+                style: TextStyle(
+                    fontSize: DS.caption,
+                    fontWeight: FontWeight.w600,
+                    color: context.onBrandSecondary)),
+            const SizedBox(height: 3),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                fmtMoney(value, currency),
+                style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.3,
+                    color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -189,6 +258,14 @@ String settlementPeriodLabel(
     case SettlementPeriod.yearly:
       return isKo ? '${key.year}년' : '${key.year}';
   }
+}
+
+/// `9.01 – 9.30`. 해가 바뀌는 기간이면 연도를 붙인다.
+String settlementRangeLabel(DateTime a, DateTime b) {
+  String md(DateTime d) => '${d.month}.${d.day.toString().padLeft(2, '0')}';
+  return a.year == b.year
+      ? '${md(a)} – ${md(b)}'
+      : '${a.year}.${md(a)} – ${b.year}.${md(b)}';
 }
 
 String _monthName(int m) => const [

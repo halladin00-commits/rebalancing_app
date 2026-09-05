@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 
 import '../main.dart';
 import '../services/undo_service.dart';
-import '../services/full_screen_ads.dart';
 import '../utils/rebalancer.dart';
 import '../models/portfolio.dart';
 import '../services/review_service.dart';
@@ -552,7 +551,11 @@ class _BulkTransactionScreenState extends State<BulkTransactionScreen> {
     if (!mounted) return;
     ReviewService.onRebalancingApplied();
     Navigator.pop(context, true);
-    // 일이 **끝난** 뒤다. 기록하는 중에는 절대 띄우지 않는다.
-    FullScreenAds.maybeShowInterstitial();
+    // 여기서는 전면 광고를 띄우지 않는다.
+    //
+    // 방금 **돈을 기록한 사람**이다. 계좌를 맞춘 직후가 이 앱을 가장 믿는
+    // 순간인데, 거기에 광고를 끼우면 그 신뢰를 판 것이 된다. 게다가 조정은
+    // 한 달에 한두 번이라 노출도 얼마 안 된다 — 잃는 것에 비해 얻는 게 없다.
+    // 전면은 결산 이미지를 저장·공유한 뒤에만 띄운다.
   }
 }

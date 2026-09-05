@@ -265,6 +265,9 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
               SettlementHeaderBody(
                 periodLabel:
                     settlementPeriodLabel(context, _period, _selected),
+                rangeLabel: settlementRangeLabel(
+                    SettlementService.periodRange(_period, _selected).start,
+                    SettlementService.periodRange(_period, _selected).end),
                 absoluteReturn: r?.absoluteReturn,
                 returnRate: r?.returnRate ?? 0,
                 rateAvailable: r?.rateAvailable ?? false,
@@ -536,6 +539,28 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
     );
   }
 
+  /// `₩5,206,640 → ₩5,180,120` — 기여 행의 근거.
+  Widget _basisLine(
+      BuildContext context, double start, double end, String currency) {
+    final style = TextStyle(
+        fontSize: DS.caption,
+        fontWeight: FontWeight.w600,
+        color: context.textTertiary);
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.centerLeft,
+      child: Row(children: [
+        Text(fmtMoney(start, currency), style: style),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5),
+          child: Icon(Icons.arrow_forward,
+              size: 11, color: context.textTertiary),
+        ),
+        Text(fmtMoney(end, currency), style: style),
+      ]),
+    );
+  }
+
   Widget _itemRow(BuildContext context, Portfolio pf,
       SettlementItemContribution c, double sumAbs,
       {required bool isLast}) {
@@ -598,6 +623,10 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
               ),
             ],
           ),
+          // 얼마에서 얼마가 됐는지. 손익만 보여주면 그 크기를 가늠할
+          // 기준이 없다 — 10만 원이 큰지 작은지는 원금이 정한다.
+          const SizedBox(height: 3),
+          _basisLine(context, c.startValue, c.endValue, pf.currency),
           const SizedBox(height: 7),
           Row(
             children: [

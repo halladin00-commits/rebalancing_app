@@ -849,6 +849,20 @@ class PortfolioProvider extends ChangeNotifier {
   }) async {
     final pf = getPortfolio(pfId);
     if (pf != null) {
+      // 결산 캐시를 비울지 **값이 실제로 바뀌었을 때만** 정한다.
+      //
+      // 새로고침은 포트마다 `updateSettings(exchangeRate:)`를 부른다. 그때마다
+      // 비우면 앱을 열 때마다 결산이 12개월치를 처음부터 다시 계산했다.
+      // 환율은 종목 통화와 포트 통화가 다를 때만 결산에 들어간다 — 국내
+      // 종목만 담은 원화 포트에는 아무 영향이 없다.
+      var affects = false;
+      if (currency != null && currency != pf.currency) affects = true;
+      if (exchangeRate != null &&
+          exchangeRate != pf.exchangeRate &&
+          pf.usesExchangeRate) {
+        affects = true;
+      }
+
       if (currency != null) pf.currency = currency;
       if (commissionRate != null) pf.commissionRate = commissionRate;
       if (commissionEnabled != null) pf.commissionEnabled = commissionEnabled;
@@ -858,7 +872,7 @@ class PortfolioProvider extends ChangeNotifier {
       if (rebalancingThreshold != null) pf.rebalancingThreshold = rebalancingThreshold;
       if (fractionalEnabled != null) pf.fractionalEnabled = fractionalEnabled;
       if (fractionalRounding != null) pf.fractionalRounding = fractionalRounding;
-      await _save();
+      await _save(settlementAffected: affects);
     }
   }
 
