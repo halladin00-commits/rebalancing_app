@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../main.dart';
 import '../services/undo_service.dart';
+import '../services/full_screen_ads.dart';
 import '../utils/rebalancer.dart';
 import '../models/portfolio.dart';
 import '../services/review_service.dart';
@@ -551,5 +552,7 @@ class _BulkTransactionScreenState extends State<BulkTransactionScreen> {
     if (!mounted) return;
     ReviewService.onRebalancingApplied();
     Navigator.pop(context, true);
+    // 일이 **끝난** 뒤다. 기록하는 중에는 절대 띄우지 않는다.
+    FullScreenAds.maybeShowInterstitial();
   }
 }

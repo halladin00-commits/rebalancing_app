@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import '../main.dart';
 import '../l10n/app_localizations.dart';
 import '../services/ad_service.dart';
+import '../services/settlement_service.dart';
+import '../services/notification_service.dart';
 import '../theme/design_system.dart';
 import '../widgets/bottom_banner_ad.dart';
 import 'portfolio_list_screen.dart';
@@ -40,6 +42,52 @@ class _MainShellState extends State<MainShell> {
   void initState() {
     super.initState();
     _loadExitAd();
+    // 꺼져 있다가 알림으로 켜진 경우. 화면이 뜬 뒤에 옮겨야 한다.
+    WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _openFromNotification(NotificationService.takePending()));
+    // 떠 있는 동안 누른 경우
+    NotificationService.tapped.addListener(_onNotificationTapped);
+  }
+
+  void _onNotificationTapped() {
+    final p = NotificationService.tapped.value;
+    NotificationService.tapped.value = null;
+    _openFromNotification(p);
+  }
+
+  /// 알림이 부른 자리로 데려간다.
+  ///
+  /// 그냥 앱만 열어 주면 무엇을 보라고 부른 건지 사용자가 다시 찾아야 한다.
+  void _openFromNotification(String? payload) {
+    if (payload == null || !mounted) return;
+
+    if (payload == NotificationService.payloadRebalance) {
+      setState(() => _index = 1);
+      return;
+    }
+    if (!payload.startsWith(NotificationService.payloadSettlementPrefix)) return;
+
+    final type =
+        payload.substring(NotificationService.payloadSettlementPrefix.length);
+    final period = switch (type) {
+      'monthly' => SettlementPeriod.monthly,
+      'quarterly' => SettlementPeriod.quarterly,
+      'yearly' => SettlementPeriod.yearly,
+      _ => SettlementPeriod.weekly,
+    };
+
+    // 주간 알림은 **토요일**에 온다 — 그 주의 장이 다 끝난 날이라, 알리는
+    // 대상은 지난주가 아니라 **이번 주**다. 나머지는 다음 기간 첫날에 오므로
+    // 직전 기간이 대상이다.
+    final key = period == SettlementPeriod.weekly
+        ? SettlementService.currentKey(period)
+        : SettlementService.shiftKey(
+            period, SettlementService.currentKey(period), -1);
+
+    setState(() {
+      _jump = SettlementJump(period: period, key: key, nonce: ++_jumpSeq);
+      _index = 2;
+    });
   }
 
   void _loadExitAd() {
@@ -57,6 +105,7 @@ class _MainShellState extends State<MainShell> {
 
   @override
   void dispose() {
+    NotificationService.tapped.removeListener(_onNotificationTapped);
     _exitBanner?.dispose();
     super.dispose();
   }

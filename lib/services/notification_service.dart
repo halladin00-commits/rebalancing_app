@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
@@ -51,7 +52,20 @@ class NotificationService {
     const settings = InitializationSettings(
       android: AndroidInitializationSettings('@mipmap/ic_launcher'),
     );
-    await _plugin.initialize(settings);
+    await _plugin.initialize(
+      settings,
+      onDidReceiveNotificationResponse: (resp) {
+        _pending = resp.payload;
+        tapped.value = resp.payload;
+      },
+    );
+
+    // 앱이 꺼져 있다가 알림으로 켜졌으면 위 콜백보다 화면이 늦게 뜬다.
+    // 그때는 여기서 읽어 둬야 눌러서 들어온 사실이 사라지지 않는다.
+    final launch = await _plugin.getNotificationAppLaunchDetails();
+    if (launch?.didNotificationLaunchApp ?? false) {
+      _pending = launch!.notificationResponse?.payload;
+    }
 
     final prefs = await SharedPreferences.getInstance();
 
@@ -68,6 +82,31 @@ class NotificationService {
   }
 
   static const settlementTypes = ['weekly', 'monthly', 'quarterly', 'yearly'];
+
+  // ── 눌러서 들어온 길 ──
+  //
+  // 알림을 눌렀는데 그냥 앱이 열리기만 하면, 무엇을 보라고 부른 건지 사용자가
+  // 다시 찾아 들어가야 한다. 어느 알림이었는지 payload에 싣고, 화면이 준비되면
+  // 그 자리로 데려간다.
+
+  /// 리밸런싱 점검 알림.
+  static const payloadRebalance = 'rebalance';
+
+  /// 결산 알림. `settlement:weekly` 처럼 종류를 붙인다.
+  static const payloadSettlementPrefix = 'settlement:';
+
+  static String? _pending;
+
+  /// 앱이 떠 있을 때 누른 경우. 셸이 듣고 있다가 옮겨 간다.
+  static final ValueNotifier<String?> tapped = ValueNotifier<String?>(null);
+
+  /// 꺼져 있다가 알림으로 켜진 경우. **한 번만** 가져간다.
+  static String? takePending() {
+    final p = _pending;
+    _pending = null;
+    return p;
+  }
+
 
   // ── 권한 ──
 
@@ -201,6 +240,7 @@ class NotificationService {
         _notifId, title, body,
         nextWeekday(now, day, hour, minute),
         details,
+        payload: payloadRebalance,
         androidScheduleMode: AndroidScheduleMode.inexact,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
@@ -211,6 +251,7 @@ class NotificationService {
         _notifId, title, body,
         nextDayOfMonth(now, day, hour, minute),
         details,
+        payload: payloadRebalance,
         androidScheduleMode: AndroidScheduleMode.inexact,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
@@ -302,7 +343,7 @@ class NotificationService {
 
     switch (type) {
       case 'weekly':
-        final title = isKo ? '지난주 결산이 나왔어요 📊' : 'Last week is in 📊';
+        final title = isKo ? '주간 결산이 나왔어요 📊' : 'Your week is in 📊';
         final body  = isKo ? '결산 탭에서 확인해 보세요.' : 'Open the Returns tab to see it.';
         await _plugin.cancel(_settlementWeeklyId);
         await _plugin.zonedSchedule(
@@ -315,6 +356,7 @@ class NotificationService {
           // 뒤다. 9시로 당기면 UTC+13 이상에서만 마감 전에 걸린다.
           nextWeekday(now, DateTime.saturday, h, m),
           details,
+          payload: '$payloadSettlementPrefix$type',
           androidScheduleMode: AndroidScheduleMode.inexact,
           uiLocalNotificationDateInterpretation:
               UILocalNotificationDateInterpretation.absoluteTime,
@@ -329,6 +371,7 @@ class NotificationService {
           _settlementMonthlyId, title, body,
           nextDayOfMonth(now, 1, h, m),
           details,
+          payload: '$payloadSettlementPrefix$type',
           androidScheduleMode: AndroidScheduleMode.inexact,
           uiLocalNotificationDateInterpretation:
               UILocalNotificationDateInterpretation.absoluteTime,
@@ -344,6 +387,7 @@ class NotificationService {
             _quarterlyIds[i], title, body,
             nextSpecificDate(_quarterlyMonths[i], 1, h, m),
             details,
+            payload: '$payloadSettlementPrefix$type',
             androidScheduleMode: AndroidScheduleMode.inexact,
             uiLocalNotificationDateInterpretation:
                 UILocalNotificationDateInterpretation.absoluteTime,
@@ -359,6 +403,7 @@ class NotificationService {
           _settlementYearlyId, title, body,
           nextSpecificDate(1, 1, h, m),
           details,
+          payload: '$payloadSettlementPrefix$type',
           androidScheduleMode: AndroidScheduleMode.inexact,
           uiLocalNotificationDateInterpretation:
               UILocalNotificationDateInterpretation.absoluteTime,

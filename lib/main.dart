@@ -16,6 +16,7 @@ import 'services/undo_service.dart';
 import 'screens/main_shell.dart';
 import 'screens/onboarding_screen.dart';
 import 'services/stock_search_service.dart';
+import 'services/full_screen_ads.dart';
 import 'services/notification_service.dart';
 import 'widgets/disclaimer_dialog.dart';
 import 'widgets/app_logo.dart';
@@ -405,6 +406,10 @@ class _AppEntryPointState extends State<_AppEntryPoint> {
     if (!mounted) return;
     await DisclaimerDialog.showIfNeeded(context);
     await NotificationService.setUpOnFirstRun();
+
+    // 앱 오프닝 광고는 **온보딩·면책 고지·알림 권한을 다 지난 뒤에만** 부른다.
+    // 처음 켠 사람에게 첫 화면이 광고면 그 자리에서 지운다. 하루 한 번이다.
+    await FullScreenAds.maybeShowAppOpen();
   }
 
   Future<void> _checkOnboarding() async {

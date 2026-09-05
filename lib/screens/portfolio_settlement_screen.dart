@@ -8,12 +8,14 @@ import '../main.dart';
 import '../utils/money_format.dart';
 import '../models/portfolio.dart';
 import '../services/settlement_service.dart';
+import '../services/full_screen_ads.dart';
 import '../theme/design_system.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/bottom_banner_ad.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/period_jump_sheet.dart';
 import '../widgets/settlement_chart.dart';
+import '../widgets/settlement_header.dart';
 import '../widgets/excluded_banner.dart';
 
 /// 포트폴리오 하나의 결산 (v22b).
@@ -243,7 +245,6 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
 
   Widget _buildHeaderBody(BuildContext context, Portfolio pf) {
     final l10n = context.l10n;
-    final pnlColors = context.watch<PnlColorNotifier>();
     final r = _current;
 
     return Column(
@@ -261,30 +262,21 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  r == null
-                      ? '—'
-                      : '${r.absoluteReturn >= 0 ? '+' : '−'}${fmtMoney(r.absoluteReturn.abs(), pf.currency)}',
-                  style: TextStyle(
-                    fontSize: DS.displayAmount,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -1.5,
-                    height: 1.08,
-                    // 덜 받은 값은 확정된 것처럼 보이면 안 된다
-                    color: r == null
-                        ? context.onBrandSecondary
-                        : (r.absoluteReturn >= 0
-                                ? pnlColors.onBrandPositive
-                                : pnlColors.onBrandNegative)
-                            .withValues(alpha: r.isPartial ? 0.45 : 1.0),
-                  ),
-                ),
+              SettlementHeaderBody(
+                periodLabel:
+                    settlementPeriodLabel(context, _period, _selected),
+                absoluteReturn: r?.absoluteReturn,
+                returnRate: r?.returnRate ?? 0,
+                rateAvailable: r?.rateAvailable ?? false,
+                startValue: r?.startValue ?? 0,
+                endValue: r?.endValue ?? 0,
+                netCashFlow: r?.netCashFlow ?? 0,
+                partial: r?.isPartial ?? false,
+                inProgress: r?.isCurrentPeriod ?? false,
+                currency: pf.currency,
               ),
               if (r != null && r.isPartial) ...[
-                const SizedBox(height: 5),
+                const SizedBox(height: 7),
                 Row(children: [
                   SizedBox(
                     width: 12,
@@ -304,46 +296,6 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
                   ),
                 ]),
               ],
-              const SizedBox(height: 6),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  if (r != null)
-                    Text(
-                      r.rateAvailable
-                          ? '${r.returnRate >= 0 ? '+' : '−'}${r.returnRate.abs().toStringAsFixed(2)}%'
-                          : '—',
-                      style: TextStyle(
-                        fontSize: DS.sectionTitle,
-                        fontWeight: FontWeight.w700,
-                        color: r.absoluteReturn >= 0
-                            ? pnlColors.onBrandPositive
-                            : pnlColors.onBrandNegative,
-                      ),
-                    ),
-                  if (r != null) ...[
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        // 계산 근거를 한 줄로 — 입출금이 없으면 그대로 밝힌다
-                        r.netCashFlow.abs() < 1
-                            ? (_isKo
-                                ? '이 포트는 입출금 없음'
-                                : 'No deposits or withdrawals')
-                            : (_isKo
-                                ? '순입금 ${fmtMoney(r.netCashFlow.abs(), pf.currency)}은 제외'
-                                : 'Excludes ${fmtMoney(r.netCashFlow.abs(), pf.currency)} net deposits'),
-                        style: TextStyle(
-                            fontSize: DS.body,
-                            fontWeight: FontWeight.w600,
-                            color: context.onBrandSecondary),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
             ],
           ),
         ),
@@ -763,6 +715,8 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
       }
     } finally {
       if (mounted) setState(() => _sharing = false);
+      // 이미지를 다 만든 뒤 — 만드는 중에는 안 띄운다
+      FullScreenAds.maybeShowInterstitial();
     }
   }
 

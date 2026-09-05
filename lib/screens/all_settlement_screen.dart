@@ -9,12 +9,14 @@ import '../main.dart';
 import '../utils/money_format.dart';
 import '../models/portfolio.dart';
 import '../services/settlement_service.dart';
+import '../services/full_screen_ads.dart';
 import '../theme/design_system.dart';
 import '../widgets/portfolio_actions.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/period_jump_sheet.dart';
 import '../widgets/settlement_chart.dart';
+import '../widgets/settlement_header.dart';
 import '../widgets/excluded_banner.dart';
 import 'portfolio_settlement_screen.dart';
 
@@ -349,7 +351,6 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
   }
 
   Widget _buildHeaderBody(BuildContext context, dynamic l10n) {
-    final pnlColors = context.watch<PnlColorNotifier>();
     final r = _current;
 
     return Column(
@@ -368,31 +369,24 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  r == null
-                      ? '—'
-                      : '${r.absoluteReturn >= 0 ? '+' : '−'}${fmtMoney(r.absoluteReturn.abs(), 'KRW')}',
-                  style: TextStyle(
-                    fontSize: DS.displayAmount,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -1.5,
-                    height: 1.08,
-                    // 덜 받은 값은 **확정된 것처럼 보이면 안 된다.**
-                    // 사용자가 그대로 옮겨 적는데, 다 받으면 조용히 달라진다.
-                    color: r == null
-                        ? context.onBrandSecondary
-                        : (r.absoluteReturn >= 0
-                                ? pnlColors.onBrandPositive
-                                : pnlColors.onBrandNegative)
-                            .withValues(alpha: r.isPartial ? 0.45 : 1.0),
-                  ),
-                ),
+              SettlementHeaderBody(
+                periodLabel:
+                    settlementPeriodLabel(context, _period, _selected),
+                absoluteReturn: r?.absoluteReturn,
+                returnRate: r?.returnRate ?? 0,
+                rateAvailable: r?.rateAvailable ?? false,
+                startValue: r?.startValue ?? 0,
+                endValue: r?.endValue ?? 0,
+                netCashFlow: r?.netCashFlow ?? 0,
+                partial: r?.isPartial ?? false,
+                inProgress: r?.isCurrentPeriod ?? false,
+                currency: 'KRW',
+                fallback: (r == null && !_loading)
+                    ? _buildCannotCompute(context, l10n)
+                    : null,
               ),
               if (r != null && r.isPartial) ...[
-                const SizedBox(height: 5),
+                const SizedBox(height: 7),
                 Row(children: [
                   SizedBox(
                     width: 12,
@@ -411,47 +405,6 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
                   ),
                 ]),
               ],
-              const SizedBox(height: 6),
-              // 계산이 안 되면 `—` 하나만 남아 왜 비었는지 알 수 없었다.
-              // 숫자를 지어내지 않되, 이유와 다음 행동은 준다 (v13e와 같은 원칙)
-              if (r == null && !_loading)
-                _buildCannotCompute(context, l10n)
-              else
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    if (r != null)
-                      Text(
-                        r.rateAvailable
-                            ? '${r.returnRate >= 0 ? '+' : '−'}${r.returnRate.abs().toStringAsFixed(2)}%'
-                            : '—',
-                        style: TextStyle(
-                          fontSize: DS.sectionTitle,
-                          fontWeight: FontWeight.w700,
-                          color: (r.absoluteReturn >= 0
-                                  ? pnlColors.onBrandPositive
-                                  : pnlColors.onBrandNegative)
-                              .withValues(alpha: r.isPartial ? 0.45 : 1.0),
-                        ),
-                      ),
-                    if (r != null && r.netCashFlow.abs() > 1) ...[
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: Text(
-                          _isKo
-                              ? '순입금 ${fmtMoney(r.netCashFlow.abs(), 'KRW')}은 제외'
-                              : 'Excludes ${fmtMoney(r.netCashFlow.abs(), 'KRW')} net deposits',
-                          style: TextStyle(
-                              fontSize: DS.body,
-                              fontWeight: FontWeight.w600,
-                              color: context.onBrandSecondary),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
             ],
           ),
         ),
@@ -1056,6 +1009,8 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       }
     } finally {
       if (mounted) setState(() => _saving = false);
+      // 이미지를 다 만든 뒤 — 만드는 중에는 안 띄운다
+      FullScreenAds.maybeShowInterstitial();
     }
   }
 
@@ -1083,6 +1038,8 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       }
     } finally {
       if (mounted) setState(() => _sharing = false);
+      // 이미지를 다 만든 뒤 — 만드는 중에는 안 띄운다
+      FullScreenAds.maybeShowInterstitial();
     }
   }
 
