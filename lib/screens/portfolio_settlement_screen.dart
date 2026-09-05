@@ -11,7 +11,7 @@ import '../models/portfolio.dart';
 import '../services/settlement_service.dart';
 import '../theme/design_system.dart';
 import '../widgets/bottom_banner_ad.dart';
-import '../widgets/brand_header.dart';
+import '../widgets/collapsing_header.dart';
 import '../widgets/period_jump_sheet.dart';
 import '../widgets/settlement_chart.dart';
 import '../widgets/settlement_capture_card.dart';
@@ -34,7 +34,14 @@ class PortfolioSettlementScreen extends StatefulWidget {
 
 class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
   /// 차트 칸 수. 월간만 12칸 — 1년을 한눈에 보려면 열두 달이 있어야 한다.
-  int get _barCount => _period == SettlementPeriod.monthly ? 12 : 6;
+  /// 차트에 깔아 둘 칸 수. 전체 결산 탭과 같은 이유로 넉넉히 깐다 —
+  /// 한 칸씩 창을 옮기는 대신 그 안을 그냥 스크롤한다.
+  int get _barCount => switch (_period) {
+        SettlementPeriod.weekly => 26,
+        SettlementPeriod.monthly => 36,
+        SettlementPeriod.quarterly => 16,
+        SettlementPeriod.yearly => 8,
+      };
 
   SettlementPeriod _period = SettlementPeriod.monthly;
   late PeriodKey _endKey;
@@ -44,6 +51,9 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
   bool _loading = false;
   bool _sharing = false;
   bool _saving = false;
+
+  /// 헤더 본문의 실제 높이. 글자 크기 설정에 따라 달라져 한 번 재서 쓴다.
+  double _bodyH = 250;
   final _screenshotCtrl = ScreenshotController();
 
   /// 계산에 쓴 시세 기준 시각.
@@ -144,30 +154,7 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
     _load();
   }
 
-  /// 차트 창을 한 칸 옮기는 버튼.
-  Widget _stepButton(BuildContext context, {required bool back}) {
-    final next = SettlementService.shiftKey(_period, _endKey, back ? -1 : 1);
-    final disabled = !back && SettlementService.isFuture(_period, next);
-    return GestureDetector(
-      onTap: disabled ? null : () => _shiftWindow(back ? -1 : 1),
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 32,
-        height: 32,
-        child: Icon(
-          back ? Icons.chevron_left : Icons.chevron_right,
-          size: 22,
-          color: disabled ? context.textDisabled : context.textSecondary,
-        ),
-      ),
-    );
-  }
 
-  void _shiftWindow(int offset) {
-    final next = SettlementService.shiftKey(_period, _endKey, offset);
-    if (offset > 0 && SettlementService.isFuture(_period, next)) return;
-    _load(endKey: next);
-  }
 
   List<PeriodKey> _windowKeys(PeriodKey endKey) => [
         for (var i = _barCount - 1; i >= 0; i--)
@@ -221,36 +208,70 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
           backgroundColor: context.scaffoldBg,
           body: Column(
             children: [
-              BrandHeader(
-                title: pf.name,
-                titleSize: 17,
-                titleWeight: FontWeight.w700,
-                childPadding: const EdgeInsets.fromLTRB(0, 2, 0, 16),
-                leading: IconButton(
-                  tooltip: context.l10n.a11yBack,
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  onPressed: () => Navigator.pop(context),
-                ),
-                actions: [
-                  if (_current != null)
-                    IconButton(
-                      icon: const Icon(Icons.ios_share, color: Colors.white),
-                      tooltip: context.l10n.shareImage,
-                      onPressed:
-                          (_sharing || _saving) ? null : _showCaptureSheet,
-                    ),
-                ],
-                child: _buildHeaderBody(context, pf),
-              ),
               Expanded(
-                child: ListView(
-                  // 아래는 배너가 자리를 잡는다 (배너가 SafeArea를 쓴다).
-                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
-                  children: [
-                    _buildExcluded(context, pf),
-                    _buildChartCard(context, pf),
-                    const SizedBox(height: 14),
-                    _buildItemContributions(context, pf),
+                child: CustomScrollView(
+                  slivers: [
+                    SliverPersistentHeader(
+                      pinned: true,
+                      delegate: CollapsingHeaderDelegate(
+                        background: context.appBarBg,
+                        topInset: MediaQuery.paddingOf(context).top,
+                        titleHeight: 48 *
+                            MediaQuery.textScalerOf(context)
+                                .scale(1)
+                                .clamp(1.0, 1.6),
+                        bodyHeight: _bodyH,
+                        leading: IconButton(
+                          tooltip: context.l10n.a11yBack,
+                          icon: const Icon(Icons.arrow_back,
+                              color: Colors.white),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                        expandedTitle: Text(
+                          pf.name,
+                          style: const TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              letterSpacing: -0.3),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        collapsedTitle: _buildCompactHeader(context, pf),
+                        actions: [
+                          if (_current != null)
+                            IconButton(
+                              icon: const Icon(Icons.ios_share,
+                                  color: Colors.white),
+                              tooltip: context.l10n.shareImage,
+                              onPressed: (_sharing || _saving)
+                                  ? null
+                                  : _showCaptureSheet,
+                            ),
+                        ],
+                        body: MeasureSize(
+                          onHeight: (h) {
+                            if ((_bodyH - h).abs() < 0.5) return;
+                            if (mounted) setState(() => _bodyH = h);
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(0, 2, 0, 16),
+                            child: _buildHeaderBody(context, pf),
+                          ),
+                        ),
+                      ),
+                    ),
+                    SliverPadding(
+                      // 아래는 배너가 자리를 잡는다 (배너가 SafeArea를 쓴다).
+                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
+                      sliver: SliverList(
+                        delegate: SliverChildListDelegate([
+                          _buildExcluded(context, pf),
+                          _buildChartCard(context, pf),
+                          const SizedBox(height: 14),
+                          _buildItemContributions(context, pf),
+                        ]),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -261,6 +282,56 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
           ),
         );
       },
+    );
+  }
+
+  /// 헤더가 접혔을 때 제목 자리에 남는 한 줄.
+  Widget _buildCompactHeader(BuildContext context, Portfolio pf) {
+    final r = _current;
+    final pnl = context.watch<PnlColorNotifier>();
+    if (r == null) {
+      return Text(pf.name,
+          style: const TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              color: Colors.white),
+          overflow: TextOverflow.ellipsis);
+    }
+    final up = r.absoluteReturn >= 0;
+    final color = up ? pnl.onBrandPositive : pnl.onBrandNegative;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text(settlementPeriodLabel(context, _period, _selected),
+            style: TextStyle(
+                fontSize: DS.body,
+                fontWeight: FontWeight.w700,
+                color: context.onBrandSecondary)),
+        const SizedBox(width: 7),
+        Flexible(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              '${up ? '+' : '−'}${fmtMoney(r.absoluteReturn.abs(), pf.currency)}',
+              maxLines: 1,
+              style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.5,
+                  color: color),
+            ),
+          ),
+        ),
+        const SizedBox(width: 7),
+        Text(
+          r.rateAvailable
+              ? '${r.returnRate >= 0 ? '+' : '−'}${r.returnRate.abs().toStringAsFixed(2)}%'
+              : '—',
+          style: TextStyle(
+              fontSize: DS.caption, fontWeight: FontWeight.w700, color: color),
+        ),
+      ],
     );
   }
 
@@ -430,11 +501,6 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              // 좌우로 미는 건 세로 스크롤과 겨루느라 조금만 비스듬해도
-              // 목록이 대신 움직인다. 눌러서 옮기는 길을 같이 둔다.
-              _stepButton(context, back: true),
-              _stepButton(context, back: false),
-              const SizedBox(width: 4),
               GestureDetector(
                 onTap: _openJumpSheet,
                 child: Container(
@@ -455,23 +521,12 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
             const SizedBox(
                 height: 100, child: Center(child: CircularProgressIndicator()))
           else
-            GestureDetector(
-              onHorizontalDragEnd: (d) {
-                final v = d.primaryVelocity ?? 0;
-                if (v > 200) {
-                  _shiftWindow(-1);
-                } else if (v < -200) {
-                  _shiftWindow(1);
-                }
-              },
-              child: SettlementChart(
-                bars: _buildBars(),
-                selected: _selected,
-                onSelect: (k) => setState(() => _selected = k),
-                // 월간도 열두 칸이라 해가 바뀌는 자리를 표시해야
-                // 작년 3월과 올해 3월이 안 섞인다
-                showYearBoundary: _period != SettlementPeriod.yearly,
-              ),
+            SettlementChart(
+              bars: _buildBars(),
+              selected: _selected,
+              onSelect: (k) => setState(() => _selected = k),
+              // 해가 바뀌는 자리를 표시해야 작년 3월과 올해 3월이 안 섞인다
+              showYearBoundary: _period != SettlementPeriod.yearly,
             ),
         ],
       ),
@@ -481,6 +536,7 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
   List<SettlementBar> _buildBars() {
     final today = DateTime.now();
     return [
+      // 과거 → 최신 순. 차트가 `reverse: true`라 맨 뒤(최신)가 먼저 보인다.
       for (final k in _windowKeys(_endKey))
         () {
           SettlementResult? found;

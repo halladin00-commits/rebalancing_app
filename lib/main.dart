@@ -33,6 +33,9 @@ void main() {
     DeviceOrientation.portraitDown,
   ]);
   MobileAds.instance.initialize();
+  // 스플래시가 떠 있는 동안 앱 오프닝 광고를 미리 받는다 —
+  // 켠 다음에 받기 시작하면 사용자가 이미 화면을 쓰는 중에 튀어나온다.
+  FullScreenAds.preload();
   StockSearchService.initialize();
   NotificationService.initialize();
   runApp(
@@ -386,7 +389,18 @@ class _AppEntryPointState extends State<_AppEntryPoint> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(milliseconds: 1400), () {
+    // 스플래시는 1.4초. 그 사이 광고가 다 안 왔으면 **2초까지만 더** 기다린다 —
+    // 그 안에 오면 스플래시에서 바로 이어지고, 안 오면 그냥 앱을 연다.
+    // 광고를 기다리느라 앱이 안 열리는 게 광고가 안 뜨는 것보다 나쁘다.
+    Future.delayed(const Duration(milliseconds: 1400), () async {
+      if (!mounted) return;
+      if (!FullScreenAds.isReady) {
+        // 100ms마다 왔는지 본다 — 오자마자 이어지게
+        for (var i = 0; i < 20; i++) {
+          await Future.delayed(const Duration(milliseconds: 100));
+          if (FullScreenAds.isReady || !mounted) break;
+        }
+      }
       if (!mounted) return;
       setState(() => _timerDone = true);
     });
@@ -407,9 +421,12 @@ class _AppEntryPointState extends State<_AppEntryPoint> {
     await DisclaimerDialog.showIfNeeded(context);
     await NotificationService.setUpOnFirstRun();
 
-    // 앱 오프닝 광고는 **온보딩·면책 고지·알림 권한을 다 지난 뒤에만** 부른다.
-    // 처음 켠 사람에게 첫 화면이 광고면 그 자리에서 지운다. 하루 한 번이다.
-    await FullScreenAds.maybeShowAppOpen();
+    // 앱 오프닝 광고는 **온보딩·면책 고지·알림 권한을 다 지난 뒤에만** 띄운다.
+    // 처음 켠 사람에게 첫 화면이 광고면 그 자리에서 지운다.
+    //
+    // 이미 받아 둔 것만 띄운다. 아직이면 그냥 넘어간다 — 광고를 기다리느라
+    // 앱이 안 열리는 게 광고가 안 뜨는 것보다 나쁘다.
+    FullScreenAds.showIfReady();
   }
 
   Future<void> _checkOnboarding() async {

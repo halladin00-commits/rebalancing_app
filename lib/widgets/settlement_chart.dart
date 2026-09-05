@@ -28,6 +28,7 @@ class SettlementBar {
 /// 막대를 누르면 그 기간이 선택되고, 왜 그 기간을 골랐는지가
 /// 이웃 기간과 함께 화면에 남는다.
 class SettlementChart extends StatelessWidget {
+  /// **과거 → 최신** 순. `reverse: true`라 오른쪽 끝(최신)이 먼저 보인다.
   final List<SettlementBar> bars;
   final PeriodKey selected;
   final ValueChanged<PeriodKey> onSelect;
@@ -35,13 +36,29 @@ class SettlementChart extends StatelessWidget {
   /// 연도가 바뀌는 자리에 점선과 연도 라벨을 넣는다 (분기·연간용).
   final bool showYearBoundary;
 
+  /// 가로 스크롤 컨트롤러. 멈춘 자리를 화면이 읽어 그 구간만 계산한다.
+  final ScrollController? controller;
+
+  /// 손을 떼고 멈췄을 때. 창을 옮기는 대신 여기서 계산을 건다.
+  final VoidCallback? onSettled;
+
   const SettlementChart({
     super.key,
     required this.bars,
     required this.selected,
     required this.onSelect,
     this.showYearBoundary = false,
+    this.controller,
+    this.onSettled,
   });
+
+  /// 막대 한 칸이 차지하는 폭 (막대 + 사이 간격).
+  ///
+  /// 예전에는 열두 칸을 화면 폭에 나눠 넣고 **한 칸씩** 창을 옮겼다. 한 번
+  /// 밀면 한 달만 움직이니 1년을 거슬러 가려면 열두 번을 밀어야 했다.
+  /// 폭을 고정하고 띠를 길게 깔아 **그냥 스크롤**하게 한다.
+  static const double barPitch = 39.0;
+  static const double barWidth = 32.0;
 
   static const _baseline = 1.0;
 
@@ -89,33 +106,54 @@ class SettlementChart extends StatelessWidget {
     }
     final lay = _layout(maxPos, maxNeg);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        SizedBox(
-          height: _barsH + _baseline,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              for (var i = 0; i < bars.length; i++) ...[
-                if (i > 0) const SizedBox(width: 7),
-                Expanded(
-                  child: _bar(context, bars[i], lay),
-                ),
-              ],
-            ],
-          ),
-        ),
-        const SizedBox(height: 7),
-        Row(
+    // 오른쪽 끝(최신)에서 시작해 왼쪽으로 밀면 과거로 간다.
+    return NotificationListener<ScrollNotification>(
+      onNotification: (n) {
+        if (n is ScrollEndNotification) onSettled?.call();
+        return false;
+      },
+      child: SingleChildScrollView(
+        controller: controller,
+        scrollDirection: Axis.horizontal,
+        reverse: true,
+        physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics()),
+        child: Column(
+          // 가로 스크롤 안이라 폭이 무한이다 — stretch를 쓰면 레이아웃이 터진다.
+          // 칸마다 폭이 정해져 있으므로 늘릴 것도 없다.
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            for (var i = 0; i < bars.length; i++) ...[
-              if (i > 0) const SizedBox(width: 7),
-              Expanded(child: _label(context, bars[i], i)),
-            ],
+            SizedBox(
+              height: _barsH + _baseline,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (var i = 0; i < bars.length; i++)
+                    SizedBox(
+                      width: barPitch,
+                      child: Center(
+                        child: SizedBox(
+                          width: barWidth,
+                          child: _bar(context, bars[i], lay),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 7),
+            Row(
+              children: [
+                for (var i = 0; i < bars.length; i++)
+                  SizedBox(
+                    width: barPitch,
+                    child: _label(context, bars[i], i),
+                  ),
+              ],
+            ),
           ],
         ),
-      ],
+      ),
     );
   }
 

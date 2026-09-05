@@ -64,7 +64,20 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
   ///
   /// 월간만 12칸이다 — 1년을 한눈에 보려면 열두 달이 있어야 한다.
   /// 나머지는 6칸이면 주간 6주·분기 1년반·연간 6년으로 충분하다.
-  int get _barCount => _period == SettlementPeriod.monthly ? 12 : 6;
+  /// 차트에 깔아 둘 칸 수.
+  ///
+  /// 예전에는 열두 칸을 화면 폭에 나눠 넣고 **한 칸씩** 창을 옮겼다. 한 번
+  /// 밀면 한 달만 움직이니 답답했다. 이제 넉넉히 깔아 두고 그 안을 그냥
+  /// 스크롤한다 — 멈춘 뒤 계산을 기다릴 일도 없다.
+  ///
+  /// 보유 전 기간은 계산이 거의 공짜다(시세를 받을 종목이 없다). 한 번 계산한
+  /// 기간은 디스크에 남아 다음부터 바로 나온다.
+  int get _barCount => switch (_period) {
+        SettlementPeriod.weekly => 26,
+        SettlementPeriod.monthly => 36,
+        SettlementPeriod.quarterly => 16,
+        SettlementPeriod.yearly => 8,
+      };
 
   SettlementPeriod _period = SettlementPeriod.monthly;
 
@@ -308,32 +321,7 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
     setState(() => _selected = key);
   }
 
-  /// 차트 창을 한 칸 옮기는 버튼.
-  Widget _stepButton(BuildContext context, {required bool back}) {
-    final next = SettlementService.shiftKey(_period, _endKey, back ? -1 : 1);
-    final disabled = !back && SettlementService.isFuture(_period, next);
-    return GestureDetector(
-      onTap: disabled ? null : () => _shiftWindow(back ? -1 : 1),
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 32,
-        height: 32,
-        child: Icon(
-          back ? Icons.chevron_left : Icons.chevron_right,
-          size: 22,
-          color: disabled ? context.textDisabled : context.textSecondary,
-        ),
-      ),
-    );
-  }
 
-  /// 차트 창을 [offset]만큼 옮긴다. 음수면 과거.
-  void _shiftWindow(int offset) {
-    final next = SettlementService.shiftKey(_period, _endKey, offset);
-    // 미래로는 현재 기간까지만
-    if (offset > 0 && SettlementService.isFuture(_period, next)) return;
-    _load(endKey: next);
-  }
 
   List<PeriodKey> _windowKeys(PeriodKey endKey) => [
         for (var i = _barCount - 1; i >= 0; i--)
@@ -720,11 +708,6 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
                 ),
               ),
               const SizedBox(width: 4),
-              // 좌우로 미는 건 세로 스크롤과 겨루느라 조금만 비스듬해도
-              // 목록이 대신 움직인다. 눌러서 옮기는 길을 같이 둔다.
-              _stepButton(context, back: true),
-              _stepButton(context, back: false),
-              const SizedBox(width: 4),
               GestureDetector(
                 onTap: _openJumpSheet,
                 child: Container(
@@ -747,24 +730,13 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
               child: Center(child: CircularProgressIndicator()),
             )
           else
-            GestureDetector(
-              // 좌우로 밀면 과거·현재 기간으로 창이 이어진다
-              onHorizontalDragEnd: (d) {
-                final v = d.primaryVelocity ?? 0;
-                if (v > 200) {
-                  _shiftWindow(-1);
-                } else if (v < -200) {
-                  _shiftWindow(1);
-                }
-              },
-              child: SettlementChart(
+            SettlementChart(
                 bars: _buildBars(l10n),
                 selected: _selected,
                 onSelect: _selectKey,
                 // 월간도 열두 칸이라 해가 바뀌는 자리를 표시해야
                 // 작년 3월과 올해 3월이 안 섞인다
-                showYearBoundary: _period != SettlementPeriod.yearly,
-              ),
+              showYearBoundary: _period != SettlementPeriod.yearly,
             ),
         ],
       ),
@@ -772,6 +744,8 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
   }
 
   List<SettlementBar> _buildBars(dynamic l10n) {
+    // 과거 → 최신 순으로 둔다. 차트가 `reverse: true`라 **콘텐츠의 오른쪽
+    // 끝**에 붙어 시작하므로, 맨 뒤(최신)가 처음 보이는 자리다.
     final keys = _windowKeys(_endKey);
     final today = DateTime.now();
 
