@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -8,13 +9,12 @@ import '../main.dart';
 import '../utils/money_format.dart';
 import '../models/portfolio.dart';
 import '../services/settlement_service.dart';
-import '../services/full_screen_ads.dart';
 import '../theme/design_system.dart';
-import '../widgets/app_logo.dart';
 import '../widgets/bottom_banner_ad.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/period_jump_sheet.dart';
 import '../widgets/settlement_chart.dart';
+import '../widgets/settlement_capture_card.dart';
 import '../widgets/settlement_header.dart';
 import '../widgets/excluded_banner.dart';
 
@@ -43,6 +43,7 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
   List<SettlementResult?> _series = const [];
   bool _loading = false;
   bool _sharing = false;
+  bool _saving = false;
   final _screenshotCtrl = ScreenshotController();
 
   /// 계산에 쓴 시세 기준 시각.
@@ -143,6 +144,25 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
     _load();
   }
 
+  /// 차트 창을 한 칸 옮기는 버튼.
+  Widget _stepButton(BuildContext context, {required bool back}) {
+    final next = SettlementService.shiftKey(_period, _endKey, back ? -1 : 1);
+    final disabled = !back && SettlementService.isFuture(_period, next);
+    return GestureDetector(
+      onTap: disabled ? null : () => _shiftWindow(back ? -1 : 1),
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        width: 32,
+        height: 32,
+        child: Icon(
+          back ? Icons.chevron_left : Icons.chevron_right,
+          size: 22,
+          color: disabled ? context.textDisabled : context.textSecondary,
+        ),
+      ),
+    );
+  }
+
   void _shiftWindow(int offset) {
     final next = SettlementService.shiftKey(_period, _endKey, offset);
     if (offset > 0 && SettlementService.isFuture(_period, next)) return;
@@ -216,7 +236,8 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
                     IconButton(
                       icon: const Icon(Icons.ios_share, color: Colors.white),
                       tooltip: context.l10n.shareImage,
-                      onPressed: _sharing ? null : _shareImage,
+                      onPressed:
+                          (_sharing || _saving) ? null : _showCaptureSheet,
                     ),
                 ],
                 child: _buildHeaderBody(context, pf),
@@ -409,6 +430,11 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
                 ),
               ),
               const SizedBox(width: 8),
+              // 좌우로 미는 건 세로 스크롤과 겨루느라 조금만 비스듬해도
+              // 목록이 대신 움직인다. 눌러서 옮기는 길을 같이 둔다.
+              _stepButton(context, back: true),
+              _stepButton(context, back: false),
+              const SizedBox(width: 4),
               GestureDetector(
                 onTap: _openJumpSheet,
                 child: Container(
@@ -720,6 +746,117 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
 
   // ── 공유 ──
 
+  /// 저장할지 공유할지 고르는 시트.
+  ///
+  /// 전체 결산 탭은 이걸 띄우는데 여기서는 바로 공유 창이 떴다. 같은 아이콘이
+  /// 화면마다 다르게 동작하면 어느 쪽이 맞는지 매번 눌러 봐야 한다.
+  void _showCaptureSheet() {
+    final l10n = context.l10n;
+    final ctx = context;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: context.cardBg,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => Padding(
+        padding: EdgeInsets.fromLTRB(
+            20, 16, 20, MediaQuery.of(ctx).padding.bottom + 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: ctx.borderColor,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text(l10n.capture,
+                style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: ctx.textPrimary)),
+            const SizedBox(height: 16),
+            Row(children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    _saveImage();
+                  },
+                  icon: const Icon(Icons.save_alt_rounded, size: 16),
+                  label: Text(l10n.saveImage),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: ctx.textPrimary,
+                    side: BorderSide(color: ctx.borderColor),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    _shareImage();
+                  },
+                  icon: const Icon(Icons.share_rounded, size: 16),
+                  label: Text(l10n.shareImage),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: ctx.brand,
+                    side: BorderSide(color: ctx.brand),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+              ),
+            ]),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _saveImage() async {
+    if (_saving) return;
+    final l10n = context.l10n;
+    setState(() => _saving = true);
+    try {
+      final bytes = await _screenshotCtrl.captureFromWidget(
+        _buildCapture(),
+        pixelRatio: 3.0,
+        context: context,
+      );
+      final r = await ImageGallerySaverPlus.saveImage(bytes,
+          quality: 100,
+          name: 'settlement_${DateTime.now().millisecondsSinceEpoch}');
+      if (!mounted) return;
+      final ok = r is Map && (r['isSuccess'] == true);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(ok ? l10n.savedToGallery : l10n.saveFailed),
+        duration: const Duration(seconds: 2),
+      ));
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(l10n.saveFailedError(e.toString())),
+          duration: const Duration(seconds: 2),
+        ));
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
   Future<void> _shareImage() async {
     if (_sharing) return;
     final l10n = context.l10n;
@@ -744,131 +881,49 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
       }
     } finally {
       if (mounted) setState(() => _sharing = false);
-      // 이미지를 다 만든 뒤 — 만드는 중에는 안 띄운다
-      FullScreenAds.maybeShowInterstitial();
     }
   }
 
   Widget _buildCapture() {
     final pf = _pf;
     final r = _current;
-    final pnlColors = context.read<PnlColorNotifier>();
     final range = SettlementService.periodRange(_period, _selected);
-    final color = (r?.absoluteReturn ?? 0) >= 0
-        ? pnlColors.positiveColor
-        : pnlColors.negativeColor;
+    final inProgress = r?.isCurrentPeriod ?? !range.end.isBefore(DateTime.now());
     final cur = pf?.currency ?? 'KRW';
 
-    return Container(
-      width: 380,
-      color: context.scaffoldBg,
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Flexible(
-                child: Text('${pf?.emoji ?? ''} ${pf?.name ?? ''}',
-                    style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: context.textPrimary),
-                    overflow: TextOverflow.ellipsis),
-              ),
-              AppLogo(iconSize: 22, textColor: context.textPrimary),
-            ],
+    return SettlementCaptureCard(
+      title: '${pf?.emoji ?? ''} ${pf?.name ?? ''}'.trim(),
+      subtitle: _isKo
+          ? '${settlementPeriodLabel(context, _period, _selected)} 손익 · '
+              '${settlementRangeLabel(range.start, range.end)}'
+          : '${settlementPeriodLabel(context, _period, _selected)} · '
+              '${settlementRangeLabel(range.start, range.end)}',
+      statusLabel: inProgress
+          ? (_isKo ? '진행 중' : 'in progress')
+          : (_isKo ? '마감' : 'closed'),
+      absoluteReturn: r?.absoluteReturn,
+      returnRate: r?.returnRate ?? 0,
+      rateAvailable: r?.rateAvailable ?? false,
+      startValue: r?.startValue ?? 0,
+      endValue: r?.endValue ?? 0,
+      netCashFlow: r?.netCashFlow ?? 0,
+      inProgress: inProgress,
+      currency: cur,
+      rowsTitle: _isKo ? '종목별 기여' : 'Contribution by holding',
+      isKo: _isKo,
+      positiveColor: context.read<PnlColorNotifier>().positiveColor,
+      negativeColor: context.read<PnlColorNotifier>().negativeColor,
+      rows: [
+        for (final c in (r?.contributions ?? const []).take(8))
+          CaptureRow(
+            name: c.name,
+            absoluteReturn: c.itemAbsoluteReturn,
+            returnRate: c.itemReturnPct,
+            rateAvailable: true,
+            startValue: c.startValue,
+            endValue: c.endValue,
           ),
-          const SizedBox(height: 4),
-          Text(
-            _fullRangeLabel(range.start, range.end),
-            style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: context.textSecondary),
-          ),
-          const SizedBox(height: 14),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: context.cardBg,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: context.cardBorder),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(_isKo ? '기간 손익' : 'Period P&L',
-                    style:
-                        TextStyle(fontSize: 12, color: context.textSecondary)),
-                const SizedBox(height: 4),
-                Text(
-                  r == null
-                      ? '—'
-                      : '${r.absoluteReturn >= 0 ? '+' : '−'}${fmtMoney(r.absoluteReturn.abs(), cur)}',
-                  style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.8,
-                      color: color),
-                ),
-                if (r != null) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    r.rateAvailable
-                          ? '${r.returnRate >= 0 ? '+' : '−'}${r.returnRate.abs().toStringAsFixed(2)}%'
-                          : '—',
-                    style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: color),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          if (r != null && r.contributions.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            ...r.contributions.take(6).map((c) {
-              final cc = c.itemAbsoluteReturn >= 0
-                  ? pnlColors.positiveColor
-                  : pnlColors.negativeColor;
-              return Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  color: context.cardBg,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: context.cardBorder),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(c.name,
-                          style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: context.textPrimary),
-                          overflow: TextOverflow.ellipsis),
-                    ),
-                    Text(
-                      '${c.itemAbsoluteReturn >= 0 ? '+' : '−'}${fmtMoney(c.itemAbsoluteReturn.abs(), cur)}',
-                      style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: cc),
-                    ),
-                  ],
-                ),
-              );
-            }),
-          ],
-        ],
-      ),
+      ],
     );
   }
 }

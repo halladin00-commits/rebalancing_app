@@ -62,19 +62,29 @@ class _BottomBannerAdState extends State<BottomBannerAd> {
 
   @override
   Widget build(BuildContext context) {
-    // 광고가 없어도 자리를 비워 둔다 — 뒤늦게 떠서 화면이 튀지 않게.
-    return SizedBox(
-      width: double.infinity,
-      height: _height,
-      child: (_loaded && _ad != null)
-          ? Center(
-              child: SizedBox(
-                width: _ad!.size.width.toDouble(),
-                height: _ad!.size.height.toDouble(),
-                child: AdWidget(ad: _ad!),
-              ),
-            )
-          : const SizedBox.shrink(),
+    // **광고가 없으면 자리도 없앤다.**
+    //
+    // 예전에는 뒤늦게 떠서 화면이 튀는 걸 막으려고 자리를 비워 뒀다.
+    // 그런데 광고가 안 붙으면 그 빈 띠 위로 스낵바가 떠서, 알림 아래가
+    // 이유 없이 비어 보였다. 튀는 건 부드럽게 늘려 감춘다.
+    final show = _loaded && _ad != null;
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeOut,
+      alignment: Alignment.topCenter,
+      child: SizedBox(
+        width: double.infinity,
+        height: show ? _height : 0,
+        child: show
+            ? Center(
+                child: SizedBox(
+                  width: _ad!.size.width.toDouble(),
+                  height: _ad!.size.height.toDouble(),
+                  child: AdWidget(ad: _ad!),
+                ),
+              )
+            : const SizedBox.shrink(),
+      ),
     );
   }
 }
