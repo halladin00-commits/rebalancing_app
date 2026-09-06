@@ -1,8 +1,41 @@
 # 작업 상태 (이어서 하기용)
 
-마지막 갱신: 2026-09-04 · 브랜치 `redesign-ui`
-`flutter analyze` error 0 / warning 0 (info 17건은 이전부터 있던 스타일 지적)
-`flutter test` 296/296
+마지막 갱신: 2026-09-06 · 브랜치 `redesign-ui`
+`flutter analyze` error 0 / warning 0 (info 20건은 이전부터 있던 스타일 지적)
+`flutter test` 316/316
+
+---
+
+## 2026-09-06 · 헤더 축약 + 결산 차트 (`8662418`)
+
+검토용 빌드 `docs/review/Rebalancing-review-20260906b-arm64.apk`.
+
+1. **헤더가 접히다 중간에 멈췄다.** 아래 내용이 짧으면 스크롤할 거리가
+   헤더가 접힐 거리보다 짧다. 스냅(`FloatingHeaderSnapConfiguration`)으로
+   손을 떼면 끝까지 가게 하고, 그래도 모자란 만큼은 `CollapseTail`이
+   맨 아래 여백으로 채운다. 내용이 길면 여백은 0이다.
+   메인·포트상세·전체결산·포트별결산 네 화면 적용.
+2. **결산 차트가 일정 기간에서 막혔다.** 칸 수를 36/26/16/8로 박아 두고
+   그만큼을 한 번에 계산하고 있었다. 범위가 문제가 아니라 **안 보이는
+   칸까지 미리 계산하던 것**이 문제였다. 첫 거래부터 전부 깔고
+   화면에 들어온 칸만 계산한다(`_allKeys` / `_visibleKeys` / `_loadVisible`).
+3. **기간 선택창에서 고르면 거기서 스크롤이 막혔다.** 2번으로 같이 풀림.
+4. **고른 기간이 화면에 안 보였다.** `_scrollToSelected`로 가운데에 놓는다.
+   선택창이 첫 거래보다 이른 달까지 열어 주던 것도 막았다(`earliestDay`).
+
+`tools/build_review.sh` 추가 — 검토용 APK 빌드(패키지명 `.review` +
+앱 이름 변경 + `--split-per-abi`)를 매번 손으로 고치지 않는다.
+`--split-per-abi`는 고정이다. 빼면 versionCode가 13으로 나와
+이미 깔린 4013보다 낮아 **설치가 조용히 실패한다.**
+
+### 남은 것
+
+- **전면광고 두 개가 아직 구글 테스트 ID다.**
+  `AdService._appOpenIdReal` / `_interstitialIdReal`이 `null`이다.
+  출시 전에 AdMob 콘솔에서 받아 채워야 한다
+  (`AdService.fullScreenAdsAreTest`가 이걸 알려 준다). **출시 차단 항목.**
+- 오프닝 광고는 에뮬레이터에서 노필(NO_FILL, 코드 3)이라 실제 노출은
+  실기기로만 확인 가능하다.
 
 ---
 
