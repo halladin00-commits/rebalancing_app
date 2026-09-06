@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
 import '../theme/design_system.dart';
@@ -134,6 +135,17 @@ class CollapsingHeaderDelegate extends SliverPersistentHeaderDelegate {
     );
   }
 
+  /// 손을 떼면 **끝까지 접히거나 끝까지 펴진다.**
+  ///
+  /// 아래 내용이 짧으면 스크롤할 거리가 헤더가 접힐 거리보다 짧다. 그러면
+  /// 반쯤 접힌 채 멈추는데, 탭 글자가 잘린 상태로 굳어 고장 난 것처럼 보인다.
+  @override
+  FloatingHeaderSnapConfiguration get snapConfiguration =>
+      FloatingHeaderSnapConfiguration(
+        curve: Curves.easeOutCubic,
+        duration: Duration(milliseconds: 220),
+      );
+
   @override
   bool shouldRebuild(CollapsingHeaderDelegate old) =>
       old.bodyHeight != bodyHeight ||
@@ -179,3 +191,29 @@ class _MeasureSizeState extends State<MeasureSize> {
     return KeyedSubtree(key: _key, child: widget.child);
   }
 }
+
+/// 헤더가 **끝까지** 접히도록 모자란 스크롤 거리를 채운다.
+///
+/// 핀 고정 헤더는 접히면서 (최대−최소)만큼의 스크롤 거리를 스스로 만든다.
+/// 그런데 아래 내용이 짧으면 그 거리가 모자라 **반쯤 접힌 채 멈춘다** —
+/// 탭 글자가 잘린 상태로 굳어 고장 난 것처럼 보인다. 스냅도 갈 곳이 없어
+/// 소용이 없다.
+///
+/// 모자란 만큼 목록 끝에 빈 칸을 넣는다. 접히면서 화면이 딱 그만큼 커지므로
+/// **다 접었을 때 내용이 화면을 정확히 채운다** — 빈 자리로 보이지 않는다.
+class CollapseTail {
+  double value = 0;
+
+  /// 스크롤 거리를 다시 재고, 채울 높이가 바뀌었으면 true.
+  ///
+  /// 이미 채운 만큼은 빼고 잰다 — 안 그러면 채웠다 지웠다를 반복한다.
+  bool fit(ScrollController c, double collapseRange) {
+    if (!c.hasClients) return false;
+    final content = c.position.maxScrollExtent - value;
+    final want = (collapseRange - content).clamp(0.0, collapseRange);
+    if ((want - value).abs() < 0.5) return false;
+    value = want;
+    return true;
+  }
+}
+

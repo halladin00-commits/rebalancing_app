@@ -790,6 +790,10 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
   /// 헤더 본문의 실제 높이. 글자 크기 설정에 따라 달라져 한 번 재서 쓴다.
   double _bodyH = 250;
 
+  /// 화면 세로 스크롤 · 헤더가 끝까지 접히도록 채울 여백.
+  final ScrollController _pageScroll = ScrollController();
+  final CollapseTail _tail = CollapseTail();
+
   /// 마지막으로 반영한 기록 갱신 번호.
   ///
   /// 빈 날을 메우고 나면 다시 읽는다 — 안 그러면 다음에 앱을 켤 때까지
@@ -1125,10 +1129,16 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     double totalPrevValue,
   ) {
     final l10n = context.l10n;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _tail.fit(_pageScroll, _bodyH)) setState(() {});
+    });
     return CustomScrollView(
+      controller: _pageScroll,
       slivers: [
         SliverPersistentHeader(
           pinned: true,
+          // 멈추면 끝까지 접거나 끝까지 편다
+          floating: true,
           delegate: CollapsingHeaderDelegate(
             background: context.appBarBg,
             topInset: MediaQuery.paddingOf(context).top,
@@ -1209,6 +1219,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                 ),
                 const SizedBox(height: 10),
                 _buildSlimAddCard(context, pf),
+                SizedBox(height: _tail.value),
               ]),
             ),
           ),

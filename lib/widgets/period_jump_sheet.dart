@@ -18,6 +18,9 @@ class PeriodJumpSheet extends StatefulWidget {
   /// 데이터가 있는 가장 이른 연도
   final int earliestYear;
 
+  /// 첫 거래일. 이보다 이른 기간은 차트에 없으므로 고를 수 없다.
+  final DateTime? earliestDay;
+
   /// "연금저축 ETF 기준"처럼 이 시트가 다루는 범위
   final String scopeName;
 
@@ -30,6 +33,7 @@ class PeriodJumpSheet extends StatefulWidget {
     required this.selected,
     required this.earliestYear,
     required this.scopeName,
+    this.earliestDay,
     this.amountOf,
   });
 
@@ -40,6 +44,7 @@ class PeriodJumpSheet extends StatefulWidget {
     required PeriodKey selected,
     required int earliestYear,
     required String scopeName,
+    DateTime? earliestDay,
     double? Function(PeriodKey key)? amountOf,
   }) {
     return showModalBottomSheet<PeriodKey>(
@@ -52,6 +57,7 @@ class PeriodJumpSheet extends StatefulWidget {
         selected: selected,
         earliestYear: earliestYear,
         scopeName: scopeName,
+        earliestDay: earliestDay,
         amountOf: amountOf,
       ),
     );
@@ -75,6 +81,26 @@ class _PeriodJumpSheetState extends State<PeriodJumpSheet> {
   }
 
   bool get _isKo => Localizations.localeOf(context).languageCode == 'ko';
+
+  /// 첫 거래보다 이른 기간. 차트에 없으니 고를 수 없다.
+  bool _tooEarly(PeriodKey key) {
+    final d = widget.earliestDay;
+    if (d == null) return false;
+    return SettlementService.periodRange(_period, key).end.isBefore(d);
+  }
+
+  /// 고를 수 있는 칸 중 [sub]에서 가장 가까운 칸.
+  int _nearestPickable(int year, int sub) {
+    final maxSub = SettlementService.maxSub(_period, year);
+    var v = sub.clamp(1, maxSub);
+    while (v < maxSub && _tooEarly(PeriodKey(year, v))) {
+      v++;
+    }
+    while (v > 1 && SettlementService.isFuture(_period, PeriodKey(year, v))) {
+      v--;
+    }
+    return v;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -253,8 +279,7 @@ class _PeriodJumpSheetState extends State<PeriodJumpSheet> {
     return GestureDetector(
       onTap: () => setState(() {
         _year = y;
-        final maxSub = SettlementService.maxSub(_period, y);
-        _picked = PeriodKey(y, _picked.sub.clamp(1, maxSub));
+        _picked = PeriodKey(y, _nearestPickable(y, _picked.sub));
       }),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -321,11 +346,13 @@ class _PeriodJumpSheetState extends State<PeriodJumpSheet> {
   Widget _periodTile(PeriodKey key, dynamic l10n) {
     final isFuture = SettlementService.isFuture(_period, key);
     final range = SettlementService.periodRange(_period, key);
-    final inProgress = !isFuture &&
+    // 앞으로 올 기간이든 첫 거래 전이든, 사용자에겐 「고를 수 없는 칸」 하나다
+    final disabled = isFuture || _tooEarly(key);
+    final inProgress = !disabled &&
         !range.end.isBefore(DateTime(
             DateTime.now().year, DateTime.now().month, DateTime.now().day));
     final selected = _picked == key;
-    final amount = isFuture ? null : widget.amountOf?.call(key);
+    final amount = disabled ? null : widget.amountOf?.call(key);
 
     final pnlColors = context.watch<PnlColorNotifier>();
 
@@ -334,7 +361,7 @@ class _PeriodJumpSheetState extends State<PeriodJumpSheet> {
     if (selected) {
       bg = context.brand;
       fg = Colors.white;
-    } else if (isFuture) {
+    } else if (disabled) {
       bg = const Color(0xFFF4F0E6);
       fg = context.textDisabled;
     } else {
@@ -343,7 +370,7 @@ class _PeriodJumpSheetState extends State<PeriodJumpSheet> {
     }
 
     return GestureDetector(
-      onTap: isFuture ? null : () => setState(() => _picked = key),
+      onTap: disabled ? null : () => setState(() => _picked = key),
       child: Container(
         height: 64,
         padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
@@ -375,7 +402,7 @@ class _PeriodJumpSheetState extends State<PeriodJumpSheet> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                if (inProgress && !isFuture) ...[
+                if (inProgress) ...[
                   const SizedBox(width: 4),
                   Container(
                     width: 4,
@@ -398,7 +425,7 @@ class _PeriodJumpSheetState extends State<PeriodJumpSheet> {
                 fontWeight: FontWeight.w600,
                 color: selected
                     ? Colors.white.withValues(alpha: 0.75)
-                    : (isFuture ? context.textDisabled : context.textTertiary),
+                    : (disabled ? context.textDisabled : context.textTertiary),
               ),
             ),
             if (amount != null) ...[

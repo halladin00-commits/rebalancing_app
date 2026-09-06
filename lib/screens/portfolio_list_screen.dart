@@ -554,6 +554,9 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
 
   final ScrollController _scroll = ScrollController();
 
+  /// 헤더가 끝까지 접히도록 모자란 스크롤 거리를 채운다.
+  final CollapseTail _tail = CollapseTail();
+
   /// 헤더 본문(총자산 블록)의 실제 높이.
   ///
   /// 글자 크기 설정과 내용에 따라 달라져 상수로 박을 수 없다. 한 번 재서
@@ -569,6 +572,9 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
   Widget build(BuildContext context) {
     return Consumer<PortfolioProvider>(
       builder: (context, provider, _) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && _tail.fit(_scroll, _bodyH)) setState(() {});
+        });
         // 빈 날을 메우고 나면 다시 읽는다 — 안 그러면 다음에 앱을 켤 때까지
         // 방금 채운 날들이 화면에 안 나온다.
         if (provider.historySeq != _seenHistorySeq) {
@@ -590,6 +596,8 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
             slivers: [
               SliverPersistentHeader(
                 pinned: true,
+                // 멈추면 끝까지 접거나 끝까지 편다
+                floating: true,
                 delegate: CollapsingHeaderDelegate(
                   background: context.appBarBg,
                   topInset: MediaQuery.paddingOf(context).top,
@@ -643,6 +651,7 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                     ] else
                       _buildFirstRun(context),
                     _buildAddCard(context),
+                    SizedBox(height: _tail.value),
                   ]),
                 ),
               ),

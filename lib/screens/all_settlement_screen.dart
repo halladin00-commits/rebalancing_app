@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import '../main.dart';
 import '../utils/money_format.dart';
 import '../models/portfolio.dart';
+import '../services/asset_backfill_service.dart';
 import '../services/settlement_service.dart';
 import '../theme/design_system.dart';
 import '../widgets/portfolio_actions.dart';
@@ -60,41 +61,27 @@ class AllSettlementScreen extends StatefulWidget {
 }
 
 class _AllSettlementScreenState extends State<AllSettlementScreen> {
-  /// 차트 칸 수.
-  ///
-  /// 월간만 12칸이다 — 1년을 한눈에 보려면 열두 달이 있어야 한다.
-  /// 나머지는 6칸이면 주간 6주·분기 1년반·연간 6년으로 충분하다.
-  /// 차트에 깔아 둘 칸 수.
-  ///
-  /// 예전에는 열두 칸을 화면 폭에 나눠 넣고 **한 칸씩** 창을 옮겼다. 한 번
-  /// 밀면 한 달만 움직이니 답답했다. 이제 넉넉히 깔아 두고 그 안을 그냥
-  /// 스크롤한다 — 멈춘 뒤 계산을 기다릴 일도 없다.
-  ///
-  /// 보유 전 기간은 계산이 거의 공짜다(시세를 받을 종목이 없다). 한 번 계산한
-  /// 기간은 디스크에 남아 다음부터 바로 나온다.
-  int get _barCount => switch (_period) {
-        SettlementPeriod.weekly => 26,
-        SettlementPeriod.monthly => 36,
-        SettlementPeriod.quarterly => 16,
-        SettlementPeriod.yearly => 8,
-      };
-
   SettlementPeriod _period = SettlementPeriod.monthly;
-
-  /// 차트 오른쪽 끝 기간
-  late PeriodKey _endKey;
 
   /// 선택된 기간
   late PeriodKey _selected;
 
-  List<CombinedSettlement?> _series = const [];
+  /// 계산해 둔 결과. 차트에 깔린 기간 전부가 아니라 **본 것만** 들어 있다.
+  final Map<PeriodKey, CombinedSettlement> _results = {};
+
+  /// 지금 계산 중인 기간. 같은 칸을 두 번 부르지 않는다.
+  final Set<PeriodKey> _busy = {};
+
   bool _loading = false;
 
-  /// 계산이 끝난 칸 수. 진행 표시에 쓴다.
-  ///
-  /// 45초를 `계산 중…` 한 줄로 기다리게 하면 **앱이 멈춘 것으로 읽힌다.**
-  /// 몇 칸 중 몇 칸인지만 알려줘도 기다림의 성질이 달라진다.
-  int _done = 0;
+  /// 차트 가로 스크롤. 멈춘 자리를 읽어 그 구간만 계산한다.
+  final ScrollController _chartScroll = ScrollController();
+
+  /// 화면 세로 스크롤. 헤더가 끝까지 접히는지 재는 데 쓴다.
+  final ScrollController _pageScroll = ScrollController();
+
+  /// 헤더가 끝까지 접히도록 모자란 스크롤 거리를 채운다.
+  final CollapseTail _tail = CollapseTail();
 
   /// 헤더 본문의 실제 높이. 글자 크기 설정에 따라 달라져 한 번 재서 쓴다.
   double _bodyH = 250;
@@ -128,33 +115,63 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
     super.initState();
     final j = widget.jump;
     if (j != null) _period = j.period;
-    _endKey = SettlementService.currentKey(_period);
-    _selected = _endKey;
+    _selected = j?.key ?? SettlementService.currentKey(_period);
     _loadedStamp = _priceStamp;
-    if (j != null) {
-      _appliedJump = j.nonce;
-      _jumpTo(j);
-    } else {
-      _load();
+    if (j != null) _appliedJump = j.nonce;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadVisible();
+      if (j != null) _scrollToSelected();
+    });
+  }
+
+  @override
+  void dispose() {
+    _chartScroll.dispose();
+    _pageScroll.dispose();
+    super.dispose();
+  }
+
+  // ── 차트에 깔 기간 ──
+
+  /// 첫 거래가 든 기간부터 지금까지. **데이터가 있는 만큼** 연다.
+  ///
+  /// 예전에는 칸 수를 박아 두고(월간 36칸) 그만큼만 그렸다. 계산량이 걱정돼
+  /// 막아 둔 것인데, 보이지도 않는 칸까지 미리 계산하던 게 원인이었다.
+  /// 화면에 들어온 칸만 계산하면 범위를 제한할 이유가 없다.
+  List<PeriodKey> get _allKeys {
+    final now = SettlementService.currentKey(_period);
+    final first = AssetBackfillService.firstTransactionDay(widget.portfolios);
+    // 기록이 짧아도 차트가 허전하지 않게 최소 칸은 둔다
+    final minBars = _period == SettlementPeriod.yearly ? 5 : 12;
+    final cap = switch (_period) {
+      SettlementPeriod.weekly => 520,
+      SettlementPeriod.monthly => 240,
+      SettlementPeriod.quarterly => 80,
+      SettlementPeriod.yearly => 30,
+    };
+
+    final out = <PeriodKey>[];
+    var k = now;
+    for (var i = 0; i < cap; i++) {
+      out.add(k);
+      final r = SettlementService.periodRange(_period, k);
+      if (first != null && !r.start.isAfter(first) && out.length >= minBars) {
+        break;
+      }
+      if (first == null && out.length >= minBars) break;
+      k = SettlementService.shiftKey(_period, k, -1);
     }
+    return out.reversed.toList(); // 과거 → 최신
   }
 
   /// 요청한 기간을 고른 채로 연다.
-  ///
-  /// 창은 되도록 **현재 기간을 오른쪽 끝**으로 둔다 — 지난달만 덩그러니
-  /// 놓이면 앞뒤 기간과 견줄 수 없다. 창 밖이면 그때만 창을 옮긴다.
   void _jumpTo(SettlementJump j) {
-    _period = j.period;
-    // 이미 화면에 있는 기간이면 **고르기만 한다.** 다시 부르면 열두 칸이
-    // 통째로 비었다 차올라, 계산할 게 없는데도 계산하는 것처럼 보인다.
-    if (_windowKeys(_endKey).contains(j.key) &&
-        _series.any((e) => e?.key == j.key)) {
-      setState(() => _selected = j.key);
-      return;
-    }
-    final end = SettlementService.currentKey(j.period);
-    final target = _windowKeys(end).contains(j.key) ? end : j.key;
-    _load(endKey: target, select: j.key);
+    setState(() {
+      _period = j.period;
+      _selected = j.key;
+    });
+    _loadVisible(around: j.key);
+    _scrollToSelected();
   }
 
   @override
@@ -164,13 +181,13 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
     if (j != null && j.nonce != _appliedJump) {
       _appliedJump = j.nonce;
       _loadedStamp = _priceStamp;
-      setState(() => _period = j.period);
       _jumpTo(j);
       return;
     }
     if (old.portfolios != widget.portfolios) {
       _loadedStamp = _priceStamp;
-      _load();
+      _results.clear();
+      _loadVisible();
     } else if (_priceStamp != _loadedStamp) {
       _loadedStamp = _priceStamp;
       _refreshLive();
@@ -182,123 +199,103 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
   /// 전체를 다시 부르면 지난 기간까지 지웠다 그리느라 차트가 깜빡인다.
   /// 현재가에 영향받는 칸은 진행 중인 하나뿐이다.
   Future<void> _refreshLive() async {
-    if (_loading || _series.isEmpty) {
-      // 아직 첫 계산 중이면 그 결과가 옛 가격으로 나온다 — 통째로 다시 부른다
-      _load();
-      return;
-    }
-    final keys = _windowKeys(_endKey);
-    for (var i = 0; i < keys.length && i < _series.length; i++) {
-      if (_series[i]?.isCurrentPeriod != true) continue;
-      final r = await SettlementService.calculateCombined(
-          widget.portfolios, _period, keys[i],
-          useCache: false);
-      if (!mounted) return;
-      setState(() {
-        final next = List<CombinedSettlement?>.of(_series);
-        if (i < next.length) next[i] = r;
-        _series = next;
-      });
-    }
+    final now = SettlementService.currentKey(_period);
+    final r = await SettlementService.calculateCombined(
+        widget.portfolios, _period, now,
+        useCache: false);
+    if (!mounted) return;
+    setState(() {
+      if (r != null) _results[now] = r;
+    });
   }
 
   bool get _isKo => Localizations.localeOf(context).languageCode == 'ko';
 
-  CombinedSettlement? get _current {
-    for (final r in _series) {
-      if (r != null && r.key == _selected) return r;
-    }
-    return null;
-  }
+  CombinedSettlement? get _current => _results[_selected];
 
   // ── 데이터 ──
 
-  /// 결산을 불러온다.
-  ///
-  /// [endKey]·[select]는 **받아온 다음에** 반영한다. 먼저 옮겨 놓으면
-  /// 그 기간의 결과가 아직 `_series`에 없어 화면이 통째로 비고, 사용자는
-  /// 방금까지 보던 숫자를 잃는다. 실패하면 아예 못 돌아온다.
-  Future<void> _load({PeriodKey? endKey, PeriodKey? select}) async {
-    final targetEnd = endKey ?? _endKey;
-    if (widget.portfolios.isEmpty) {
-      setState(() => _series = const []);
-      return;
+  /// 지금 화면에 보이는 칸들. 차트가 아직 안 그려졌으면 최신 쪽 몇 칸.
+  List<PeriodKey> _visibleKeys() {
+    final keys = _allKeys;
+    if (keys.isEmpty) return const [];
+    const pitch = SettlementChart.barPitch;
+
+    double offset = 0;
+    double viewport = 360;
+    if (_chartScroll.hasClients) {
+      offset = _chartScroll.offset.clamp(0.0, double.infinity);
+      viewport = _chartScroll.position.viewportDimension;
     }
-    // 창을 옮겨도 열두 칸 중 열한 칸은 이미 계산돼 있다. 그런데 매번
-    // `불러오는 중 · 12칸 중 N칸`을 띄우니 전부 다시 계산하는 것처럼 보였다.
-    // 다 있으면 로딩 표시 없이 그냥 그린다.
-    final keys = _windowKeys(targetEnd);
-    final cached = [
-      for (final k in keys)
-        SettlementService.isFuture(_period, k)
-            ? null
-            : SettlementService.peekCombined(_period, k)
-    ];
-    final allReady = () {
-      for (var i = 0; i < keys.length; i++) {
-        if (SettlementService.isFuture(_period, keys[i])) continue;
-        if (cached[i] == null) return false;
+    // `reverse: true`라 offset 0이 **최신**이다. 끝에서부터 센다.
+    final fromEnd = (offset / pitch).floor();
+    final count = (viewport / pitch).ceil() + 2;
+    final last = (keys.length - fromEnd).clamp(0, keys.length);
+    final first = (last - count).clamp(0, keys.length);
+    return keys.sublist(first, last);
+  }
+
+  /// 보이는 칸 중 아직 계산 안 한 것만 계산한다.
+  ///
+  /// 차트에 깔린 기간을 전부 미리 계산하면, 스크롤을 열어 준 만큼 계산량이
+  /// 늘어난다. **화면에 들어온 것만** 한다 — 최신 칸부터.
+  Future<void> _loadVisible({PeriodKey? around}) async {
+    if (widget.portfolios.isEmpty) return;
+    final keys = <PeriodKey>[..._visibleKeys()];
+    if (around != null && !keys.contains(around)) {
+      // 고른 기간이 아직 화면 밖이면 그 언저리를 먼저 채운다
+      final all = _allKeys;
+      final i = all.indexOf(around);
+      if (i != -1) {
+        keys.addAll(all.sublist(
+            (i - 6).clamp(0, all.length), (i + 7).clamp(0, all.length)));
       }
-      return true;
-    }();
-    if (allReady) {
-      setState(() {
-        _series = cached;
-        _endKey = targetEnd;
-        if (select != null) {
-          _selected = select;
-        } else if (!_windowKeys(targetEnd).contains(_selected)) {
-          _selected = _windowKeys(targetEnd).last;
-        }
-        _loading = false;
-        _done = keys.length;
-      });
-      return;
     }
 
-    // 캐시가 다 없어도 디스크에서 읽어 오는 정도면 몇 밀리초다. 그 사이에
-    // `불러오는 중`을 띄웠다 지우면 깜빡이기만 하고, 사용자는 매번 다시
-    // 계산하는 줄 안다. **오래 걸릴 때만** 띄운다.
+    final todo = [
+      for (final k in keys.reversed) // 최신부터
+        if (!_results.containsKey(k) &&
+            !_busy.contains(k) &&
+            !SettlementService.isFuture(_period, k))
+          k
+    ];
+    if (todo.isEmpty) return;
+
+    _busy.addAll(todo);
     var finished = false;
-    _done = 0;
     final loaderTimer = Timer(const Duration(milliseconds: 350), () {
       if (!finished && mounted) setState(() => _loading = true);
     });
 
-    final series = await SettlementService.calculateCombinedSeries(
-      widget.portfolios,
-      _period,
-      targetEnd,
-      count: _barCount,
-      // 창을 옮기는 중이 아니면 오는 대로 그린다. 열두 칸을 다 기다리면
-      // 화면이 오래 비고, 정작 먼저 보는 건 최신 칸이다.
-      //
-      // 창을 옮기는 중이면 안 그린다 — 아직 옛 기간을 보여주고 있는데
-      // 새 창의 결과를 섞으면 라벨과 숫자가 어긋난다.
-      onProgress: (partial) {
-        if (!mounted) return;
-        setState(() {
-          _done = partial.where((e) => e != null).length;
-          // 창을 옮기는 중이면 결과는 안 그린다 — 아직 옛 기간을 보여주는데
-          // 새 창의 값을 섞으면 라벨과 숫자가 어긋난다. 진행률만 올린다.
-          if (targetEnd == _endKey) _series = partial;
-        });
-      },
-    );
+    for (final k in todo) {
+      final r =
+          await SettlementService.calculateCombined(widget.portfolios, _period, k);
+      if (!mounted) return;
+      setState(() {
+        if (r != null) _results[k] = r;
+        _busy.remove(k);
+      });
+    }
 
     finished = true;
     loaderTimer.cancel();
-    if (!mounted) return;
-    setState(() {
-      _series = series;
-      _endKey = targetEnd;
-      if (select != null) {
-        _selected = select;
-      } else if (!_windowKeys(targetEnd).contains(_selected)) {
-        // 선택이 창 밖으로 나갔으면 가장 가까운 칸으로 끌어온다
-        _selected = _windowKeys(targetEnd).last;
-      }
-      _loading = false;
+    if (mounted) setState(() => _loading = false);
+  }
+
+  /// 고른 기간이 화면 가운데에 오도록 차트를 옮긴다.
+  void _scrollToSelected() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_chartScroll.hasClients) return;
+      final keys = _allKeys;
+      final i = keys.indexOf(_selected);
+      if (i == -1) return;
+      const pitch = SettlementChart.barPitch;
+      final fromEnd = keys.length - 1 - i;
+      final viewport = _chartScroll.position.viewportDimension;
+      final target = (fromEnd * pitch - viewport / 2 + pitch / 2)
+          .clamp(0.0, _chartScroll.position.maxScrollExtent);
+      _chartScroll.animateTo(target,
+          duration: const Duration(milliseconds: 280), curve: Curves.easeOut);
     });
   }
 
@@ -309,24 +306,18 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       // `PeriodKey`는 기간 단위를 식별에 넣지 않는다 — 월간 3월과 분기 3분기가
       // 둘 다 (2026, 3)이다. 옛 결과를 남겨 두면 단위를 바꾼 직후 **3월 숫자가
       // 3분기 라벨 밑에 뜬다.** 지어낸 숫자보다 빈 화면이 낫다.
-      _series = const [];
-      _endKey = SettlementService.currentKey(p);
-      _selected = _endKey;
+      _results.clear();
+      _busy.clear();
+      _selected = SettlementService.currentKey(p);
     });
-    _load();
+    if (_chartScroll.hasClients) _chartScroll.jumpTo(0);
+    _loadVisible();
   }
 
   void _selectKey(PeriodKey key) {
-    // 차트 안의 기간은 이미 계산돼 있으므로 다시 불러오지 않는다
     setState(() => _selected = key);
+    _loadVisible(around: key);
   }
-
-
-
-  List<PeriodKey> _windowKeys(PeriodKey endKey) => [
-        for (var i = _barCount - 1; i >= 0; i--)
-          SettlementService.shiftKey(_period, endKey, -i),
-      ];
 
   Future<void> _openJumpSheet() async {
     final earliest = widget.portfolios.isEmpty
@@ -341,21 +332,16 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       selected: _selected,
       earliestYear: earliest,
       scopeName: _isKo ? '전체' : 'all portfolios',
-      amountOf: (k) {
-        for (final r in _series) {
-          if (r != null && r.key == k) return r.absoluteReturn;
-        }
-        return null;
-      },
+      // 차트가 첫 거래부터 시작하니 시트도 거기까지만 연다
+      earliestDay: AssetBackfillService.firstTransactionDay(widget.portfolios),
+      amountOf: (k) => _results[k]?.absoluteReturn,
     );
     if (picked == null || !mounted) return;
-
-    // 이미 차트에 있는 기간이면 다시 받을 게 없다 — 누르자마자 바뀐다
-    if (_windowKeys(_endKey).contains(picked)) {
-      _selectKey(picked);
-      return;
-    }
-    _load(endKey: picked, select: picked);
+    // 고른 기간이 화면 밖이면 **차트도 그리로 옮긴다** — 골라 놓고 어디 있는지
+    // 못 찾으면 고른 게 아니다.
+    setState(() => _selected = picked);
+    _loadVisible(around: picked);
+    _scrollToSelected();
   }
 
   // ── 화면 ──
@@ -363,6 +349,9 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _tail.fit(_pageScroll, _bodyH)) setState(() {});
+    });
 
     return Scaffold(
       backgroundColor: context.scaffoldBg,
@@ -376,9 +365,13 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
               Expanded(child: _buildEmpty(context)),
             ])
           : CustomScrollView(
+              controller: _pageScroll,
               slivers: [
                 SliverPersistentHeader(
                   pinned: true,
+                  // 스크롤을 멈추면 끝까지 접거나 끝까지 편다 — 반쯤 접힌 채
+                  // 굳으면 탭 글자가 잘려 고장 난 것처럼 보인다.
+                  floating: true,
                   delegate: CollapsingHeaderDelegate(
                     background: context.appBarBg,
                     topInset: MediaQuery.paddingOf(context).top,
@@ -425,6 +418,7 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
                       _buildChartCard(context, l10n),
                       const SizedBox(height: 14),
                       _buildContributions(context),
+                      SizedBox(height: _tail.value),
                     ]),
                   ),
                 ),
@@ -576,7 +570,7 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       if (hasHoldings) ...[
         const SizedBox(width: 10),
         GestureDetector(
-          onTap: _loading ? null : _load,
+          onTap: _loading ? null : () => _loadVisible(),
           behavior: HitTestBehavior.opaque,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
@@ -689,9 +683,7 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
                       // 창을 옮기는 동안에도 보던 기간을 그대로 두므로,
                       // 말해주지 않으면 눌러도 아무 일이 없는 것처럼 보인다
                       _loading
-                          ? (_isKo
-                              ? '불러오는 중 · $_barCount칸 중 $_done칸'
-                              : 'Loading · $_done of $_barCount')
+                          ? (_isKo ? '불러오는 중…' : 'Loading…')
                           : inProgress
                               ? (_isKo
                                   ? '진행 중 · 막대를 눌러 기간 선택'
@@ -724,18 +716,20 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
             ],
           ),
           const SizedBox(height: 14),
-          if (_loading && _series.isEmpty)
+          if (_loading && _results.isEmpty)
             const SizedBox(
               height: 100,
               child: Center(child: CircularProgressIndicator()),
             )
           else
             SettlementChart(
-                bars: _buildBars(l10n),
-                selected: _selected,
-                onSelect: _selectKey,
-                // 월간도 열두 칸이라 해가 바뀌는 자리를 표시해야
-                // 작년 3월과 올해 3월이 안 섞인다
+              bars: _buildBars(l10n),
+              selected: _selected,
+              onSelect: _selectKey,
+              controller: _chartScroll,
+              // 손을 떼고 멈추면 그때 보이는 칸만 계산한다
+              onSettled: _loadVisible,
+              // 해가 바뀌는 자리를 표시해야 작년 3월과 올해 3월이 안 섞인다
               showYearBoundary: _period != SettlementPeriod.yearly,
             ),
         ],
@@ -744,25 +738,19 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
   }
 
   List<SettlementBar> _buildBars(dynamic l10n) {
-    // 과거 → 최신 순으로 둔다. 차트가 `reverse: true`라 **콘텐츠의 오른쪽
-    // 끝**에 붙어 시작하므로, 맨 뒤(최신)가 처음 보이는 자리다.
-    final keys = _windowKeys(_endKey);
     final today = DateTime.now();
-
+    // 과거 → 최신 순. 차트가 `reverse: true`라 맨 뒤(최신)가 먼저 보인다.
     return [
-      for (final k in keys)
+      for (final k in _allKeys)
         () {
-          CombinedSettlement? found;
-          for (final r in _series) {
-            if (r != null && r.key == k) found = r;
-          }
+          final found = _results[k];
           final range = SettlementService.periodRange(_period, k);
           final isFuture = range.start.isAfter(today);
           return SettlementBar(
             key: k,
             label: _subLabel(k, l10n),
             amount: isFuture ? null : found?.absoluteReturn,
-            inProgress: !isFuture && !range.end.isBefore(today),
+            inProgress: found?.isCurrentPeriod ?? false,
           );
         }(),
     ];
@@ -778,9 +766,7 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
         child: Center(
           child: Text(
             _loading
-                ? (_isKo
-                    ? '계산 중 · $_barCount칸 중 $_done칸'
-                    : 'Calculating · $_done of $_barCount')
+                ? (_isKo ? '계산 중…' : 'Calculating…')
                 : context.l10n.settlementNoHoldings,
             style: TextStyle(fontSize: DS.rowName, color: context.textHint),
           ),
