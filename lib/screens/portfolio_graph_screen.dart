@@ -12,6 +12,7 @@ import '../theme/design_system.dart';
 import '../widgets/brand_header.dart';
 import '../models/portfolio.dart';
 import '../widgets/app_logo.dart';
+import '../services/ad_service.dart';
 import '../widgets/bottom_banner_ad.dart';
 
 
@@ -554,7 +555,7 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
             ]),
                 ),   // SingleChildScrollView
               ),     // Expanded
-              const BottomBannerAd(),
+              const BottomBannerAd(slot: AdSlot.detail),
             ],       // Column children
           ),         // Column
         ),

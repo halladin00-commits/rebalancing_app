@@ -8,6 +8,7 @@ import '../models/portfolio.dart';
 import '../theme/design_system.dart';
 import '../utils/rebalancer.dart';
 import 'target_weights_screen.dart';
+import '../services/ad_service.dart';
 import '../widgets/bottom_banner_ad.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/weight_bar.dart';
@@ -80,7 +81,9 @@ class PortfolioRebalanceScreen extends StatelessWidget {
               ),
               // 편차를 들여다보는 화면이라 체류가 길다. 배너를 둔다 —
               // 다음 화면(조정 제안)은 돈을 계산하는 자리라 넣지 않는다.
-              const SafeArea(top: false, child: BottomBannerAd()),
+              const SafeArea(
+                  top: false,
+                  child: BottomBannerAd(slot: AdSlot.work)),
             ],
           ),
         );

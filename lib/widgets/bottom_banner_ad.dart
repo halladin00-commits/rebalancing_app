@@ -6,7 +6,10 @@ import '../services/ad_service.dart';
 /// - 광고 로드 전후 관계없이 항상 kBannerHeight(50px)를 예약 → 레이아웃 변화 없음
 /// - SafeArea는 Scaffold body가 이미 처리하므로 별도 사용 안 함
 class BottomBannerAd extends StatefulWidget {
-  const BottomBannerAd({super.key});
+  /// 어느 자리의 배너인가. AdMob 리포트가 자리별로 나뉜다.
+  final AdSlot slot;
+
+  const BottomBannerAd({super.key, this.slot = AdSlot.main});
 
   @override
   State<BottomBannerAd> createState() => _BottomBannerAdState();
@@ -42,7 +45,7 @@ class _BottomBannerAdState extends State<BottomBannerAd> {
     if (size != null) _height = size.height.toDouble();
 
     _ad = AdService.createBanner(
-      adUnitId: AdService.mainBannerId,
+      adUnitId: AdService.bannerIdFor(widget.slot),
       size: size ?? AdSize.banner,
       onLoaded: () {
         if (mounted) setState(() => _loaded = true);

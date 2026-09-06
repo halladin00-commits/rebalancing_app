@@ -24,6 +24,7 @@ import 'item_search_screen.dart';
 import 'transaction_history_screen.dart';
 import 'target_weights_screen.dart';
 import '../widgets/app_logo.dart';
+import '../services/ad_service.dart';
 import '../widgets/bottom_banner_ad.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/collapsing_header.dart';
@@ -921,7 +922,9 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                 ),
                 // 광고도 네비바 위로 올린다. 이 화면은 셸 밖이라 SafeArea가 없어
                 // 그대로 두면 배너가 시스템 버튼에 깔린다.
-                const SafeArea(top: false, child: BottomBannerAd()),
+                const SafeArea(
+                    top: false,
+                    child: BottomBannerAd(slot: AdSlot.detail)),
               ],
             ),
           ),

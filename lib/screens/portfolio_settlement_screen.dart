@@ -12,6 +12,7 @@ import '../models/portfolio.dart';
 import '../services/asset_backfill_service.dart';
 import '../services/settlement_service.dart';
 import '../theme/design_system.dart';
+import '../services/ad_service.dart';
 import '../widgets/bottom_banner_ad.dart';
 import '../widgets/collapsing_header.dart';
 import '../widgets/period_jump_sheet.dart';
@@ -346,7 +347,9 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
               ),
               // 공유 이미지는 `captureFromWidget`으로 따로 그린다 — 화면에
               // 배너를 붙여도 저장·공유한 그림에는 안 들어간다.
-              const SafeArea(top: false, child: BottomBannerAd()),
+              const SafeArea(
+                  top: false,
+                  child: BottomBannerAd(slot: AdSlot.settlement)),
             ],
           ),
         );

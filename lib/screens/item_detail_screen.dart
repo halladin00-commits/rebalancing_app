@@ -7,6 +7,7 @@ import '../models/portfolio.dart';
 import '../theme/design_system.dart';
 import '../utils/rebalancer.dart';
 import '../utils/share_format.dart';
+import '../services/ad_service.dart';
 import '../widgets/bottom_banner_ad.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/list_card.dart';
@@ -63,7 +64,9 @@ class ItemDetailScreen extends StatelessWidget {
               ),
               // 체류가 긴 화면이라 배너를 둔다. 폼·설정처럼 짧게 끝내는
               // 화면에는 넣지 않는다 — 하던 일을 막는다.
-              const SafeArea(top: false, child: BottomBannerAd()),
+              const SafeArea(
+                  top: false,
+                  child: BottomBannerAd(slot: AdSlot.detail)),
             ],
           ),
         );
