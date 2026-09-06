@@ -554,18 +554,15 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
 
   final ScrollController _scroll = ScrollController();
 
-  /// 헤더가 끝까지 접히도록 모자란 스크롤 거리를 채운다.
-  final CollapseTail _tail = CollapseTail();
-
   /// 헤더 본문(총자산 블록)의 실제 높이.
   ///
-  /// 글자 크기 설정과 내용에 따라 달라져 상수로 박을 수 없다. 한 번 재서
-  /// 슬리버에 넘긴다. 재기 전에는 어림값으로 그리고, 잰 뒤 바로 맞춘다.
-  double _bodyH = 250;
+  /// 글자 크기 설정과 내용에 따라 달라져 상수로 박을 수 없다. 재서 넘기되,
+  /// **스크롤 중에는 미룬다** — 접히는 도중에 최대 높이가 바뀌면 접힘 비율과
+  /// 실제 높이가 어긋나 헤더가 중간에 멈추거나 안이 텅 빈다.
+  final HeaderBody _body = HeaderBody();
 
   void _setBodyH(double h) {
-    if ((_bodyH - h).abs() < 0.5) return;
-    if (mounted) setState(() => _bodyH = h);
+    if (mounted && _body.update(h, _scroll)) setState(() {});
   }
 
   @override
@@ -573,7 +570,7 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
     return Consumer<PortfolioProvider>(
       builder: (context, provider, _) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted && _tail.fit(_scroll, _bodyH)) setState(() {});
+          if (mounted && _body.flush(_scroll)) setState(() {});
         });
         // 빈 날을 메우고 나면 다시 읽는다 — 안 그러면 다음에 앱을 켤 때까지
         // 방금 채운 날들이 화면에 안 나온다.
@@ -597,13 +594,12 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
               SliverPersistentHeader(
                 pinned: true,
                 // 멈추면 끝까지 접거나 끝까지 편다
-                floating: true,
                 delegate: CollapsingHeaderDelegate(
                   background: context.appBarBg,
                   topInset: MediaQuery.paddingOf(context).top,
                   titleHeight: 48 *
                       MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.6),
-                  bodyHeight: _bodyH,
+                  bodyHeight: _body.value,
                   // 시안 기준 21px · 글자는 흰색 78% — 로고가 총자산 금액을 이기지 않게 한다
                   expandedTitle: AppLogo(
                       iconSize: 21, textColor: context.onBrandSecondary),
@@ -651,10 +647,10 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                     ] else
                       _buildFirstRun(context),
                     _buildAddCard(context),
-                    SizedBox(height: _tail.value),
                   ]),
                 ),
               ),
+              CollapseTailSliver(collapseRange: _body.value),
             ],
           ),
         );

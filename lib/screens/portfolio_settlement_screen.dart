@@ -49,15 +49,14 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
   final ScrollController _pageScroll = ScrollController();
 
   /// 헤더가 끝까지 접히도록 모자란 스크롤 거리를 채운다.
-  final CollapseTail _tail = CollapseTail();
   late PeriodKey _selected;
 
   bool _loading = false;
   bool _sharing = false;
   bool _saving = false;
 
-  /// 헤더 본문의 실제 높이. 글자 크기 설정에 따라 달라져 한 번 재서 쓴다.
-  double _bodyH = 250;
+  /// 헤더 본문 높이. 글자 크기·내용에 따라 달라져 재서 쓴다.
+  final HeaderBody _body = HeaderBody();
   final _screenshotCtrl = ScreenshotController();
 
   /// 계산에 쓴 시세 기준 시각.
@@ -257,7 +256,7 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
   @override
   Widget build(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && _tail.fit(_pageScroll, _bodyH)) setState(() {});
+      if (mounted && _body.flush(_pageScroll)) setState(() {});
     });
     return Consumer<PortfolioProvider>(
       builder: (context, provider, _) {
@@ -281,7 +280,6 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
                     SliverPersistentHeader(
                       pinned: true,
                       // 멈추면 끝까지 접거나 끝까지 편다
-                      floating: true,
                       delegate: CollapsingHeaderDelegate(
                         background: context.appBarBg,
                         topInset: MediaQuery.paddingOf(context).top,
@@ -289,7 +287,7 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
                             MediaQuery.textScalerOf(context)
                                 .scale(1)
                                 .clamp(1.0, 1.6),
-                        bodyHeight: _bodyH,
+                        bodyHeight: _body.value,
                         leading: IconButton(
                           tooltip: context.l10n.a11yBack,
                           icon: const Icon(Icons.arrow_back,
@@ -319,8 +317,9 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
                         ],
                         body: MeasureSize(
                           onHeight: (h) {
-                            if ((_bodyH - h).abs() < 0.5) return;
-                            if (mounted) setState(() => _bodyH = h);
+                        if (mounted && _body.update(h, _pageScroll)) {
+                          setState(() {});
+                        }
                           },
                           child: Padding(
                             padding: const EdgeInsets.fromLTRB(0, 2, 0, 16),
@@ -338,10 +337,10 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
                           _buildChartCard(context, pf),
                           const SizedBox(height: 14),
                           _buildItemContributions(context, pf),
-                          SizedBox(height: _tail.value),
                         ]),
                       ),
                     ),
+                    CollapseTailSliver(collapseRange: _body.value),
                   ],
                 ),
               ),

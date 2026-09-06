@@ -81,10 +81,9 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
   final ScrollController _pageScroll = ScrollController();
 
   /// 헤더가 끝까지 접히도록 모자란 스크롤 거리를 채운다.
-  final CollapseTail _tail = CollapseTail();
 
-  /// 헤더 본문의 실제 높이. 글자 크기 설정에 따라 달라져 한 번 재서 쓴다.
-  double _bodyH = 250;
+  /// 헤더 본문 높이. 글자 크기·내용에 따라 달라져 재서 쓴다.
+  final HeaderBody _body = HeaderBody();
 
   bool _saving = false;
   bool _sharing = false;
@@ -350,7 +349,7 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && _tail.fit(_pageScroll, _bodyH)) setState(() {});
+      if (mounted && _body.flush(_pageScroll)) setState(() {});
     });
 
     return Scaffold(
@@ -369,9 +368,6 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
               slivers: [
                 SliverPersistentHeader(
                   pinned: true,
-                  // 스크롤을 멈추면 끝까지 접거나 끝까지 편다 — 반쯤 접힌 채
-                  // 굳으면 탭 글자가 잘려 고장 난 것처럼 보인다.
-                  floating: true,
                   delegate: CollapsingHeaderDelegate(
                     background: context.appBarBg,
                     topInset: MediaQuery.paddingOf(context).top,
@@ -379,7 +375,7 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
                         MediaQuery.textScalerOf(context)
                             .scale(1)
                             .clamp(1.0, 1.6),
-                    bodyHeight: _bodyH,
+                    bodyHeight: _body.value,
                     expandedTitle: Text(
                       l10n.tabSettlement,
                       style: const TextStyle(
@@ -400,8 +396,9 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
                     ],
                     body: MeasureSize(
                       onHeight: (h) {
-                        if ((_bodyH - h).abs() < 0.5) return;
-                        if (mounted) setState(() => _bodyH = h);
+                        if (mounted && _body.update(h, _pageScroll)) {
+                          setState(() {});
+                        }
                       },
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(0, 2, 0, 16),
@@ -418,10 +415,10 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
                       _buildChartCard(context, l10n),
                       const SizedBox(height: 14),
                       _buildContributions(context),
-                      SizedBox(height: _tail.value),
                     ]),
                   ),
                 ),
+                CollapseTailSliver(collapseRange: _body.value),
               ],
             ),
     );

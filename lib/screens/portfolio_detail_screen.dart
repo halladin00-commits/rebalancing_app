@@ -788,12 +788,13 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
 
   // ── Build ──
 
-  /// 헤더 본문의 실제 높이. 글자 크기 설정에 따라 달라져 한 번 재서 쓴다.
-  double _bodyH = 250;
+  /// 헤더 본문의 실제 높이. 글자 크기·내용에 따라 달라져 재서 쓴다.
+  /// **스크롤 중에 바뀌면 미룬다** — 접히는 도중 최대 높이가 바뀌면
+  /// 접힘 비율과 실제 높이가 어긋난다.
+  final HeaderBody _body = HeaderBody();
 
-  /// 화면 세로 스크롤 · 헤더가 끝까지 접히도록 채울 여백.
+  /// 화면 세로 스크롤.
   final ScrollController _pageScroll = ScrollController();
-  final CollapseTail _tail = CollapseTail();
 
   /// 마지막으로 반영한 기록 갱신 번호.
   ///
@@ -1133,7 +1134,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
   ) {
     final l10n = context.l10n;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && _tail.fit(_pageScroll, _bodyH)) setState(() {});
+      if (mounted && _body.flush(_pageScroll)) setState(() {});
     });
     return CustomScrollView(
       controller: _pageScroll,
@@ -1141,13 +1142,12 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
         SliverPersistentHeader(
           pinned: true,
           // 멈추면 끝까지 접거나 끝까지 편다
-          floating: true,
           delegate: CollapsingHeaderDelegate(
             background: context.appBarBg,
             topInset: MediaQuery.paddingOf(context).top,
             titleHeight:
                 48 * MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.6),
-            bodyHeight: _bodyH,
+            bodyHeight: _body.value,
             leading: IconButton(
               tooltip: l10n.a11yBack,
               icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -1187,8 +1187,9 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
             ],
             body: MeasureSize(
               onHeight: (h) {
-                if ((_bodyH - h).abs() < 0.5) return;
-                if (mounted) setState(() => _bodyH = h);
+                if (mounted && _body.update(h, _pageScroll)) {
+                  setState(() {});
+                }
               },
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(0, 2, 0, 16),
@@ -1222,10 +1223,10 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                 ),
                 const SizedBox(height: 10),
                 _buildSlimAddCard(context, pf),
-                SizedBox(height: _tail.value),
               ]),
             ),
           ),
+        CollapseTailSliver(collapseRange: _body.value),
       ],
     );
   }
