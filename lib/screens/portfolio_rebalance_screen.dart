@@ -353,6 +353,10 @@ class PortfolioRebalanceScreen extends StatelessWidget {
         border: Border(top: BorderSide(color: context.dividerColor)),
       ),
       child: SizedBox(
+        // **폭을 반드시 지정한다.** 예전에는 이 버튼이 ListView 안에 있어
+        // 저절로 가로를 꽉 채웠는데, 스크롤 밖 Column으로 옮기면서 그게
+        // 사라졌다 — Column은 자식을 가운데에 내용 너비만큼만 놓는다.
+        width: double.infinity,
         height: DS.buttonHeight,
         child: ElevatedButton(
           onPressed: () => Navigator.push(
