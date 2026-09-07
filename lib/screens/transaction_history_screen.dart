@@ -288,7 +288,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
               children: [
                 for (final i in choices)
                   ListTile(
-                    title: Text(i.name,
+                    title: Text(i.displayName(context),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -400,7 +400,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(e.item.name,
+                Text(e.item.displayName(context),
                     style: TextStyle(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w700,

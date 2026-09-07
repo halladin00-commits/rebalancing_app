@@ -196,6 +196,7 @@
     }
   },
   "withinTolerance": "Within",
+  "calcBasisTitle": "How this was calculated",
   "roundingWholeShares": "Whole shares only",
   "roundingWholeSharesDesc": "Quantities stay in whole shares, picked to land closest to the target weight.",
   "roundingFractional": "Fractional shares",
@@ -230,8 +231,8 @@
       }
     }
   },
-  "proposalCostWithout": "Fees and taxes are not included, so your fills will differ slightly.",
-  "proposalDisclaimer": "This does not place any orders. Record your trades below once you have actually executed them.",
+  "proposalCostWithout": "Fees and taxes are excluded, so your fills will differ slightly.",
+  "proposalDisclaimer": "Place the orders with your broker. Record them below once filled.",
   "noAdjustmentNeeded": "Nothing to adjust right now",
   "cannotCalculate": "Can't calculate — some prices are missing",
   "@@locale": "en",
@@ -584,7 +585,7 @@
   "rebalancingThresholdHint": "No trade recommended below this deviation",
   "fractionalTrading": "Fractional Shares",
   "maxDriftAfter": "Max drift after",
-  "planMustRunAll": "This result holds only if all {count} trades are executed",
+  "planMustRunAll": "If you place all {count} orders",
   "@planMustRunAll": {
     "placeholders": {
       "count": {

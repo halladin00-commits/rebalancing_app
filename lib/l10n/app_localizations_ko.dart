@@ -144,10 +144,10 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get roundingFloorCash => '현금이 남는 쪽으로 내림';
+  String get roundingFloorCash => '예수금이 남는 쪽으로 내림';
 
   @override
-  String get roundingFloorCashDesc => '예산을 넘지 않습니다. 대신 아주 적은 현금이 남습니다.';
+  String get roundingFloorCashDesc => '예산을 넘지 않습니다. 대신 아주 적은 예수금이 남습니다.';
 
   @override
   String get fractionalPreviewTitle => '지금 조정 제안이 이렇게 바뀝니다';
@@ -233,7 +233,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get filterUs => '해외';
 
   @override
-  String get cashAddHint => '계좌에 남은 현금을 넣어 두면 비중 계산에 함께 잡힙니다.';
+  String get cashAddHint => '계좌에 남은 현금을 예수금으로 넣어 두면 비중 계산에 함께 잡힙니다.';
 
   @override
   String get cashAddButton => '예수금 추가';
@@ -310,6 +310,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get withinTolerance => '허용 안';
 
   @override
+  String get calcBasisTitle => '계산 기준';
+
+  @override
   String get roundingWholeShares => '단주는 반올림';
 
   @override
@@ -352,15 +355,14 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String proposalCostWith(String rate) {
-    return '수수료 $rate%는 빼고 계산했습니다. 세금(증권거래세 등)은 빠져 있어 실제 체결액과 조금 다릅니다.';
+    return '수수료 $rate%는 반영했습니다. 세금이 빠져 있어 실제 체결액과 조금 다릅니다.';
   }
 
   @override
-  String get proposalCostWithout => '수수료와 세금(증권거래세 등)은 빠져 있어 실제 체결액과 조금 다릅니다.';
+  String get proposalCostWithout => '수수료·세금이 빠져 있어 실제 체결액과 조금 다릅니다.';
 
   @override
-  String get proposalDisclaimer =>
-      '이 제안은 주문을 내지 않습니다. 실제로 매매하신 뒤 아래 버튼으로 기록하세요.';
+  String get proposalDisclaimer => '주문은 증권사에서 직접 하세요. 체결한 뒤 아래 버튼으로 기록합니다.';
 
   @override
   String get noAdjustmentNeeded => '지금은 조정할 것이 없습니다';
@@ -542,7 +544,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get sell => '매도';
 
   @override
-  String get cash => '현금';
+  String get cash => '예수금';
 
   @override
   String get captureFailed => '캡처 실패';
@@ -910,7 +912,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String planMustRunAll(int count) {
-    return '아래 $count건을 모두 실행해야 성립하는 결과입니다';
+    return '$count건을 모두 주문했을 때';
   }
 
   @override
@@ -924,7 +926,7 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get uncheckToRecalc => '체크를 끄면 재계산';
+  String get uncheckToRecalc => '체크를 끄면 다시 계산';
 
   @override
   String cashLedgerTitle(int count) {

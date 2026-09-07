@@ -319,6 +319,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get withinTolerance => 'Within';
 
   @override
+  String get calcBasisTitle => 'How this was calculated';
+
+  @override
   String get roundingWholeShares => 'Whole shares only';
 
   @override
@@ -367,11 +370,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get proposalCostWithout =>
-      'Fees and taxes are not included, so your fills will differ slightly.';
+      'Fees and taxes are excluded, so your fills will differ slightly.';
 
   @override
   String get proposalDisclaimer =>
-      'This does not place any orders. Record your trades below once you have actually executed them.';
+      'Place the orders with your broker. Record them below once filled.';
 
   @override
   String get noAdjustmentNeeded => 'Nothing to adjust right now';
@@ -928,7 +931,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String planMustRunAll(int count) {
-    return 'This result holds only if all $count trades are executed';
+    return 'If you place all $count orders';
   }
 
   @override

@@ -81,8 +81,8 @@
       }
     }
   },
-  "roundingFloorCash": "현금이 남는 쪽으로 내림",
-  "roundingFloorCashDesc": "예산을 넘지 않습니다. 대신 아주 적은 현금이 남습니다.",
+  "roundingFloorCash": "예수금이 남는 쪽으로 내림",
+  "roundingFloorCashDesc": "예산을 넘지 않습니다. 대신 아주 적은 예수금이 남습니다.",
   "fractionalPreviewTitle": "지금 조정 제안이 이렇게 바뀝니다",
   "previewWholeShares": "주 단위",
   "previewFractional": "소수점",
@@ -145,7 +145,7 @@
   "filterAll": "전체",
   "filterKr": "국내",
   "filterUs": "해외",
-  "cashAddHint": "계좌에 남은 현금을 넣어 두면 비중 계산에 함께 잡힙니다.",
+  "cashAddHint": "계좌에 남은 현금을 예수금으로 넣어 두면 비중 계산에 함께 잡힙니다.",
   "cashAddButton": "예수금 추가",
   "manualEntryHint": "직접 입력해서 추가",
   "alreadyInPortfolio": "{name} 이미 담겨 있습니다",
@@ -196,6 +196,8 @@
     }
   },
   "withinTolerance": "허용 안",
+  "calcBasisTitle": "계산 기준",
+  "@calcBasisTitle": {"description": "접히는 안내 묶음의 제목"},
   "roundingWholeShares": "단주는 반올림",
   "roundingWholeSharesDesc": "1주 단위로만 계산합니다. 목표 비중에 0에 가장 가까운 수량으로 맞춥니다.",
   "roundingFractional": "소수점 거래",
@@ -222,7 +224,7 @@
   "proposalBasisNote": "주문할 때 가격이 달라져 있으면 수량도 달라집니다.",
   "proposalBasisNever": "아직 시세를 받지 못했습니다",
   "proposalCostTitle": "수수료 · 세금",
-  "proposalCostWith": "수수료 {rate}%는 빼고 계산했습니다. 세금(증권거래세 등)은 빠져 있어 실제 체결액과 조금 다릅니다.",
+  "proposalCostWith": "수수료 {rate}%는 반영했습니다. 세금이 빠져 있어 실제 체결액과 조금 다릅니다.",
   "@proposalCostWith": {
     "placeholders": {
       "rate": {
@@ -230,8 +232,8 @@
       }
     }
   },
-  "proposalCostWithout": "수수료와 세금(증권거래세 등)은 빠져 있어 실제 체결액과 조금 다릅니다.",
-  "proposalDisclaimer": "이 제안은 주문을 내지 않습니다. 실제로 매매하신 뒤 아래 버튼으로 기록하세요.",
+  "proposalCostWithout": "수수료·세금이 빠져 있어 실제 체결액과 조금 다릅니다.",
+  "proposalDisclaimer": "주문은 증권사에서 직접 하세요. 체결한 뒤 아래 버튼으로 기록합니다.",
   "noAdjustmentNeeded": "지금은 조정할 것이 없습니다",
   "cannotCalculate": "시세를 못 받은 종목이 있어 계산할 수 없습니다",
   "@@locale": "ko",
@@ -381,7 +383,7 @@
   "addStock": "종목 추가",
   "buy": "매수",
   "sell": "매도",
-  "cash": "현금",
+  "cash": "예수금",
   "captureFailed": "캡처 실패",
   "savedToGallery": "갤러리에 저장됐어요",
   "saveFailed": "저장 실패",
@@ -584,7 +586,7 @@
   "rebalancingThresholdHint": "편차가 이 값 미만이면 거래 권고 안 함",
   "fractionalTrading": "소수점 거래",
   "maxDriftAfter": "조정 후 최대 편차",
-  "planMustRunAll": "아래 {count}건을 모두 실행해야 성립하는 결과입니다",
+  "planMustRunAll": "{count}건을 모두 주문했을 때",
   "@planMustRunAll": {
     "placeholders": {
       "count": {
@@ -608,7 +610,7 @@
       }
     }
   },
-  "uncheckToRecalc": "체크를 끄면 재계산",
+  "uncheckToRecalc": "체크를 끄면 다시 계산",
   "cashLedgerTitle": "예수금 하나로 매수 {count}건",
   "@cashLedgerTitle": {
     "placeholders": {

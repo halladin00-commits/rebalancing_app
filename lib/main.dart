@@ -198,6 +198,17 @@ class MainCurrencyNotifier extends ChangeNotifier {
 // ── 앱 색상 확장 ──
 // 라이트 전용. 다크 모드는 제공하지 않는다.
 
+/// 종목을 화면에 낼 때 쓰는 이름.
+extension PortfolioItemDisplay on PortfolioItem {
+  /// 예수금 종목은 **저장된 이름 대신 지금 언어의 라벨**을 쓴다.
+  ///
+  /// 예전 버전이 `현금`이라는 이름으로 만들어 둔 것이 남아 있고, 이름은
+  /// 저장된 값이라 언어를 바꿔도 안 따라온다. 예수금은 사용자가 지은
+  /// 이름이 아니라 앱이 붙인 말이므로 라벨로 취급하는 게 맞다.
+  String displayName(BuildContext context) =>
+      isCash ? context.l10n.cash : name;
+}
+
 extension AppColors on BuildContext {
   // ── 배경 · 표면 ──
   Color get scaffoldBg => const Color(0xFFFBF8F1);   // 크림 배경

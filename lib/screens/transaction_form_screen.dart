@@ -222,7 +222,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
               label: item.isCash ? l10n.cash : item.market),
           const SizedBox(width: 6),
           Expanded(
-            child: Text(item.name,
+            child: Text(item.displayName(context),
                 style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,

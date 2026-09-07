@@ -347,13 +347,13 @@ abstract class AppLocalizations {
   /// No description provided for @roundingFloorCash.
   ///
   /// In ko, this message translates to:
-  /// **'현금이 남는 쪽으로 내림'**
+  /// **'예수금이 남는 쪽으로 내림'**
   String get roundingFloorCash;
 
   /// No description provided for @roundingFloorCashDesc.
   ///
   /// In ko, this message translates to:
-  /// **'예산을 넘지 않습니다. 대신 아주 적은 현금이 남습니다.'**
+  /// **'예산을 넘지 않습니다. 대신 아주 적은 예수금이 남습니다.'**
   String get roundingFloorCashDesc;
 
   /// No description provided for @fractionalPreviewTitle.
@@ -503,7 +503,7 @@ abstract class AppLocalizations {
   /// No description provided for @cashAddHint.
   ///
   /// In ko, this message translates to:
-  /// **'계좌에 남은 현금을 넣어 두면 비중 계산에 함께 잡힙니다.'**
+  /// **'계좌에 남은 현금을 예수금으로 넣어 두면 비중 계산에 함께 잡힙니다.'**
   String get cashAddHint;
 
   /// No description provided for @cashAddButton.
@@ -638,6 +638,12 @@ abstract class AppLocalizations {
   /// **'허용 안'**
   String get withinTolerance;
 
+  /// 접히는 안내 묶음의 제목
+  ///
+  /// In ko, this message translates to:
+  /// **'계산 기준'**
+  String get calcBasisTitle;
+
   /// No description provided for @roundingWholeShares.
   ///
   /// In ko, this message translates to:
@@ -713,19 +719,19 @@ abstract class AppLocalizations {
   /// No description provided for @proposalCostWith.
   ///
   /// In ko, this message translates to:
-  /// **'수수료 {rate}%는 빼고 계산했습니다. 세금(증권거래세 등)은 빠져 있어 실제 체결액과 조금 다릅니다.'**
+  /// **'수수료 {rate}%는 반영했습니다. 세금이 빠져 있어 실제 체결액과 조금 다릅니다.'**
   String proposalCostWith(String rate);
 
   /// No description provided for @proposalCostWithout.
   ///
   /// In ko, this message translates to:
-  /// **'수수료와 세금(증권거래세 등)은 빠져 있어 실제 체결액과 조금 다릅니다.'**
+  /// **'수수료·세금이 빠져 있어 실제 체결액과 조금 다릅니다.'**
   String get proposalCostWithout;
 
   /// No description provided for @proposalDisclaimer.
   ///
   /// In ko, this message translates to:
-  /// **'이 제안은 주문을 내지 않습니다. 실제로 매매하신 뒤 아래 버튼으로 기록하세요.'**
+  /// **'주문은 증권사에서 직접 하세요. 체결한 뒤 아래 버튼으로 기록합니다.'**
   String get proposalDisclaimer;
 
   /// No description provided for @noAdjustmentNeeded.
@@ -1037,7 +1043,7 @@ abstract class AppLocalizations {
   /// No description provided for @cash.
   ///
   /// In ko, this message translates to:
-  /// **'현금'**
+  /// **'예수금'**
   String get cash;
 
   /// No description provided for @captureFailed.
@@ -1709,7 +1715,7 @@ abstract class AppLocalizations {
   /// No description provided for @planMustRunAll.
   ///
   /// In ko, this message translates to:
-  /// **'아래 {count}건을 모두 실행해야 성립하는 결과입니다'**
+  /// **'{count}건을 모두 주문했을 때'**
   String planMustRunAll(int count);
 
   /// No description provided for @allItemsInRange.
@@ -1727,7 +1733,7 @@ abstract class AppLocalizations {
   /// No description provided for @uncheckToRecalc.
   ///
   /// In ko, this message translates to:
-  /// **'체크를 끄면 재계산'**
+  /// **'체크를 끄면 다시 계산'**
   String get uncheckToRecalc;
 
   /// No description provided for @cashLedgerTitle.

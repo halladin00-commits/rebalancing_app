@@ -330,7 +330,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                       _marketBadge(context, item),
                       const SizedBox(width: 6),
                       Expanded(
-                          child: Text(item.name,
+                          child: Text(item.displayName(context),
                               style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
@@ -461,7 +461,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
       builder: (_) => AlertDialog(
         title: Text(l10n.deleteConfirmTitle),
         content: Text(l10n.deleteItemContent(
-          withJosa(item.name, Josa.eulReul,
+          withJosa(item.displayName(context), Josa.eulReul,
               korean: Localizations.localeOf(context).languageCode == 'ko'),
         )),
         actions: [
@@ -1372,7 +1372,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
             ? context.l10n.cash
             : (item.market == 'US' ? 'US' : 'KR'),
       ),
-      title: item.name,
+      title: item.displayName(context),
       titleSize: 14.5,
       // 시안은 `가격 · 수량` 순서 — 곱셈 기호가 아니라 점 구분자다
       subtitle: item.isCash
@@ -1414,7 +1414,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                   _marketBadge(context, item),
                   const SizedBox(width: 6),
                   Expanded(
-                      child: Text(item.name,
+                      child: Text(item.displayName(context),
                           style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,

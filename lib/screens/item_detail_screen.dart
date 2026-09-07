@@ -113,7 +113,7 @@ class ItemDetailScreen extends StatelessWidget {
           const SizedBox(width: 6),
         ],
         Expanded(
-          child: Text(item.name,
+          child: Text(item.displayName(context),
               style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,

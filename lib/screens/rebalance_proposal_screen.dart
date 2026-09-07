@@ -48,6 +48,8 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
     final add = pf?.additionalInvestment ?? 0;
     _investCtl =
         TextEditingController(text: add == 0 ? '' : add.toStringAsFixed(0));
+    // 지난번에 넣어 둔 입금액이 있으면 그 모드로 연다
+    _addMode = add != 0;
   }
 
   @override
@@ -56,7 +58,12 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
     super.dispose();
   }
 
-  bool get _addMode => (_investCtl.text.trim().isNotEmpty);
+  /// `추가 입금으로` 모드인가.
+  ///
+  /// 예전에는 입력칸에 글자가 있는지로 판단했는데, **입력칸 자체가 이
+  /// 모드에서만 나타난다.** 그래서 켤 방법이 없었다 — 눌러도 글자가
+  /// 없으니 안 켜지고, 안 켜지니 입력칸이 안 나온다.
+  bool _addMode = false;
 
   // ── 서식 ──
 
@@ -115,16 +122,19 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
                           if (shown.isEmpty)
                             _buildNothingToDo(context)
                           else ...[
+                            // 이렇게 되고 → 이걸 주문하고 → 돈은 이만큼.
+                            // 예전에는 거래 대금이 주문 목록보다 위에 있어,
+                            // 정작 보러 온 수량이 아래로 밀려 있었다.
                             _buildHeadline(context, pf, rb, trades),
                             const SizedBox(height: 9),
                             ...?_buildSpreadChoice(context, pf, rb, baseDeltas),
-                            ...?_buildCashLedger(context, pf, rb, trades),
                             _buildSectionTitle(context, trades.length),
                             const SizedBox(height: 7),
                             _buildProposalCard(context, pf, shown, baseDeltas),
                             const SizedBox(height: 9),
-                            _buildRoundingNote(context, pf, rb, trades),
+                            ...?_buildCashLedger(context, pf, rb, trades),
                             ...?_buildOrderNote(context, pf, trades),
+                            _buildRoundingNote(context, pf, rb, trades),
                           ],
                           const SizedBox(height: 9),
                           _buildDisclaimer(context),
@@ -222,17 +232,17 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
               context
                   .read<PortfolioProvider>()
                   .setAdditionalInvestment(pf.id, 0);
-              setState(() {});
+              setState(() => _addMode = false);
             }),
             const SizedBox(width: 6),
-            _segment(context, l10n.modeAddCash, add, () => setState(() {})),
+            _segment(context, l10n.modeAddCash, add,
+                () => setState(() => _addMode = true)),
           ]),
         ),
         if (add) ...[
           const SizedBox(height: 9),
           _buildInvestField(context, pf),
-        ] else if (_investCtl.text.isEmpty)
-          const SizedBox.shrink(),
+        ],
       ],
     );
   }
@@ -327,7 +337,6 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
     final threshold = pf.rebalancingThreshold;
 
     double maxNow = 0, maxAfter = 0;
-    var inRange = 0;
     final outOfRange = <String>[];
     String? firstOutName;
     for (final r in rb.results) {
@@ -336,11 +345,9 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
       final after = r.finalWeight - item.targetWeight;
       if (now.abs() > maxNow.abs()) maxNow = now;
       if (after.abs() > maxAfter.abs()) maxAfter = after;
-      if (threshold <= 0 || after.abs() < threshold) {
-        inRange++;
-      } else {
+      if (threshold > 0 && after.abs() >= threshold) {
         outOfRange.add(item.id);
-        firstOutName ??= item.name;
+        firstOutName ??= item.displayName(context);
       }
     }
     final within = threshold <= 0 || maxAfter.abs() < threshold;
@@ -423,13 +430,11 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
         ),
         const SizedBox(height: 8),
         Text(
-          within
+          // 「허용 안」은 옆 배지가 이미 말했다. 같은 말을 두 번 하지 않는다.
+          onlyExcludedOut
               ? '${l10n.planMustRunAll(trades.length)} — '
-                  '${l10n.allItemsInRange(inRange)}'
-              : onlyExcludedOut
-                  ? '${l10n.planMustRunAll(trades.length)} — '
-                      '${l10n.excludedOnlyOutside(firstOutName)}'
-                  : l10n.planMustRunAll(trades.length),
+                  '${l10n.excludedOnlyOutside(firstOutName)}'
+              : l10n.planMustRunAll(trades.length),
           style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w500,
@@ -500,7 +505,8 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
         '${formatShares(d.abs())}${l10n.unitShares}';
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+      // 배지가 카드 모서리에 붙지 않게 좌우를 띄운다
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       decoration: BoxDecoration(
         border: Border(bottom: BorderSide(color: context.dividerColor)),
       ),
@@ -946,8 +952,10 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
   Widget _buildRoundingNote(BuildContext context, Portfolio pf,
       RebalanceResult rb, List<RebalanceItemResult> trades) {
     final l10n = context.l10n;
+    // **접어 둔다.** 세 문단이 화면 절반을 먹고 있었다. 그렇다고 지울 수는
+    // 없다 — 이 숫자를 믿고 증권사에서 주문을 내기 전에 알아야 할 것들이다.
+    // 기본은 한 줄, 궁금하면 펼친다.
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 13),
       decoration: BoxDecoration(
         color: context.cardBg,
         borderRadius: BorderRadius.circular(DS.listCardRadius),
@@ -956,31 +964,37 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
               color: Color(0x0D16130F), blurRadius: 2, offset: Offset(0, 1)),
         ],
       ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Icon(Icons.rule, size: 18, color: context.textSecondary),
-          const SizedBox(width: 9),
-          Expanded(
-            child: Text(
-                pf.fractionalEnabled
-                    ? l10n.roundingFractional
-                    : l10n.roundingWholeShares,
+      clipBehavior: Clip.antiAlias,
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+          childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+          expandedCrossAxisAlignment: CrossAxisAlignment.start,
+          iconColor: context.textSecondary,
+          collapsedIconColor: context.textSecondary,
+          title: Row(children: [
+            Icon(Icons.rule, size: 17, color: context.textSecondary),
+            const SizedBox(width: 9),
+            Text(l10n.calcBasisTitle,
                 style: TextStyle(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w700,
                     color: context.textPrimary)),
-          ),
-        ]),
-        const SizedBox(height: 7),
-        Text(
+          ]),
+          children: [
+      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        // 아래 두 항목과 **같은 모양으로** 낸다. 예전에는 설명만 Row 바깥에
+        // 붙어 있어 아이콘 너비만큼 왼쪽으로 튀어나왔다.
+        _noteRow(
+          context,
+          Icons.rule,
+          pf.fractionalEnabled
+              ? l10n.roundingFractional
+              : l10n.roundingWholeShares,
           pf.fractionalEnabled
               ? l10n.roundingFractionalDesc(sharesDecimals)
               : l10n.roundingWholeSharesDesc,
-          style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              height: 1.55,
-              color: context.textSecondary),
         ),
 
         // **이 숫자를 믿기 전에 알아야 할 것**을 같은 자리에 모은다.
@@ -1009,6 +1023,9 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
               : l10n.proposalCostWithout,
         ),
       ]),
+          ],
+        ),
+      ),
     );
   }
 

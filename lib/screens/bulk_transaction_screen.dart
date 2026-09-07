@@ -268,7 +268,7 @@ class _BulkTransactionScreenState extends State<BulkTransactionScreen> {
           _sideToggle(r.id, isBuy),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(item.name,
+            child: Text(item.displayName(context),
                 style: TextStyle(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w700,

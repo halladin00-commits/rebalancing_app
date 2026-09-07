@@ -27,10 +27,10 @@ Color _colorForItem(Portfolio pf, String itemId) {
   return chartPalette[hash % chartPalette.length];
 }
 
-String _nameForItem(Portfolio pf, PortfolioItem item) {
+String _nameForItem(Portfolio pf, PortfolioItem item, BuildContext context) {
   return pf.graphNames[item.id]?.isNotEmpty == true
       ? pf.graphNames[item.id]!
-      : item.name;
+      : item.displayName(context);
 }
 
 class _DonutPainter extends CustomPainter {
@@ -247,7 +247,7 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
     final nameCtrl = TextEditingController(
         text: pf.graphNames[item.id]?.isNotEmpty == true
             ? pf.graphNames[item.id]!
-            : item.name);
+            : item.displayName(context));
     Color selected = _colorForItem(pf, item.id);
 
     showDialog(
@@ -494,7 +494,7 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
                                 ? l10n.currentWeight
                                 : l10n.targetWeight,
                             for (final it in displayItems)
-                              '${_nameForItem(pf, it)} '
+                              '${_nameForItem(pf, it, context)} '
                                   '${it.targetWeight.toStringAsFixed(1)}%',
                           ].join(', '),
                           image: true,
@@ -604,7 +604,7 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
               ),
             ),
             const SizedBox(width: 10),
-            Expanded(child: Text(_nameForItem(pf, item),
+            Expanded(child: Text(_nameForItem(pf, item, context),
                 style: TextStyle(fontSize: 13, color: context.textPrimary),
                 overflow: TextOverflow.ellipsis)),
             Text('${pct.toStringAsFixed(1)}%',
@@ -648,7 +648,7 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
               ),
             ),
           ]),
-          title: Text(_nameForItem(pf, item),
+          title: Text(_nameForItem(pf, item, context),
               style: TextStyle(fontSize: 13, color: context.textPrimary),
               overflow: TextOverflow.ellipsis),
           trailing: Row(mainAxisSize: MainAxisSize.min, children: [

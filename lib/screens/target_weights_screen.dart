@@ -277,7 +277,7 @@ class _TargetWeightsScreenState extends State<TargetWeightsScreen> {
       child: Row(children: [
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(item.name,
+            Text(item.displayName(context),
                 style: TextStyle(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w700,

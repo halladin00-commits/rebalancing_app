@@ -131,7 +131,7 @@ Future<void> showExcludedSheet(
                     padding: const EdgeInsets.symmetric(vertical: 9),
                     child: Row(children: [
                       Expanded(
-                        child: Text(i.name,
+                        child: Text(i.displayName(context),
                             style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,

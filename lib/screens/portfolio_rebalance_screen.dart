@@ -79,6 +79,9 @@ class PortfolioRebalanceScreen extends StatelessWidget {
                     ? _buildNoPrices(context, isKo)
                     : _buildList(context, pf, drifts, isKo),
               ),
+              // 스크롤 밖에 고정한다. 목록 끝에 두면 버튼을 찾아 내려가는
+              // 사이에 정작 조정할 종목이 화면에서 사라진다.
+              if (drifts.isNotEmpty) _buildCta(context, pf, isKo),
               // 편차를 들여다보는 화면이라 체류가 길다. 배너를 둔다 —
               // 다음 화면(조정 제안)은 돈을 계산하는 자리라 넣지 않는다.
               const SafeArea(
@@ -114,16 +117,11 @@ class PortfolioRebalanceScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          crossAxisAlignment: CrossAxisAlignment.baseline,
-          textBaseline: TextBaseline.alphabetic,
           children: [
-            Text(
-              isKo ? '최대 편차' : 'Largest drift',
-              style: TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: context.onBrandSecondary),
-            ),
+            // **결론을 먼저 낸다.** 편차 숫자만 두면 허용치와 견줘 봐야
+            // 알 수 있어서 「한눈에」가 아니다.
+            if (pf.items.length >= 2)
+              _statusPill(context, needsAdjusting, isKo),
             const Spacer(),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
@@ -143,23 +141,37 @@ class PortfolioRebalanceScreen extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 4),
-        Text(
-          fmtPp(worst.drift, isKo),
-          style: TextStyle(
-            fontSize: DS.displayAmount,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -1.5,
-            height: 1.08,
-            color: valueColor,
-          ),
+        const SizedBox(height: 10),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Text(
+              fmtPp(worst.drift, isKo),
+              style: TextStyle(
+                fontSize: DS.displayAmount,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -1.5,
+                height: 1.08,
+                color: valueColor,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              isKo ? '최대 편차' : 'largest drift',
+              style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: context.onBrandSecondary),
+            ),
+          ],
         ),
         const SizedBox(height: 6),
         Text(
           needsAdjusting
               ? (isKo
-                  ? '${withJosa(worst.item.name, Josa.iGa)} 목표보다 ${worst.drift >= 0 ? '많습니다' : '적습니다'}'
-                  : '${worst.item.name} is ${worst.drift >= 0 ? 'over' : 'under'} target')
+                  ? '${withJosa(worst.item.displayName(context), Josa.iGa)} 목표보다 ${worst.drift >= 0 ? '많습니다' : '적습니다'}'
+                  : '${worst.item.displayName(context)} is ${worst.drift >= 0 ? 'over' : 'under'} target')
               // 종목이 하나뿐이면 "편차 안에 있다"는 말이 거짓이다 —
               // 옮길 데가 없어서 조정을 못 하는 것뿐이다.
               : pf.items.length < 2
@@ -173,6 +185,35 @@ class PortfolioRebalanceScreen extends StatelessWidget {
               color: context.onBrandSecondary),
         ),
       ],
+    );
+  }
+
+  /// 조정이 필요한지 아닌지 — 자산 탭과 **같은 말**을 쓴다.
+  Widget _statusPill(BuildContext context, bool needsAdjusting, bool isKo) {
+    final color =
+        needsAdjusting ? context.onBrandWarning : context.onBrandAccent;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.16),
+        borderRadius: BorderRadius.circular(DS.chipRadius),
+      ),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Icon(
+            needsAdjusting
+                ? Icons.error_outline
+                : Icons.check_circle_outline,
+            size: 15,
+            color: color),
+        const SizedBox(width: 5),
+        Text(
+          needsAdjusting
+              ? (isKo ? '조정 필요' : 'Needs adjusting')
+              : (isKo ? '비중 유지' : 'On target'),
+          style: TextStyle(
+              fontSize: 12.5, fontWeight: FontWeight.w800, color: color),
+        ),
+      ]),
     );
   }
 
@@ -296,35 +337,48 @@ class PortfolioRebalanceScreen extends StatelessWidget {
             ]),
           ),
         ],
-        const SizedBox(height: 16),
-        SizedBox(
-          height: DS.buttonHeight,
-          child: ElevatedButton(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => weightsReady
-                    ? RebalanceProposalScreen(portfolioId: pf.id)
-                    : TargetWeightsScreen(portfolioId: pf.id),
-              ),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: context.brand,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(DS.buttonRadius)),
-            ),
-            child: Text(
-              weightsReady
-                  ? (isKo ? '조정 제안 보기' : 'See adjustment plan')
-                  : context.l10n.fixTargetWeights,
-              style: const TextStyle(
-                  fontSize: 14.5, fontWeight: FontWeight.w700),
+      ],
+    );
+  }
+
+  // ── 화면 아래 고정 버튼 ──
+
+  Widget _buildCta(BuildContext context, Portfolio pf, bool isKo) {
+    // 목표 비중 합이 100%여야 조정 제안을 계산할 수 있다
+    final weightsReady = (pf.weightSum - 100).abs() <= 0.01;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+      decoration: BoxDecoration(
+        color: context.scaffoldBg,
+        border: Border(top: BorderSide(color: context.dividerColor)),
+      ),
+      child: SizedBox(
+        height: DS.buttonHeight,
+        child: ElevatedButton(
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => weightsReady
+                  ? RebalanceProposalScreen(portfolioId: pf.id)
+                  : TargetWeightsScreen(portfolioId: pf.id),
             ),
           ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: context.brand,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(DS.buttonRadius)),
+          ),
+          child: Text(
+            weightsReady
+                ? (isKo ? '조정 제안 보기' : 'See adjustment plan')
+                : context.l10n.fixTargetWeights,
+            style:
+                const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700),
+          ),
         ),
-      ],
+      ),
     );
   }
 
@@ -355,7 +409,7 @@ class PortfolioRebalanceScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  d.item.name,
+                  d.item.displayName(context),
                   style: TextStyle(
                       fontSize: DS.rowName,
                       fontWeight: FontWeight.w700,
