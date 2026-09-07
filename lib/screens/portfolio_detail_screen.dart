@@ -392,9 +392,13 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (_) => Padding(
-        padding: EdgeInsets.fromLTRB(
-            20, 16, 20, MediaQuery.of(ctx).padding.bottom + 20),
+      // 시트 안에서 `MediaQuery.padding.bottom`은 이미 소비돼 0으로 온다 —
+      // 그걸 더해 봐야 네비바를 못 비킨다. SafeArea에 맡긴다.
+      useSafeArea: true,
+      builder: (_) => SafeArea(
+        top: false,
+        child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -455,7 +459,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
             ]),
           ],
         ),
-      ),
+      )),
     );
   }
 
@@ -529,8 +533,6 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
       MenuSection(l10n.menuGroupThisPortfolio),
       MenuAction(Icons.edit_outlined, l10n.rename,
           () => editPortfolio(context, pf)),
-      MenuAction(Icons.copy_outlined, l10n.duplicate,
-          () => duplicatePortfolio(context, pf, l10n.copySuffix)),
       MenuAction(Icons.delete_outline, l10n.delete, () async {
         final gone = await confirmDeletePortfolio(context, pf);
         // 지운 포트의 상세에 남아 있을 수 없다
@@ -1368,6 +1370,8 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
         child: Row(children: [
+          Icon(Icons.drag_indicator, size: 20, color: context.textTertiary),
+          const SizedBox(width: 8),
           Expanded(
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1391,37 +1395,18 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                     style:
                         TextStyle(fontSize: 12, color: context.textSecondary)),
               ])),
-          IconButton(
-            onPressed: () => _showItemForm(pf, item),
-            tooltip: context.l10n.edit,
-              icon: Container(
-              width: 28,
-              height: 28,
-              decoration: BoxDecoration(
-                  color: context.brand.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
-                  border:
-                      Border.all(color: context.brand.withValues(alpha: 0.4))),
-              child: Icon(Icons.edit_outlined, color: context.brand, size: 16),
-            ),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-          ),
-          IconButton(
-            onPressed: () => _showDeleteConfirm(pf, item),
-            tooltip: context.l10n.a11yRemove,
-              icon: Container(
-              width: 28,
-              height: 28,
-              decoration: BoxDecoration(
-                  color: context.pnlDownTint,
-                  shape: BoxShape.circle,
-                  border:
-                      Border.all(color: context.danger.withValues(alpha: 0.4))),
-              child: Icon(Icons.remove, color: context.danger, size: 18),
-            ),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+          // 포트폴리오 목록 편집과 **같은 모양**이다. 같은 일을 하는 화면이
+          // 다르게 생기면 매번 다시 익혀야 한다. 삭제를 팝업 안에 두는 것도
+          // 이유가 있다 — 한 탭 거리에 있으면 잘못 누른다.
+          AppMenu(
+            onBrand: false,
+            iconSize: 20,
+            entries: [
+              MenuAction(Icons.edit_outlined, context.l10n.edit,
+                  () => _showItemForm(pf, item)),
+              MenuAction(Icons.delete_outline, context.l10n.delete,
+                  () => _showDeleteConfirm(pf, item), danger: true),
+            ],
           ),
         ]),
       ),

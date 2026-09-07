@@ -156,8 +156,6 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
           Navigator.push(context,
               MaterialPageRoute(builder: (_) => const PortfolioReorderScreen()));
         }),
-      MenuAction(Icons.add, l10n.addPortfolio,
-          () => _showCreateDialog(context)),
     ];
   }
 
@@ -205,9 +203,13 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (_) => Padding(
-        padding: EdgeInsets.fromLTRB(
-            20, 16, 20, MediaQuery.of(ctx).padding.bottom + 20),
+      // 시트 안에서 `MediaQuery.padding.bottom`은 이미 소비돼 0으로 온다 —
+      // 그걸 더해 봐야 네비바를 못 비킨다. SafeArea에 맡긴다.
+      useSafeArea: true,
+      builder: (_) => SafeArea(
+        top: false,
+        child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -268,7 +270,7 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
             ]),
           ],
         ),
-      ),
+      )),
     );
   }
 
@@ -329,178 +331,201 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
     }
   }
 
+  /// 저장·공유할 자산 이미지.
+  ///
+  /// **화면과 같은 것을 보여준다.** 예전에는 크림색 카드에 「평가금액」이라는
+  /// 화면에 있지도 않은 제목을 달고 배치도 달랐다 — 받은 사람에게는 다른 앱의
+  /// 그림이다. 딥그린 헤더 · 총 자산 · 두 타일 · 포트 목록까지 화면을 따른다.
+  ///
+  /// 광고와 탭바, 조정/결산 카드만 뺀다. 그건 화면의 것이지 자산의 것이 아니다.
+  ///
+  /// **여기서 읽은 값만 쓴다.** 이 위젯은 `captureFromWidget`이 만드는 딴
+  /// 트리에서 그려져 Provider도 Localizations도 없다 — 안에서 찾으면 릴리즈
+  /// 빌드에서 회색 사각형이 저장된다(결산 카드에서 실제로 그랬다).
   Widget _buildMainCapture(List<Portfolio> portfolios) {
-    final l10n = context.l10n;
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final pnlColors = context.read<PnlColorNotifier>();
     final displayCur = context.read<MainCurrencyNotifier>().currency;
+    final sort = context.read<PortfolioSortNotifier>().sort;
+    final ordered = sortPortfolios(portfolios, sort);
 
-    double totalKrw = 0;
-    double pnlKrw = 0;
-    double dayKrw = 0;
-    bool hasAvg = false;
-    bool hasDay = false;
-
+    double totalKrw = 0, pnlKrw = 0, dayKrw = 0;
+    bool hasAvg = false, hasDay = false;
     for (final pf in portfolios) {
       totalKrw += _toKrw(pf.totalValue, pf);
-      if (pf.hasPriceData && pf.hasAvgData) {
+      if (pf.hasAvgData) {
         pnlKrw += _toKrw(pf.unrealizedPnL, pf);
         hasAvg = true;
       }
-      if (pf.hasPriceData && pf.hasDayData) {
+      if (pf.hasDayData) {
         dayKrw += _toKrw(pf.dayPnL, pf);
         hasDay = true;
       }
     }
-
     final rates = portfolios
         .where((p) => p.exchangeRate > 0)
         .map((p) => p.exchangeRate)
         .toList();
-    final avgRate = rates.isNotEmpty
-        ? rates.reduce((a, b) => a + b) / rates.length
-        : 1370.0;
+    final avgRate =
+        rates.isNotEmpty ? rates.reduce((a, b) => a + b) / rates.length : 1370.0;
     final total = displayCur == 'USD' ? totalKrw / avgRate : totalKrw;
     final pnl = displayCur == 'USD' ? pnlKrw / avgRate : pnlKrw;
     final day = displayCur == 'USD' ? dayKrw / avgRate : dayKrw;
-
     final pnlPct = (total - pnl) > 0 ? pnl / (total - pnl) * 100 : 0.0;
     final dayPct = (total - day) > 0 ? day / (total - day) * 100 : 0.0;
+
+    String signed(double v) =>
+        '${v >= 0 ? '+' : '−'}${fmtMoney(v.abs(), displayCur)}';
+    String pct(double v) =>
+        '${v >= 0 ? '+' : '−'}${v.abs().toStringAsFixed(2)}%';
+
+    // 화면의 두 타일과 같은 모양
+    Widget tile(String label, double value, double percent) => Expanded(
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(13, 11, 13, 12),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.16),
+              borderRadius: BorderRadius.circular(DS.tileRadius),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: context.onBrandSecondary)),
+                const SizedBox(height: 5),
+                Text(signed(value),
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.3,
+                        color: value >= 0
+                            ? pnlColors.onBrandPositive
+                            : pnlColors.onBrandNegative)),
+                const SizedBox(height: 2),
+                Text(pct(percent),
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: value >= 0
+                            ? pnlColors.onBrandPositive
+                            : pnlColors.onBrandNegative)),
+              ],
+            ),
+          ),
+        );
 
     return Container(
       width: 380,
       color: context.scaffoldBg,
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text(l10n.evaluationAmount,
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        // ── 딥그린 헤더 (화면과 같은 블록) ──
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: context.appBarBg,
+            borderRadius: const BorderRadius.vertical(
+                bottom: Radius.circular(DS.headerRadius)),
+          ),
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            AppLogo(iconSize: 20, textColor: Colors.white),
+            const SizedBox(height: 14),
+            Text(isKo ? '총 자산' : 'Total assets',
                 style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: context.textHint)),
-            AppLogo(iconSize: 22, textColor: context.textPrimary),
-          ]),
-          const SizedBox(height: 4),
-          Text(fmtMoney(total, displayCur),
-              style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  color: context.textPrimary)),
-          if (hasAvg || hasDay) ...[
-            const SizedBox(height: 8),
-            Row(children: [
-              if (hasAvg)
-                Expanded(
-                    child: _summaryChip(
-                        context, l10n.profitLoss, pnl, pnlPct, pnlColors,
-                        currency: displayCur)),
-              if (hasAvg && hasDay) const SizedBox(width: 8),
-              if (hasDay)
-                Expanded(
-                    child: _summaryChip(
-                        context, l10n.dayChange, day, dayPct, pnlColors,
-                        currency: displayCur)),
-            ]),
-          ],
-          const SizedBox(height: 16),
-          ...portfolios.map((pf) {
-            final pfVal = pf.totalValue;
-            final pfCur = pf.currency;
-            final pfPnl =
-                (pf.hasPriceData && pf.hasAvgData) ? pf.unrealizedPnL : null;
-            final pfDay = (pf.hasPriceData && pf.hasDayData) ? pf.dayPnL : null;
-            final pfPnlIsPos = (pfPnl ?? 0) >= 0;
-            final pfDayIsPos = (pfDay ?? 0) >= 0;
-            final pfPnlColor =
-                pfPnlIsPos ? pnlColors.positiveColor : pnlColors.negativeColor;
-            final pfDayColor =
-                pfDayIsPos ? pnlColors.positiveColor : pnlColors.negativeColor;
-            final pfPnlBase = pfVal - (pfPnl ?? 0);
-            final pfPnlPct =
-                pfPnlBase != 0 ? (pfPnl ?? 0) / pfPnlBase * 100 : 0.0;
-            final pfDayBase = pfVal - (pfDay ?? 0);
-            final pfDayPct =
-                pfDayBase != 0 ? (pfDay ?? 0) / pfDayBase * 100 : 0.0;
-            return Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              decoration: BoxDecoration(
-                color: context.cardBg,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: context.borderColor),
-              ),
-              child: Row(children: [
-                Expanded(
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(children: [
-                          Expanded(
-                            child: Text(pf.name,
-                                style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    color: context.textPrimary),
-                                overflow: TextOverflow.ellipsis),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(l10n.itemCountLabel(pf.items.length),
-                              style: TextStyle(
-                                  fontSize: 11, color: context.textSecondary)),
-                          const SizedBox(width: 8),
-                          Text(fmtMoney(pfVal, pfCur),
-                              style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: context.textPrimary)),
-                        ]),
-                        if (pfPnl != null) ...[
-                          const SizedBox(height: 5),
-                          Row(children: [
-                            Text(l10n.profitLoss,
-                                style: TextStyle(
-                                    fontSize: 11, color: context.textHint)),
-                            Expanded(
-                              child: Text(
-                                '${pfPnlIsPos ? '+' : ''}${fmtMoney(pfPnl, pfCur)} (${pfPnlIsPos ? '+' : ''}${pfPnlPct.toStringAsFixed(1)}%)',
-                                style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: pfPnlColor),
-                                textAlign: TextAlign.end,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ]),
-                        ],
-                        if (pfDay != null) ...[
-                          const SizedBox(height: 2),
-                          Row(children: [
-                            Text(l10n.dayChange,
-                                style: TextStyle(
-                                    fontSize: 11, color: context.textHint)),
-                            Expanded(
-                              child: Text(
-                                '${pfDayIsPos ? '+' : ''}${fmtMoney(pfDay, pfCur)} (${pfDayIsPos ? '+' : ''}${pfDayPct.toStringAsFixed(1)}%)',
-                                style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: pfDayColor),
-                                textAlign: TextAlign.end,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ]),
-                        ],
-                      ]),
-                ),
+                    fontSize: DS.body,
+                    fontWeight: FontWeight.w600,
+                    color: context.onBrandSecondary)),
+            const SizedBox(height: 4),
+            Text(fmtMoney(total, displayCur),
+                style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    letterSpacing: -1.2,
+                    height: 1.08)),
+            if (hasAvg || hasDay) ...[
+              const SizedBox(height: 14),
+              Row(children: [
+                if (hasAvg) tile(isKo ? '평가손익' : 'Unrealized', pnl, pnlPct),
+                if (hasAvg && hasDay) const SizedBox(width: 9),
+                if (hasDay) tile(isKo ? '전일대비' : 'Today', day, dayPct),
               ]),
-            );
-          }),
-        ],
-      ),
+            ],
+          ]),
+        ),
+
+        // ── 포트 목록 (화면의 카드와 같은 모양) ──
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+          child: Container(
+            decoration: BoxDecoration(
+              color: context.cardBg,
+              borderRadius: BorderRadius.circular(DS.cardRadius),
+              border: Border.all(color: context.cardBorder),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: DS.cardPaddingH),
+            child: Column(children: [
+              for (var i = 0; i < ordered.length; i++)
+                _capturePortfolioRow(ordered[i], displayCur, avgRate, pnlColors,
+                    isLast: i == ordered.length - 1),
+            ]),
+          ),
+        ),
+      ]),
+    );
+  }
+
+  Widget _capturePortfolioRow(Portfolio pf, String displayCur, double avgRate,
+      PnlColorNotifier pnlColors,
+      {required bool isLast}) {
+    final tvKrw = _toKrw(pf.totalValue, pf);
+    final tv = displayCur == 'USD' ? tvKrw / avgRate : tvKrw;
+    final hasPnl = pf.hasPriceData && pf.hasAvgData;
+    final pnl = pf.unrealizedPnL;
+    final pnlPct = (pf.totalValue - pnl) != 0
+        ? pnl / (pf.totalValue - pnl) * 100
+        : 0.0;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 13),
+      decoration: isLast
+          ? null
+          : BoxDecoration(
+              border: Border(bottom: BorderSide(color: context.dividerColor))),
+      child: Row(children: [
+        Expanded(
+          child: Text(pf.name,
+              style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.2,
+                  color: context.textPrimary),
+              overflow: TextOverflow.ellipsis),
+        ),
+        const SizedBox(width: 10),
+        Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+          Text(fmtMoney(tv, displayCur),
+              style: TextStyle(
+                  fontSize: DS.rowAmount,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.3,
+                  color: context.textPrimary)),
+          if (hasPnl) ...[
+            const SizedBox(height: 3),
+            Text(
+                '${pnlPct >= 0 ? '+' : '−'}${pnlPct.abs().toStringAsFixed(2)}%',
+                style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    color: pnl >= 0
+                        ? pnlColors.positiveColor
+                        : pnlColors.negativeColor)),
+          ],
+        ]),
+      ]),
     );
   }
 
@@ -901,52 +926,6 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  /// 캡처 이미지용 손익 칩 (밝은 배경 위 — 헤더의 _brandTile과 별개)
-  Widget _summaryChip(BuildContext context, String label, double amount,
-      double pct, PnlColorNotifier pnlColors,
-      {String currency = 'KRW'}) {
-    final isPos = amount >= 0;
-    final color = isPos ? pnlColors.positiveColor : pnlColors.negativeColor;
-    final sign = isPos ? '+' : '−';
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
-      decoration: BoxDecoration(
-        color: context.subtleFill,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(children: [
-            Text(label,
-                style: TextStyle(fontSize: 11, color: context.textSecondary)),
-            const Spacer(),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-              decoration: BoxDecoration(
-                color: isPos ? context.pnlUpTint : context.pnlDownTint,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text('$sign${pct.abs().toStringAsFixed(1)}%',
-                  style: TextStyle(
-                      fontSize: DS.caption,
-                      fontWeight: FontWeight.w700,
-                      color: color)),
-            ),
-          ]),
-          const SizedBox(height: 3),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text('$sign${fmtMoney(amount.abs(), currency)}',
-                style: TextStyle(
-                    fontSize: 14, fontWeight: FontWeight.w700, color: color)),
-          ),
-        ],
       ),
     );
   }

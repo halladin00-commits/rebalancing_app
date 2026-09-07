@@ -42,6 +42,12 @@ void duplicatePortfolio(BuildContext context, Portfolio pf, String suffix) {
     items: pf.items.map((i) => i.copyWith(id: _uid())).toList(),
   );
   context.read<PortfolioProvider>().addPortfolio(copy);
+  // **무슨 일이 일어났는지 말한다.** 목록 아래쪽에 새 줄이 생기지만 화면 밖이면
+  // 보이지 않아서, 눌러도 아무 일도 안 일어난 것처럼 느껴졌다.
+  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+    content: Text(context.l10n.duplicatedTo(copy.name)),
+    duration: const Duration(seconds: 2),
+  ));
 }
 
 /// 삭제 전에 **무엇이 함께 사라지는지** 보여준다 (시안 v16b).

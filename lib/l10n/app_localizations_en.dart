@@ -300,7 +300,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuGroupThisPortfolio => 'This portfolio';
 
   @override
-  String get editPortfolios => 'Edit portfolios';
+  String get editPortfolios => 'Edit portfolio list';
 
   @override
   String get editPortfoliosHint =>
@@ -310,7 +310,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reorderPortfolios => 'Reorder portfolios';
 
   @override
-  String get reorderItems => 'Reorder holdings';
+  String get reorderItems => 'Edit holdings list';
 
   @override
   String get holdingQty => 'Quantity';
@@ -1265,6 +1265,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rename => 'Rename';
+
+  @override
+  String duplicatedTo(String name) {
+    return 'Duplicated as $name';
+  }
 
   @override
   String get duplicate => 'Duplicate';

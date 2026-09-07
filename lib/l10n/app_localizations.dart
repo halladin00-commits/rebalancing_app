@@ -605,7 +605,7 @@ abstract class AppLocalizations {
   /// No description provided for @editPortfolios.
   ///
   /// In ko, this message translates to:
-  /// **'포트폴리오 편집'**
+  /// **'포트폴리오 목록 편집'**
   String get editPortfolios;
 
   /// No description provided for @editPortfoliosHint.
@@ -623,7 +623,7 @@ abstract class AppLocalizations {
   /// No description provided for @reorderItems.
   ///
   /// In ko, this message translates to:
-  /// **'종목 순서 변경'**
+  /// **'종목 목록 편집'**
   String get reorderItems;
 
   /// No description provided for @holdingQty.
@@ -2251,6 +2251,12 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'이름 변경'**
   String get rename;
+
+  /// No description provided for @duplicatedTo.
+  ///
+  /// In ko, this message translates to:
+  /// **'{name} (으)로 복제했습니다'**
+  String duplicatedTo(String name);
 
   /// No description provided for @duplicate.
   ///

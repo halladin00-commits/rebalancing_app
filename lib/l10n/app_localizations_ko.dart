@@ -290,7 +290,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get menuGroupThisPortfolio => '이 포트폴리오';
 
   @override
-  String get editPortfolios => '포트폴리오 편집';
+  String get editPortfolios => '포트폴리오 목록 편집';
 
   @override
   String get editPortfoliosHint => '끌어서 순서를 바꾸고, ⋮에서 이름·복제·삭제를 합니다';
@@ -299,7 +299,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get reorderPortfolios => '포트폴리오 순서 변경';
 
   @override
-  String get reorderItems => '종목 순서 변경';
+  String get reorderItems => '종목 목록 편집';
 
   @override
   String get holdingQty => '보유 수량';
@@ -1238,6 +1238,11 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get rename => '이름 변경';
+
+  @override
+  String duplicatedTo(String name) {
+    return '$name (으)로 복제했습니다';
+  }
 
   @override
   String get duplicate => '복제';

@@ -52,14 +52,23 @@ class AppMenu extends StatelessWidget {
   /// 딥그린 헤더 위에 놓이면 흰색, 밝은 배경이면 어두운 색.
   final bool onBrand;
 
-  const AppMenu({super.key, required this.entries, this.onBrand = true});
+  /// 목록 한 줄에 놓을 때는 작게. 헤더의 ⋮와 같은 크기면 줄이 뚱뚱해진다.
+  final double iconSize;
+
+  const AppMenu({
+    super.key,
+    required this.entries,
+    this.onBrand = true,
+    this.iconSize = 24,
+  });
 
   @override
   Widget build(BuildContext context) {
     if (entries.isEmpty) return const SizedBox.shrink();
     return PopupMenuButton<int>(
       icon: Icon(Icons.more_vert,
-          color: onBrand ? Colors.white : context.textStrong),
+          size: iconSize,
+          color: onBrand ? Colors.white : context.textSecondary),
       tooltip: context.l10n.a11yMenu,
       color: context.cardBg,
       position: PopupMenuPosition.under,

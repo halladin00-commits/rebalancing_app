@@ -156,9 +156,13 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (_) => Padding(
-        padding: EdgeInsets.fromLTRB(
-            20, 16, 20, MediaQuery.of(ctx).padding.bottom + 20),
+      // 시트 안에서 `MediaQuery.padding.bottom`은 이미 소비돼 0으로 온다 —
+      // 그걸 더해 봐야 네비바를 못 비킨다. SafeArea에 맡긴다.
+      useSafeArea: true,
+      builder: (_) => SafeArea(
+        top: false,
+        child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -219,7 +223,7 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
             ]),
           ],
         ),
-      ),
+      )),
     );
   }
 

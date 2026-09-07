@@ -5,7 +5,8 @@ import 'package:provider/provider.dart';
 import '../main.dart';
 import '../models/portfolio.dart';
 import '../theme/design_system.dart';
-import '../utils/money_format.dart';
+
+import '../widgets/app_menu.dart';
 import '../widgets/portfolio_actions.dart';
 
 /// 포트폴리오 편집 — 순서·이름·복제·삭제를 **한자리에서**.
@@ -54,14 +55,6 @@ class PortfolioReorderScreen extends StatelessWidget {
                   () => sorter.setSort(PortfolioSort.returnRate)),
             ]),
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(18, 10, 18, 0),
-          child: Text(l10n.editPortfoliosHint,
-              style: TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w500,
-                  color: context.textSecondary)),
         ),
         Expanded(
           child: sort == PortfolioSort.manual
@@ -209,58 +202,24 @@ class PortfolioReorderScreen extends StatelessWidget {
               overflow: TextOverflow.ellipsis),
         ),
         const SizedBox(width: 8),
-        Text(fmtMoney(pf.totalValue, pf.currency),
-            style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.2,
-                color: context.textPrimary)),
         // 이름·복제·삭제를 **그 줄에서** 한다. 포트마다 상세로 들어갔다
         // 나오게 하면 편집 화면에 온 뜻이 없다.
-        _rowMenu(context, pf),
-      ]),
-    );
-  }
-
-  Widget _rowMenu(BuildContext context, Portfolio pf) {
-    final l10n = context.l10n;
-    return PopupMenuButton<String>(
-      icon: Icon(Icons.more_vert, size: 20, color: context.textSecondary),
-      tooltip: l10n.a11yMenu,
-      color: context.cardBg,
-      position: PopupMenuPosition.under,
-      onSelected: (v) async {
-        switch (v) {
-          case 'rename':
-            editPortfolio(context, pf);
-          case 'duplicate':
-            duplicatePortfolio(context, pf, l10n.copySuffix);
-          case 'delete':
-            await confirmDeletePortfolio(context, pf);
-        }
-      },
-      itemBuilder: (_) => [
-        _menuRow('rename', Icons.edit_outlined, l10n.rename, context),
-        _menuRow('duplicate', Icons.copy_outlined, l10n.duplicate, context),
-        _menuRow('delete', Icons.delete_outline, l10n.delete, context,
-            danger: true),
-      ],
-    );
-  }
-
-  PopupMenuItem<String> _menuRow(
-      String value, IconData icon, String label, BuildContext context,
-      {bool danger = false}) {
-    final color = danger ? context.danger : context.textPrimary;
-    return PopupMenuItem<String>(
-      value: value,
-      height: 44,
-      child: Row(children: [
-        Icon(icon, size: 18, color: color),
-        const SizedBox(width: 11),
-        Text(label,
-            style: TextStyle(
-                fontSize: 13.5, fontWeight: FontWeight.w600, color: color)),
+        //
+        // 금액은 내지 않는다 — 편집하러 온 화면에서 볼 것이 아니고,
+        // 종목 목록 편집도 같은 이유로 금액이 없다.
+        AppMenu(
+          onBrand: false,
+          iconSize: 20,
+          entries: [
+            MenuAction(Icons.edit_outlined, context.l10n.rename,
+                () => editPortfolio(context, pf)),
+            MenuAction(Icons.copy_outlined, context.l10n.duplicate,
+                () => duplicatePortfolio(
+                    context, pf, context.l10n.copySuffix)),
+            MenuAction(Icons.delete_outline, context.l10n.delete,
+                () => confirmDeletePortfolio(context, pf), danger: true),
+          ],
+        ),
       ]),
     );
   }
