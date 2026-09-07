@@ -863,7 +863,13 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
           },
           child: Scaffold(
             backgroundColor: context.scaffoldBg,
-            body: Column(
+            // **`bottomNavigationBar`에 둔다.** 본문 안에 붙이면 Scaffold가
+          // 배너의 존재를 몰라서, 새로고침 알림(스낵바)이 광고를 그대로
+          // 덮는다. 광고를 가리는 건 구글 정책 위반이고, 가려진 노출은
+          // 무효 트래픽으로 잡힐 수 있다.
+          bottomNavigationBar: const SafeArea(
+              top: false, child: BottomBannerAd(slot: AdSlot.detail)),
+          body: Column(
               children: [
                 // 편집 모드는 순서를 끌어 옮기는 목록이라 슬리버로 바꾸기
                 // 까다롭고, 오래 머무는 화면도 아니다. 헤더를 그대로 둔다.
@@ -928,11 +934,6 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                       : _buildScrollBody(context, pf, rb, hasPnl, hasDayChange,
                           totalPnl, totalCost, totalDayChange, totalPrevValue),
                 ),
-                // 광고도 네비바 위로 올린다. 이 화면은 셸 밖이라 SafeArea가 없어
-                // 그대로 두면 배너가 시스템 버튼에 깔린다.
-                const SafeArea(
-                    top: false,
-                    child: BottomBannerAd(slot: AdSlot.detail)),
               ],
             ),
           ),

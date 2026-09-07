@@ -42,6 +42,12 @@ class ItemDetailScreen extends StatelessWidget {
 
         return Scaffold(
           backgroundColor: context.scaffoldBg,
+          // **`bottomNavigationBar`에 둔다.** 본문 안에 붙이면 Scaffold가
+          // 배너의 존재를 몰라서, 새로고침 알림(스낵바)이 광고를 그대로
+          // 덮는다. 광고를 가리는 건 구글 정책 위반이고, 가려진 노출은
+          // 무효 트래픽으로 잡힐 수 있다.
+          bottomNavigationBar: const SafeArea(
+              top: false, child: BottomBannerAd(slot: AdSlot.detail)),
           body: Column(
             children: [
               _buildHeader(context, pf, item),
@@ -62,11 +68,6 @@ class ItemDetailScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              // 체류가 긴 화면이라 배너를 둔다. 폼·설정처럼 짧게 끝내는
-              // 화면에는 넣지 않는다 — 하던 일을 막는다.
-              const SafeArea(
-                  top: false,
-                  child: BottomBannerAd(slot: AdSlot.detail)),
             ],
           ),
         );

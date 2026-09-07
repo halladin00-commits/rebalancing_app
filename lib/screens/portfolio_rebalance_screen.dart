@@ -44,6 +44,12 @@ class PortfolioRebalanceScreen extends StatelessWidget {
 
         return Scaffold(
           backgroundColor: context.scaffoldBg,
+          // **`bottomNavigationBar`에 둔다.** 본문 안에 붙이면 Scaffold가
+          // 배너의 존재를 몰라서, 새로고침 알림(스낵바)이 광고를 그대로
+          // 덮는다. 광고를 가리는 건 구글 정책 위반이고, 가려진 노출은
+          // 무효 트래픽으로 잡힐 수 있다.
+          bottomNavigationBar: const SafeArea(
+              top: false, child: BottomBannerAd(slot: AdSlot.work)),
           body: Column(
             children: [
               BrandHeader(
@@ -82,11 +88,6 @@ class PortfolioRebalanceScreen extends StatelessWidget {
               // 스크롤 밖에 고정한다. 목록 끝에 두면 버튼을 찾아 내려가는
               // 사이에 정작 조정할 종목이 화면에서 사라진다.
               if (drifts.isNotEmpty) _buildCta(context, pf, isKo),
-              // 편차를 들여다보는 화면이라 체류가 길다. 배너를 둔다 —
-              // 다음 화면(조정 제안)은 돈을 계산하는 자리라 넣지 않는다.
-              const SafeArea(
-                  top: false,
-                  child: BottomBannerAd(slot: AdSlot.work)),
             ],
           ),
         );

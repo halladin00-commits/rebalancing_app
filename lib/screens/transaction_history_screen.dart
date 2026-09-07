@@ -108,6 +108,12 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
 
         return Scaffold(
           backgroundColor: context.scaffoldBg,
+          // **`bottomNavigationBar`에 둔다.** 본문 안에 붙이면 Scaffold가
+          // 배너의 존재를 몰라서, 새로고침 알림(스낵바)이 광고를 그대로
+          // 덮는다. 광고를 가리는 건 구글 정책 위반이고, 가려진 노출은
+          // 무효 트래픽으로 잡힐 수 있다.
+          bottomNavigationBar: const SafeArea(
+              top: false, child: BottomBannerAd(slot: AdSlot.work)),
           body: Column(children: [
             BrandHeader(
               title: l10n.transactionHistory,
@@ -132,10 +138,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                   ? _buildEmpty(context, filtered: all.isNotEmpty)
                   : _buildGroups(context, pf, shown),
             ),
-            // 체류가 긴 화면이라 배너를 둔다.
-            const SafeArea(
-                top: false,
-                child: BottomBannerAd(slot: AdSlot.work)),
           ]),
         );
       },

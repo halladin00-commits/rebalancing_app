@@ -271,6 +271,12 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
 
         return Scaffold(
           backgroundColor: context.scaffoldBg,
+          // **`bottomNavigationBar`에 둔다.** 본문 안에 붙이면 Scaffold가
+          // 배너의 존재를 몰라서, 새로고침 알림(스낵바)이 광고를 그대로
+          // 덮는다. 광고를 가리는 건 구글 정책 위반이고, 가려진 노출은
+          // 무효 트래픽으로 잡힐 수 있다.
+          bottomNavigationBar: const SafeArea(
+              top: false, child: BottomBannerAd(slot: AdSlot.settlement)),
           body: Column(
             children: [
               Expanded(
@@ -344,11 +350,6 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
                   ],
                 ),
               ),
-              // 공유 이미지는 `captureFromWidget`으로 따로 그린다 — 화면에
-              // 배너를 붙여도 저장·공유한 그림에는 안 들어간다.
-              const SafeArea(
-                  top: false,
-                  child: BottomBannerAd(slot: AdSlot.settlement)),
             ],
           ),
         );
