@@ -716,6 +716,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get holdingsSection => '구성 종목';
 
   @override
+  String get cashExcluded => '예수금 비중 제외';
+
+  @override
   String get cashIncluded => '예수금 포함';
 
   @override

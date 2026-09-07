@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -22,8 +23,26 @@ import 'widgets/disclaimer_dialog.dart';
 import 'widgets/app_logo.dart';
 import 'l10n/app_localizations.dart';
 
+/// 검토용 빌드에서 접근성 트리를 항상 켤지.
+///
+/// `flutter build --dart-define=A11Y_ALWAYS=true` 로 만든 빌드에서만 참이다.
+/// 스토어에 올리는 빌드에는 영향이 없다.
+const bool _a11yAlways = bool.fromEnvironment('A11Y_ALWAYS');
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // **화면을 글자로 읽을 수 있게 한다 (검토용 빌드 전용).**
+  //
+  // Flutter는 캔버스에 직접 그리기 때문에, 접근성 트리가 없으면 `uiautomator`
+  // 로 화면을 읽을 수 없다. 그래서 지금까지 에뮬레이터에서 무엇이 떠 있는지
+  // 확인하려면 매번 화면을 캡처해서 눈으로 봐야 했다 — 느리고, 비싸고,
+  // 전환 중에 찍히면 엉뚱한 걸 보게 된다.
+  //
+  // 이걸 켜 두면 화면의 글자와 좌표를 텍스트로 읽을 수 있어, 눌러야 할 것을
+  // **좌표 계산 없이 이름으로** 찾고 화면이 바뀔 때까지 기다릴 수 있다.
+  if (_a11yAlways) SemanticsBinding.instance.ensureSemantics();
+
   // **세로로 고정한다.** 가로로 돌리면 자산 탭 헤더가 화면을 다 먹고
   // `BOTTOM OVERFLOWED BY 69 PIXELS`와 함께 포트폴리오 목록이 사라진다.
   // 이 앱은 세로로 긴 목록을 훑는 도구라 가로 레이아웃을 따로 만들 이유가

@@ -444,6 +444,7 @@
   "language": "Language",
   "portfolioAddBtn": "Add Portfolio",
   "holdingsSection": "Holdings",
+  "cashExcluded": "cash excl. from weights",
   "cashIncluded": "incl. cash",
   "itemCountLabel": "{count} stocks",
   "@itemCountLabel": {

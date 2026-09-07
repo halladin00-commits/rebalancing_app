@@ -1370,6 +1370,12 @@ abstract class AppLocalizations {
   /// **'구성 종목'**
   String get holdingsSection;
 
+  /// No description provided for @cashExcluded.
+  ///
+  /// In ko, this message translates to:
+  /// **'예수금 비중 제외'**
+  String get cashExcluded;
+
   /// No description provided for @cashIncluded.
   ///
   /// In ko, this message translates to:

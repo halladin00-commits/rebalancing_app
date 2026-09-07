@@ -1330,12 +1330,16 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
   }
 
   /// `3종목 · 예수금 포함` — 섹션 제목 우측 부가.
+  ///
+  /// 비중에서 뺀 예수금을 「포함」이라고 하면 안 된다. 예수금 항목이 목록에
+  /// 있다는 뜻으로 쓰던 말인데, 비중 포함이 설정이 된 뒤로는 정반대로 읽힌다.
   String _holdingsSummary(BuildContext context, Portfolio pf) {
     final l10n = context.l10n;
     final stocks = pf.items.where((i) => !i.isCash).length;
-    final hasCash = pf.items.any((i) => i.isCash);
     final count = l10n.itemCountLabel(stocks);
-    return hasCash ? '$count · ${l10n.cashIncluded}' : count;
+    final cash = pf.items.where((i) => i.isCash).firstOrNull;
+    if (cash == null) return count;
+    return '$count · ${cash.inWeight ? l10n.cashIncluded : l10n.cashExcluded}';
   }
 
   /// 구성 종목 한 행 (시안 v12b).

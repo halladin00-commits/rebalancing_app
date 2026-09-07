@@ -731,6 +731,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get holdingsSection => 'Holdings';
 
   @override
+  String get cashExcluded => 'cash excl. from weights';
+
+  @override
   String get cashIncluded => 'incl. cash';
 
   @override

@@ -445,6 +445,7 @@
   "language": "언어",
   "portfolioAddBtn": "포트폴리오 추가",
   "holdingsSection": "구성 종목",
+  "cashExcluded": "예수금 비중 제외",
   "cashIncluded": "예수금 포함",
   "itemCountLabel": "{count}개 종목",
   "@itemCountLabel": {

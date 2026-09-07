@@ -52,7 +52,10 @@ print('검토용 설정 적용')
 PY
 
 export GRADLE_USER_HOME="${GRADLE_USER_HOME:-/d/gradle_fresh}"
-flutter build apk --release --split-per-abi --target-platform "$TARGET"
+# `A11Y_ALWAYS`는 검토용 빌드에서만 켠다. Flutter는 캔버스에 그려서
+# 접근성 트리가 없으면 `uiautomator`로 화면을 못 읽는다 — 이걸 켜야
+# tools/ui.sh 로 화면을 글자로 확인하고 이름으로 누를 수 있다.
+flutter build apk --release --split-per-abi --target-platform "$TARGET" --dart-define=A11Y_ALWAYS=true
 
 APK="build/app/outputs/flutter-apk/app-$ABI-release.apk"
 ls -l "$APK"
