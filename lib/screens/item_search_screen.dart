@@ -448,7 +448,7 @@ class _ItemSearchScreenState extends State<ItemSearchScreen> {
                     )
                   : null),
           otherWeights:
-              pf.items.fold<double>(0, (s, i) => s + i.targetWeight),
+              pf.weighedItems.fold<double>(0, (s, i) => s + i.targetWeight),
           priceAuto: pf.priceAuto,
           currency: pf.currency,
           onSave: (item) {

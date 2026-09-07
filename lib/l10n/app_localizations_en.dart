@@ -961,6 +961,25 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get cashCheckAtBroker =>
+      'Copy the balance from your broker. The app does not calculate it for you.';
+
+  @override
+  String get cashInWeightTitle => 'Count toward weights';
+
+  @override
+  String get cashInWeightOn =>
+      'Cash gets a target weight and takes part in rebalancing.';
+
+  @override
+  String get cashInWeightOff =>
+      'Excluded from weights, and never spent when rebalancing — use «Add cash» in the plan to spend it.';
+
+  @override
+  String get cashCheckAfterTrade =>
+      'Cash is not calculated for you. Check your broker after the fills and update it.';
+
+  @override
   String get cashAfterAdjust => 'Cash after adjusting';
 
   @override

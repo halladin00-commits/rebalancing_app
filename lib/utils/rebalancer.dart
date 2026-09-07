@@ -41,7 +41,7 @@ class Rebalancer {
   /// 편차 계산(`driftExceeding`)은 그대로 둔다 — 그건 조정 계산에도 쓰이므로
   /// 건드리면 숫자가 바뀐다. 여기서는 **뭐라고 말할지만** 가른다.
   static List<ItemDrift> needsAdjusting(Portfolio portfolio) =>
-      portfolio.items.length < 2 ? const [] : driftExceeding(portfolio);
+      portfolio.weighedItems.length < 2 ? const [] : driftExceeding(portfolio);
 
   /// 편차를 **낼 수 있는가.** 시세가 하나라도 없으면 못 낸다.
   ///
@@ -77,7 +77,7 @@ class Rebalancer {
     if (holdings.isEmpty) return DriftBlocker.noItems;
 
     final targetSum =
-        portfolio.items.fold<double>(0, (s, i) => s + i.targetWeight);
+        portfolio.weighedItems.fold<double>(0, (s, i) => s + i.targetWeight);
     if (targetSum <= 0) return DriftBlocker.noTargets;
 
     if (allDrifts(portfolio).isEmpty) return DriftBlocker.noPrices;
@@ -85,8 +85,10 @@ class Rebalancer {
   }
 
   /// 전 종목의 현재 비중과 편차. 편차 절댓값 내림차순.
+  ///
+  /// 「비중에 포함」을 끈 예수금은 여기 없다 — 비중을 안 가지므로 편차도 없다.
   static List<ItemDrift> allDrifts(Portfolio portfolio) {
-    final items = portfolio.items;
+    final items = portfolio.weighedItems;
     if (items.isEmpty) return const [];
     if (items.any((i) => !i.isCash && i.currentPrice <= 0)) return const [];
 
@@ -136,7 +138,9 @@ class Rebalancer {
     Set<String>? excludeIds,
     bool redistributeExcluded = true,
   }) {
-    final items = portfolio.items;
+    // 「비중에 포함」을 끈 예수금은 조정에서 통째로 빠진다 — 목표도 없고
+    // 매수 예산으로도 안 쓴다. 그 돈을 쓰려면 `추가 입금으로`에 직접 넣는다.
+    final items = portfolio.weighedItems;
     if (items.isEmpty) return null;
     final weightSum = items.fold(0.0, (sum, item) => sum + item.targetWeight);
     if ((weightSum - 100).abs() > 0.01) return null;

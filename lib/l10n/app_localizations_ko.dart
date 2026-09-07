@@ -942,6 +942,24 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get cashCheckAtBroker =>
+      '증권사 앱에서 예수금을 확인해 그대로 적어 주세요. 앱이 대신 계산하지 않습니다.';
+
+  @override
+  String get cashInWeightTitle => '비중에 포함';
+
+  @override
+  String get cashInWeightOn => '예수금도 목표 비중을 갖고, 조정 대상에 들어갑니다.';
+
+  @override
+  String get cashInWeightOff =>
+      '비중에서 빠집니다. 조정할 때 쓰지도 않습니다 — 쓰려면 조정 제안에서 «추가 입금으로»에 넣으세요.';
+
+  @override
+  String get cashCheckAfterTrade =>
+      '예수금은 앱이 계산하지 않습니다. 체결 뒤 증권사에서 확인해 직접 고쳐 주세요.';
+
+  @override
   String get cashAfterAdjust => '조정 후 예수금';
 
   @override

@@ -403,15 +403,10 @@ class _BulkTransactionScreenState extends State<BulkTransactionScreen> {
 
   // ── 합계 ──
 
-  /// 수수료와 조정 후 예수금. 둘 다 **포트 설정을 따르므로** 여기서 고칠 수 없다.
+  /// 수수료 요약. **포트 설정을 따르므로** 여기서 고칠 수 없다.
   Widget _buildSummary(BuildContext context) {
     final l10n = context.l10n;
     final pf = widget.pf;
-
-    double cashAfter = widget.rb.cash;
-    for (final r in widget.rb.results) {
-      if (r.isCash) cashAfter += r.newCashAmount;
-    }
 
     double commission = 0;
     if (pf.commissionEnabled) {
@@ -450,13 +445,10 @@ class _BulkTransactionScreenState extends State<BulkTransactionScreen> {
               l10n.commissionAutoSum(
                   _trimZero(pf.commissionRate), _tradeable.length),
               fmtMoney(commission, pf.currency)),
-        // 조정 제안의 예수금 가계부와 **같은 숫자**여야 한다.
-        // `rb.cash`는 어디에도 배분되지 않은 잔여금(추가 투자금으로 넘어간다)일
-        // 뿐이고, 실제 예수금 잔액은 현금 항목의 `newCashAmount`다.
-        // 둘을 더한 것이 조정 뒤 계좌에 실제로 남는 돈이다.
-        line(l10n.cashAfterAdjust, fmtMoney(cashAfter, pf.currency)),
-        const SizedBox(height: 9),
-        Text(l10n.followsPortfolioSettings,
+        // 「조정 후 예수금」은 더 이상 내지 않는다. 세금·체결가까지 알 수
+        // 없으면서 잔액을 단언하면, 사용자는 그 숫자를 믿고 확인을 건너뛴다.
+        const SizedBox(height: 2),
+        Text(l10n.cashCheckAfterTrade,
             style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
@@ -501,10 +493,8 @@ class _BulkTransactionScreenState extends State<BulkTransactionScreen> {
     // 되돌리기용으로 **바꾸기 전 상태**를 먼저 붙잡는다.
     // 기록한 뒤에 읽으면 이미 바뀐 값이라 되돌릴 수가 없다.
     final pfNow = provider.getPortfolio(widget.pf.id);
-    final cashItem = pfNow?.items.where((i) => i.isCash).firstOrNull;
     final undoTx = <({String itemId, String txId})>[];
     final lastRebalancedBefore = pfNow?.lastRebalancedAt;
-    final cashBefore = cashItem?.shares;
 
     for (var i = 0; i < _tradeable.length; i++) {
       final r = _tradeable[i];
@@ -521,12 +511,12 @@ class _BulkTransactionScreenState extends State<BulkTransactionScreen> {
       undoTx.add((itemId: r.id, txId: tx.id));
     }
 
-    final cashItems = widget.rb.results
-        .where((r) => r.isCash)
-        .map((r) => {'id': r.id, 'newShares': r.newCashAmount})
-        .toList();
-    await provider.updateCashAndResidual(
-        widget.pf.id, cashItems, widget.rb.cash);
+    // **예수금은 건드리지 않는다.** 세금·체결가·환율·이자까지 앱이 알 수
+    // 없어서 계산해 봐야 매번 조금씩 틀리고, 그 오차가 조정할 때마다 쌓인다.
+    // 기록이 끝나면 사용자가 증권사에서 확인해 직접 적는다.
+    //
+    // 추가 입금액은 이번 조정에 쓴 값이라 0으로 되돌린다.
+    await provider.setAdditionalInvestment(widget.pf.id, 0);
 
     // **여기가 리밸런싱을 실행한 순간이다.** 이 시각을 남겨야 「마지막으로
     // 언제 손봤나」에 답할 수 있다 — 밴드(허용 편차)만 있고 기간이 없으면
@@ -543,8 +533,8 @@ class _BulkTransactionScreenState extends State<BulkTransactionScreen> {
       kind: UndoBatch.kindProposal,
       at: stamp,
       transactions: undoTx,
-      cashItemId: cashItem?.id,
-      cashBefore: cashBefore,
+      // 예수금은 이제 앱이 안 건드리므로 되돌릴 것도 없다.
+      // (예전 배치에는 값이 들어 있어 되돌리기가 그대로 동작한다)
       lastRebalancedBefore: lastRebalancedBefore,
     ));
 

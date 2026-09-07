@@ -1754,6 +1754,36 @@ abstract class AppLocalizations {
   /// **'매수 대금 {count}건'**
   String buyCostN(int count);
 
+  /// No description provided for @cashCheckAtBroker.
+  ///
+  /// In ko, this message translates to:
+  /// **'증권사 앱에서 예수금을 확인해 그대로 적어 주세요. 앱이 대신 계산하지 않습니다.'**
+  String get cashCheckAtBroker;
+
+  /// No description provided for @cashInWeightTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'비중에 포함'**
+  String get cashInWeightTitle;
+
+  /// No description provided for @cashInWeightOn.
+  ///
+  /// In ko, this message translates to:
+  /// **'예수금도 목표 비중을 갖고, 조정 대상에 들어갑니다.'**
+  String get cashInWeightOn;
+
+  /// No description provided for @cashInWeightOff.
+  ///
+  /// In ko, this message translates to:
+  /// **'비중에서 빠집니다. 조정할 때 쓰지도 않습니다 — 쓰려면 조정 제안에서 «추가 입금으로»에 넣으세요.'**
+  String get cashInWeightOff;
+
+  /// No description provided for @cashCheckAfterTrade.
+  ///
+  /// In ko, this message translates to:
+  /// **'예수금은 앱이 계산하지 않습니다. 체결 뒤 증권사에서 확인해 직접 고쳐 주세요.'**
+  String get cashCheckAfterTrade;
+
   /// No description provided for @cashAfterAdjust.
   ///
   /// In ko, this message translates to:

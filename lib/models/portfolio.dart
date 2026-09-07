@@ -38,6 +38,21 @@ class PortfolioItem {
   String ticker;
   String market; // "KR", "US", "CASH"
   bool isCash;
+
+  /// 비중 계산에 넣을지. **예수금에만 뜻이 있다.**
+  ///
+  /// 끄면 목표 비중을 갖지 않고, 조정 대상에서도 빠지고, 매수 예산으로도
+  /// 쓰이지 않는다. 그 돈을 쓰려면 `추가 입금으로`에 직접 넣는다 —
+  /// 앱이 알아서 사용자의 돈을 쓰지 않는다.
+  bool inWeight;
+
+  /// 예수금 금액을 마지막으로 적은 시각 (ms). 예수금이 아니면 null.
+  ///
+  /// 앱은 예수금을 계산해 주지 않는다 — 세금·수수료·체결가·환율·이자까지
+  /// 알 수 없기 때문이다. 사용자가 적는 값이므로 **언제 적은 것인지**가
+  /// 보여야 한다. 낡은 값은 티가 나야 고칠 수 있다.
+  int? cashUpdatedAt;
+
   double targetWeight;
   double shares;
   double currentPrice;
@@ -52,6 +67,8 @@ class PortfolioItem {
     this.ticker = '',
     this.market = 'KR',
     this.isCash = false,
+    this.inWeight = true,
+    this.cashUpdatedAt,
     this.targetWeight = 0,
     this.shares = 0,
     this.currentPrice = 0,
@@ -73,6 +90,8 @@ class PortfolioItem {
     'ticker': ticker,
     'market': market,
     'isCash': isCash,
+    'inWeight': inWeight,
+    'cashUpdatedAt': cashUpdatedAt,
     'targetWeight': targetWeight,
     'shares': shares,
     'currentPrice': currentPrice,
@@ -109,6 +128,9 @@ class PortfolioItem {
       ticker: json['ticker'] ?? '',
       market: json['market'] ?? 'KR',
       isCash: json['isCash'] ?? false,
+      // 없던 데이터는 지금까지처럼 비중에 포함된 것으로 읽는다
+      inWeight: json['inWeight'] ?? true,
+      cashUpdatedAt: json['cashUpdatedAt'],
       targetWeight: (json['targetWeight'] ?? 0).toDouble(),
       shares: shares,
       currentPrice: (json['currentPrice'] ?? 0).toDouble(),
@@ -125,6 +147,8 @@ class PortfolioItem {
     String? ticker,
     String? market,
     bool? isCash,
+    bool? inWeight,
+    int? cashUpdatedAt,
     double? targetWeight,
     double? shares,
     double? currentPrice,
@@ -138,6 +162,8 @@ class PortfolioItem {
     ticker: ticker ?? this.ticker,
     market: market ?? this.market,
     isCash: isCash ?? this.isCash,
+    inWeight: inWeight ?? this.inWeight,
+    cashUpdatedAt: cashUpdatedAt ?? this.cashUpdatedAt,
     targetWeight: targetWeight ?? this.targetWeight,
     shares: shares ?? this.shares,
     currentPrice: currentPrice ?? this.currentPrice,
@@ -237,11 +263,31 @@ class Portfolio {
       (i.market == 'US' && currency == 'KRW') ||
       (i.market == 'KR' && currency == 'USD'));
 
+  /// **가진 돈 전부.** 화면의 「총 자산」이 이것이다.
+  ///
+  /// 비중에서 뺀 예수금도 여기엔 들어간다 — 비중에 안 넣는다고 내 돈이
+  /// 아닌 게 아니다. 비중의 분모는 [weighedValue]로 따로 낸다.
   double get totalValue {
     return items.fold(0.0, (sum, item) {
       if (item.isCash) return sum + item.shares;
       final price = _priceInBase(item);
       return sum + item.shares * price;
+    });
+  }
+
+  /// 비중 계산과 조정에 참여하는 종목.
+  ///
+  /// 「비중에 포함」을 끈 예수금만 빠진다.
+  List<PortfolioItem> get weighedItems =>
+      items.where((i) => !i.isCash || i.inWeight).toList();
+
+  /// **비중을 나눌 몫.** [totalValue]와 다르다.
+  ///
+  /// 둘을 하나로 쓰면 예수금을 비중에서 뺀 순간 총 자산까지 같이 줄어든다.
+  double get weighedValue {
+    return weighedItems.fold(0.0, (sum, item) {
+      if (item.isCash) return sum + item.shares;
+      return sum + item.shares * _priceInBase(item);
     });
   }
 
@@ -265,9 +311,10 @@ class Portfolio {
   bool get hasAvgData => items.any((i) => !i.isCash && i.avgPrice > 0);
   bool get hasDayData => items.any((i) => !i.isCash && i.previousClose > 0);
 
-  /// 목표비중 합계
+  /// 목표비중 합계. 비중에서 뺀 예수금은 세지 않는다 —
+  /// 그 종목은 목표 비중 화면에도 안 나오므로 합에 넣으면 100%가 안 맞는다.
   double get weightSum =>
-      items.fold(0.0, (sum, item) => sum + item.targetWeight);
+      weighedItems.fold(0.0, (sum, item) => sum + item.targetWeight);
 
   /// 종목의 기준통화 환산 가격
   double _priceInBase(PortfolioItem item) {

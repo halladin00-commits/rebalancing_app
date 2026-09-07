@@ -628,6 +628,11 @@
       }
     }
   },
+  "cashCheckAtBroker": "증권사 앱에서 예수금을 확인해 그대로 적어 주세요. 앱이 대신 계산하지 않습니다.",
+  "cashInWeightTitle": "비중에 포함",
+  "cashInWeightOn": "예수금도 목표 비중을 갖고, 조정 대상에 들어갑니다.",
+  "cashInWeightOff": "비중에서 빠집니다. 조정할 때 쓰지도 않습니다 — 쓰려면 조정 제안에서 «추가 입금으로»에 넣으세요.",
+  "cashCheckAfterTrade": "예수금은 앱이 계산하지 않습니다. 체결 뒤 증권사에서 확인해 직접 고쳐 주세요.",
   "cashAfterAdjust": "조정 후 예수금",
   "cashSharedNote": "매수가 같은 예수금을 나눠 씁니다 — 따로 계산하면 맞지 않습니다.",
   "sellFirstNote": "매도 먼저 실행 — 해외 종목은 환전이 필요하면 하루 이틀 늦어질 수 있습니다.",

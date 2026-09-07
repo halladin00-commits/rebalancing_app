@@ -798,7 +798,6 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
       }
     }
     final diff = proceeds - cost;
-    final after = (cash?.shares ?? 0) + diff;
 
     RebalanceItemResult? cashResult;
     if (cash != null) {
@@ -876,16 +875,14 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
             padding: const EdgeInsets.symmetric(vertical: 6),
             child: Divider(height: 1, color: context.dividerColor),
           ),
-          // 예수금 종목이 있으면 **조정 후 예수금**이 더 쓸모 있다 —
-          // 실제로 계좌에 얼마가 남는지가 그 값이다. 없으면 차액을 낸다.
-          cash != null
-              ? line(l10n.cashAfterAdjust, fmtMoney(after, pf.currency),
-                  bold: true)
-              : line(
-                  diff >= 0 ? l10n.tradeMoneyLeft : l10n.tradeMoneyNeeded,
-                  fmtMoney(diff.abs(), pf.currency),
-                  bold: true,
-                  color: diff >= 0 ? context.brandOnLight : context.warningText),
+          // **「조정 후 예수금」이라고 말하지 않는다.** 세금·체결가까지는 알
+          // 수 없어서 잔액을 단언하면 틀린다. 이 카드가 말할 수 있는 것은
+          // 「이 주문들로 오가는 돈」까지다.
+          line(
+              diff >= 0 ? l10n.tradeMoneyLeft : l10n.tradeMoneyNeeded,
+              fmtMoney(diff.abs(), pf.currency),
+              bold: true,
+              color: diff >= 0 ? context.brandOnLight : context.warningText),
           if (buyCount >= 2) ...[
             const SizedBox(height: 9),
             Text(l10n.cashSharedNote,

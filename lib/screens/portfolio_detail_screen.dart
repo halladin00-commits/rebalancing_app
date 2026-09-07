@@ -27,6 +27,7 @@ import '../widgets/app_logo.dart';
 import '../services/ad_service.dart';
 import '../widgets/bottom_banner_ad.dart';
 import '../widgets/brand_header.dart';
+import '../widgets/cash_edit_sheet.dart';
 import '../widgets/collapsing_header.dart';
 import '../widgets/dashed_border_box.dart';
 import '../widgets/list_card.dart';
@@ -176,7 +177,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
       MaterialPageRoute(
         builder: (_) => ItemFormScreen(
           item: item,
-          otherWeights: pf.items
+          otherWeights: pf.weighedItems
               .where((i) => i.id != item?.id)
               .fold<double>(0, (s, i) => s + i.targetWeight),
           priceAuto: pf.priceAuto,
@@ -618,6 +619,12 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
 
   /// 종목 상세는 시안 v12c에서 바텀시트가 아니라 전용 화면이다.
   void _showItemSheet(Portfolio pf, PortfolioItem item, RebalanceResult? rb) {
+    // 예수금은 볼 게 금액 하나뿐이다. 종목 상세로 보내면 시세·손익처럼
+    // 예수금에 없는 칸만 잔뜩 나온다 — 바로 고치는 시트를 연다.
+    if (item.isCash) {
+      CashEditSheet.show(context, pf, item);
+      return;
+    }
     Navigator.push(
       context,
       MaterialPageRoute(

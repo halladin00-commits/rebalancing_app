@@ -478,7 +478,7 @@ class ItemDetailScreen extends StatelessWidget {
                 MaterialPageRoute(
                   builder: (_) => ItemFormScreen(
                     item: item,
-                    otherWeights: pf.items
+                    otherWeights: pf.weighedItems
                         .where((i) => i.id != item.id)
                         .fold<double>(0, (s, i) => s + i.targetWeight),
                     priceAuto: pf.priceAuto,

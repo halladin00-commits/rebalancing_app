@@ -931,6 +931,29 @@ class PortfolioProvider extends ChangeNotifier {
     }
   }
 
+  /// 예수금을 **사용자가 적은 값으로** 바꾼다.
+  ///
+  /// 앱이 계산해 주지 않기로 한 값이므로, 금액이 바뀌면 적은 시각을 같이
+  /// 남긴다 — 화면이 「3일 전에 적은 값」이라고 말할 수 있어야 낡은 걸 안다.
+  Future<void> updateCash(
+    String pfId,
+    String itemId, {
+    double? amount,
+    bool? inWeight,
+  }) async {
+    final pf = getPortfolio(pfId);
+    if (pf == null) return;
+    final idx = pf.items.indexWhere((i) => i.id == itemId);
+    if (idx == -1) return;
+    final item = pf.items[idx];
+    if (amount != null && amount != item.shares) {
+      item.shares = amount;
+      item.cashUpdatedAt = DateTime.now().millisecondsSinceEpoch;
+    }
+    if (inWeight != null) item.inWeight = inWeight;
+    await _save();
+  }
+
   Future<void> updateCashAndResidual(
     String pfId,
     List<Map<String, dynamic>> cashItems,

@@ -78,7 +78,7 @@ class _TargetWeightsScreenState extends State<TargetWeightsScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 13, 16, 16),
                 children: [
                   ListCard(rows: [
-                    for (final item in pf.items)
+                    for (final item in pf.weighedItems)
                       _buildRow(context, item, drifts[item.id]),
                   ]),
                   const SizedBox(height: 18),
@@ -409,7 +409,7 @@ class _TargetWeightsScreenState extends State<TargetWeightsScreen> {
 
   Future<void> _save(Portfolio pf) async {
     final provider = context.read<PortfolioProvider>();
-    for (final item in pf.items) {
+    for (final item in pf.weighedItems) {
       final v = double.tryParse(_ctls[item.id]?.text.trim() ?? '') ?? 0;
       if (v != item.targetWeight) {
         await provider.updateItem(pf.id, item.copyWith(targetWeight: v));
