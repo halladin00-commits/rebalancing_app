@@ -31,6 +31,7 @@
   "itemName": "종목명",
   "itemNameHint": "예: TIGER 미국S&P500",
   "itemFormNote": "수량을 넣으면 그 날짜의 매수 거래가 하나 만들어집니다.",
+  "cashFormNoteOff": "예수금은 계좌에 남은 현금입니다. 비중 계산에서는 빠집니다.",
   "cashFormNote": "예수금은 계좌에 남은 현금입니다. 비중 계산에 함께 잡힙니다.",
   "validationNameRequired": "종목명을 입력해 주세요",
   "deleteLosesItems": "종목 {items}개 · 거래 {txs}건이 함께 지워집니다.",

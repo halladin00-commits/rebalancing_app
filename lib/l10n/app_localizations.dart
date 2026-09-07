@@ -248,6 +248,12 @@ abstract class AppLocalizations {
   /// **'수량을 넣으면 그 날짜의 매수 거래가 하나 만들어집니다.'**
   String get itemFormNote;
 
+  /// No description provided for @cashFormNoteOff.
+  ///
+  /// In ko, this message translates to:
+  /// **'예수금은 계좌에 남은 현금입니다. 비중 계산에서는 빠집니다.'**
+  String get cashFormNoteOff;
+
   /// No description provided for @cashFormNote.
   ///
   /// In ko, this message translates to:

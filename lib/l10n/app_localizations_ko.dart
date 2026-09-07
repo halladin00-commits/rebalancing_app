@@ -87,6 +87,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get itemFormNote => '수량을 넣으면 그 날짜의 매수 거래가 하나 만들어집니다.';
 
   @override
+  String get cashFormNoteOff => '예수금은 계좌에 남은 현금입니다. 비중 계산에서는 빠집니다.';
+
+  @override
   String get cashFormNote => '예수금은 계좌에 남은 현금입니다. 비중 계산에 함께 잡힙니다.';
 
   @override

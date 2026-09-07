@@ -112,19 +112,11 @@ class _BulkTransactionScreenState extends State<BulkTransactionScreen> {
               ],
               const SizedBox(height: 1),
               _buildSummary(context),
-              const SizedBox(height: 9),
-              Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Icon(Icons.info_outline, size: 15, color: context.textTertiary),
-                const SizedBox(width: 7),
-                Expanded(
-                  child: Text(l10n.priceIsProposalNote,
-                      style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                          height: 1.55,
-                          color: context.textSecondary)),
-                ),
-              ]),
+              _note(context, l10n.priceIsProposalNote),
+              // 예수금 항목이 없으면 고칠 것도 없다 — 그런 사람에게
+              // 「예수금을 고쳐 주세요」라고 할 이유가 없다.
+              if (widget.pf.items.any((i) => i.isCash))
+                _note(context, l10n.cashCheckAfterTrade),
             ],
           ),
         ),
@@ -433,6 +425,11 @@ class _BulkTransactionScreenState extends State<BulkTransactionScreen> {
           ]),
         );
 
+    // **숫자를 내는 자리다.** 「조정 후 예수금」을 뺀 뒤로 낼 것이 수수료
+    // 하나뿐이라, 수수료도 없으면 상자를 만들지 않는다 — 예전에는 빈 상자에
+    // 경고문만 남아 안내 하나가 이유 없이 상자를 두르고 있었다.
+    if (!pf.commissionEnabled) return const SizedBox.shrink();
+
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 13),
       decoration: BoxDecoration(
@@ -440,20 +437,29 @@ class _BulkTransactionScreenState extends State<BulkTransactionScreen> {
         borderRadius: BorderRadius.circular(DS.listCardRadius),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        if (pf.commissionEnabled)
-          line(
-              l10n.commissionAutoSum(
-                  _trimZero(pf.commissionRate), _tradeable.length),
-              fmtMoney(commission, pf.currency)),
-        // 「조정 후 예수금」은 더 이상 내지 않는다. 세금·체결가까지 알 수
-        // 없으면서 잔액을 단언하면, 사용자는 그 숫자를 믿고 확인을 건너뛴다.
-        const SizedBox(height: 2),
-        Text(l10n.cashCheckAfterTrade,
-            style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-                height: 1.5,
-                color: context.textTertiary)),
+        line(
+            l10n.commissionAutoSum(
+                _trimZero(pf.commissionRate), _tradeable.length),
+            fmtMoney(commission, pf.currency)),
+      ]),
+    );
+  }
+
+  /// ⓘ 한 줄짜리 안내. 같은 級의 말은 같은 모양으로 낸다.
+  Widget _note(BuildContext context, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 9),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Icon(Icons.info_outline, size: 15, color: context.textTertiary),
+        const SizedBox(width: 7),
+        Expanded(
+          child: Text(text,
+              style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  height: 1.55,
+                  color: context.textSecondary)),
+        ),
       ]),
     );
   }

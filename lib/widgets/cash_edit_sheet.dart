@@ -242,7 +242,10 @@ class _CashEditSheetState extends State<CashEditSheet> {
               ),
               Switch(
                 value: _inWeight,
-                activeThumbColor: context.brand,
+                // 손잡이는 **흰색**이어야 한다. 트랙과 같은 색을 주면
+                // 켠 상태가 그냥 초록 알약이 되어 스위치로 안 보인다.
+                activeThumbColor: Colors.white,
+                activeTrackColor: context.brand,
                 onChanged: (v) => setState(() => _inWeight = v),
               ),
             ]),

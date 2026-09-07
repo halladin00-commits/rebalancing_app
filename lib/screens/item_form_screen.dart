@@ -55,6 +55,9 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
   late final TextEditingController _priceCtl;
 
   late bool _isCash;
+
+  /// 예수금을 비중에 넣을지. 예수금일 때만 쓴다.
+  late bool _inWeight;
   late String _market;
   late String _ticker;
   DateTime _purchaseDate = DateTime.now();
@@ -71,6 +74,7 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
     super.initState();
     final src = widget.item ?? widget.preset;
     _isCash = src?.isCash ?? false;
+    _inWeight = src?.inWeight ?? true;
     _market = src?.market ?? 'KR';
     _ticker = src?.ticker ?? '';
     _nameCtl = TextEditingController(text: src?.name ?? '');
@@ -151,10 +155,13 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
               ListCard(rows: [
                 _textRow(context, l10n.itemName, _nameCtl,
                     hint: l10n.itemNameHint),
-                _numRow(context, l10n.targetWeight, _weightCtl,
-                    suffix: '%',
-                    note: _weightNote(l10n),
-                    noteColor: _weightNoteColor(context)),
+                // 비중에서 뺀 예수금은 목표 비중이 없다 — 칸을 두면
+                // 넣으라는 말이 되고, 넣어도 아무 데도 안 쓰인다.
+                if (!_isCash || _inWeight)
+                  _numRow(context, l10n.targetWeight, _weightCtl,
+                      suffix: '%',
+                      note: _weightNote(l10n),
+                      noteColor: _weightNoteColor(context)),
                 if (!_isCash) ...[
                   _numRow(context, l10n.holdingQty, _sharesCtl,
                       suffix: l10n.unitShares,
@@ -164,9 +171,15 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
                   if (!widget.priceAuto)
                     _numRow(context, l10n.currentPrice, _priceCtl,
                         prefix: _sym),
-                ] else
+                ] else ...[
                   _numRow(context, l10n.evaluationAmount, _sharesCtl,
                       prefix: _sym),
+                  // 만들 때부터 고를 수 있어야 한다. 예전에는 무조건 비중을
+                  // 가진 채로 만들어져서, 넣자마자 목표 비중 합이 100%를
+                  // 넘고 그제서야 수정 시트에서 꺼야 했다.
+                  _switchRow(context, l10n.cashInWeightTitle, _inWeight,
+                      (v) => setState(() => _inWeight = v)),
+                ],
                 if (!_isEdit && !_isCash) _dateRow(context),
               ]),
               if (_error != null) ...[
@@ -186,7 +199,9 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
                     // 편집 중에는 수량이 잠겨 있으므로 "수량을 넣으면"이라는
                     // 말이 맞지 않는다. 왜 잠겼는지를 대신 알려준다.
                     _isCash
-                        ? l10n.cashFormNote
+                        // 스위치를 껐는데 「비중 계산에 함께 잡힙니다」라고
+                        // 하면 화면이 제 상태와 반대로 말하는 것이 된다.
+                        ? (_inWeight ? l10n.cashFormNote : l10n.cashFormNoteOff)
                         : (_sharesLocked
                             ? l10n.itemEditNote
                             : l10n.itemFormNote),
@@ -317,6 +332,37 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
   }
 
   // ── 입력 행 ──
+
+  /// 켜고 끄는 행. 다른 행들과 **같은 모양**으로 낸다 — 라벨은 왼쪽,
+  /// 값은 오른쪽.
+  Widget _switchRow(BuildContext context, String label, bool value,
+      ValueChanged<bool> onChanged) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(children: [
+        Expanded(
+          flex: 2,
+          child: Text(label,
+              style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: context.textSecondary)),
+        ),
+        Expanded(
+          flex: 3,
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: Switch(
+              value: value,
+              activeThumbColor: Colors.white,
+              activeTrackColor: context.brand,
+              onChanged: onChanged,
+            ),
+          ),
+        ),
+      ]),
+    );
+  }
 
   Widget _textRow(BuildContext context, String label,
       TextEditingController ctl,
@@ -528,7 +574,13 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
       ticker: _isCash ? '' : _ticker,
       market: _isCash ? 'CASH' : _market,
       isCash: _isCash,
-      targetWeight: weight,
+      inWeight: _isCash ? _inWeight : true,
+      cashUpdatedAt: _isCash
+          ? (shares != (widget.item?.shares ?? -1)
+              ? DateTime.now().millisecondsSinceEpoch
+              : widget.item?.cashUpdatedAt)
+          : null,
+      targetWeight: (_isCash && !_inWeight) ? 0 : weight,
       shares: shares,
       currentPrice: _isCash ? 1.0 : price,
       avgPrice: avg,

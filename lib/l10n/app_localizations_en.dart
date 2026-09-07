@@ -91,6 +91,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Entering a quantity creates one buy transaction on that date.';
 
   @override
+  String get cashFormNoteOff =>
+      'Cash is what is left in the account. It is excluded from your weights.';
+
+  @override
   String get cashFormNote =>
       'Cash is what is left in the account. It counts toward your weights.';
 

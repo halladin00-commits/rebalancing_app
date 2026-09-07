@@ -1213,6 +1213,10 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                     Border(bottom: BorderSide(color: context.dividerColor))),
         child: Row(
           children: [
+            // 만들 때 고르게 해놓고 정작 **가장 자주 보는 목록**에서만
+            // 안 보였다. 상세 헤더·재정렬·결산 이미지에는 이미 나온다.
+            Text(pf.emoji, style: const TextStyle(fontSize: 19)),
+            const SizedBox(width: 9),
             Expanded(
               child: Text(
                 pf.name,
