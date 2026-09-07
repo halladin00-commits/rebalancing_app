@@ -10,6 +10,7 @@ import '../utils/rebalancer.dart';
 import 'target_weights_screen.dart';
 import '../services/ad_service.dart';
 import '../widgets/bottom_banner_ad.dart';
+import '../widgets/app_menu.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/weight_bar.dart';
 import 'rebalance_proposal_screen.dart';
@@ -63,20 +64,31 @@ class PortfolioRebalanceScreen extends StatelessWidget {
                   onPressed: () => Navigator.pop(context),
                 ),
                 actions: [
-                  // 이 화면이 지적하는 것(목표 비중·허용 편차)을 **둘 다**
-                  // 고칠 수 있는 곳으로 보낸다. 예전에는 통화·자동갱신만 있는
-                  // 설정 화면으로 가서, 고치려는 사람을 반대로 보냈다.
                   IconButton(
-                    icon: const Icon(Icons.balance, color: Colors.white),
-                    tooltip: context.l10n.targetWeightsTitle,
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            TargetWeightsScreen(portfolioId: pf.id),
-                      ),
-                    ),
+                    tooltip: context.l10n.a11yRefresh,
+                    icon: provider.refreshing
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                                color: Colors.white, strokeWidth: 2))
+                        : const Icon(Icons.refresh, color: Colors.white),
+                    onPressed: provider.refreshing ? null : provider.refreshAll,
                   ),
+                  // 목표 비중은 처음 정할 때 쓰고 그 뒤로는 거의 안 건드린다.
+                  // 늘 보이는 자리를 내줄 만큼 자주 쓰는 동작이 아니다.
+                  AppMenu(entries: [
+                    MenuAction(Icons.balance, context.l10n.targetWeightsTitle,
+                        () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              TargetWeightsScreen(portfolioId: pf.id),
+                        ),
+                      );
+                    }),
+                  ]),
                 ],
                 child: _buildMaxDrift(context, pf, drifts, over, isKo),
               ),

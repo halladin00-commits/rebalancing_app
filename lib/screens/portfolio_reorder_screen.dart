@@ -6,8 +6,13 @@ import '../main.dart';
 import '../models/portfolio.dart';
 import '../theme/design_system.dart';
 import '../utils/money_format.dart';
+import '../widgets/portfolio_actions.dart';
 
-/// 포트폴리오 순서 변경 (시안 v16c).
+/// 포트폴리오 편집 — 순서·이름·복제·삭제를 **한자리에서**.
+///
+/// 예전에는 여기에 순서 변경만 있고, 이름 변경·복제·삭제는 포트 **상세**
+/// 메뉴에 있었다. 목록을 정리하려면 포트마다 들어갔다 나와야 했다.
+/// 편집하러 온 사람은 여기서 다 끝낼 수 있어야 한다.
 ///
 /// 정렬 규칙 셋 중 **직접 배치를 한 축으로** 뒀다. 금액순·수익률순은 편하지만
 /// 값이 바뀔 때마다 자리가 움직여서, 어느 포트가 어디 있는지 외울 수가 없다.
@@ -49,6 +54,14 @@ class PortfolioReorderScreen extends StatelessWidget {
                   () => sorter.setSort(PortfolioSort.returnRate)),
             ]),
           ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(18, 10, 18, 0),
+          child: Text(l10n.editPortfoliosHint,
+              style: TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w500,
+                  color: context.textSecondary)),
         ),
         Expanded(
           child: sort == PortfolioSort.manual
@@ -123,7 +136,7 @@ class PortfolioReorderScreen extends StatelessWidget {
                 onPressed: () => Navigator.pop(context),
               ),
               Expanded(
-                child: Text(l10n.reorderPortfolios,
+                child: Text(l10n.editPortfolios,
                     style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
@@ -202,6 +215,52 @@ class PortfolioReorderScreen extends StatelessWidget {
                 fontWeight: FontWeight.w700,
                 letterSpacing: -0.2,
                 color: context.textPrimary)),
+        // 이름·복제·삭제를 **그 줄에서** 한다. 포트마다 상세로 들어갔다
+        // 나오게 하면 편집 화면에 온 뜻이 없다.
+        _rowMenu(context, pf),
+      ]),
+    );
+  }
+
+  Widget _rowMenu(BuildContext context, Portfolio pf) {
+    final l10n = context.l10n;
+    return PopupMenuButton<String>(
+      icon: Icon(Icons.more_vert, size: 20, color: context.textSecondary),
+      tooltip: l10n.a11yMenu,
+      color: context.cardBg,
+      position: PopupMenuPosition.under,
+      onSelected: (v) async {
+        switch (v) {
+          case 'rename':
+            editPortfolio(context, pf);
+          case 'duplicate':
+            duplicatePortfolio(context, pf, l10n.copySuffix);
+          case 'delete':
+            await confirmDeletePortfolio(context, pf);
+        }
+      },
+      itemBuilder: (_) => [
+        _menuRow('rename', Icons.edit_outlined, l10n.rename, context),
+        _menuRow('duplicate', Icons.copy_outlined, l10n.duplicate, context),
+        _menuRow('delete', Icons.delete_outline, l10n.delete, context,
+            danger: true),
+      ],
+    );
+  }
+
+  PopupMenuItem<String> _menuRow(
+      String value, IconData icon, String label, BuildContext context,
+      {bool danger = false}) {
+    final color = danger ? context.danger : context.textPrimary;
+    return PopupMenuItem<String>(
+      value: value,
+      height: 44,
+      child: Row(children: [
+        Icon(icon, size: 18, color: color),
+        const SizedBox(width: 11),
+        Text(label,
+            style: TextStyle(
+                fontSize: 13.5, fontWeight: FontWeight.w600, color: color)),
       ]),
     );
   }

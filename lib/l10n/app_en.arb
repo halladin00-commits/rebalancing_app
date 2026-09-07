@@ -178,6 +178,13 @@
       }
     }
   },
+  "addPortfolio": "Add portfolio",
+  "menuGroupView": "View",
+  "menuGroupSetup": "Setup",
+  "menuGroupData": "Data",
+  "menuGroupThisPortfolio": "This portfolio",
+  "editPortfolios": "Edit portfolios",
+  "editPortfoliosHint": "Drag to reorder; use \u22ee to rename, duplicate, or delete",
   "reorderPortfolios": "Reorder portfolios",
   "reorderItems": "Reorder holdings",
   "holdingQty": "Quantity",

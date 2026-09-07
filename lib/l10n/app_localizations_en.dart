@@ -285,6 +285,28 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get addPortfolio => 'Add portfolio';
+
+  @override
+  String get menuGroupView => 'View';
+
+  @override
+  String get menuGroupSetup => 'Setup';
+
+  @override
+  String get menuGroupData => 'Data';
+
+  @override
+  String get menuGroupThisPortfolio => 'This portfolio';
+
+  @override
+  String get editPortfolios => 'Edit portfolios';
+
+  @override
+  String get editPortfoliosHint =>
+      'Drag to reorder; use ⋮ to rename, duplicate, or delete';
+
+  @override
   String get reorderPortfolios => 'Reorder portfolios';
 
   @override

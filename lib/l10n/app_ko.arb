@@ -178,6 +178,13 @@
       }
     }
   },
+  "addPortfolio": "포트폴리오 추가",
+  "menuGroupView": "보기",
+  "menuGroupSetup": "설정",
+  "menuGroupData": "데이터",
+  "menuGroupThisPortfolio": "이 포트폴리오",
+  "editPortfolios": "포트폴리오 편집",
+  "editPortfoliosHint": "끌어서 순서를 바꾸고, ⋮에서 이름·복제·삭제를 합니다",
   "reorderPortfolios": "포트폴리오 순서 변경",
   "reorderItems": "종목 순서 변경",
   "holdingQty": "보유 수량",

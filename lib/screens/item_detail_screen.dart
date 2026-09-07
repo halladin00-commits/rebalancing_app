@@ -9,6 +9,7 @@ import '../utils/rebalancer.dart';
 import '../utils/share_format.dart';
 import '../services/ad_service.dart';
 import '../widgets/bottom_banner_ad.dart';
+import '../widgets/app_menu.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/list_card.dart';
 import 'item_form_screen.dart';
@@ -124,11 +125,7 @@ class ItemDetailScreen extends StatelessWidget {
         ),
       ]),
       actions: [
-        IconButton(
-          tooltip: context.l10n.a11yMenu,
-              icon: const Icon(Icons.more_vert, color: Colors.white),
-          onPressed: () => _showMenu(context, pf, item),
-        ),
+        AppMenu(entries: _itemMenu(context, pf, item)),
       ],
       childPadding: const EdgeInsets.fromLTRB(22, 4, 22, 18),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -445,76 +442,37 @@ class ItemDetailScreen extends StatelessWidget {
 
   // ── more_vert 메뉴 ──
 
-  void _showMenu(BuildContext context, Portfolio pf, PortfolioItem item) {
+  List<MenuEntry> _itemMenu(
+      BuildContext context, Portfolio pf, PortfolioItem item) {
     final l10n = context.l10n;
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: context.scaffoldBg,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(DS.sheetRadius)),
-      ),
-      builder: (sheetCtx) => SafeArea(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const SizedBox(height: 8),
-          Container(
-            width: 38,
-            height: 4,
-            decoration: BoxDecoration(
-              color: const Color(0xFFD6CFBC),
-              borderRadius: BorderRadius.circular(2),
+    return [
+      MenuAction(Icons.edit_outlined, l10n.edit, () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ItemFormScreen(
+              item: item,
+              otherWeights: pf.weighedItems
+                  .where((i) => i.id != item.id)
+                  .fold<double>(0, (s, i) => s + i.targetWeight),
+              priceAuto: pf.priceAuto,
+              currency: pf.currency,
+              onSave: (updated) =>
+                  context.read<PortfolioProvider>().updateItem(pf.id, updated),
             ),
           ),
-          const SizedBox(height: 8),
-          ListTile(
-            leading: Icon(Icons.edit_outlined, color: context.textStrong),
-            title: Text(l10n.edit,
-                style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: context.textPrimary)),
-            onTap: () {
-              Navigator.pop(sheetCtx);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ItemFormScreen(
-                    item: item,
-                    otherWeights: pf.weighedItems
-                        .where((i) => i.id != item.id)
-                        .fold<double>(0, (s, i) => s + i.targetWeight),
-                    priceAuto: pf.priceAuto,
-                    currency: pf.currency,
-                    onSave: (updated) => context
-                        .read<PortfolioProvider>()
-                        .updateItem(pf.id, updated),
-                  ),
-                ),
-              );
-            },
-          ),
-          if (!item.isCash)
-            ListTile(
-              leading: Icon(Icons.receipt_long_outlined,
-                  color: context.textStrong),
-              title: Text(l10n.addTransaction,
-                  style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: context.textPrimary)),
-              onTap: () {
-                Navigator.pop(sheetCtx);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        TransactionFormScreen(portfolio: pf, item: item),
-                  ),
-                );
-              },
+        );
+      }),
+      if (!item.isCash)
+        MenuAction(Icons.receipt_long_outlined, l10n.addTransaction, () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => TransactionFormScreen(portfolio: pf, item: item),
             ),
-          const SizedBox(height: 8),
-        ]),
-      ),
-    );
+          );
+        }),
+    ];
   }
+
 }

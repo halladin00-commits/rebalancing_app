@@ -27,6 +27,7 @@ import '../widgets/app_logo.dart';
 import '../services/ad_service.dart';
 import '../widgets/bottom_banner_ad.dart';
 import '../widgets/brand_header.dart';
+import '../widgets/app_menu.dart';
 import '../widgets/cash_edit_sheet.dart';
 import '../widgets/collapsing_header.dart';
 import '../widgets/dashed_border_box.dart';
@@ -48,6 +49,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
 
   /// 되돌릴 수 있는 마지막 묶음. 없으면 메뉴에 항목이 안 나온다.
   UndoBatch? _undo;
+  bool _undoLoading = false;
   bool _refreshing = false;
   bool _savingAsset = false;
   bool _sharingAsset = false;
@@ -68,6 +70,8 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _autoRefreshIfStale());
+    // 「되돌리기」를 낼지 미리 알아 둔다 — 팝업은 열리는 순간 항목이 정해진다.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _syncUndoForCurrent());
     _loadHistory();
   }
 
@@ -483,140 +487,76 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
   }
 
   /// 포트 메뉴 (시안 v13d). 시안에 FAB는 없다 — 액션은 이 시트에 모은다.
-  Future<void> _showPortfolioMenu(Portfolio pf, RebalanceResult? rb) async {
+  /// 포트 상세 메뉴 — **이 포트 하나에 대한 동작**을 네 묶음으로.
+  ///
+  /// 예전에는 열한 개가 구분 없이 한 줄로 쌓여 있었다. 그러면 목록이 아니라
+  /// 더미라, 무엇이 무엇의 짝인지 안 보여서 매번 처음부터 읽게 된다.
+  ///
+  /// 캡처는 여기 없다 — 우상단 버튼으로 나갔다.
+  List<MenuEntry> _portfolioMenu(Portfolio pf, RebalanceResult? rb) {
     final l10n = context.l10n;
-    // 메뉴를 열 때 읽는다. 화면에 들어올 때만 읽으면, 업로드나 일괄 기록을
-    // 하고 돌아온 직후에 항목이 안 보인다.
-    _undo = await UndoService.load(pf.id);
-    if (!mounted) return;
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: context.scaffoldBg,
-      // 항목이 늘면 기본 높이(화면의 절반)를 넘어 잘린다.
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.vertical(top: Radius.circular(DS.sheetRadius)),
-      ),
-      builder: (sheetCtx) {
-        Widget row(IconData icon, String label, VoidCallback onTap,
-            {String? hint, String? subtitle, bool danger = false}) {
-          final fg = danger ? context.danger : context.textPrimary;
-          return ListTile(
-            leading: Icon(icon,
-                color: danger ? context.danger : context.textStrong, size: 21),
-            title: Text(label,
-                style: TextStyle(
-                    fontSize: 14, fontWeight: FontWeight.w600, color: fg)),
-            // 무엇을 되돌리는지 눌러보기 전에 알아야 한다
-            subtitle: subtitle == null
-                ? null
-                : Text(subtitle,
-                    style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: context.textTertiary)),
-            trailing: hint == null
-                ? null
-                : Text(hint,
-                    style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: context.textTertiary)),
-            onTap: () {
-              Navigator.pop(sheetCtx);
-              onTap();
-            },
-          );
-        }
-
-        return SafeArea(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(sheetCtx).size.height * 0.85),
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              const SizedBox(height: 8),
-              Container(
-                width: 38,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFD6CFBC),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Flexible(
-                child: SingleChildScrollView(
-                  child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    // 시안 v13d의 `거래 내역 전체보기`
-                    row(
-                        Icons.history,
-                        l10n.transactionHistory,
-                        () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => TransactionHistoryScreen(
-                                    portfolioId: pf.id),
-                              ),
-                            )),
-                    row(
-                        Icons.balance,
-                        l10n.targetWeightsTitle,
-                        () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    TargetWeightsScreen(portfolioId: pf.id),
-                              ),
-                            )),
-                    row(Icons.swap_vert, l10n.reorderItems,
-                        () => setState(() => _editMode = true)),
-                    row(Icons.tune, l10n.labelSettings,
-                        () => _showSettings(pf)),
-                    row(Icons.pie_chart_outline, l10n.labelGraph,
-                        () => _openGraph(pf)),
-                    row(
-                        Icons.ios_share,
-                        l10n.capture,
-                        () => _showCaptureSheet(
-                              () => _saveAssetImage(pf, rb),
-                              () => _shareAssetImage(pf, rb),
-                            )),
-                    row(Icons.upload_file, l10n.excelImportTitle,
-                        () => _openImport(context, pf)),
-                    // 한 번에 수십 건이 들어가는 두 경로(조정 제안 일괄 기록 ·
-                    // 거래내역 업로드) 뒤에만 나온다. 되돌릴 게 없으면 안 낸다 —
-                    // 늘 있는 항목이면 무엇을 되돌리는지 알 수 없다.
-                    if (_undo != null)
-                      row(Icons.undo, l10n.undoLastTitle,
-                          () => _confirmUndo(pf, _undo!),
-                          subtitle: _undoSubtitle(l10n, _undo!)),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: Divider(height: 1, color: context.dividerColor),
-                    ),
-                    // 포트 자체를 다루는 것들 (시안 v13d). 예전에는 자산 탭 편집
-                    // 모드에만 있었는데, 순서 변경이 별도 화면이 되며 갈 곳을 잃었다.
-                    row(Icons.edit_outlined, l10n.rename,
-                        () => editPortfolio(context, pf)),
-                    row(Icons.copy_outlined, l10n.duplicate,
-                        () => duplicatePortfolio(context, pf, l10n.copySuffix)),
-                    row(Icons.delete_outline, l10n.delete, () async {
-                      final gone = await confirmDeletePortfolio(context, pf);
-                      // 지운 포트의 상세에 남아 있을 수 없다
-                      if (gone && context.mounted) Navigator.pop(context);
-                    }, danger: true),
-                    const SizedBox(height: 8),
-                  ]),
-                ),
-              ),
-            ]),
-          ),
+    return [
+      MenuSection(l10n.menuGroupView),
+      MenuAction(Icons.history, l10n.transactionHistory, () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (_) => TransactionHistoryScreen(portfolioId: pf.id)),
         );
-      },
-    );
+      }),
+      MenuAction(Icons.pie_chart_outline, l10n.labelGraph, () => _openGraph(pf)),
+
+      MenuSection(l10n.menuGroupSetup),
+      MenuAction(Icons.balance, l10n.targetWeightsTitle, () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (_) => TargetWeightsScreen(portfolioId: pf.id)),
+        );
+      }),
+      MenuAction(Icons.swap_vert, l10n.reorderItems,
+          () => setState(() => _editMode = true)),
+      MenuAction(Icons.tune, l10n.labelSettings, () => _showSettings(pf)),
+
+      MenuSection(l10n.menuGroupData),
+      MenuAction(Icons.upload_file, l10n.excelImportTitle,
+          () => _openImport(context, pf)),
+      // 되돌릴 게 없으면 안 낸다 — 늘 있는 항목이면 무엇을 되돌리는지 모른다.
+      if (_undo != null)
+        MenuAction(Icons.undo, l10n.undoLastTitle, () => _confirmUndo(pf, _undo!),
+            subtitle: _undoSubtitle(l10n, _undo!)),
+
+      MenuSection(l10n.menuGroupThisPortfolio),
+      MenuAction(Icons.edit_outlined, l10n.rename,
+          () => editPortfolio(context, pf)),
+      MenuAction(Icons.copy_outlined, l10n.duplicate,
+          () => duplicatePortfolio(context, pf, l10n.copySuffix)),
+      MenuAction(Icons.delete_outline, l10n.delete, () async {
+        final gone = await confirmDeletePortfolio(context, pf);
+        // 지운 포트의 상세에 남아 있을 수 없다
+        if (gone && context.mounted) Navigator.pop(context);
+      }, danger: true),
+    ];
   }
 
+  void _syncUndoForCurrent() {
+    final pf = context.read<PortfolioProvider>().getPortfolio(widget.portfolioId);
+    if (pf != null) _syncUndo(pf);
+  }
+
+  /// 되돌리기 항목을 낼지 알려면 저장된 배치를 읽어야 한다.
+  ///
+  /// 예전에는 메뉴를 **열 때** 읽었다(그래서 시트가 async였다). 팝업은 열리는
+  /// 순간 항목이 정해지므로 미리 들고 있어야 한다. 화면이 다시 그려질 때마다
+  /// 확인하되, 값이 달라졌을 때만 반영한다.
+  Future<void> _syncUndo(Portfolio pf) async {
+    if (_undoLoading) return;
+    _undoLoading = true;
+    final loaded = await UndoService.load(pf.id);
+    _undoLoading = false;
+    if (!mounted) return;
+    if (loaded?.at != _undo?.at) setState(() => _undo = loaded);
+  }
   /// 종목 상세는 시안 v12c에서 바텀시트가 아니라 전용 화면이다.
   void _showItemSheet(Portfolio pf, PortfolioItem item, RebalanceResult? rb) {
     // 예수금은 볼 게 금액 하나뿐이다. 종목 상세로 보내면 시세·손익처럼
@@ -917,12 +857,17 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                                     : context.onBrandSecondary),
                         onPressed: () => _doRefresh(pf),
                       ),
-                    if (!_editMode)
+                    if (!_editMode) ...[
                       IconButton(
-                        tooltip: context.l10n.a11yMenu,
-              icon: const Icon(Icons.more_vert, color: Colors.white),
-                        onPressed: () => _showPortfolioMenu(pf, rb),
+                        tooltip: context.l10n.capture,
+                        icon: const Icon(Icons.ios_share, color: Colors.white),
+                        onPressed: () => _showCaptureSheet(
+                              () => _saveAssetImage(pf, rb),
+                              () => _shareAssetImage(pf, rb),
+                            ),
                       ),
+                      AppMenu(entries: _portfolioMenu(pf, rb)),
+                    ],
                   ],
                     child: _buildHeaderBody(context, pf, rb, hasPnl,
                         hasDayChange, totalPnl, totalCost, totalDayChange,
@@ -1143,6 +1088,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     final l10n = context.l10n;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && _body.flush(_pageScroll)) setState(() {});
+      _syncUndoForCurrent();
     });
     return CustomScrollView(
       controller: _pageScroll,
@@ -1188,10 +1134,14 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                 onPressed: () => _doRefresh(pf),
               ),
               IconButton(
-                tooltip: l10n.a11yMenu,
-                icon: const Icon(Icons.more_vert, color: Colors.white),
-                onPressed: () => _showPortfolioMenu(pf, rb),
+                tooltip: l10n.capture,
+                icon: const Icon(Icons.ios_share, color: Colors.white),
+                onPressed: () => _showCaptureSheet(
+                      () => _saveAssetImage(pf, rb),
+                      () => _shareAssetImage(pf, rb),
+                    ),
               ),
+              AppMenu(entries: _portfolioMenu(pf, rb)),
             ],
             body: MeasureSize(
               onHeight: (h) {

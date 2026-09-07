@@ -275,6 +275,27 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get addPortfolio => '포트폴리오 추가';
+
+  @override
+  String get menuGroupView => '보기';
+
+  @override
+  String get menuGroupSetup => '설정';
+
+  @override
+  String get menuGroupData => '데이터';
+
+  @override
+  String get menuGroupThisPortfolio => '이 포트폴리오';
+
+  @override
+  String get editPortfolios => '포트폴리오 편집';
+
+  @override
+  String get editPortfoliosHint => '끌어서 순서를 바꾸고, ⋮에서 이름·복제·삭제를 합니다';
+
+  @override
   String get reorderPortfolios => '포트폴리오 순서 변경';
 
   @override

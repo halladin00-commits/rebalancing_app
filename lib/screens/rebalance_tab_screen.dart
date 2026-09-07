@@ -7,6 +7,7 @@ import '../theme/design_system.dart';
 import '../widgets/portfolio_actions.dart';
 import '../utils/elapsed.dart';
 import '../utils/rebalancer.dart';
+import '../widgets/app_menu.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/weight_bar.dart';
 import 'portfolio_detail_screen.dart';
@@ -52,11 +53,9 @@ class RebalanceTabScreen extends StatelessWidget {
                 title: l10n.tabRebalancing,
                 childPadding: const EdgeInsets.fromLTRB(22, 2, 22, 18),
                 actions: [
-                  IconButton(
-                    icon: const Icon(Icons.help_outline, color: Colors.white),
-                    tooltip: isKo ? '이 화면 읽는 법' : 'Reading this screen',
-                    onPressed: () => showLegend(context),
-                  ),
+                  // 새로고침을 밖에 두고 나머지는 메뉴로 — 다른 화면과 같은
+                  // 자리, 같은 순서다. 「읽는 법」은 처음 한 번 보는 것이라
+                  // 늘 보이는 자리를 내줄 만큼 자주 쓰지 않는다.
                   IconButton(
                     tooltip: context.l10n.a11yRefresh,
               icon: provider.refreshing
@@ -68,6 +67,12 @@ class RebalanceTabScreen extends StatelessWidget {
                         : const Icon(Icons.refresh, color: Colors.white),
                     onPressed: provider.refreshing ? null : provider.refreshAll,
                   ),
+                  AppMenu(entries: [
+                    MenuAction(
+                        Icons.help_outline,
+                        isKo ? '이 화면 읽는 법' : 'Reading this screen',
+                        () => showLegend(context)),
+                  ]),
                 ],
                 child: portfolios.isEmpty
                     ? null

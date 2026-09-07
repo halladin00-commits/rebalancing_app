@@ -9,6 +9,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import '../main.dart';
 import '../theme/design_system.dart';
+import '../widgets/app_menu.dart';
 import '../widgets/brand_header.dart';
 import '../models/portfolio.dart';
 import '../widgets/app_logo.dart';
@@ -141,6 +142,85 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
       ),
     );
     if (result == true) _exitEdit();
+  }
+
+  /// 저장 · 공유를 고르는 시트. 우상단 [캡처] 하나로 모았다.
+  void _showCaptureSheet(Portfolio pf) {
+    void onSave() => _saveImage(pf);
+    void onShare() => _shareImage(pf);
+    final l10n = context.l10n;
+    final ctx = context;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: context.cardBg,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => Padding(
+        padding: EdgeInsets.fromLTRB(
+            20, 16, 20, MediaQuery.of(ctx).padding.bottom + 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: ctx.borderColor,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text(l10n.capture,
+                style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: ctx.textPrimary)),
+            const SizedBox(height: 16),
+            Row(children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    onSave();
+                  },
+                  icon: const Icon(Icons.save_alt_rounded, size: 16),
+                  label: Text(l10n.saveImage),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: ctx.textPrimary,
+                    side: BorderSide(color: ctx.borderColor),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    onShare();
+                  },
+                  icon: const Icon(Icons.share_rounded, size: 16),
+                  label: Text(l10n.shareImage),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: context.brand,
+                    side: BorderSide(color: context.brand),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+              ),
+            ]),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _saveImage(Portfolio pf) async {
@@ -383,48 +463,33 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
                   onPressed: () => Navigator.pop(context),
                 ),
                 actions: [
+                  // 편집 중에는 **끝내기만** 남긴다 — 편집하다 말고 저장하면
+                  // 무엇이 저장된 그림인지 알 수 없다.
                   if (_editMode)
                     IconButton(
                       icon: Icon(Icons.check, color: context.onBrandAccent),
                       tooltip: l10n.editCompleteTooltip,
                       onPressed: _exitEdit,
                     )
-                  else
+                  else ...[
                     IconButton(
-                      icon: const Icon(Icons.edit_outlined, color: Colors.white),
-                      tooltip: l10n.editTooltip,
-                      onPressed: _enterEdit,
+                      icon: (_sharing || _saving)
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                  color: Colors.white, strokeWidth: 2))
+                          : const Icon(Icons.ios_share, color: Colors.white),
+                      tooltip: l10n.capture,
+                      onPressed: (_sharing || _saving)
+                          ? null
+                          : () => _showCaptureSheet(pf),
                     ),
-                  IconButton(
-                    icon: _sharing
-                        ? const SizedBox(
-                            width: 20, height: 20,
-                            child: CircularProgressIndicator(
-                                color: Colors.white, strokeWidth: 2))
-                        : Icon(Icons.ios_share,
-                            color: _editMode
-                                ? context.onBrandSecondary
-                                : Colors.white),
-                    tooltip: _editMode
-                        ? l10n.editCompleteBeforeSave
-                        : l10n.shareImage,
-                    onPressed: _editMode ? null : () => _shareImage(pf),
-                  ),
-                  IconButton(
-                    icon: _saving
-                        ? const SizedBox(
-                            width: 20, height: 20,
-                            child: CircularProgressIndicator(
-                                color: Colors.white, strokeWidth: 2))
-                        : Icon(Icons.download_outlined,
-                            color: _editMode
-                                ? context.onBrandSecondary
-                                : Colors.white),
-                    tooltip: _editMode
-                        ? l10n.editCompleteBeforeSave
-                        : l10n.saveImage,
-                    onPressed: _editMode ? null : () => _saveImage(pf),
-                  ),
+                    AppMenu(entries: [
+                      MenuAction(Icons.edit_outlined, l10n.editTooltip,
+                          _enterEdit),
+                    ]),
+                  ],
                 ],
               ),
 

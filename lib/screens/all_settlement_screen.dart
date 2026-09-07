@@ -386,6 +386,19 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
                     ),
                     collapsedTitle: _buildCompactHeader(context),
                     actions: [
+                      // 어느 화면이든 같은 자리 · 같은 순서 —
+                      // [새로고침] [캡처] [메뉴]. 없는 것은 뺀다.
+                      IconButton(
+                        tooltip: context.l10n.a11yRefresh,
+                        icon: context.watch<PortfolioProvider>().refreshing
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                    color: Colors.white, strokeWidth: 2))
+                            : const Icon(Icons.refresh, color: Colors.white),
+                        onPressed: context.watch<PortfolioProvider>().refreshing ? null : context.watch<PortfolioProvider>().refreshAll,
+                      ),
                       if (_current != null)
                         IconButton(
                           icon:

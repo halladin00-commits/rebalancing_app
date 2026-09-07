@@ -16,6 +16,7 @@ import 'item_search_screen.dart';
 import 'portfolio_reorder_screen.dart';
 import 'transaction_import_screen.dart';
 import '../widgets/app_logo.dart';
+import '../widgets/app_menu.dart';
 import '../widgets/collapsing_header.dart';
 import '../widgets/sparkline_panel.dart';
 import '../services/settlement_service.dart';
@@ -142,6 +143,24 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
             builder: (_) => PortfolioDetailScreen(portfolioId: id)));
   }
 
+  /// 자산 탭 메뉴 — **목록에 대한 동작**만 담는다.
+  ///
+  /// 예전에는 순서 변경 하나뿐이었고, 정작 목록을 정리하는 일(이름·복제·
+  /// 삭제)은 포트 **상세** 메뉴에 있었다. 편집하러 온 사람이 포트마다
+  /// 들어갔다 나와야 했다.
+  List<MenuEntry> _listMenu(List<Portfolio> portfolios) {
+    final l10n = context.l10n;
+    return [
+      if (portfolios.isNotEmpty)
+        MenuAction(Icons.tune, l10n.editPortfolios, () {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const PortfolioReorderScreen()));
+        }),
+      MenuAction(Icons.add, l10n.addPortfolio,
+          () => _showCreateDialog(context)),
+    ];
+  }
+
   void _showCreateDialog(BuildContext context, {bool uploadAfter = false}) {
     Navigator.push(
       context,
@@ -177,62 +196,6 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
   // ── Main image save/share ──
 
   /// 자산 탭 메뉴. 시안에 FAB는 없으므로 액션을 여기 모은다.
-  void _showListMenu(List<Portfolio> portfolios) {
-    final l10n = context.l10n;
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: context.scaffoldBg,
-      shape: const RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.vertical(top: Radius.circular(DS.sheetRadius)),
-      ),
-      builder: (sheetCtx) => SafeArea(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const SizedBox(height: 8),
-          Container(
-            width: 38,
-            height: 4,
-            decoration: BoxDecoration(
-              color: const Color(0xFFD6CFBC),
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(height: 8),
-          ListTile(
-            leading: Icon(Icons.swap_vert, color: context.textStrong, size: 21),
-            title: Text(l10n.reorderPortfolios,
-                style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: context.textPrimary)),
-            onTap: () {
-              Navigator.pop(sheetCtx);
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const PortfolioReorderScreen()));
-            },
-          ),
-          if (portfolios.isNotEmpty)
-            ListTile(
-              leading:
-                  Icon(Icons.ios_share, color: context.textStrong, size: 21),
-              title: Text(l10n.capture,
-                  style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: context.textPrimary)),
-              onTap: () {
-                Navigator.pop(sheetCtx);
-                _showMainCaptureSheet(portfolios);
-              },
-            ),
-          const SizedBox(height: 8),
-        ]),
-      ),
-    );
-  }
-
   void _showMainCaptureSheet(List<Portfolio> portfolios) {
     final l10n = context.l10n;
     final ctx = context;
@@ -616,11 +579,15 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                           : const Icon(Icons.refresh, color: Colors.white),
                       onPressed: provider.refreshing ? null : _doRefreshAll,
                     ),
-                    IconButton(
-                      tooltip: context.l10n.a11yMenu,
-                      icon: const Icon(Icons.more_vert, color: Colors.white),
-                      onPressed: () => _showListMenu(portfolios),
-                    ),
+                    // 캡처는 **밖에 둔다.** 결산·자산 이미지가 이 앱의
+                    // 가장 좋은 홍보물인데 메뉴에 넣으면 아무도 못 찾는다.
+                    if (portfolios.isNotEmpty)
+                      IconButton(
+                        tooltip: context.l10n.capture,
+                        icon: const Icon(Icons.ios_share, color: Colors.white),
+                        onPressed: () => _showMainCaptureSheet(portfolios),
+                      ),
+                    AppMenu(entries: _listMenu(portfolios)),
                   ],
                   body: MeasureSize(
                     onHeight: _setBodyH,

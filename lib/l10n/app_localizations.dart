@@ -572,6 +572,48 @@ abstract class AppLocalizations {
   /// **'보유 수량({owned})보다 많이 팔 수 없습니다'**
   String validationSellExceeds(String owned);
 
+  /// No description provided for @addPortfolio.
+  ///
+  /// In ko, this message translates to:
+  /// **'포트폴리오 추가'**
+  String get addPortfolio;
+
+  /// No description provided for @menuGroupView.
+  ///
+  /// In ko, this message translates to:
+  /// **'보기'**
+  String get menuGroupView;
+
+  /// No description provided for @menuGroupSetup.
+  ///
+  /// In ko, this message translates to:
+  /// **'설정'**
+  String get menuGroupSetup;
+
+  /// No description provided for @menuGroupData.
+  ///
+  /// In ko, this message translates to:
+  /// **'데이터'**
+  String get menuGroupData;
+
+  /// No description provided for @menuGroupThisPortfolio.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 포트폴리오'**
+  String get menuGroupThisPortfolio;
+
+  /// No description provided for @editPortfolios.
+  ///
+  /// In ko, this message translates to:
+  /// **'포트폴리오 편집'**
+  String get editPortfolios;
+
+  /// No description provided for @editPortfoliosHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'끌어서 순서를 바꾸고, ⋮에서 이름·복제·삭제를 합니다'**
+  String get editPortfoliosHint;
+
   /// No description provided for @reorderPortfolios.
   ///
   /// In ko, this message translates to:
