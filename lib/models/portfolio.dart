@@ -188,7 +188,6 @@ enum FractionalRounding {
 class Portfolio {
   String id;
   String name;
-  String emoji;
   String currency; // "KRW", "USD"
   double commissionRate;
   bool commissionEnabled;
@@ -229,7 +228,6 @@ class Portfolio {
   Portfolio({
     required this.id,
     required this.name,
-    this.emoji = '📈',
     this.currency = 'KRW',
     this.commissionRate = 0.015,
     this.commissionEnabled = false,
@@ -369,7 +367,6 @@ class Portfolio {
   Map<String, dynamic> toJson() => {
     'id': id,
     'name': name,
-    'emoji': emoji,
     'currency': currency,
     'commissionRate': commissionRate,
     'commissionEnabled': commissionEnabled,
@@ -392,7 +389,6 @@ class Portfolio {
   factory Portfolio.fromJson(Map<String, dynamic> json) => Portfolio(
     id: json['id'] ?? '',
     name: json['name'] ?? '',
-    emoji: json['emoji'] ?? '📈',
     currency: json['currency'] ?? 'KRW',
     commissionRate: (json['commissionRate'] ?? 0.015).toDouble(),
     commissionEnabled: json['commissionEnabled'] ?? false,
@@ -430,7 +426,6 @@ class Portfolio {
   Portfolio copyWith({
     String? id,
     String? name,
-    String? emoji,
     String? currency,
     double? commissionRate,
     bool? commissionEnabled,
@@ -451,7 +446,6 @@ class Portfolio {
   }) => Portfolio(
     id: id ?? this.id,
     name: name ?? this.name,
-    emoji: emoji ?? this.emoji,
     currency: currency ?? this.currency,
     commissionRate: commissionRate ?? this.commissionRate,
     commissionEnabled: commissionEnabled ?? this.commissionEnabled,

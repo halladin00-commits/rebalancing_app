@@ -56,9 +56,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get portfolioNameHint => '예: 연금저축 ETF';
 
   @override
-  String get chooseEmoji => '아이콘';
-
-  @override
   String get hintTargetsInRebalanceTab => '목표 비중은 종목을 담은 뒤 리밸런싱 탭에서 정합니다.';
 
   @override

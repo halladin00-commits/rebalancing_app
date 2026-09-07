@@ -70,21 +70,35 @@ void main() {
     expect(shares(r), {'a': 50, 'b': 50});
   });
 
-  test('편차를 넘은 종목만 거래하고 나머지는 수량을 유지한다', () {
+  test('하나라도 벗어나면 **허용 안에 있는 종목까지** 목표로 맞춘다', () {
     // a 60%(+10%p) · b 29%(−1%p) · c 11%(−9%p) / 목표 50:30:20, 허용 ±3%p
+    //
+    // 허용 편차는 「지금 조정할 때인가」를 가르는 방아쇠지, 「무엇만
+    // 건드릴까」를 정하는 범위가 아니다. a와 c가 벗어났으므로 조정에
+    // 들어가고, 들어간 이상 b도 제 목표로 맞춘다.
     final r = Rebalancer.calculate(pf([
       stock(id: 'a', target: 50, shares: 60, price: 10000),
       stock(id: 'b', target: 30, shares: 29, price: 10000),
       stock(id: 'c', target: 20, shares: 11, price: 10000),
     ], threshold: 3))!;
 
-    // b는 잠겨 그대로, a와 c만 목표로
-    expect(deltas(r)['b'], 0);
-    expect(shares(r), {'a': 50, 'b': 29, 'c': 20});
+    expect(shares(r), {'a': 50, 'b': 30, 'c': 20});
 
-    // b가 목표보다 1%p 모자란 만큼(10,000원)은 현금으로 남는다.
-    // 이 돈을 억지로 a나 c에 넣으면 그 종목이 목표를 넘어간다.
-    expect(r.cash, closeTo(10000, 1));
+    // **남는 돈이 없다.** 예전에는 b를 잠가서 b가 모자란 만큼(10,000원)이
+    // 그대로 현금으로 떴다. 실제 포트에서는 이게 총액의 1%를 넘기도 했다.
+    expect(r.cash, closeTo(0, 1));
+  });
+
+  test('아무것도 안 벗어나면 거래하지 않는다 — 방아쇠가 안 당겨진다', () {
+    // 전부 허용(±3%p) 안. 목표에서 조금씩 벗어나 있어도 손대지 않는다.
+    final r = Rebalancer.calculate(pf([
+      stock(id: 'a', target: 50, shares: 52, price: 10000),
+      stock(id: 'b', target: 30, shares: 29, price: 10000),
+      stock(id: 'c', target: 20, shares: 19, price: 10000),
+    ], threshold: 3))!;
+
+    expect(r.hasChanges, isFalse);
+    expect(shares(r), {'a': 52, 'b': 29, 'c': 19});
   });
 
   test('추가 투자금이 있으면 잠그지 않는다 — 새 돈을 배분해야 한다', () {

@@ -280,7 +280,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text('${pf.emoji}  ${pf.name}',
+            Text(pf.name,
                 style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
@@ -869,7 +869,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                 // 까다롭고, 오래 머무는 화면도 아니다. 헤더를 그대로 둔다.
                 if (_editMode)
                   BrandHeader(
-                  title: '${pf.emoji} ${pf.name}',
+                  title: pf.name,
                   titleSize: 17,
                   titleWeight: FontWeight.w700,
                   childPadding: const EdgeInsets.fromLTRB(0, 2, 0, 16),
@@ -1161,7 +1161,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
               onPressed: () => Navigator.pop(context),
             ),
             expandedTitle: Text(
-              '${pf.emoji} ${pf.name}',
+              pf.name,
               style: const TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.w700,

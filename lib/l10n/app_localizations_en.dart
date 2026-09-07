@@ -57,9 +57,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get portfolioNameHint => 'e.g. Retirement ETFs';
 
   @override
-  String get chooseEmoji => 'Icon';
-
-  @override
   String get hintTargetsInRebalanceTab =>
       'Set target weights in the Rebalance tab after adding holdings.';
 

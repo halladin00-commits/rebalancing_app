@@ -208,7 +208,6 @@ class SettlementResult {
 class PortfolioContribution {
   final String portfolioId;
   final String name;
-  final String emoji;
   final double startValue;
   final double endValue;
   final double absoluteReturn;
@@ -226,7 +225,6 @@ class PortfolioContribution {
   const PortfolioContribution({
     required this.portfolioId,
     required this.name,
-    required this.emoji,
     required this.startValue,
     required this.endValue,
     required this.absoluteReturn,
@@ -793,7 +791,6 @@ class SettlementService {
       return PortfolioContribution(
         portfolioId: e.pf.id,
         name: e.pf.name,
-        emoji: e.pf.emoji,
         startValue: pfStart,
         endValue: e.r.endValue * e.fx,
         absoluteReturn: pfAbs,

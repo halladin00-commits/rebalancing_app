@@ -10,11 +10,10 @@ import '../theme/design_system.dart';
 /// 앱에 그런 구분이 없다. 종목마다 거래를 넣든 수량만 넣든 지금도 둘 다 된다.
 class PortfolioFormScreen extends StatefulWidget {
   final String? initialName;
-  final String? initialEmoji;
   final bool isEdit;
 
   /// 저장 후 호출. 새로 만들었으면 곧바로 종목을 담게 할 수 있다.
-  final void Function(String name, String emoji) onSave;
+  final void Function(String name) onSave;
 
   /// 만든 뒤 파일 올리기로 가는 경우 (시안 v17d의 `파일로 시작`).
   /// 안내와 버튼 문구가 실제로 가는 곳과 달라지면 안 된다.
@@ -24,7 +23,6 @@ class PortfolioFormScreen extends StatefulWidget {
     super.key,
     this.uploadNext = false,
     this.initialName,
-    this.initialEmoji,
     this.isEdit = false,
     required this.onSave,
   });
@@ -33,23 +31,17 @@ class PortfolioFormScreen extends StatefulWidget {
   State<PortfolioFormScreen> createState() => _PortfolioFormScreenState();
 }
 
-const _emojis = [
-  '📈', '📉', '💰', '💵', '💴', '💶', '💷', '🪙', '💎', '🏦',
-  '📊', '🔖', '🎯', '⭐', '🚀', '🌟', '💹', '🏠', '🛢️', '⚡',
-];
 
 /// 이름 길이 상한. 목록에서 한 줄에 들어가야 한다.
 const _maxNameLength = 20;
 
 class _PortfolioFormScreenState extends State<PortfolioFormScreen> {
   late final TextEditingController _nameCtl;
-  late String _emoji;
 
   @override
   void initState() {
     super.initState();
     _nameCtl = TextEditingController(text: widget.initialName ?? '');
-    _emoji = widget.initialEmoji ?? '📈';
   }
 
   @override
@@ -72,15 +64,6 @@ class _PortfolioFormScreenState extends State<PortfolioFormScreen> {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
             children: [
               _buildNameField(context),
-              const SizedBox(height: 18),
-              Text(l10n.chooseEmoji,
-                  style: TextStyle(
-                      fontSize: DS.sectionTitle,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.2,
-                      color: context.textPrimary)),
-              const SizedBox(height: 10),
-              _buildEmojiGrid(context),
               const SizedBox(height: 18),
               // 만들자마자 어디로 가는지 미리 말해준다
               if (!widget.isEdit) ...[
@@ -190,40 +173,6 @@ class _PortfolioFormScreenState extends State<PortfolioFormScreen> {
     );
   }
 
-  Widget _buildEmojiGrid(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: context.cardBg,
-        borderRadius: BorderRadius.circular(DS.tileRadius),
-        border: Border.all(color: context.cardBorder),
-      ),
-      child: Wrap(
-        spacing: 6,
-        runSpacing: 6,
-        children: [
-          for (final e in _emojis)
-            GestureDetector(
-              onTap: () => setState(() => _emoji = e),
-              child: Container(
-                width: 44,
-                height: 44,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: _emoji == e ? context.brandTint : Colors.transparent,
-                  borderRadius: BorderRadius.circular(11),
-                  border: Border.all(
-                    color: _emoji == e ? context.brand : Colors.transparent,
-                    width: 1.5,
-                  ),
-                ),
-                child: Text(e, style: const TextStyle(fontSize: 21)),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
 
   Widget _hint(BuildContext context, IconData icon, String text) {
     return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -256,7 +205,7 @@ class _PortfolioFormScreenState extends State<PortfolioFormScreen> {
           onPressed: name.isEmpty
               ? null
               : () {
-                  widget.onSave(name, _emoji);
+                  widget.onSave(name);
                   Navigator.pop(context);
                 },
           style: ElevatedButton.styleFrom(

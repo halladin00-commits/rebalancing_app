@@ -23,12 +23,11 @@ void editPortfolio(BuildContext context, Portfolio pf) {
     MaterialPageRoute(
       builder: (_) => PortfolioFormScreen(
         initialName: pf.name,
-        initialEmoji: pf.emoji,
         isEdit: true,
-        onSave: (name, emoji) {
+        onSave: (name) {
           context
               .read<PortfolioProvider>()
-              .updatePortfolio(pf.id, pf.copyWith(name: name, emoji: emoji));
+              .updatePortfolio(pf.id, pf.copyWith(name: name));
         },
       ),
     ),
@@ -118,8 +117,8 @@ void createPortfolioThenAddItems(BuildContext context) {
     context,
     MaterialPageRoute(
       builder: (_) => PortfolioFormScreen(
-        onSave: (name, emoji) {
-          final pf = Portfolio(id: _uid(), name: name, emoji: emoji);
+        onSave: (name) {
+          final pf = Portfolio(id: _uid(), name: name);
           context.read<PortfolioProvider>().addPortfolio(pf);
           // 폼이 pop 되기 전에 불리므로 프레임이 끝난 뒤에 민다
           WidgetsBinding.instance.addPostFrameCallback((_) {

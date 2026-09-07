@@ -21,7 +21,6 @@
   "renamePortfolio": "이름 변경",
   "portfolioNameLabel": "이름",
   "portfolioNameHint": "예: 연금저축 ETF",
-  "chooseEmoji": "아이콘",
   "hintTargetsInRebalanceTab": "목표 비중은 종목을 담은 뒤 리밸런싱 탭에서 정합니다.",
   "hintThenAddStocks": "만들면 바로 종목 검색으로 넘어갑니다.",
   "createAndAddStocks": "만들고 종목 담기",

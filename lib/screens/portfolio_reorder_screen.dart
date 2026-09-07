@@ -185,7 +185,6 @@ class PortfolioReorderScreen extends StatelessWidget {
             size: 20,
             color: draggable ? context.textTertiary : context.textDisabled),
         const SizedBox(width: 10),
-        Text(pf.emoji, style: const TextStyle(fontSize: 20)),
         const SizedBox(width: 10),
         Expanded(
           child: Text(pf.name,

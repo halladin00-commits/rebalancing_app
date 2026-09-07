@@ -175,16 +175,24 @@ class Rebalancer {
       );
     }
 
-    // ── 허용 편차 안에 있는 종목은 건드리지 않는다 ──
+    // ── 허용 편차는 **방아쇠**다. 범위가 아니다 ──
     //
-    // 추가 투자금이 있으면 어차피 전 종목의 비중이 바뀌므로 잠그지 않는다.
-    // 임계값이 0이면 기존 동작(전 종목 재배분) 그대로다.
+    // 하나도 벗어나지 않았으면 조정할 때가 아니다 → 아무것도 거래하지 않는다.
+    // 하나라도 벗어났으면 **전 종목을 목표로 맞춘다.**
+    //
+    // 예전에는 벗어난 종목만 거래했다. 그러면 받아 줄 곳이 없어서 매도 대금이
+    // 그대로 현금으로 남는다 — 실제 데이터에서 총액의 0.6~1.2%가 떴다.
+    // 게다가 조정을 마쳐도 최대 편차가 허용 경계에 붙은 채로 끝나서, 뺀 돈이
+    // 곧 다시 편차를 만든다. **거래를 줄인 대신 더 자주 하게 된다.**
+    //
+    // 추가 투자금이 있으면 어차피 전 종목의 비중이 바뀌므로 방아쇠를 안 본다.
+    // 임계값이 0이면 언제나 전 종목 재배분이다.
     final lockedIds = <String>{...?excludeIds};
-    if (portfolio.rebalancingThreshold > 0 && portfolio.additionalInvestment == 0) {
-      final exceeding =
-          Rebalancer.driftExceeding(portfolio).map((d) => d.item.id).toSet();
+    if (portfolio.rebalancingThreshold > 0 &&
+        portfolio.additionalInvestment == 0 &&
+        Rebalancer.driftExceeding(portfolio).isEmpty) {
       for (final item in items) {
-        if (!exceeding.contains(item.id)) lockedIds.add(item.id);
+        lockedIds.add(item.id);
       }
     }
 

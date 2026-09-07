@@ -148,8 +148,8 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
       MaterialPageRoute(
         builder: (_) => PortfolioFormScreen(
           uploadNext: uploadAfter,
-          onSave: (name, emoji) {
-            final pf = Portfolio(id: _uid(), name: name, emoji: emoji);
+          onSave: (name) {
+            final pf = Portfolio(id: _uid(), name: name);
             context.read<PortfolioProvider>().addPortfolio(pf);
             // 빈 포트만 덩그러니 남기지 않는다 — 바로 종목을 담게 이어준다.
             //
@@ -469,8 +469,6 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                 border: Border.all(color: context.borderColor),
               ),
               child: Row(children: [
-                Text(pf.emoji, style: const TextStyle(fontSize: 26)),
-                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1213,10 +1211,6 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                     Border(bottom: BorderSide(color: context.dividerColor))),
         child: Row(
           children: [
-            // 만들 때 고르게 해놓고 정작 **가장 자주 보는 목록**에서만
-            // 안 보였다. 상세 헤더·재정렬·결산 이미지에는 이미 나온다.
-            Text(pf.emoji, style: const TextStyle(fontSize: 19)),
-            const SizedBox(width: 9),
             Expanded(
               child: Text(
                 pf.name,

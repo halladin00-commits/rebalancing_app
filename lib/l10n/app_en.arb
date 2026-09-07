@@ -21,7 +21,6 @@
   "renamePortfolio": "Rename",
   "portfolioNameLabel": "Name",
   "portfolioNameHint": "e.g. Retirement ETFs",
-  "chooseEmoji": "Icon",
   "hintTargetsInRebalanceTab": "Set target weights in the Rebalance tab after adding holdings.",
   "hintThenAddStocks": "You will go straight to stock search.",
   "createAndAddStocks": "Create & add holdings",

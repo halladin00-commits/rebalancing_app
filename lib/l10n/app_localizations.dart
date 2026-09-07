@@ -188,12 +188,6 @@ abstract class AppLocalizations {
   /// **'예: 연금저축 ETF'**
   String get portfolioNameHint;
 
-  /// No description provided for @chooseEmoji.
-  ///
-  /// In ko, this message translates to:
-  /// **'아이콘'**
-  String get chooseEmoji;
-
   /// No description provided for @hintTargetsInRebalanceTab.
   ///
   /// In ko, this message translates to:

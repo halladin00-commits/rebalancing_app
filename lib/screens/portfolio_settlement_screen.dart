@@ -1021,7 +1021,7 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
     final cur = pf?.currency ?? 'KRW';
 
     return SettlementCaptureCard(
-      title: '${pf?.emoji ?? ''} ${pf?.name ?? ''}'.trim(),
+      title: pf?.name ?? '',
       subtitle: _isKo
           ? '${settlementPeriodLabel(context, _period, _selected)} 손익 · '
               '${settlementRangeLabel(range.start, range.end)}'

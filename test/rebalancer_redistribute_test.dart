@@ -142,33 +142,37 @@ void main() {
     });
   });
 
-  group('허용 편차로 잠긴 경우 (종목을 빼지 않아도 걸린다)', () {
-    /// b는 35%인데 목표 33% — 허용 ±3%p 안이라 잠겨 거래하지 않는다.
-    /// a와 c만 조정 대상이다.
-    Portfolio withinTolerance() =>
+  group('허용 편차는 방아쇠일 뿐 — 무엇을 거래할지는 안 정한다', () {
+    /// b는 35%인데 목표 33%로 허용(±3%p) 안이다. 그래도 a·c가 벗어났으니
+    /// **b까지 목표로 맞춘다.**
+    ///
+    /// 예전에는 b를 잠갔다. 그러면 b가 목표보다 더 가진 몫이 받아 줄 곳
+    /// 없이 현금으로 떴다 — 실제 포트에서 총액의 1%를 넘기도 했다.
+    Portfolio triggered() =>
         Portfolio(id: 'p', name: 'p', rebalancingThreshold: 3, items: [
           stock(id: 'a', target: 34, shares: 60),
           stock(id: 'b', target: 33, shares: 35),
           stock(id: 'c', target: 33, shares: 5),
         ]);
 
-    test('잠긴 종목은 거래하지 않는다', () {
-      final pf = withinTolerance();
-      expect(deltas(Rebalancer.calculate(pf)!)['b'], 0);
+    test('허용 안에 있는 종목도 함께 맞춘다', () {
+      final pf = triggered();
+      expect(deltas(Rebalancer.calculate(pf)!)['b'], isNot(0));
+    });
+
+    test('아무것도 안 벗어나면 손대지 않는다', () {
+      final pf = Portfolio(id: 'p', name: 'p', rebalancingThreshold: 3, items: [
+        stock(id: 'a', target: 34, shares: 35),
+        stock(id: 'b', target: 33, shares: 33),
+        stock(id: 'c', target: 33, shares: 32),
+      ]);
+      expect(Rebalancer.calculate(pf)!.hasChanges, isFalse);
     });
 
     test('낼 수 없는 계획을 만들지 않는다', () {
-      // 예전에는 b가 목표보다 더 가진 2만만큼 그대로 예산을 넘었다.
-      final pf = withinTolerance();
+      final pf = triggered();
       final r = Rebalancer.calculate(pf)!;
-      expect(netSpend(pf, r), lessThanOrEqualTo(0),
-          reason: '잠긴 종목이 붙잡은 돈을 두 번 셌다');
-    });
-
-    test('`예수금에 남김`을 고르면 예전처럼 예산을 넘는다', () {
-      final pf = withinTolerance();
-      final r = Rebalancer.calculate(pf, redistributeExcluded: false)!;
-      expect(netSpend(pf, r), greaterThan(0));
+      expect(netSpend(pf, r), lessThanOrEqualTo(0));
     });
 
     test('잠긴 것이 없으면 계산이 달라지지 않는다', () {

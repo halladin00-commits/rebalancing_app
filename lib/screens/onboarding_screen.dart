@@ -509,6 +509,7 @@ class _Sample {
   final String currency;
 
   const _Sample({
+    /// 템플릿 고르는 카드에 그리는 그림. 포트폴리오에는 들어가지 않는다.
     required this.emoji,
     required this.name,
     required this.desc,
@@ -520,7 +521,6 @@ class _Sample {
   Portfolio build(String pfId) => Portfolio(
         id: pfId,
         name: name,
-        emoji: emoji,
         currency: currency,
         items: items
             .asMap()

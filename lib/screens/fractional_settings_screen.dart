@@ -295,7 +295,7 @@ class _AccountRow extends StatelessWidget {
       child: Row(children: [
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('${pf.emoji} ${pf.name}',
+            Text(pf.name,
                 style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,

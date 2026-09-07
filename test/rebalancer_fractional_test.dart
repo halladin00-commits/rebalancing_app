@@ -149,14 +149,17 @@ void main() {
     });
 
     test('일부만 잠겨도 소수점 거래가 예산을 넘지 않는다', () {
-      // b는 35%인데 목표 33% — 허용 ±3%p 안이라 잠겨서 35만을 붙잡는다.
+      // b를 **사용자가 체크에서 뺐다** — 35만을 그대로 붙잡는다.
       // a·c만 조정 대상이다. 잠긴 몫을 두 번 세면 없는 돈으로 사게 된다.
+      //
+      // (허용 편차로는 더 이상 잠기지 않는다 — 밴드는 방아쇠일 뿐이다.
+      //  잠기는 경우는 사용자가 직접 뺐을 때뿐이라 그렇게 시험한다.)
       final portfolio = pf([
         stock(id: 'a', target: 34, shares: 60, price: 10000),
         stock(id: 'b', target: 33, shares: 35, price: 10000),
         stock(id: 'c', target: 33, shares: 5, price: 10000),
-      ], fractional: true, threshold: 3);
-      final r = Rebalancer.calculate(portfolio)!;
+      ], fractional: true);
+      final r = Rebalancer.calculate(portfolio, excludeIds: {'b'})!;
 
       expect({for (final x in r.results) x.id: x.delta}['b'], 0,
           reason: '잠긴 종목이 거래됐다');
