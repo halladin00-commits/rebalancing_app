@@ -138,6 +138,44 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
 
   // ── 헤더 ──
 
+  /// 지우기 전에 **무엇이 다시 계산되는지** 말한다.
+  /// 거래 하나를 빼면 보유 수량과 평균 단가가 함께 바뀐다.
+  Future<void> _confirmDelete() async {
+    final l10n = context.l10n;
+    final tx = widget.transaction;
+    if (tx == null) return;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: ctx.cardBg,
+        title: Text(l10n.deleteTransactionTitle,
+            style: TextStyle(color: ctx.textPrimary)),
+        content: Text(l10n.deleteTransactionBody,
+            style: TextStyle(fontSize: 13, color: ctx.textSecondary)),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l10n.cancel)),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: ctx.danger),
+            child: Text(l10n.delete),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    await context
+        .read<PortfolioProvider>()
+        .deleteTransaction(widget.portfolio.id, widget.item.id, tx.id);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(l10n.transactionDeleted),
+      duration: const Duration(seconds: 2),
+    ));
+    Navigator.pop(context);
+  }
+
   Widget _buildHeader(BuildContext context) {
     final l10n = context.l10n;
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -172,6 +210,15 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                       color: Colors.white),
                 ),
               ),
+              // **잘못 넣은 거래를 없앨 수 있어야 한다.** 고치기만 되고
+              // 지우기가 없으면, 없던 거래가 수량·평단·결산에 계속 남는다.
+              if (widget.transaction != null)
+                IconButton(
+                  tooltip: context.l10n.delete,
+                  icon: const Icon(Icons.delete_outline,
+                      color: Colors.white, size: 21),
+                  onPressed: _confirmDelete,
+                ),
               // 어느 통화로 입력하는지 못 박아 둔다 — 해외 종목에서 헷갈린다
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),

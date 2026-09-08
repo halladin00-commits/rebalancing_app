@@ -83,14 +83,6 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
 
   // ── Formatters ──
 
-  String _pct(double n) => '${n.toStringAsFixed(2)}%';
-
-  String _fmtTime(int? ts) {
-    if (ts == null) return context.l10n.neverUpdated;
-    final d = DateTime.fromMillisecondsSinceEpoch(ts);
-    return '${d.year}.${d.month.toString().padLeft(2, '0')}.${d.day.toString().padLeft(2, '0')} '
-        '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
-  }
 
   /// 헤더 한 줄에 들어갈 짧은 형태 (`08.21 12:40`).
   String _fmtTimeShort(int? ts) {
@@ -273,113 +265,232 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
 
   // ── Capture widgets ──
 
+  /// 저장·공유할 포트폴리오 이미지.
+  ///
+  /// **화면과 같은 것을 보여준다.** 딥그린 헤더 · 평가금액 · 두 타일 ·
+  /// 구성 종목까지 화면을 따른다. 광고와 탭바만 뺀다.
+  ///
+  /// **여기서 읽은 값만 쓴다.** `captureFromWidget`이 만드는 딴 트리에는
+  /// Provider도 Localizations도 없어서, 안에서 찾으면 릴리즈 빌드에서
+  /// 회색 사각형이 저장된다.
   Widget _buildAssetCapture(Portfolio pf, RebalanceResult? rb) {
     final l10n = context.l10n;
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final pnlColors = context.read<PnlColorNotifier>();
+
+    final tv = pf.totalValue;
+    final hasPnl = pf.hasPriceData && pf.hasAvgData;
+    final hasDay = pf.hasPriceData && pf.hasDayData;
+    final pnl = pf.unrealizedPnL;
+    final day = pf.dayPnL;
+    final pnlPct = (tv - pnl) != 0 ? pnl / (tv - pnl) * 100 : 0.0;
+    final dayPct = (tv - day) != 0 ? day / (tv - day) * 100 : 0.0;
+
+    String signed(double v) =>
+        '${v >= 0 ? '+' : '−'}${fmtMoney(v.abs(), pf.currency)}';
+    String pct(double v) =>
+        '${v >= 0 ? '+' : '−'}${v.abs().toStringAsFixed(2)}%';
+
+    Widget tile(String label, double value, double percent) => Expanded(
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(13, 11, 13, 12),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.16),
+              borderRadius: BorderRadius.circular(DS.tileRadius),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: context.onBrandSecondary)),
+                const SizedBox(height: 5),
+                Text(signed(value),
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.3,
+                        color: value >= 0
+                            ? pnlColors.onBrandPositive
+                            : pnlColors.onBrandNegative)),
+                const SizedBox(height: 2),
+                Text(pct(percent),
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: value >= 0
+                            ? pnlColors.onBrandPositive
+                            : pnlColors.onBrandNegative)),
+              ],
+            ),
+          ),
+        );
+
     return Container(
       width: 380,
       color: context.scaffoldBg,
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text(pf.name,
-                style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: context.textPrimary)),
-            AppLogo(iconSize: 22, textColor: context.textPrimary),
-          ]),
-          const SizedBox(height: 12),
-          Text(l10n.evaluationAmount,
-              style: TextStyle(fontSize: 11, color: context.textHint)),
-          const SizedBox(height: 2),
-          Text(
-            rb != null
-                ? fmtMoney(rb.total - pf.additionalInvestment, pf.currency)
-                : '—',
-            style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: context.textPrimary),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        // ── 딥그린 헤더 (화면과 같은 블록) ──
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: context.appBarBg,
+            borderRadius: const BorderRadius.vertical(
+                bottom: Radius.circular(DS.headerRadius)),
           ),
-          const SizedBox(height: 12),
-          ...pf.items.map((item) {
-            final curWeight = rb?.results
-                .where((r) => r.id == item.id)
-                .firstOrNull
-                ?.currentWeight;
-            double evalVal = 0;
-            if (!item.isCash && item.currentPrice > 0) {
-              evalVal = item.currentPrice * item.shares;
-              if (item.market == 'US' && pf.currency == 'KRW')
-                evalVal *= pf.exchangeRate;
-              else if (item.market == 'KR' && pf.currency == 'USD')
-                evalVal /= pf.exchangeRate;
-            } else if (item.isCash) {
-              evalVal = item.shares;
-            }
-            return Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Flexible(
+                child: Text(pf.name,
+                    style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.3,
+                        color: Colors.white),
+                    overflow: TextOverflow.ellipsis),
+              ),
+              const SizedBox(width: 10),
+              AppLogo(iconSize: 18, textColor: Colors.white),
+            ]),
+            const SizedBox(height: 14),
+            Text(l10n.evaluationAmount,
+                style: TextStyle(
+                    fontSize: DS.body,
+                    fontWeight: FontWeight.w600,
+                    color: context.onBrandSecondary)),
+            const SizedBox(height: 4),
+            Text(fmtMoney(tv, pf.currency),
+                style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    letterSpacing: -1.2,
+                    height: 1.08)),
+            if (hasPnl || hasDay) ...[
+              const SizedBox(height: 14),
+              Row(children: [
+                if (hasPnl) tile(isKo ? '평가손익' : 'Unrealized', pnl, pnlPct),
+                if (hasPnl && hasDay) const SizedBox(width: 9),
+                if (hasDay) tile(isKo ? '전일대비' : 'Today', day, dayPct),
+              ]),
+            ],
+          ]),
+        ),
+
+        // ── 구성 종목 (화면의 카드와 같은 모양) ──
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              Text(l10n.holdingsSection,
+                  style: TextStyle(
+                      fontSize: DS.sectionTitle,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.2,
+                      color: context.textPrimary)),
+              const Spacer(),
+              Text(_holdingsSummary(context, pf),
+                  style: TextStyle(
+                      fontSize: DS.body,
+                      fontWeight: FontWeight.w600,
+                      color: context.textSecondary)),
+            ]),
+            const SizedBox(height: 9),
+            Container(
               decoration: BoxDecoration(
                 color: context.cardBg,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: context.borderColor),
+                borderRadius: BorderRadius.circular(DS.cardRadius),
+                border: Border.all(color: context.cardBorder),
               ),
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(children: [
-                      _marketBadge(context, item),
-                      const SizedBox(width: 6),
-                      Expanded(
-                          child: Text(item.displayName(context),
-                              style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: context.textPrimary),
-                              overflow: TextOverflow.ellipsis)),
-                      if (curWeight != null)
-                        Text(_pct(curWeight),
-                            style: TextStyle(
-                                fontSize: 12, color: context.textSecondary)),
-                    ]),
-                    if (!item.isCash) ...[
-                      const SizedBox(height: 4),
-                      Row(children: [
-                        Text(
-                            '${fmtPrice(item.currentPrice, item.market)} × ${formatShares(item.shares)}',
-                            style: TextStyle(
-                                fontSize: 11, color: context.textSecondary)),
-                        const Spacer(),
-                        if (evalVal > 0)
-                          Text(fmtMoney(evalVal, pf.currency),
-                              style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: context.textPrimary)),
-                      ]),
-                    ] else ...[
-                      const SizedBox(height: 4),
-                      Row(children: [
-                        const Spacer(),
-                        Text(fmtMoney(evalVal, pf.currency),
-                            style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: context.textPrimary)),
-                      ]),
-                    ],
-                  ]),
-            );
-          }),
-          const SizedBox(height: 8),
-          Text(_fmtTime(pf.lastUpdated),
-              style: TextStyle(fontSize: 10, color: context.textHint)),
-        ],
-      ),
+              padding: const EdgeInsets.symmetric(horizontal: DS.cardPaddingH),
+              child: Column(children: [
+                for (var i = 0; i < pf.items.length; i++)
+                  _captureHoldingRow(pf, pf.items[i], pnlColors,
+                      isLast: i == pf.items.length - 1),
+              ]),
+            ),
+          ]),
+        ),
+      ]),
+    );
+  }
+
+  Widget _captureHoldingRow(
+      Portfolio pf, PortfolioItem item, PnlColorNotifier pnlColors,
+      {required bool isLast}) {
+    double value = item.shares;
+    if (!item.isCash) {
+      value = item.shares * item.currentPrice;
+      if (item.market == 'US' && pf.currency == 'KRW') {
+        value *= pf.exchangeRate;
+      } else if (item.market == 'KR' && pf.currency == 'USD') {
+        value /= pf.exchangeRate;
+      }
+    }
+    final hasPnl = !item.isCash && item.avgPrice > 0 && item.currentPrice > 0;
+    final pct = hasPnl
+        ? (item.currentPrice - item.avgPrice) / item.avgPrice * 100
+        : 0.0;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: isLast
+          ? null
+          : BoxDecoration(
+              border: Border(bottom: BorderSide(color: context.dividerColor))),
+      child: Row(children: [
+        MarketChip(
+          market: item.isCash ? 'CASH' : item.market,
+          label: item.isCash
+              ? context.l10n.cash
+              : (item.market == 'US' ? 'US' : 'KR'),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(item.displayName(context),
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: context.textPrimary),
+                    overflow: TextOverflow.ellipsis),
+                if (!item.isCash) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                      '${fmtPrice(item.currentPrice, item.market)} · '
+                      '${formatShares(item.shares)}${context.l10n.unitShares}',
+                      style: TextStyle(
+                          fontSize: DS.body,
+                          fontWeight: FontWeight.w600,
+                          color: context.textSecondary)),
+                ],
+              ]),
+        ),
+        const SizedBox(width: 10),
+        Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+          Text(fmtMoney(value, pf.currency),
+              style: TextStyle(
+                  fontSize: DS.rowAmount,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.3,
+                  color: context.textPrimary)),
+          if (hasPnl) ...[
+            const SizedBox(height: 3),
+            Text('${pct >= 0 ? '+' : '−'}${pct.abs().toStringAsFixed(2)}%',
+                style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    color: pct >= 0
+                        ? pnlColors.positiveColor
+                        : pnlColors.negativeColor)),
+          ],
+        ]),
+      ]),
     );
   }
 

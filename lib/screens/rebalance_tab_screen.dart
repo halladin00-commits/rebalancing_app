@@ -1,3 +1,8 @@
+import 'dart:io';
+import 'package:screenshot/screenshot.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
@@ -7,6 +12,7 @@ import '../theme/design_system.dart';
 import '../widgets/portfolio_actions.dart';
 import '../utils/elapsed.dart';
 import '../utils/rebalancer.dart';
+import '../widgets/app_logo.dart';
 import '../widgets/app_menu.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/weight_bar.dart';
@@ -20,7 +26,7 @@ import 'rebalance_proposal_screen.dart';
 /// 허용 편차는 포트마다 다르므로 헤더에 대표값을 쓰지 않는다.
 /// 대신 카드마다 `허용 ±N%p`를 편차 바로 옆에 두어,
 /// 같은 편차가 어떤 포트에서는 "유지"인 이유가 한 줄에서 설명되게 한다.
-class RebalanceTabScreen extends StatelessWidget {
+class RebalanceTabScreen extends StatefulWidget {
   const RebalanceTabScreen({super.key});
 
   /// 허용 편차를 넘은 포트폴리오 수 — 하단 탭 배지도 이 값을 쓴다.
@@ -35,6 +41,14 @@ class RebalanceTabScreen extends StatelessWidget {
       portfolios.where((p) => !Rebalancer.canComputeDrift(p)).length;
 
   @override
+  State<RebalanceTabScreen> createState() => _RebalanceTabScreenState();
+}
+
+class _RebalanceTabScreenState extends State<RebalanceTabScreen> {
+  final ScreenshotController _screenshotCtrl = ScreenshotController();
+  bool _busy = false;
+
+  @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
@@ -42,8 +56,10 @@ class RebalanceTabScreen extends StatelessWidget {
     return Consumer<PortfolioProvider>(
       builder: (context, provider, _) {
         final portfolios = provider.portfolios;
-        final overCount = needsAdjustingCount(portfolios);
-        final unknownCount = unknownDriftCount(portfolios);
+        final overCount =
+            RebalanceTabScreen.needsAdjustingCount(portfolios);
+        final unknownCount =
+            RebalanceTabScreen.unknownDriftCount(portfolios);
 
         return Scaffold(
           backgroundColor: context.scaffoldBg,
@@ -67,6 +83,19 @@ class RebalanceTabScreen extends StatelessWidget {
                         : const Icon(Icons.refresh, color: Colors.white),
                     onPressed: provider.refreshing ? null : provider.refreshAll,
                   ),
+                  if (portfolios.isNotEmpty)
+                    IconButton(
+                      tooltip: context.l10n.capture,
+                      icon: _busy
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                  color: Colors.white, strokeWidth: 2))
+                          : const Icon(Icons.ios_share, color: Colors.white),
+                      onPressed:
+                          _busy ? null : () => _showCaptureSheet(portfolios),
+                    ),
                   AppMenu(entries: [
                     MenuAction(
                         Icons.help_outline,
@@ -95,6 +124,183 @@ class RebalanceTabScreen extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  // ── 이미지 저장 · 공유 ──
+
+  void _showCaptureSheet(List<Portfolio> portfolios) {
+    final l10n = context.l10n;
+    final ctx = context;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: context.cardBg,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      // 시트 안에서 `MediaQuery.padding.bottom`은 이미 소비돼 0으로 온다.
+      useSafeArea: true,
+      builder: (_) => SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: ctx.borderColor,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(l10n.capture,
+                  style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: ctx.textPrimary)),
+              const SizedBox(height: 16),
+              Row(children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      _emit(portfolios, share: false);
+                    },
+                    icon: const Icon(Icons.save_alt_rounded, size: 16),
+                    label: Text(l10n.saveImage),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: ctx.textPrimary,
+                      side: BorderSide(color: ctx.borderColor),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      _emit(portfolios, share: true);
+                    },
+                    icon: const Icon(Icons.share_rounded, size: 16),
+                    label: Text(l10n.shareImage),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: ctx.brand,
+                      side: BorderSide(color: ctx.brand),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                ),
+              ]),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _emit(List<Portfolio> portfolios, {required bool share}) async {
+    if (_busy) return;
+    final l10n = context.l10n;
+    setState(() => _busy = true);
+    try {
+      final bytes = await _screenshotCtrl.captureFromWidget(
+        _buildCapture(context, portfolios),
+        pixelRatio: 3.0,
+        context: context,
+      );
+      if (!mounted) return;
+      if (share) {
+        final dir = await getTemporaryDirectory();
+        final f = File(
+            '${dir.path}/rebalance_${DateTime.now().millisecondsSinceEpoch}.png');
+        await f.writeAsBytes(bytes);
+        await Share.shareXFiles([XFile(f.path)]);
+      } else {
+        final r = await ImageGallerySaverPlus.saveImage(bytes,
+            name: 'rebalance_${DateTime.now().millisecondsSinceEpoch}');
+        if (!mounted) return;
+        final ok = r['isSuccess'] == true || r['filePath'] != null;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(ok ? l10n.savedToGallery : l10n.saveFailed),
+          duration: const Duration(seconds: 2),
+        ));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(l10n.saveFailedError(e.toString())),
+          duration: const Duration(seconds: 2),
+        ));
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  /// 저장·공유할 리밸런싱 이미지.
+  ///
+  /// **화면과 같은 것을 보여준다.** 요약 한 줄과 포트별 카드까지 그대로다.
+  /// 누를 수 있는 것(화살표)만 뺀다 — 그림에서는 못 누르니 있으면 거짓말이다.
+  ///
+  /// **여기서 읽은 값만 쓴다.** `captureFromWidget`이 만드는 딴 트리에는
+  /// Provider도 Localizations도 없다.
+  Widget _buildCapture(BuildContext context, List<Portfolio> portfolios) {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    var overCount = 0, unknownCount = 0;
+    for (final pf in portfolios) {
+      if (Rebalancer.driftBlocker(pf) != null) {
+        unknownCount++;
+      } else if (Rebalancer.needsAdjusting(pf).isNotEmpty) {
+        overCount++;
+      }
+    }
+
+    return Container(
+      width: 380,
+      color: context.scaffoldBg,
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: context.appBarBg,
+            borderRadius: const BorderRadius.vertical(
+                bottom: Radius.circular(DS.headerRadius)),
+          ),
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Text(context.l10n.tabRebalancing,
+                  style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white)),
+              const AppLogo(iconSize: 18, textColor: Colors.white),
+            ]),
+            const SizedBox(height: 12),
+            _buildSummary(context, portfolios, overCount, unknownCount, isKo),
+          ]),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+          child: Column(children: [
+            for (var i = 0; i < portfolios.length; i++) ...[
+              if (i > 0) const SizedBox(height: DS.cardGap),
+              _buildCard(context, portfolios[i], isKo, forCapture: true),
+            ],
+          ]),
+        ),
+      ]),
     );
   }
 
@@ -302,7 +508,8 @@ class RebalanceTabScreen extends StatelessWidget {
 
   // ── 포트 카드 ──
 
-  Widget _buildCard(BuildContext context, Portfolio pf, bool isKo) {
+  Widget _buildCard(BuildContext context, Portfolio pf, bool isKo,
+      {bool forCapture = false}) {
     final drifts = Rebalancer.allDrifts(pf);
     final over = Rebalancer.driftExceeding(pf);
     final needsAdjusting = over.isNotEmpty;
@@ -315,7 +522,9 @@ class RebalanceTabScreen extends StatelessWidget {
     return InkWell(
       // **막힌 이유마다 갈 곳이 다르다.** 리밸런싱 화면에 보내봐야 거기서도
       // 같은 이유로 막혀 있으면 사용자는 한 단계 더 들어가서 막힐 뿐이다.
-      onTap: () => Navigator.push(
+      onTap: forCapture
+          ? null
+          : () => Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => switch (blocker) {
@@ -360,7 +569,7 @@ class RebalanceTabScreen extends StatelessWidget {
                 // 앱을 여는 이유의 대부분이 「지금 뭘 사고팔지」인데, 그 답이
                 // 자산→리밸런싱→포트→조정 제안으로 가장 멀었다. 배지를
                 // 눌리게 만들어 새 요소 없이 한 단계를 줄인다.
-                needsAdjusting
+                needsAdjusting && !forCapture
                     ? InkWell(
                         onTap: () => Navigator.push(
                           context,
@@ -372,10 +581,12 @@ class RebalanceTabScreen extends StatelessWidget {
                         child: _statusBadge(
                             context, needsAdjusting, blocker, isKo),
                       )
-                    : _statusBadge(context, needsAdjusting, blocker, isKo),
+                    : _statusBadge(context, needsAdjusting, blocker, isKo,
+                        forCapture: forCapture),
                 const SizedBox(width: 4),
-                Icon(Icons.chevron_right,
-                    size: 20, color: context.textTertiary),
+                if (!forCapture)
+                  Icon(Icons.chevron_right,
+                      size: 20, color: context.textTertiary),
               ],
             ),
             if (hasPrices) ...[
@@ -460,7 +671,8 @@ class RebalanceTabScreen extends StatelessWidget {
   }
 
   Widget _statusBadge(BuildContext context, bool needsAdjusting,
-      DriftBlocker? blocker, bool isKo) {
+      DriftBlocker? blocker, bool isKo,
+      {bool forCapture = false}) {
     if (blocker != null) {
       // `계산 불가`는 앱이 고장난 것처럼 들린다. 할 일이 있으면 그걸 말한다.
       final (text, fg, bg) = switch (blocker) {
@@ -484,7 +696,8 @@ class RebalanceTabScreen extends StatelessWidget {
     }
     return needsAdjusting
         ? _badge(context, isKo ? '조정 제안 보기' : 'See plan',
-            arrow: true,
+            // 그림에서는 누를 수 없다 — 화살표가 있으면 거짓말이 된다.
+            arrow: !forCapture,
             fg: context.warningText,
             bg: context.warningBg,
             weight: FontWeight.w800)

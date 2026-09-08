@@ -1640,6 +1640,24 @@ abstract class AppLocalizations {
   /// **'거래 내역'**
   String get transactionHistory;
 
+  /// No description provided for @deleteTransactionTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 거래를 지울까요?'**
+  String get deleteTransactionTitle;
+
+  /// No description provided for @deleteTransactionBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'수량과 평균 단가가 이 거래를 뺀 값으로 다시 계산됩니다.'**
+  String get deleteTransactionBody;
+
+  /// No description provided for @transactionDeleted.
+  ///
+  /// In ko, this message translates to:
+  /// **'거래를 지웠습니다'**
+  String get transactionDeleted;
+
   /// No description provided for @addTransaction.
   ///
   /// In ko, this message translates to:

@@ -883,6 +883,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transactionHistory => 'Transactions';
 
   @override
+  String get deleteTransactionTitle => 'Delete this trade?';
+
+  @override
+  String get deleteTransactionBody =>
+      'Your quantity and average cost will be recalculated without it.';
+
+  @override
+  String get transactionDeleted => 'Trade deleted';
+
+  @override
   String get addTransaction => 'Add Transaction';
 
   @override

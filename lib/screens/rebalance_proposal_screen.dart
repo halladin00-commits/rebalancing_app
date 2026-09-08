@@ -205,7 +205,17 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
+              // 다른 화면과 **같은 자리**에 둔다. 예전에는 여기만 우하단에
+              // 공유 버튼이 있었다. 이 화면은 그림이 아니라 **글**을
+              // 내보낸다 — 증권사 앱에 수량을 옮겨 적으라고. 그래도 자리가
+              // 다를 이유는 아니다.
+              if (trades.isNotEmpty)
+                IconButton(
+                  tooltip: l10n.shareProposal,
+                  icon: const Icon(Icons.ios_share, color: Colors.white),
+                  onPressed: () => _shareProposal(context, pf, trades),
+                ),
+              const SizedBox(width: 4),
             ]),
           ),
         ),
@@ -1140,9 +1150,7 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
       color: context.scaffoldBg,
       padding: EdgeInsets.fromLTRB(
           16, 10, 16, 16 + MediaQuery.of(context).padding.bottom),
-      child: Row(children: [
-        Expanded(
-          child: SizedBox(
+      child: SizedBox(
         height: 50,
         child: ElevatedButton(
           onPressed: () async {
@@ -1165,29 +1173,7 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
               style: const TextStyle(
                   fontSize: 13.5, fontWeight: FontWeight.w700)),
         ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        // 사와야 할 것을 그대로 옮겨 적을 수 있게 글로 내보낸다
-        Tooltip(
-          message: context.l10n.shareProposal,
-          child: GestureDetector(
-            onTap: () => _shareProposal(context, pf, trades),
-            behavior: HitTestBehavior.opaque,
-            child: Container(
-              width: 50,
-              height: 50,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: context.cardBg,
-                borderRadius: BorderRadius.circular(DS.buttonRadius),
-                border: Border.all(color: context.borderColor, width: 1.5),
-              ),
-              child: Icon(Icons.share, size: 21, color: context.brand),
-            ),
-          ),
-        ),
-      ]),
+      ),
     );
   }
 

@@ -863,6 +863,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get transactionHistory => '거래 내역';
 
   @override
+  String get deleteTransactionTitle => '이 거래를 지울까요?';
+
+  @override
+  String get deleteTransactionBody => '수량과 평균 단가가 이 거래를 뺀 값으로 다시 계산됩니다.';
+
+  @override
+  String get transactionDeleted => '거래를 지웠습니다';
+
+  @override
   String get addTransaction => '거래 추가';
 
   @override

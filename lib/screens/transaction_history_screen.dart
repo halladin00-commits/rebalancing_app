@@ -124,6 +124,15 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
               icon: const Icon(Icons.arrow_back, color: Colors.white),
                 onPressed: () => Navigator.pop(context),
               ),
+              // 거래를 **보러 온 화면**에서 바로 넣을 수 있어야 한다.
+              // 예전에는 종목 상세 메뉴로 들어가야만 넣을 수 있었다.
+              actions: [
+                IconButton(
+                  tooltip: context.l10n.addTransaction,
+                  icon: const Icon(Icons.add, color: Colors.white),
+                  onPressed: pf.items.isEmpty ? null : () => _addTransaction(pf),
+                ),
+              ],
               childPadding: const EdgeInsets.fromLTRB(22, 0, 22, 16),
               child: Text('${pf.name} · ${l10n.txCountLabel(all.length)}',
                   style: TextStyle(
@@ -249,6 +258,81 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   }
 
   /// 종목을 시트로 고른다. 거래가 있는 종목만, 건수와 함께.
+  /// 어느 종목의 거래인지 정한 뒤 입력 화면으로 보낸다.
+  ///
+  /// 종목을 걸러 보는 중이면 그 종목으로 바로 간다 — 이미 정해 놓고 온
+  /// 사람에게 다시 고르라고 할 이유가 없다.
+  Future<void> _addTransaction(Portfolio pf) async {
+    // 예수금은 거래 내역을 쓰지 않는다 (사용자가 직접 적는 값이다).
+    final choices = pf.items.where((i) => !i.isCash).toList();
+    if (choices.isEmpty) return;
+
+    PortfolioItem? target;
+    if (_itemId != null) {
+      target = choices.where((i) => i.id == _itemId).firstOrNull;
+    }
+    target ??= choices.length == 1 ? choices.first : null;
+
+    if (target == null) {
+      final picked = await _pickItemFrom(pf, choices);
+      if (picked == null || !mounted) return;
+      target = choices.where((i) => i.id == picked).firstOrNull;
+      if (target == null) return;
+    }
+    if (!mounted) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => TransactionFormScreen(portfolio: pf, item: target!),
+      ),
+    );
+  }
+
+  /// 거래를 넣을 종목 고르기. 걸러 보기와 달리 **거래가 없는 종목도** 낸다.
+  Future<String?> _pickItemFrom(
+      Portfolio pf, List<PortfolioItem> choices) async {
+    return showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: context.scaffoldBg,
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(DS.sheetRadius)),
+      ),
+      builder: (sheetCtx) => SafeArea(
+        top: false,
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          const SizedBox(height: 14),
+          Text(context.l10n.addTransaction,
+              style: TextStyle(
+                  fontSize: 15.5,
+                  fontWeight: FontWeight.w800,
+                  color: context.textPrimary)),
+          const SizedBox(height: 8),
+          Flexible(
+            child: ListView(
+              shrinkWrap: true,
+              padding: const EdgeInsets.fromLTRB(10, 0, 10, 16),
+              children: [
+                for (final i in choices)
+                  ListTile(
+                    title: Text(i.displayName(context),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            fontSize: DS.rowName,
+                            fontWeight: FontWeight.w600,
+                            color: context.textPrimary)),
+                    onTap: () => Navigator.pop(sheetCtx, i.id),
+                  ),
+              ],
+            ),
+          ),
+        ]),
+      ),
+    );
+  }
+
   Future<void> _pickItem(Portfolio pf) async {
     final l10n = context.l10n;
     final counts = <String, int>{};
@@ -260,6 +344,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
 
     final picked = await showModalBottomSheet<String>(
       context: context,
+      // 시트 안에서 `MediaQuery.padding.bottom`은 이미 소비돼 0으로 온다.
+      // SafeArea에 맡긴다 — 다른 시트와 같은 방식이다.
+      useSafeArea: true,
       isScrollControlled: true,
       backgroundColor: context.scaffoldBg,
       shape: const RoundedRectangleBorder(
@@ -284,9 +371,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           Flexible(
             child: ListView(
               shrinkWrap: true,
-              // 시트 맨 아래 항목이 네비게이션 바에 가리지 않게 한다
-              padding: EdgeInsets.fromLTRB(
-                  10, 0, 10, MediaQuery.of(sheetCtx).padding.bottom + 16),
+              padding: const EdgeInsets.fromLTRB(10, 0, 10, 16),
               children: [
                 for (final i in choices)
                   ListTile(
