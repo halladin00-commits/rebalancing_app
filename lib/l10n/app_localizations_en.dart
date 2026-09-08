@@ -136,6 +136,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fractionalReasonKrOnly => 'Domestic only · may not be supported';
 
   @override
+  String get fractionalUse => 'Allow fractional shares';
+
+  @override
   String get fractionalRoundingTitle => 'Quantity rounding';
 
   @override

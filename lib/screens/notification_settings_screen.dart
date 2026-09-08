@@ -6,6 +6,7 @@ import '../services/notification_service.dart';
 import '../theme/design_system.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/list_card.dart';
+import '../widgets/time_wheel_sheet.dart';
 
 /// 알림 설정.
 ///
@@ -31,7 +32,6 @@ class _NotificationSettingsScreenState
   int _day = DateTime.monday;
   int _monthDay = 1;
   TimeOfDay _time = const TimeOfDay(hour: 9, minute: 0);
-  TimeOfDay _settlementTime = const TimeOfDay(hour: 13, minute: 0);
   final _settlement = <String, bool>{};
 
   /// 시스템에서 이 앱의 알림이 켜져 있는가. 앱 안의 스위치와 별개다.
@@ -49,8 +49,6 @@ class _NotificationSettingsScreenState
     final day = await NotificationService.getDay();
     final hour = await NotificationService.getHour();
     final minute = await NotificationService.getMinute();
-    final sh = await NotificationService.getSettlementHour();
-    final sm = await NotificationService.getSettlementMinute();
     final granted = await NotificationService.isGranted();
     for (final t in _settlementTypes) {
       _settlement[t] = await NotificationService.isSettlementEnabled(t);
@@ -67,7 +65,6 @@ class _NotificationSettingsScreenState
         _monthDay = day.clamp(1, 28);
       }
       _time = TimeOfDay(hour: hour, minute: minute);
-      _settlementTime = TimeOfDay(hour: sh, minute: sm);
       _granted = granted;
       _loaded = true;
     });
@@ -200,14 +197,6 @@ class _NotificationSettingsScreenState
                           value: _settlement[t] ?? false,
                           onChanged: (v) => _setSettlement(t, v),
                         ),
-                      _pickerRow(
-                        context,
-                        label: l10n.settlementNotifTime,
-                        sub: l10n.settlementNotifTimeHint,
-                        value: MaterialLocalizations.of(context)
-                            .formatTimeOfDay(_settlementTime),
-                        onTap: _pickSettlementTime,
-                      ),
                     ]),
                     const SizedBox(height: 10),
                     Padding(
@@ -303,18 +292,12 @@ class _NotificationSettingsScreenState
   }
 
   Future<void> _pickTime() async {
-    final picked = await showTimePicker(context: context, initialTime: _time);
+    // 시계 다이얼(`showTimePicker`) 대신 굴려서 고르는 시트.
+    // 시·분을 한 화면에서 같이 보고 고친다 — 자세한 이유는 TimeWheelSheet.
+    final picked = await TimeWheelSheet.show(context, _time);
     if (picked == null || !mounted) return;
     setState(() => _time = picked);
     await _applyRebalance();
-  }
-
-  Future<void> _pickSettlementTime() async {
-    final picked =
-        await showTimePicker(context: context, initialTime: _settlementTime);
-    if (picked == null || !mounted) return;
-    setState(() => _settlementTime = picked);
-    await NotificationService.setSettlementTime(picked.hour, picked.minute);
   }
 
   /// 고르는 자리는 다 같은 시트를 쓴다 — 항목마다 다르게 생기면 무엇을

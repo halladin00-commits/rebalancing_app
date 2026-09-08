@@ -4,24 +4,19 @@ import 'package:provider/provider.dart';
 import '../main.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/elapsed.dart';
-import '../models/portfolio.dart';
 import '../services/notification_service.dart';
 import '../services/storage_service.dart';
 import '../theme/design_system.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/disclaimer_dialog.dart';
 import 'notification_settings_screen.dart';
-import 'fractional_settings_screen.dart';
 
 /// 더보기 탭 (v23a).
 ///
 /// **값이 있는 설정은 현재 값을 오른쪽에 적는다.** 눌러야 확인되는 설정은
 /// 목록으로 둘 이유가 없기 때문이다. 설명 문구는 값으로 대신할 수 있으면 넣지 않는다.
 class MoreScreen extends StatefulWidget {
-  /// 다른 탭으로 보내기 위한 콜백 (MainShell이 넘긴다)
-  final void Function(int index)? onNavigateToTab;
-
-  const MoreScreen({super.key, this.onNavigateToTab});
+  const MoreScreen({super.key});
 
   @override
   State<MoreScreen> createState() => _MoreScreenState();
@@ -98,8 +93,6 @@ class _MoreScreenState extends State<MoreScreen> {
 
     return Consumer<PortfolioProvider>(
       builder: (context, provider, _) {
-        final portfolios = provider.portfolios;
-
         return Scaffold(
           backgroundColor: context.scaffoldBg,
           body: Column(
@@ -110,34 +103,6 @@ class _MoreScreenState extends State<MoreScreen> {
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                   children: [
-                    _group(context, _isKo ? '포트폴리오' : 'Portfolios', [
-                      _row(
-                        context,
-                        label: _isKo ? '포트폴리오 · 종목 관리' : 'Portfolios & holdings',
-                        value: _isKo
-                            ? '${portfolios.length}개'
-                            : '${portfolios.length}',
-                        onTap: () => widget.onNavigateToTab?.call(0),
-                      ),
-                      _row(
-                        context,
-                        label: _isKo ? '목표 비중 · 허용 편차' : 'Targets & tolerance',
-                        value: _toleranceSummary(portfolios),
-                        onTap: () => widget.onNavigateToTab?.call(1),
-                      ),
-                      // 계좌별 설정이라는 게 목록에서 드러나야 한다 (시안 v23a)
-                      _row(
-                        context,
-                        label: context.l10n.fractionalTrading,
-                        value: _fractionalSummary(portfolios),
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const FractionalSettingsScreen(),
-                          ),
-                        ),
-                      ),
-                    ]),
 
                     _group(context, _isKo ? '표시' : 'Display', [
                       _row(
@@ -227,28 +192,6 @@ class _MoreScreenState extends State<MoreScreen> {
     );
     _loadNotifState();
   }
-
-  /// `2개 계좌` — 켜진 계좌 수. 꺼져 있으면 `사용 안 함`.
-  String _fractionalSummary(List<Portfolio> portfolios) {
-    final on = portfolios.where((p) => p.fractionalEnabled).length;
-    if (on == 0) return _isKo ? '사용 안 함' : 'Off';
-    return _isKo ? '$on개 계좌' : '$on accounts';
-  }
-
-  /// 허용 편차는 포트별 설정이라 값이 다르면 대표값을 쓰지 않는다
-  String _toleranceSummary(List<Portfolio> portfolios) {
-    if (portfolios.isEmpty) return '—';
-    final values = portfolios.map((p) => p.rebalancingThreshold).toSet();
-    if (values.length == 1) {
-      final v = values.first;
-      final s = v == v.roundToDouble()
-          ? v.toStringAsFixed(0)
-          : v.toStringAsFixed(1);
-      return _isKo ? '±$s%p' : '±${s}pp';
-    }
-    return _isKo ? '포트별 다름' : 'Varies';
-  }
-
   /// 목록에 적을 리밸런싱 알림 요약.
   ///
   /// 예전에는 `매주 월요일 오전 9시`를 문자열로 박아 뒀다. 이제 요일과 시간을

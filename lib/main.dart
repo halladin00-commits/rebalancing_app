@@ -57,6 +57,9 @@ void main() {
   FullScreenAds.preload();
   StockSearchService.initialize();
   NotificationService.initialize();
+  // 결산 알림이 13시 고정으로 바뀌기 전에 다른 시각을 골라 둔 사람이 있다.
+  // 예약은 예전 시각 그대로 남으므로 여기서 한 번 옮긴다.
+  unawaited(NotificationService.rescheduleSettlementsAtFixedHour());
   runApp(
     MultiProvider(
       providers: [

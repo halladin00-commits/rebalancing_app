@@ -129,6 +129,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get fractionalReasonKrOnly => '국내 종목만 있음 · 증권사에 따라 안 될 수 있습니다';
 
   @override
+  String get fractionalUse => '소수점 매매 허용';
+
+  @override
   String get fractionalRoundingTitle => '수량 반올림';
 
   @override

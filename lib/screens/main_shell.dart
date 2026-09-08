@@ -222,9 +222,7 @@ class _MainShellState extends State<MainShell> {
             ),
             const RebalanceTabScreen(),
             AllSettlementScreen(portfolios: portfolios, jump: _jump),
-            MoreScreen(
-              onNavigateToTab: (i) => setState(() => _index = i),
-            ),
+            const MoreScreen(),
           ],
         ),
         bottomNavigationBar: Column(

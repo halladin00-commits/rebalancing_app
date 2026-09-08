@@ -203,7 +203,9 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                 commissionRate: s['commissionRate'],
                 exchangeAuto: s['exchangeAuto'],
                 exchangeRate: s['exchangeRate'],
-                priceAuto: s['priceAuto']);
+                priceAuto: s['priceAuto'],
+                fractionalEnabled: s['fractionalEnabled'],
+                fractionalRounding: s['fractionalRounding']);
           },
         ),
       ),

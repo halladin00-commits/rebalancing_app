@@ -31,8 +31,20 @@ class NotificationService {
   static const _settlementYearlyId  = 2007;
   static const _quarterlyIds    = [2003, 2004, 2005, 2006];
   static const _quarterlyMonths = [1, 4, 7, 10];
-  static const _keySettlementHour   = 'settlement_notif_hour';
-  static const _keySettlementMinute = 'settlement_notif_minute';
+  /// 결산 알림은 **13시 고정**이다.
+  ///
+  /// 예전에는 고를 수 있었는데, 다르게 쓸 이유가 없으면서 틀린 값을 고를
+  /// 수는 있었다. 미국장 금요일 마감이 20~21시 UTC라 13시면 어느 시간대에서
+  /// 보든 마감 뒤지만, 9시로 당기면 UTC+13 이상에서 마감 전에 걸린다.
+  ///
+  /// 예전 판에서 다른 시각을 골라 둔 사람이 있으므로, 켜져 있는 알림은
+  /// [rescheduleSettlementsAtFixedHour]가 앱을 켤 때 13시로 다시 잡는다.
+  static const settlementHour   = 13;
+  static const settlementMinute = 0;
+
+  /// 예전 판이 쓰던 키. 지금은 **읽지도 쓰지도 않는다.**
+  /// 되돌릴 일이 있을까 봐 지우지는 않는다.
+  static const _keySettlementHourLegacy = 'settlement_notif_hour';
 
   /// 첫 실행에 권한을 물어봤는가.
   ///
@@ -272,24 +284,21 @@ class NotificationService {
     }
   }
 
-  /// 결산 알림 시각. 네 가지에 같이 적용된다 — 종류마다 따로 두면
-  /// 고를 것만 늘고, 실제로 다르게 쓸 이유가 없다.
-  static Future<int> getSettlementHour() async =>
-      (await SharedPreferences.getInstance()).getInt(_keySettlementHour) ?? 13;
-
-  static Future<int> getSettlementMinute() async =>
-      (await SharedPreferences.getInstance()).getInt(_keySettlementMinute) ?? 0;
-
-  /// 시각을 바꾸고, 켜져 있는 알림을 새 시각으로 다시 예약한다.
-  static Future<void> setSettlementTime(int hour, int minute) async {
+  /// 예전 판에서 13시가 아닌 시각을 골라 둔 사람의 알림을 다시 잡는다.
+  ///
+  /// 시각을 고정해도 **이미 예약된 알림은 예전 시각 그대로 뜬다.** 앱을
+  /// 켤 때 한 번 훑어서 옮긴다. 옮기고 나면 예전 키를 지워 다시 안 돈다.
+  static Future<void> rescheduleSettlementsAtFixedHour() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_keySettlementHour, hour);
-    await prefs.setInt(_keySettlementMinute, minute);
+    final old = prefs.getInt(_keySettlementHourLegacy);
+    if (old == null) return;
     for (final t in settlementTypes) {
       if (prefs.getBool(_settlementKey(t)) == true) {
         await _scheduleSettlement(t, prefs);
       }
     }
+    await prefs.remove(_keySettlementHourLegacy);
+    await prefs.remove('settlement_notif_minute');
   }
 
   static Future<bool> isSettlementEnabled(String type) async =>
@@ -327,8 +336,8 @@ class NotificationService {
   static Future<void> _scheduleSettlement(
       String type, SharedPreferences prefs) async {
     final isKo = (prefs.getString('locale') ?? 'ko') == 'ko';
-    final h = prefs.getInt(_keySettlementHour) ?? 13;
-    final m = prefs.getInt(_keySettlementMinute) ?? 0;
+    const h = settlementHour;
+    const m = settlementMinute;
 
     final details = NotificationDetails(
       android: AndroidNotificationDetails(

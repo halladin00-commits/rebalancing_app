@@ -623,9 +623,15 @@ class _PortfolioRebalanceScreenState extends State<PortfolioRebalanceScreen> {
     // 편차 색은 손익이 아니므로 PnlColorNotifier를 쓰지 않는다.
     // (빨강/파랑 스킴에서 초과 종목이 파랗게 나오면 뜻이 뒤집힌다)
     // 허용 안이면 무채색으로 두어 조정할 종목만 눈에 띄게 한다.
-    final driftColor = exceeds
-        ? (d.drift >= 0 ? context.danger : context.brandOnLight)
-        : context.textTertiary;
+    // 색은 **「손봐야 하나」만** 말한다. 어느 쪽으로 벗어났는지는 부호(+/−)와
+    // 아래 `현재 → 목표` 줄이 이미 말해준다.
+    //
+    // 방향에 따라 초록·빨강을 나누면 안 된다. 비중은 합이 100%로 묶여 있어서
+    // 한 종목이 초과면 다른 종목은 **반드시** 미달이다 — 열 종목이 전부 오른
+    // 날에도 절반은 미달로 나온다. 미달은 「떨어졌다」가 아니라 「남들보다 덜
+    // 올랐다」인데, 손익 색을 쓰면 같은 줄에서 손익과 편차가 서로 다른 색을
+    // 말하게 된다. 게다가 초과는 **팔 것**이라 초록으로 칠하면 신호가 거꾸로다.
+    final driftColor = exceeds ? context.danger : context.textTertiary;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
 
     return Container(

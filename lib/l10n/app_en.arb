@@ -70,6 +70,7 @@
     }
   },
   "fractionalReasonKrOnly": "Domestic only · may not be supported",
+  "fractionalUse": "Allow fractional shares",
   "fractionalRoundingTitle": "Quantity rounding",
   "fractionalRoundingDisabled": "No account has fractional trading on yet. Turn one on to choose a rounding rule.",
   "roundingMinDeviation": "Closest to target",

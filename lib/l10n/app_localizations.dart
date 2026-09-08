@@ -320,6 +320,12 @@ abstract class AppLocalizations {
   /// **'국내 종목만 있음 · 증권사에 따라 안 될 수 있습니다'**
   String get fractionalReasonKrOnly;
 
+  /// No description provided for @fractionalUse.
+  ///
+  /// In ko, this message translates to:
+  /// **'소수점 매매 허용'**
+  String get fractionalUse;
+
   /// No description provided for @fractionalRoundingTitle.
   ///
   /// In ko, this message translates to:
