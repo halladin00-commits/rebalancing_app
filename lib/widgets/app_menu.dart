@@ -55,21 +55,35 @@ class AppMenu extends StatelessWidget {
   /// 목록 한 줄에 놓을 때는 작게. 헤더의 ⋮와 같은 크기면 줄이 뚱뚱해진다.
   final double iconSize;
 
+  /// 버튼 그림. 안 주면 ⋮.
+  final Widget? icon;
+
+  /// 버튼을 길게 눌렀을 때 나오는 이름. 안 주면 「메뉴」.
+  final String? tooltip;
+
+  /// 끌 수 있다 — 무언가 만드는 중에는 다시 못 누르게 한다.
+  final bool enabled;
+
   const AppMenu({
     super.key,
     required this.entries,
     this.onBrand = true,
     this.iconSize = 24,
+    this.icon,
+    this.tooltip,
+    this.enabled = true,
   });
 
   @override
   Widget build(BuildContext context) {
     if (entries.isEmpty) return const SizedBox.shrink();
     return PopupMenuButton<int>(
-      icon: Icon(Icons.more_vert,
-          size: iconSize,
-          color: onBrand ? Colors.white : context.textSecondary),
-      tooltip: context.l10n.a11yMenu,
+      icon: icon ??
+          Icon(Icons.more_vert,
+              size: iconSize,
+              color: onBrand ? Colors.white : context.textSecondary),
+      tooltip: tooltip ?? context.l10n.a11yMenu,
+      enabled: enabled,
       color: context.cardBg,
       position: PopupMenuPosition.under,
       constraints: const BoxConstraints(minWidth: 208, maxWidth: 300),
@@ -149,5 +163,52 @@ class AppMenu extends StatelessWidget {
           ),
         ];
     }
+  }
+}
+
+
+/// 우상단 [캡처] 버튼과 그 아래에서 펼쳐지는 두 줄.
+///
+/// **바로 옆 ⋮ 메뉴와 같은 방식으로 연다.** 예전에는 화면 아래에서 시트가
+/// 올라왔는데, 나란히 붙은 두 버튼이 서로 다르게 열리면 누를 때마다 어디를
+/// 봐야 하는지 다시 생각하게 된다. 고를 것이 둘뿐이라 시트는 과하기도 했고,
+/// 시트는 하단 네비바에 가려지는 함정이 따로 있다.
+class CaptureMenu extends StatelessWidget {
+  final VoidCallback onSave;
+  final VoidCallback onShare;
+
+  /// 딥그린 헤더 위면 흰색.
+  final bool onBrand;
+
+  /// 그림을 만드는 중 — 뱅글이를 보이고 다시 못 누르게 한다.
+  final bool busy;
+
+  const CaptureMenu({
+    super.key,
+    required this.onSave,
+    required this.onShare,
+    this.onBrand = true,
+    this.busy = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final color = onBrand ? Colors.white : context.textSecondary;
+    return AppMenu(
+      tooltip: l10n.capture,
+      enabled: !busy,
+      icon: busy
+          ? SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(color: color, strokeWidth: 2))
+          : Icon(Icons.ios_share, color: color),
+      onBrand: onBrand,
+      entries: [
+        MenuAction(Icons.save_alt_rounded, l10n.saveImage, onSave),
+        MenuAction(Icons.share_rounded, l10n.shareImage, onShare),
+      ],
+    );
   }
 }

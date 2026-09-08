@@ -83,17 +83,10 @@ class _RebalanceTabScreenState extends State<RebalanceTabScreen> {
                     onPressed: provider.refreshing ? null : provider.refreshAll,
                   ),
                   if (portfolios.isNotEmpty)
-                    IconButton(
-                      tooltip: context.l10n.capture,
-                      icon: _busy
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                  color: Colors.white, strokeWidth: 2))
-                          : const Icon(Icons.ios_share, color: Colors.white),
-                      onPressed:
-                          _busy ? null : () => _showCaptureSheet(portfolios),
+                    CaptureMenu(
+                      busy: _busy,
+                      onSave: () => _emit(portfolios, share: false),
+                      onShare: () => _emit(portfolios, share: true),
                     ),
                   AppMenu(entries: [
                     MenuAction(
@@ -127,87 +120,6 @@ class _RebalanceTabScreenState extends State<RebalanceTabScreen> {
   }
 
   // ── 이미지 저장 · 공유 ──
-
-  void _showCaptureSheet(List<Portfolio> portfolios) {
-    final l10n = context.l10n;
-    final ctx = context;
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: context.cardBg,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      // 시트 안에서 `MediaQuery.padding.bottom`은 이미 소비돼 0으로 온다.
-      useSafeArea: true,
-      builder: (_) => SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: ctx.borderColor,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
-              Text(l10n.capture,
-                  style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                      color: ctx.textPrimary)),
-              const SizedBox(height: 16),
-              Row(children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.pop(ctx);
-                      _emit(portfolios, share: false);
-                    },
-                    icon: const Icon(Icons.save_alt_rounded, size: 16),
-                    label: Text(l10n.saveImage),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: ctx.textPrimary,
-                      side: BorderSide(color: ctx.borderColor),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.pop(ctx);
-                      _emit(portfolios, share: true);
-                    },
-                    icon: const Icon(Icons.share_rounded, size: 16),
-                    label: Text(l10n.shareImage),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: ctx.brand,
-                      side: BorderSide(color: ctx.brand),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                    ),
-                  ),
-                ),
-              ]),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Future<void> _emit(List<Portfolio> portfolios, {required bool share}) async {
     if (_busy) return;
     final l10n = context.l10n;

@@ -514,87 +514,6 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
       ]),
     );
   }
-
-  void _showCaptureSheet(VoidCallback onSave, VoidCallback onShare) {
-    final l10n = context.l10n;
-    final ctx = context;
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: context.cardBg,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      // 시트 안에서 `MediaQuery.padding.bottom`은 이미 소비돼 0으로 온다 —
-      // 그걸 더해 봐야 네비바를 못 비킨다. SafeArea에 맡긴다.
-      useSafeArea: true,
-      builder: (_) => SafeArea(
-        top: false,
-        child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: ctx.borderColor,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 14),
-            Text(l10n.capture,
-                style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    color: ctx.textPrimary)),
-            const SizedBox(height: 16),
-            Row(children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    Navigator.pop(ctx);
-                    onSave();
-                  },
-                  icon: const Icon(Icons.save_alt_rounded, size: 16),
-                  label: Text(l10n.saveImage),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: ctx.textPrimary,
-                    side: BorderSide(color: ctx.borderColor),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    Navigator.pop(ctx);
-                    onShare();
-                  },
-                  icon: const Icon(Icons.share_rounded, size: 16),
-                  label: Text(l10n.shareImage),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: context.brand,
-                    side: BorderSide(color: context.brand),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                  ),
-                ),
-              ),
-            ]),
-          ],
-        ),
-      )),
-    );
-  }
-
   void _showDeleteConfirm(Portfolio pf, PortfolioItem item) {
     final l10n = context.l10n;
     showDialog(
@@ -992,13 +911,10 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                         onPressed: () => _doRefresh(pf),
                       ),
                     if (!_editMode) ...[
-                      IconButton(
-                        tooltip: context.l10n.capture,
-                        icon: const Icon(Icons.ios_share, color: Colors.white),
-                        onPressed: () => _showCaptureSheet(
-                              () => _saveAssetImage(pf, rb),
-                              () => _shareAssetImage(pf, rb),
-                            ),
+                      CaptureMenu(
+                        busy: _sharingAsset || _savingAsset,
+                        onSave: () => _saveAssetImage(pf, rb),
+                        onShare: () => _shareAssetImage(pf, rb),
                       ),
                       AppMenu(entries: _portfolioMenu(pf, rb)),
                     ],
@@ -1267,13 +1183,10 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                             : context.onBrandSecondary),
                 onPressed: () => _doRefresh(pf),
               ),
-              IconButton(
-                tooltip: l10n.capture,
-                icon: const Icon(Icons.ios_share, color: Colors.white),
-                onPressed: () => _showCaptureSheet(
-                      () => _saveAssetImage(pf, rb),
-                      () => _shareAssetImage(pf, rb),
-                    ),
+              CaptureMenu(
+                busy: _sharingAsset || _savingAsset,
+                onSave: () => _saveAssetImage(pf, rb),
+                onShare: () => _shareAssetImage(pf, rb),
               ),
               AppMenu(entries: _portfolioMenu(pf, rb)),
             ],

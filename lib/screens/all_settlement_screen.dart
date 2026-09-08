@@ -12,6 +12,7 @@ import '../models/portfolio.dart';
 import '../services/asset_backfill_service.dart';
 import '../services/settlement_service.dart';
 import '../theme/design_system.dart';
+import '../widgets/app_menu.dart';
 import '../widgets/portfolio_actions.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/collapsing_header.dart';
@@ -399,11 +400,10 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
                         onPressed: context.watch<PortfolioProvider>().refreshing ? null : context.watch<PortfolioProvider>().refreshAll,
                       ),
                       if (_current != null)
-                        IconButton(
-                          icon:
-                              const Icon(Icons.ios_share, color: Colors.white),
-                          tooltip: l10n.capture,
-                          onPressed: _showCaptureSheet,
+                        CaptureMenu(
+                          busy: _sharing || _saving,
+                          onSave: _saveImage,
+                          onShare: _shareImage,
                         ),
                     ],
                     body: MeasureSize(
@@ -1053,88 +1053,6 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       '${b.month.toString().padLeft(2, '0')}.${b.day.toString().padLeft(2, '0')}';
 
   // ── 이미지 저장 · 공유 ──
-
-  void _showCaptureSheet() {
-    final l10n = context.l10n;
-    final ctx = context;
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: context.cardBg,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      // 시트 안에서 `MediaQuery.padding.bottom`은 이미 소비돼 0으로 온다 —
-      // 그걸 더해 봐야 네비바를 못 비킨다. SafeArea에 맡긴다.
-      useSafeArea: true,
-      builder: (_) => SafeArea(
-        top: false,
-        child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: ctx.borderColor,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 14),
-            Text(l10n.capture,
-                style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    color: ctx.textPrimary)),
-            const SizedBox(height: 16),
-            Row(children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    Navigator.pop(ctx);
-                    _saveImage();
-                  },
-                  icon: const Icon(Icons.save_alt_rounded, size: 16),
-                  label: Text(l10n.saveImage),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: ctx.textPrimary,
-                    side: BorderSide(color: ctx.borderColor),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    Navigator.pop(ctx);
-                    _shareImage();
-                  },
-                  icon: const Icon(Icons.share_rounded, size: 16),
-                  label: Text(l10n.shareImage),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: context.brand,
-                    side: BorderSide(color: context.brand),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                  ),
-                ),
-              ),
-            ]),
-          ],
-        ),
-      ),
-      ),
-    );
-  }
-
   Future<void> _saveImage() async {
     if (_saving) return;
     final l10n = context.l10n;
