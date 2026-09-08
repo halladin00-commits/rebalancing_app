@@ -1,8 +1,9 @@
 import 'dart:io';
-import 'package:screenshot/screenshot.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:flutter/material.dart';
+import '../utils/widget_capture.dart';
+import '../widgets/capture_frame.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -69,7 +70,6 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
   /// 없으니 안 켜지고, 안 켜지니 입력칸이 안 나온다.
   bool _addMode = false;
 
-  final ScreenshotController _screenshotCtrl = ScreenshotController();
   bool _capturing = false;
 
   // ── 서식 ──
@@ -121,9 +121,7 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
               Expanded(
                 child: rb == null
                     ? _buildCannotCalculate(context, pf)
-                    : Screenshot(
-                        controller: _screenshotCtrl,
-                        child: ListView(
+                    : ListView(
                         padding: const EdgeInsets.fromLTRB(16, 13, 16, 16),
                         children: [
                           _buildModeSegment(context, pf),
@@ -148,7 +146,6 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
                           const SizedBox(height: 9),
                           _buildDisclaimer(context),
                         ],
-                        ),
                       ),
               ),
               if (trades.isNotEmpty) _buildCta(context, pf, rb!, trades),
@@ -236,6 +233,194 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
           ),
         ),
       ),
+    );
+  }
+
+
+  /// 저장·공유할 조정 제안 그림.
+  ///
+  /// **화면을 그대로 찍지 않는다.** 주문이 열 건이면 화면 밖으로 이어지고
+  /// 그 아래는 그림에 안 들어간다. 여기서 스크롤 없이 전부 다시 그린다.
+  Widget _buildCapture(
+      BuildContext context, Portfolio pf, RebalanceResult rb) {
+    final l10n = context.l10n;
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final trades =
+        rb.results.where((r) => !r.isCash && r.delta != 0).toList();
+    final threshold = pf.rebalancingThreshold;
+
+    double maxNow = 0, maxAfter = 0;
+    for (final r in rb.results) {
+      final item = pf.items.firstWhere((i) => i.id == r.id);
+      final now = r.currentWeight - item.targetWeight;
+      final after = r.finalWeight - item.targetWeight;
+      if (now.abs() > maxNow.abs()) maxNow = now;
+      if (after.abs() > maxAfter.abs()) maxAfter = after;
+    }
+    final within = threshold <= 0 || maxAfter.abs() < threshold;
+
+    double proceeds = 0, cost = 0;
+    for (final r in trades) {
+      final item = pf.items.firstWhere((i) => i.id == r.id);
+      final amt = _amountOf(pf, item, r.delta);
+      if (r.delta > 0) {
+        cost += amt;
+      } else {
+        proceeds += amt;
+      }
+    }
+    final diff = proceeds - cost;
+
+    Widget line(String label, String value, {Color? color, bool bold = false}) =>
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 3),
+          child: Row(children: [
+            Expanded(
+              child: Text(label,
+                  style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: context.textSecondary)),
+            ),
+            Text(value,
+                style: TextStyle(
+                    fontSize: bold ? 14 : 12.5,
+                    fontWeight: bold ? FontWeight.w800 : FontWeight.w700,
+                    color: color ?? context.textPrimary)),
+          ]),
+        );
+
+    return CaptureFrame(
+      title: l10n.proposalTitle,
+      subtitle: pf.name,
+      headerBody: Row(
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
+        children: [
+          Text(_pp(maxNow),
+              style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: context.onBrandSecondary)),
+          const SizedBox(width: 9),
+          Icon(Icons.arrow_forward, size: 16, color: context.onBrandSecondary),
+          const SizedBox(width: 9),
+          Text(_pp(maxAfter),
+              style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.8,
+                  color: within
+                      ? context.onBrandAccent
+                      : context.onBrandWarning)),
+          const SizedBox(width: 9),
+          Flexible(
+            child: Text(isKo ? '조정 후 최대 편차' : 'drift after',
+                style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    color: context.onBrandSecondary),
+                overflow: TextOverflow.ellipsis),
+          ),
+        ],
+      ),
+      children: [
+        CaptureCard(
+          title: l10n.togetherNTrades(trades.length),
+          children: [
+            for (var i = 0; i < trades.length; i++)
+              _captureTradeRow(context, pf, trades[i],
+                  isLast: i == trades.length - 1),
+          ],
+        ),
+        const SizedBox(height: 14),
+        CaptureCard(
+          padding: const EdgeInsets.fromLTRB(16, 13, 16, 14),
+          children: [
+            if (proceeds > 0)
+              line(l10n.sellProceeds, '+${fmtMoney(proceeds, pf.currency)}',
+                  color: context.brandOnLight),
+            if (cost > 0)
+              line(l10n.buyCostN(trades.where((r) => r.delta > 0).length),
+                  '−${fmtMoney(cost, pf.currency)}',
+                  color: context.danger),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 5),
+              child: Divider(height: 1, color: context.dividerColor),
+            ),
+            line(diff >= 0 ? l10n.tradeMoneyLeft : l10n.tradeMoneyNeeded,
+                fmtMoney(diff.abs(), pf.currency),
+                bold: true,
+                color:
+                    diff >= 0 ? context.brandOnLight : context.warningText),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _captureTradeRow(
+      BuildContext context, Portfolio pf, RebalanceItemResult r,
+      {required bool isLast}) {
+    final l10n = context.l10n;
+    final item = pf.items.firstWhere((i) => i.id == r.id);
+    final isBuy = r.delta > 0;
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 11),
+      decoration: isLast
+          ? null
+          : BoxDecoration(
+              border: Border(bottom: BorderSide(color: context.dividerColor))),
+      child: Row(children: [
+        Container(
+          width: 34,
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: isBuy ? context.pnlUpTint : context.pnlDownTint,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Text(isBuy ? l10n.buy : l10n.sell,
+              style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: isBuy ? context.brandOnLight : context.danger)),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(item.displayName(context),
+                    style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w700,
+                        color: context.textPrimary),
+                    overflow: TextOverflow.ellipsis),
+                const SizedBox(height: 2),
+                Text('${_pct(r.currentWeight)} → ${_pct(r.finalWeight)}',
+                    style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: context.textSecondary)),
+              ]),
+        ),
+        const SizedBox(width: 10),
+        Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+          Text('${formatShares(r.delta.abs())}${l10n.unitShares}',
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.4,
+                  color: context.textPrimary)),
+          const SizedBox(height: 2),
+          Text(fmtMoney(_amountOf(pf, item, r.delta), pf.currency),
+              style: TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                  color: context.textSecondary)),
+        ]),
+      ]),
     );
   }
 
@@ -1287,8 +1472,25 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
     final l10n = context.l10n;
     setState(() => _capturing = true);
     try {
-      final bytes = await _screenshotCtrl.capture(pixelRatio: 3.0);
-      if (bytes == null || !mounted) return;
+      final pf = context.read<PortfolioProvider>()
+          .getPortfolio(widget.portfolioId);
+      if (pf == null) return;
+      final rb = Rebalancer.calculate(pf,
+          excludeIds: _excluded, redistributeExcluded: _redistribute);
+      if (rb == null) return;
+      final bytes = await captureWidget(context, _buildCapture(context, pf, rb));
+      if (bytes == null) {
+        // 그림을 못 만들었다. **말없이 끝내지 않는다** — 시트는 닫혔는데
+        // 아무 일도 안 일어나면 저장된 줄 알고 앨범을 찾게 된다.
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(l10n.saveFailed),
+            duration: const Duration(seconds: 2),
+          ));
+        }
+        return;
+      }
+      if (!mounted) return;
       if (share) {
         final dir = await getTemporaryDirectory();
         final f = File(

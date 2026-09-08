@@ -210,15 +210,6 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                       color: Colors.white),
                 ),
               ),
-              // **잘못 넣은 거래를 없앨 수 있어야 한다.** 고치기만 되고
-              // 지우기가 없으면, 없던 거래가 수량·평단·결산에 계속 남는다.
-              if (widget.transaction != null)
-                IconButton(
-                  tooltip: context.l10n.delete,
-                  icon: const Icon(Icons.delete_outline,
-                      color: Colors.white, size: 21),
-                  onPressed: _confirmDelete,
-                ),
               // 어느 통화로 입력하는지 못 박아 둔다 — 해외 종목에서 헷갈린다
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
@@ -485,23 +476,50 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       color: context.scaffoldBg,
       padding: EdgeInsets.fromLTRB(
           16, 10, 16, 16 + MediaQuery.of(context).padding.bottom),
-      child: SizedBox(
-        width: double.infinity,
-        height: DS.buttonHeight,
-        child: ElevatedButton(
-          onPressed: _save,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: context.brand,
-            foregroundColor: Colors.white,
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(DS.buttonRadius)),
+      child: Row(children: [
+        // **글자를 붙인다.** 우상단 휴지통 아이콘으로 뒀더니 눈에 안 띄고
+        // 무슨 버튼인지도 알기 어려웠다. 지우기는 되돌릴 수 없는 일이라
+        // 「여기 있다」가 분명해야 하고, 실수로 눌리지 않게 저장과
+        // 떨어져 있어야 한다.
+        if (widget.transaction != null) ...[
+          SizedBox(
+            height: DS.buttonHeight,
+            child: OutlinedButton.icon(
+              onPressed: _confirmDelete,
+              icon: const Icon(Icons.delete_outline, size: 18),
+              label: Text(l10n.delete,
+                  style: const TextStyle(
+                      fontSize: 14, fontWeight: FontWeight.w700)),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: context.danger,
+                side: BorderSide(color: context.danger.withValues(alpha: 0.5)),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(DS.buttonRadius)),
+              ),
+            ),
           ),
-          child: Text(l10n.saveTransaction,
-              style:
-                  const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w800)),
+          const SizedBox(width: 9),
+        ],
+        Expanded(
+          child: SizedBox(
+            height: DS.buttonHeight,
+            child: ElevatedButton(
+              onPressed: _save,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: context.brand,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(DS.buttonRadius)),
+              ),
+              child: Text(l10n.saveTransaction,
+                  style: const TextStyle(
+                      fontSize: 14.5, fontWeight: FontWeight.w800)),
+            ),
+          ),
         ),
-      ),
+      ]),
     );
   }
 

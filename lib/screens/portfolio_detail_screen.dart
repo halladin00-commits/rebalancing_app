@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../utils/widget_capture.dart';
 
 import '../utils/josa.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import '../main.dart';
@@ -55,7 +55,6 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
   bool _savingAsset = false;
   bool _sharingAsset = false;
   final _investController = TextEditingController();
-  final _screenshotCtrl = ScreenshotController();
 
   SparkPeriod _sparkPeriod = SparkPeriod.month;
   List<AssetPoint> _history = [];
@@ -219,13 +218,18 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     final l10n = context.l10n;
     setState(() => _savingAsset = true);
     try {
-      final captureHeight = 120.0 + pf.items.length * 90.0;
-      final bytes = await _screenshotCtrl.captureFromWidget(
-        _buildAssetCapture(pf, rb),
-        pixelRatio: 3.0,
-        context: context,
-        targetSize: Size(380, captureHeight),
-      );
+      final bytes = await captureWidget(context, _buildAssetCapture(pf, rb));
+      if (bytes == null) {
+        // 그림을 못 만들었다. **말없이 끝내지 않는다** — 시트는 닫혔는데
+        // 아무 일도 안 일어나면 저장된 줄 알고 앨범을 찾게 된다.
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(l10n.saveFailed),
+            duration: const Duration(seconds: 2),
+          ));
+        }
+        return;
+      }
       final r = await ImageGallerySaverPlus.saveImage(
         bytes,
         name: 'asset_${pf.name}_${DateTime.now().millisecondsSinceEpoch}',
@@ -245,13 +249,18 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     final l10n = context.l10n;
     setState(() => _sharingAsset = true);
     try {
-      final captureHeight = 120.0 + pf.items.length * 90.0;
-      final bytes = await _screenshotCtrl.captureFromWidget(
-        _buildAssetCapture(pf, rb),
-        pixelRatio: 3.0,
-        context: context,
-        targetSize: Size(380, captureHeight),
-      );
+      final bytes = await captureWidget(context, _buildAssetCapture(pf, rb));
+      if (bytes == null) {
+        // 그림을 못 만들었다. **말없이 끝내지 않는다** — 시트는 닫혔는데
+        // 아무 일도 안 일어나면 저장된 줄 알고 앨범을 찾게 된다.
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(l10n.saveFailed),
+            duration: const Duration(seconds: 2),
+          ));
+        }
+        return;
+      }
       final dir = await getTemporaryDirectory();
       final file = File(
           '${dir.path}/asset_${DateTime.now().millisecondsSinceEpoch}.png');

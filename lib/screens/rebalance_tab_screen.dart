@@ -1,9 +1,9 @@
 import 'dart:io';
-import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:flutter/material.dart';
+import '../utils/widget_capture.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
 import '../utils/money_format.dart';
@@ -45,7 +45,6 @@ class RebalanceTabScreen extends StatefulWidget {
 }
 
 class _RebalanceTabScreenState extends State<RebalanceTabScreen> {
-  final ScreenshotController _screenshotCtrl = ScreenshotController();
   bool _busy = false;
 
   @override
@@ -214,11 +213,18 @@ class _RebalanceTabScreenState extends State<RebalanceTabScreen> {
     final l10n = context.l10n;
     setState(() => _busy = true);
     try {
-      final bytes = await _screenshotCtrl.captureFromWidget(
-        _buildCapture(context, portfolios),
-        pixelRatio: 3.0,
-        context: context,
-      );
+      final bytes = await captureWidget(context, _buildCapture(context, portfolios));
+      if (bytes == null) {
+        // 그림을 못 만들었다. **말없이 끝내지 않는다** — 시트는 닫혔는데
+        // 아무 일도 안 일어나면 저장된 줄 알고 앨범을 찾게 된다.
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(l10n.saveFailed),
+            duration: const Duration(seconds: 2),
+          ));
+        }
+        return;
+      }
       if (!mounted) return;
       if (share) {
         final dir = await getTemporaryDirectory();
@@ -695,8 +701,13 @@ class _RebalanceTabScreenState extends State<RebalanceTabScreen> {
       return _badge(context, text, fg: fg, bg: bg, weight: FontWeight.w700);
     }
     return needsAdjusting
-        ? _badge(context, isKo ? '조정 제안 보기' : 'See plan',
-            // 그림에서는 누를 수 없다 — 화살표가 있으면 거짓말이 된다.
+        ? _badge(
+            context,
+            // 그림에서는 누를 수 없다. 「보기」는 시키는 말이라
+            // 정지 그림에서는 **상태**로 바꿔 적는다.
+            forCapture
+                ? (isKo ? '조정 필요' : 'Needs adjusting')
+                : (isKo ? '조정 제안 보기' : 'See plan'),
             arrow: !forCapture,
             fg: context.warningText,
             bg: context.warningBg,

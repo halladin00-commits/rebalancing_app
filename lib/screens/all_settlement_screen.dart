@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../utils/widget_capture.dart';
 import 'package:provider/provider.dart';
-import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -87,7 +87,6 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
 
   bool _saving = false;
   bool _sharing = false;
-  final _screenshotCtrl = ScreenshotController();
 
   /// 마지막으로 계산에 쓴 시세 기준 시각.
   ///
@@ -1141,11 +1140,18 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
     final l10n = context.l10n;
     setState(() => _saving = true);
     try {
-      final bytes = await _screenshotCtrl.captureFromWidget(
-        _buildCapture(),
-        pixelRatio: 3.0,
-        context: context,
-      );
+      final bytes = await captureWidget(context, _buildCapture());
+      if (bytes == null) {
+        // 그림을 못 만들었다. **말없이 끝내지 않는다** — 시트는 닫혔는데
+        // 아무 일도 안 일어나면 저장된 줄 알고 앨범을 찾게 된다.
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(l10n.saveFailed),
+            duration: const Duration(seconds: 2),
+          ));
+        }
+        return;
+      }
       final r = await ImageGallerySaverPlus.saveImage(
         bytes,
         name: 'settlement_all_${DateTime.now().millisecondsSinceEpoch}',
@@ -1173,11 +1179,18 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
     final l10n = context.l10n;
     setState(() => _sharing = true);
     try {
-      final bytes = await _screenshotCtrl.captureFromWidget(
-        _buildCapture(),
-        pixelRatio: 3.0,
-        context: context,
-      );
+      final bytes = await captureWidget(context, _buildCapture());
+      if (bytes == null) {
+        // 그림을 못 만들었다. **말없이 끝내지 않는다** — 시트는 닫혔는데
+        // 아무 일도 안 일어나면 저장된 줄 알고 앨범을 찾게 된다.
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(l10n.saveFailed),
+            duration: const Duration(seconds: 2),
+          ));
+        }
+        return;
+      }
       final dir = await getTemporaryDirectory();
       final file = File(
           '${dir.path}/settlement_all_${DateTime.now().millisecondsSinceEpoch}.png');

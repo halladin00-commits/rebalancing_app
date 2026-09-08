@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../utils/widget_capture.dart';
 import 'package:provider/provider.dart';
-import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -48,7 +48,6 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
 
   bool _savingMain = false;
   bool _sharingMain = false;
-  final _screenshotCtrl = ScreenshotController();
 
   /// 총자산 추이 (헤더 스파크라인용)
   List<AssetPoint> _history = const [];
@@ -280,11 +279,18 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
     final l10n = context.l10n;
     setState(() => _savingMain = true);
     try {
-      final bytes = await _screenshotCtrl.captureFromWidget(
-        _buildMainCapture(portfolios),
-        pixelRatio: 3.0,
-        context: context,
-      );
+      final bytes = await captureWidget(context, _buildMainCapture(portfolios));
+      if (bytes == null) {
+        // 그림을 못 만들었다. **말없이 끝내지 않는다** — 시트는 닫혔는데
+        // 아무 일도 안 일어나면 저장된 줄 알고 앨범을 찾게 된다.
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(l10n.saveFailed),
+            duration: const Duration(seconds: 2),
+          ));
+        }
+        return;
+      }
       final r = await ImageGallerySaverPlus.saveImage(
         bytes,
         name: 'portfolio_main_${DateTime.now().millisecondsSinceEpoch}',
@@ -311,11 +317,18 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
     final l10n = context.l10n;
     setState(() => _sharingMain = true);
     try {
-      final bytes = await _screenshotCtrl.captureFromWidget(
-        _buildMainCapture(portfolios),
-        pixelRatio: 3.0,
-        context: context,
-      );
+      final bytes = await captureWidget(context, _buildMainCapture(portfolios));
+      if (bytes == null) {
+        // 그림을 못 만들었다. **말없이 끝내지 않는다** — 시트는 닫혔는데
+        // 아무 일도 안 일어나면 저장된 줄 알고 앨범을 찾게 된다.
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(l10n.saveFailed),
+            duration: const Duration(seconds: 2),
+          ));
+        }
+        return;
+      }
       final dir = await getTemporaryDirectory();
       final file = File(
           '${dir.path}/portfolio_main_${DateTime.now().millisecondsSinceEpoch}.png');

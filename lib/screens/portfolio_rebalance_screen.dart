@@ -1,9 +1,9 @@
 import 'dart:io';
-import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:flutter/material.dart';
+import '../utils/widget_capture.dart';
 
 import '../utils/josa.dart';
 import 'package:provider/provider.dart';
@@ -16,6 +16,7 @@ import 'target_weights_screen.dart';
 import '../services/ad_service.dart';
 import '../widgets/bottom_banner_ad.dart';
 import '../widgets/app_menu.dart';
+import '../widgets/capture_frame.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/weight_bar.dart';
 import 'rebalance_proposal_screen.dart';
@@ -35,7 +36,6 @@ class PortfolioRebalanceScreen extends StatefulWidget {
 }
 
 class _PortfolioRebalanceScreenState extends State<PortfolioRebalanceScreen> {
-  final ScreenshotController _screenshotCtrl = ScreenshotController();
   bool _capturing = false;
 
   @override
@@ -65,9 +65,7 @@ class _PortfolioRebalanceScreenState extends State<PortfolioRebalanceScreen> {
           // 무효 트래픽으로 잡힐 수 있다.
           bottomNavigationBar: const SafeArea(
               top: false, child: BottomBannerAd(slot: AdSlot.work)),
-          body: Screenshot(
-            controller: _screenshotCtrl,
-            child: Column(
+          body: Column(
             children: [
               BrandHeader(
                 title: pf.name,
@@ -128,7 +126,6 @@ class _PortfolioRebalanceScreenState extends State<PortfolioRebalanceScreen> {
               // 사이에 정작 조정할 종목이 화면에서 사라진다.
               if (drifts.isNotEmpty) _buildCta(context, pf, isKo),
             ],
-          ),
           ),
         );
       },
@@ -225,8 +222,22 @@ class _PortfolioRebalanceScreenState extends State<PortfolioRebalanceScreen> {
     final l10n = context.l10n;
     setState(() => _capturing = true);
     try {
-      final bytes = await _screenshotCtrl.capture(pixelRatio: 3.0);
-      if (bytes == null || !mounted) return;
+      final pf = context.read<PortfolioProvider>()
+          .getPortfolio(widget.portfolioId);
+      if (pf == null) return;
+      final bytes = await captureWidget(context, _buildCapture(context, pf));
+      if (bytes == null) {
+        // 그림을 못 만들었다. **말없이 끝내지 않는다** — 시트는 닫혔는데
+        // 아무 일도 안 일어나면 저장된 줄 알고 앨범을 찾게 된다.
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(l10n.saveFailed),
+            duration: const Duration(seconds: 2),
+          ));
+        }
+        return;
+      }
+      if (!mounted) return;
       if (share) {
         final dir = await getTemporaryDirectory();
         final f = File(
@@ -253,6 +264,148 @@ class _PortfolioRebalanceScreenState extends State<PortfolioRebalanceScreen> {
     } finally {
       if (mounted) setState(() => _capturing = false);
     }
+  }
+
+
+  /// 저장·공유할 편차 그림.
+  ///
+  /// **화면을 그대로 찍지 않는다.** 종목 목록이 화면 밖으로 이어지면 그
+  /// 아래가 그림에 안 들어가고, 경계 안에 배경이 없어 검게 찍힌다.
+  /// 여기서 스크롤 없이 전부 다시 그린다.
+  Widget _buildCapture(BuildContext context, Portfolio pf) {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final drifts = Rebalancer.allDrifts(pf);
+    final over = Rebalancer.needsAdjusting(pf);
+    final needsAdjusting = over.isNotEmpty;
+    final worst = drifts.isEmpty ? null : drifts.first;
+    final valueColor =
+        needsAdjusting ? context.onBrandWarning : context.onBrandAccent;
+
+    return CaptureFrame(
+      title: pf.name,
+      headerBody: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              if (pf.items.length >= 2)
+                _statusPill(context, needsAdjusting, isKo),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.16),
+                  borderRadius: BorderRadius.circular(DS.chipRadius),
+                ),
+                child: Text(
+                  isKo
+                      ? '허용 ±${_trimZero(pf.rebalancingThreshold)}%p'
+                      : '±${_trimZero(pf.rebalancingThreshold)}pp',
+                  style: TextStyle(
+                      fontSize: DS.caption,
+                      fontWeight: FontWeight.w700,
+                      color: context.onBrandSecondary),
+                ),
+              ),
+            ]),
+            const SizedBox(height: 10),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(worst == null ? '—' : fmtPp(worst.drift, isKo),
+                    style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -1.0,
+                        height: 1.1,
+                        color: valueColor)),
+                const SizedBox(width: 8),
+                Text(isKo ? '최대 편차' : 'largest drift',
+                    style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: context.onBrandSecondary)),
+              ],
+            ),
+          ]),
+      children: [
+        if (drifts.isNotEmpty) ...[
+          CaptureCard(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 15),
+            children: [
+              WeightBar(
+                threshold: pf.rebalancingThreshold,
+                segments: [
+                  for (final i in pf.items)
+                    WeightSegment(
+                      currentWeight: drifts
+                          .firstWhere((d) => d.item.id == i.id,
+                              orElse: () => ItemDrift(
+                                  item: i, currentWeight: 0, drift: 0))
+                          .currentWeight,
+                      targetWeight: i.targetWeight,
+                    ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(isKo ? '세로선이 목표 비중' : 'Vertical lines are targets',
+                  style: TextStyle(
+                      fontSize: DS.body,
+                      fontWeight: FontWeight.w500,
+                      color: context.textSecondary)),
+            ],
+          ),
+          const SizedBox(height: 14),
+          CaptureCard(
+            title: isKo ? '종목별 비중' : 'Weight by holding',
+            children: [
+              for (var i = 0; i < drifts.length; i++)
+                _captureDriftRow(context, pf, drifts[i], isKo,
+                    isLast: i == drifts.length - 1),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _captureDriftRow(
+      BuildContext context, Portfolio pf, ItemDrift d, bool isKo,
+      {required bool isLast}) {
+    final exceeds = pf.rebalancingThreshold > 0 &&
+        d.drift.abs() >= pf.rebalancingThreshold;
+    final color = exceeds ? context.danger : context.textTertiary;
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: isLast
+          ? null
+          : BoxDecoration(
+              border: Border(bottom: BorderSide(color: context.dividerColor))),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Expanded(
+            child: Text(d.item.displayName(context),
+                style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: context.textPrimary),
+                overflow: TextOverflow.ellipsis),
+          ),
+          const SizedBox(width: 8),
+          Text(fmtPp(d.drift, isKo),
+              style: TextStyle(
+                  fontSize: 13.5, fontWeight: FontWeight.w800, color: color)),
+        ]),
+        const SizedBox(height: 3),
+        Text(
+            '${d.currentWeight.toStringAsFixed(2)}%  →  '
+            '${d.item.targetWeight.toStringAsFixed(2)}%',
+            style: TextStyle(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+                color: context.textSecondary)),
+      ]),
+    );
   }
 
   // ── 헤더: 최대 편차 ──
