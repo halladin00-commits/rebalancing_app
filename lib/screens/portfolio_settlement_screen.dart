@@ -1039,6 +1039,12 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
       netCashFlow: r?.netCashFlow ?? 0,
       inProgress: inProgress,
       currency: cur,
+      // 화면의 절반을 차지하는 요소다. 빠지면 「이번 달 얼마」만 남고
+      // 「지난 달들과 견주면 어떤가」가 사라진다.
+      bars: _buildBars(),
+      selectedBar: _selected,
+      showYearBoundary: _period != SettlementPeriod.yearly,
+      chartRangeLabel: _fullRangeLabel(range.start, range.end),
       rowsTitle: _isKo ? '종목별 기여' : 'Contribution by holding',
       isKo: _isKo,
       positiveColor: context.read<PnlColorNotifier>().positiveColor,

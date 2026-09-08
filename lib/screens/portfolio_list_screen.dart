@@ -18,6 +18,7 @@ import 'transaction_import_screen.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/app_menu.dart';
 import '../widgets/collapsing_header.dart';
+import '../widgets/asset_sparkline.dart';
 import '../widgets/sparkline_panel.dart';
 import '../services/settlement_service.dart';
 import '../widgets/dashed_border_box.dart';
@@ -453,6 +454,19 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                 if (hasAvg && hasDay) const SizedBox(width: 9),
                 if (hasDay) tile(isKo ? '전일대비' : 'Today', day, dayPct),
               ]),
+            ],
+            // 화면에 있는 것은 그림에도 있어야 한다. 추이선이 빠지면
+            // 「지금 얼마인가」만 남고 「어떻게 왔는가」가 사라진다.
+            if (_history.length >= 2) ...[
+              const SizedBox(height: 14),
+              AssetSparkline(
+                points: _history,
+                // 화면과 같은 규칙 — 올랐으면 상승색, 내렸으면 하락색
+                color: _history.last.totalKrw >= _history.first.totalKrw
+                    ? pnlColors.onBrandPositive
+                    : pnlColors.onBrandNegative,
+                height: 46,
+              ),
             ],
           ]),
         ),

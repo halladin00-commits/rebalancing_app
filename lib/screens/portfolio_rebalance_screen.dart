@@ -1,3 +1,8 @@
+import 'dart:io';
+import 'package:screenshot/screenshot.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:flutter/material.dart';
 
 import '../utils/josa.dart';
@@ -19,10 +24,19 @@ import 'rebalance_proposal_screen.dart';
 ///
 /// "무엇이 얼마나 어긋났는가"만 보여준다.
 /// 실제 매매 수량 제안은 조정 제안 화면이 맡는다.
-class PortfolioRebalanceScreen extends StatelessWidget {
+class PortfolioRebalanceScreen extends StatefulWidget {
   final String portfolioId;
 
   const PortfolioRebalanceScreen({super.key, required this.portfolioId});
+
+  @override
+  State<PortfolioRebalanceScreen> createState() =>
+      _PortfolioRebalanceScreenState();
+}
+
+class _PortfolioRebalanceScreenState extends State<PortfolioRebalanceScreen> {
+  final ScreenshotController _screenshotCtrl = ScreenshotController();
+  bool _capturing = false;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +45,7 @@ class PortfolioRebalanceScreen extends StatelessWidget {
     return Consumer<PortfolioProvider>(
       builder: (context, provider, _) {
         final pf = provider.portfolios
-            .where((p) => p.id == portfolioId)
+            .where((p) => p.id == widget.portfolioId)
             .cast<Portfolio?>()
             .firstWhere((p) => true, orElse: () => null);
 
@@ -51,7 +65,9 @@ class PortfolioRebalanceScreen extends StatelessWidget {
           // 무효 트래픽으로 잡힐 수 있다.
           bottomNavigationBar: const SafeArea(
               top: false, child: BottomBannerAd(slot: AdSlot.work)),
-          body: Column(
+          body: Screenshot(
+            controller: _screenshotCtrl,
+            child: Column(
             children: [
               BrandHeader(
                 title: pf.name,
@@ -74,6 +90,17 @@ class PortfolioRebalanceScreen extends StatelessWidget {
                                 color: Colors.white, strokeWidth: 2))
                         : const Icon(Icons.refresh, color: Colors.white),
                     onPressed: provider.refreshing ? null : provider.refreshAll,
+                  ),
+                  IconButton(
+                    tooltip: context.l10n.capture,
+                    icon: _capturing
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                                color: Colors.white, strokeWidth: 2))
+                        : const Icon(Icons.ios_share, color: Colors.white),
+                    onPressed: _capturing ? null : _showCaptureSheet,
                   ),
                   // 목표 비중은 처음 정할 때 쓰고 그 뒤로는 거의 안 건드린다.
                   // 늘 보이는 자리를 내줄 만큼 자주 쓰는 동작이 아니다.
@@ -102,9 +129,130 @@ class PortfolioRebalanceScreen extends StatelessWidget {
               if (drifts.isNotEmpty) _buildCta(context, pf, isKo),
             ],
           ),
+          ),
         );
       },
     );
+  }
+
+
+  // ── 이미지 저장 · 공유 ──
+  //
+  // **화면을 그대로 찍는다.** 캡처용 카드를 따로 그리면 화면이 바뀔 때마다
+  // 두 곳을 맞춰야 하고, 어긋나면 공유한 그림이 앱과 달라 보인다.
+
+  void _showCaptureSheet() {
+    final l10n = context.l10n;
+    final ctx = context;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: context.cardBg,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      useSafeArea: true,
+      builder: (_) => SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: ctx.borderColor,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(l10n.capture,
+                  style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: ctx.textPrimary)),
+              const SizedBox(height: 16),
+              Row(children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      _emit(share: false);
+                    },
+                    icon: const Icon(Icons.save_alt_rounded, size: 16),
+                    label: Text(l10n.saveImage),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: ctx.textPrimary,
+                      side: BorderSide(color: ctx.borderColor),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      _emit(share: true);
+                    },
+                    icon: const Icon(Icons.share_rounded, size: 16),
+                    label: Text(l10n.shareImage),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: ctx.brand,
+                      side: BorderSide(color: ctx.brand),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                ),
+              ]),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _emit({required bool share}) async {
+    if (_capturing) return;
+    final l10n = context.l10n;
+    setState(() => _capturing = true);
+    try {
+      final bytes = await _screenshotCtrl.capture(pixelRatio: 3.0);
+      if (bytes == null || !mounted) return;
+      if (share) {
+        final dir = await getTemporaryDirectory();
+        final f = File(
+            '${dir.path}/rebalance_pf_${DateTime.now().millisecondsSinceEpoch}.png');
+        await f.writeAsBytes(bytes);
+        await Share.shareXFiles([XFile(f.path)]);
+      } else {
+        final r = await ImageGallerySaverPlus.saveImage(bytes,
+            name: 'rebalance_pf_${DateTime.now().millisecondsSinceEpoch}');
+        if (!mounted) return;
+        final ok = r['isSuccess'] == true || r['filePath'] != null;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(ok ? l10n.savedToGallery : l10n.saveFailed),
+          duration: const Duration(seconds: 2),
+        ));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(l10n.saveFailedError(e.toString())),
+          duration: const Duration(seconds: 2),
+        ));
+      }
+    } finally {
+      if (mounted) setState(() => _capturing = false);
+    }
   }
 
   // ── 헤더: 최대 편차 ──

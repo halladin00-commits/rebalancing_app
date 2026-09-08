@@ -1196,6 +1196,7 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
   }
 
   Widget _buildCapture() {
+    final l10n = context.l10n;
     final r = _current;
     final range = SettlementService.periodRange(_period, _selected);
     final inProgress = r?.isCurrentPeriod ?? !range.end.isBefore(DateTime.now());
@@ -1218,6 +1219,12 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       netCashFlow: r?.netCashFlow ?? 0,
       inProgress: inProgress,
       currency: 'KRW',
+      // 화면의 절반을 차지하는 요소다. 빠지면 「이번 달 얼마」만 남고
+      // 「지난 달들과 견주면 어떤가」가 사라진다.
+      bars: _buildBars(l10n),
+      selectedBar: _selected,
+      showYearBoundary: _period != SettlementPeriod.yearly,
+      chartRangeLabel: _fullRangeLabel(range.start, range.end),
       rowsTitle: _isKo ? '포트별 기여' : 'Contribution by portfolio',
       isKo: _isKo,
       positiveColor: context.read<PnlColorNotifier>().positiveColor,

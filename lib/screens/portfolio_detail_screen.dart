@@ -28,6 +28,7 @@ import '../services/ad_service.dart';
 import '../widgets/bottom_banner_ad.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/app_menu.dart';
+import '../widgets/asset_sparkline.dart';
 import '../widgets/cash_edit_sheet.dart';
 import '../widgets/collapsing_header.dart';
 import '../widgets/dashed_border_box.dart';
@@ -376,6 +377,17 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                 if (hasPnl && hasDay) const SizedBox(width: 9),
                 if (hasDay) tile(isKo ? '전일대비' : 'Today', day, dayPct),
               ]),
+            ],
+            // 화면에 있는 것은 그림에도 있어야 한다.
+            if (_history.length >= 2) ...[
+              const SizedBox(height: 14),
+              AssetSparkline(
+                points: _history,
+                color: _history.last.totalKrw >= _history.first.totalKrw
+                    ? pnlColors.onBrandPositive
+                    : pnlColors.onBrandNegative,
+                height: 46,
+              ),
             ],
           ]),
         ),

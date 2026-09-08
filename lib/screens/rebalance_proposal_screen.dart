@@ -1,3 +1,7 @@
+import 'dart:io';
+import 'package:screenshot/screenshot.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -65,6 +69,9 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
   /// 없으니 안 켜지고, 안 켜지니 입력칸이 안 나온다.
   bool _addMode = false;
 
+  final ScreenshotController _screenshotCtrl = ScreenshotController();
+  bool _capturing = false;
+
   // ── 서식 ──
 
 
@@ -114,7 +121,9 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
               Expanded(
                 child: rb == null
                     ? _buildCannotCalculate(context, pf)
-                    : ListView(
+                    : Screenshot(
+                        controller: _screenshotCtrl,
+                        child: ListView(
                         padding: const EdgeInsets.fromLTRB(16, 13, 16, 16),
                         children: [
                           _buildModeSegment(context, pf),
@@ -139,6 +148,7 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
                           const SizedBox(height: 9),
                           _buildDisclaimer(context),
                         ],
+                        ),
                       ),
               ),
               if (trades.isNotEmpty) _buildCta(context, pf, rb!, trades),
@@ -211,9 +221,15 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
               // 다를 이유는 아니다.
               if (trades.isNotEmpty)
                 IconButton(
-                  tooltip: l10n.shareProposal,
-                  icon: const Icon(Icons.ios_share, color: Colors.white),
-                  onPressed: () => _shareProposal(context, pf, trades),
+                  tooltip: l10n.capture,
+                  icon: _capturing
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                              color: Colors.white, strokeWidth: 2))
+                      : const Icon(Icons.ios_share, color: Colors.white),
+                  onPressed: _capturing ? null : _showCaptureSheet,
                 ),
               const SizedBox(width: 4),
             ]),
@@ -1151,6 +1167,10 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
       padding: EdgeInsets.fromLTRB(
           16, 10, 16, 16 + MediaQuery.of(context).padding.bottom),
       child: SizedBox(
+        // **폭을 반드시 지정한다.** 공유 버튼을 빼면서 Row를 없앴는데,
+        // Row 밖에서는 자식이 저절로 가로를 채우지 않는다. 리밸런싱 화면에서
+        // 똑같이 겪고도 또 빠뜨렸다.
+        width: double.infinity,
         height: 50,
         child: ElevatedButton(
           onPressed: () async {
@@ -1177,18 +1197,124 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
     );
   }
 
-  /// 제안을 글로 내보낸다. 증권사 앱에 옮겨 적을 때 쓰라고.
-  void _shareProposal(
-      BuildContext context, Portfolio pf, List<RebalanceItemResult> trades) {
+
+  // ── 이미지 저장 · 공유 ──
+  //
+  // **화면을 그대로 찍는다.** 캡처용 카드를 따로 그리면 화면이 바뀔 때마다
+  // 두 곳을 맞춰야 하고, 어긋나면 공유한 그림이 앱과 달라 보인다.
+
+  void _showCaptureSheet() {
     final l10n = context.l10n;
-    final lines = <String>['${pf.name} · ${l10n.proposalTitle}'];
-    for (final r in trades) {
-      final item = pf.items.firstWhere((i) => i.id == r.id);
-      final side = r.delta > 0 ? l10n.buy : l10n.sell;
-      lines.add('$side ${item.name} '
-          '${formatShares(r.delta.abs())}${l10n.unitShares} · '
-          '${fmtMoney(_amountOf(pf, item, r.delta), pf.currency)}');
-    }
-    Share.share(lines.join('\n'));
+    final ctx = context;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: context.cardBg,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      useSafeArea: true,
+      builder: (_) => SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: ctx.borderColor,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(l10n.capture,
+                  style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: ctx.textPrimary)),
+              const SizedBox(height: 16),
+              Row(children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      _emit(share: false);
+                    },
+                    icon: const Icon(Icons.save_alt_rounded, size: 16),
+                    label: Text(l10n.saveImage),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: ctx.textPrimary,
+                      side: BorderSide(color: ctx.borderColor),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      _emit(share: true);
+                    },
+                    icon: const Icon(Icons.share_rounded, size: 16),
+                    label: Text(l10n.shareImage),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: ctx.brand,
+                      side: BorderSide(color: ctx.brand),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                ),
+              ]),
+            ],
+          ),
+        ),
+      ),
+    );
   }
+
+  Future<void> _emit({required bool share}) async {
+    if (_capturing) return;
+    final l10n = context.l10n;
+    setState(() => _capturing = true);
+    try {
+      final bytes = await _screenshotCtrl.capture(pixelRatio: 3.0);
+      if (bytes == null || !mounted) return;
+      if (share) {
+        final dir = await getTemporaryDirectory();
+        final f = File(
+            '${dir.path}/proposal_${DateTime.now().millisecondsSinceEpoch}.png');
+        await f.writeAsBytes(bytes);
+        await Share.shareXFiles([XFile(f.path)]);
+      } else {
+        final r = await ImageGallerySaverPlus.saveImage(bytes,
+            name: 'proposal_${DateTime.now().millisecondsSinceEpoch}');
+        if (!mounted) return;
+        final ok = r['isSuccess'] == true || r['filePath'] != null;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(ok ? l10n.savedToGallery : l10n.saveFailed),
+          duration: const Duration(seconds: 2),
+        ));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(l10n.saveFailedError(e.toString())),
+          duration: const Duration(seconds: 2),
+        ));
+      }
+    } finally {
+      if (mounted) setState(() => _capturing = false);
+    }
+  }
+
 }
