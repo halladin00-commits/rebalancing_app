@@ -28,7 +28,6 @@ import '../services/ad_service.dart';
 import '../widgets/bottom_banner_ad.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/app_menu.dart';
-import '../widgets/asset_sparkline.dart';
 import '../widgets/cash_edit_sheet.dart';
 import '../widgets/collapsing_header.dart';
 import '../widgets/dashed_border_box.dart';
@@ -387,15 +386,21 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                 if (hasDay) tile(isKo ? '전일대비' : 'Today', day, dayPct),
               ]),
             ],
-            // 화면에 있는 것은 그림에도 있어야 한다.
+            // 화면에 있는 것은 그림에도 있어야 한다 — 선 아래 **기간과
+            // 기준 시각도 같이.** 그림은 남한테 보여주는 것이라, 며칠치
+            // 선인지·언제 시세인지 없으면 받는 쪽이 알 수가 없다.
             if (_history.length >= 2) ...[
               const SizedBox(height: 14),
-              AssetSparkline(
+              SparklinePanel(
+                forCapture: true,
                 points: _history,
+                period: _sparkPeriod,
+                asOf: isKo
+                    ? '${_fmtTimeShort(pf.lastUpdated)} 기준'
+                    : 'as of ${_fmtTimeShort(pf.lastUpdated)}',
                 color: _history.last.totalKrw >= _history.first.totalKrw
                     ? pnlColors.onBrandPositive
                     : pnlColors.onBrandNegative,
-                height: 46,
               ),
             ],
           ]),

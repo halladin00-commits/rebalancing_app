@@ -39,7 +39,19 @@ enum SparkPeriod {
 class SparklinePanel extends StatelessWidget {
   final List<AssetPoint> points;
   final SparkPeriod period;
-  final ValueChanged<SparkPeriod> onPeriodChanged;
+
+  /// 캡처용일 때는 안 쓴다.
+  final ValueChanged<SparkPeriod>? onPeriodChanged;
+
+  /// 저장·공유할 그림에 들어갈 것인가.
+  ///
+  /// **기간과 기준 시각은 그림에도 남긴다.** 그림은 남한테 보여주는 것이라,
+  /// 그 숫자가 언제 것인지·선이 며칠치인지 없으면 받는 쪽이 알 수가 없다.
+  ///
+  /// 대신 **누를 수 있다는 표시는 뺀다** — 기간 칩의 단계 막대는 「눌러서
+  /// 다음으로」라는 뜻인데, 그림에서는 누를 데가 없다. 목록의 `>`를 그림에서
+  /// 빼는 것과 같은 이유다.
+  final bool forCapture;
 
   /// 우측 아래에 적을 기준 시각 (`08.17 09:41 기준`).
   final String asOf;
@@ -57,10 +69,11 @@ class SparklinePanel extends StatelessWidget {
     super.key,
     required this.points,
     required this.period,
-    required this.onPeriodChanged,
+    this.onPeriodChanged,
     required this.asOf,
     required this.color,
     this.building = false,
+    this.forCapture = false,
   });
 
   /// 선을 그릴 만큼 점이 있는가.
@@ -73,18 +86,22 @@ class SparklinePanel extends StatelessWidget {
       children: [
         // 그래프 자체도 누르면 다음 기간으로 간다 — 증권 앱들이 쓰는 방식이고,
         // 작은 칩보다 훨씬 큰 과녁이다.
-        GestureDetector(
-          onTap: () => onPeriodChanged(period.next),
-          behavior: HitTestBehavior.opaque,
-          child: SizedBox(
+        Builder(builder: (context) {
+          final chart = SizedBox(
             height: 46,
             // 채우는 중에도 이미 있는 선은 계속 보여준다 — 지웠다 그리면
             // 깜빡이고, 사용자는 뭐가 사라졌다고 읽는다.
             child: _hasEnough
                 ? AssetSparkline(points: points, color: color)
                 : _buildPlaceholder(context),
-          ),
-        ),
+          );
+          if (forCapture) return chart;
+          return GestureDetector(
+            onTap: () => onPeriodChanged?.call(period.next),
+            behavior: HitTestBehavior.opaque,
+            child: chart,
+          );
+        }),
         const SizedBox(height: 6),
         Row(children: [
           _buildPeriodButton(context),
@@ -224,12 +241,28 @@ class SparklinePanel extends StatelessWidget {
     final now = periodLabel(context, period);
     final next = periodLabel(context, period.next);
 
+    // 그림에서는 누를 수 없다. 단계 막대와 과녁 여백을 빼고 이름표만 남긴다.
+    if (forCapture) {
+      return Container(
+        padding: const EdgeInsets.fromLTRB(10, 4, 10, 4),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.16),
+          borderRadius: BorderRadius.circular(DS.chipRadius),
+        ),
+        child: Text(now,
+            style: const TextStyle(
+                fontSize: DS.caption,
+                fontWeight: FontWeight.w800,
+                color: Colors.white)),
+      );
+    }
+
     return Semantics(
       button: true,
       label: isKo ? '기간 $now. 누르면 $next' : 'Period $now. Tap for $next',
       excludeSemantics: true,
       child: GestureDetector(
-        onTap: () => onPeriodChanged(period.next),
+        onTap: () => onPeriodChanged?.call(period.next),
         behavior: HitTestBehavior.opaque,
         child: Padding(
           // 과녁을 벌린다 — 칩 자체는 작아도 누르는 자리는 넓게
