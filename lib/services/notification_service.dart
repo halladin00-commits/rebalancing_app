@@ -19,6 +19,20 @@ class NotificationService {
   static const _keyMinute    = 'notif_minute';
   static const _notifId      = 1001;
 
+  /// 「말일」을 고른 경우에 쓰는 자리들.
+  ///
+  /// 말일은 달마다 날짜가 달라서(28·29·30·31) 「매월 n일」 반복으로는 못
+  /// 나타낸다. 그래서 앞으로 열두 달치를 **하나씩** 미리 잡아 둔다.
+  /// 앱을 켤 때마다 `initialize`가 다시 채우므로, 쓰는 동안에는 늘 1년치가
+  /// 앞서 잡혀 있다.
+  static const _monthEndIds = [
+    1010, 1011, 1012, 1013, 1014, 1015,
+    1016, 1017, 1018, 1019, 1020, 1021,
+  ];
+
+  /// 「매월 말일」을 뜻하는 값. 1~28과 겹치지 않는 수면 된다.
+  static const lastDayOfMonth = 99;
+
   // 결산 알림
   static const _settlementChannelId   = 'settlement_reminder';
   static const _settlementChannelName = 'Settlement Reminder';
@@ -217,7 +231,18 @@ class NotificationService {
   static Future<void> disable() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_keyEnabled, false);
+    await _cancelRebalance();
+  }
+
+  /// 리밸런싱 알림 자리를 모두 비운다.
+  ///
+  /// 말일은 열두 자리를 쓴다. 하나만 지우면 나머지 열한 개가 살아남아,
+  /// 껐는데도 계속 울린다.
+  static Future<void> _cancelRebalance() async {
     await _plugin.cancel(_notifId);
+    for (final id in _monthEndIds) {
+      await _plugin.cancel(id);
+    }
   }
 
   static Future<void> _schedule(SharedPreferences prefs) async {
@@ -227,7 +252,7 @@ class NotificationService {
     final minute = prefs.getInt(_keyMinute) ?? 0;
     final isKo   = (prefs.getString('locale') ?? 'ko') == 'ko';
 
-    await _plugin.cancel(_notifId);
+    await _cancelRebalance();
 
     final title = isKo
         ? '리밸런싱 점검 시간이에요! 📊'
@@ -258,6 +283,20 @@ class NotificationService {
             UILocalNotificationDateInterpretation.absoluteTime,
         matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
       );
+    } else if (day == lastDayOfMonth) {
+      // 말일은 달마다 날짜가 달라 「매월 n일」 반복으로 못 잡는다.
+      // 열두 달치를 하나씩 놓는다.
+      var at = nextDayOfMonth(now, day, hour, minute);
+      for (final id in _monthEndIds) {
+        await _plugin.zonedSchedule(
+          id, title, body, at, details,
+          payload: payloadRebalance,
+          androidScheduleMode: AndroidScheduleMode.inexact,
+          uiLocalNotificationDateInterpretation:
+              UILocalNotificationDateInterpretation.absoluteTime,
+        );
+        at = nextDayOfMonth(at, day, hour, minute);
+      }
     } else {
       await _plugin.zonedSchedule(
         _notifId, title, body,
@@ -435,21 +474,30 @@ class NotificationService {
     return dt;
   }
 
+  /// 그 달의 마지막 날짜 (28·29·30·31).
+  ///
+  /// 「다음 달 0일」은 이번 달 마지막 날이다 — 윤년까지 달력이 알아서 센다.
+  static int daysInMonth(int year, int month) =>
+      DateTime(year, month + 1, 0).day;
+
   /// [from] 뒤의 가장 가까운 매월 [day]일 [hour]:[minute].
+  ///
+  /// [day]가 [lastDayOfMonth]면 그 달의 **마지막 날**로 잡는다.
   ///
   /// **없는 날짜를 넘기지 말 것.** 31일을 달라고 하면 Dart가 조용히 다음 달로
   /// 넘겨 버려서(2월 31일 → 3월 3일), 사용자가 고른 날과 다른 날에 울린다.
-  /// 그래서 화면에서는 28일까지만 고르게 한다.
+  /// 그래서 화면에서는 1~28일과 「말일」만 고르게 한다.
   static tz.TZDateTime nextDayOfMonth(
       tz.TZDateTime from, int day, int hour, int minute) {
+    int dayIn(int year, int month) =>
+        day == lastDayOfMonth ? daysInMonth(year, month) : day;
     try {
-      var dt = tz.TZDateTime(tz.local, from.year, from.month, day, hour, minute);
+      var dt = tz.TZDateTime(tz.local, from.year, from.month,
+          dayIn(from.year, from.month), hour, minute);
       if (!dt.isAfter(from)) {
-        final next = from.month < 12
-            ? DateTime(from.year, from.month + 1, day, hour, minute)
-            : DateTime(from.year + 1, 1, day, hour, minute);
-        dt = tz.TZDateTime(
-            tz.local, next.year, next.month, next.day, next.hour, next.minute);
+        final y = from.month < 12 ? from.year : from.year + 1;
+        final m = from.month < 12 ? from.month + 1 : 1;
+        dt = tz.TZDateTime(tz.local, y, m, dayIn(y, m), hour, minute);
       }
       return dt;
     } catch (_) {

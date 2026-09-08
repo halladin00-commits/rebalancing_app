@@ -2420,10 +2420,16 @@ abstract class AppLocalizations {
   /// **'{day}일'**
   String notifDayOfMonth(int day);
 
+  /// No description provided for @notifDayLastDay.
+  ///
+  /// In ko, this message translates to:
+  /// **'말일'**
+  String get notifDayLastDay;
+
   /// No description provided for @notifDayCapHint.
   ///
   /// In ko, this message translates to:
-  /// **'29~31일은 없는 달이 있습니다'**
+  /// **'2월처럼 짧은 달에는 그 달의 마지막 날에 알려드립니다'**
   String get notifDayCapHint;
 
   /// No description provided for @settlementNotifTime.

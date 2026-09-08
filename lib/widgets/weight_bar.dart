@@ -45,11 +45,18 @@ class WeightBar extends StatelessWidget {
   /// 허용 안인 구간을 **트랙 배경색과 같게 두면 안 된다.** 모두 정상일 때
   /// 막대가 통째로 빈 것처럼 보여, 종목이 몇 개인지도 무엇을 보라는 건지도
   /// 알 수 없다. 차분한 초록으로 채워 「점검했고 괜찮다」를 남긴다.
+  ///
+  /// 넘친 칸은 **어느 쪽으로 넘쳤든 같은 색**이다. 예전에는 초과를 주황,
+  /// 미달을 청록으로 나눴는데, 바로 아래 숫자는 넘쳤는지만 색으로 말한다 —
+  /// 같은 화면에서 막대와 숫자가 서로 다른 규칙을 쓰면 색이 무슨 뜻인지
+  /// 매번 다시 읽어야 한다.
+  ///
+  /// 방향은 색이 아니라 **자리**가 말한다. 칸이 세로선(목표)보다 넓으면
+  /// 초과, 좁으면 미달이다.
   Color _colorFor(BuildContext context, WeightSegment s) {
     final drift = s.currentWeight - s.targetWeight;
     if (threshold > 0 && drift.abs() < threshold) return context.weightOkFill;
-    if (drift > 0) return context.warningText;
-    return context.brand;
+    return context.warningText;
   }
 
 

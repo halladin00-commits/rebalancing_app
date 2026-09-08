@@ -1367,7 +1367,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get notifDayCapHint => 'Some months don\'t have days 29-31';
+  String get notifDayLastDay => 'Last day';
+
+  @override
+  String get notifDayCapHint =>
+      'In short months like February, it arrives on that month’s last day';
 
   @override
   String get settlementNotifTime => 'Reminder time';

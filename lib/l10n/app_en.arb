@@ -943,7 +943,8 @@
   "notifEveryWeek": "Weekly",
   "notifEveryMonth": "Monthly",
   "notifDayOfMonth": "Day {day}",
-  "notifDayCapHint": "Some months don't have days 29-31",
+  "notifDayLastDay": "Last day",
+  "notifDayCapHint": "In short months like February, it arrives on that month’s last day",
   "settlementNotifTime": "Reminder time",
   "settlementNotifTimeHint": "Applies to all settlement reminders",
   "@notifDayOfMonth": {

@@ -1336,7 +1336,10 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get notifDayCapHint => '29~31일은 없는 달이 있습니다';
+  String get notifDayLastDay => '말일';
+
+  @override
+  String get notifDayCapHint => '2월처럼 짧은 달에는 그 달의 마지막 날에 알려드립니다';
 
   @override
   String get settlementNotifTime => '알림 시간';

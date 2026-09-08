@@ -62,7 +62,9 @@ class _NotificationSettingsScreenState
       if (freq == 'weekly') {
         _day = day.clamp(DateTime.monday, DateTime.sunday);
       } else {
-        _monthDay = day.clamp(1, 28);
+        _monthDay = day == NotificationService.lastDayOfMonth
+            ? day
+            : day.clamp(1, 28);
       }
       _time = TimeOfDay(hour: hour, minute: minute);
       _granted = granted;
@@ -169,7 +171,7 @@ class _NotificationSettingsScreenState
                           _pickerRow(
                             context,
                             label: l10n.notifDayLabel,
-                            value: l10n.notifDayOfMonth(_monthDay),
+                            value: _monthDayLabel(context),
                             onTap: _pickMonthDay,
                           ),
                         _pickerRow(
@@ -275,6 +277,14 @@ class _NotificationSettingsScreenState
     await _applyRebalance();
   }
 
+  /// 「매월 며칠」 자리에 적을 이름.
+  String _monthDayLabel(BuildContext context) {
+    final l10n = context.l10n;
+    return _monthDay == NotificationService.lastDayOfMonth
+        ? l10n.notifDayLastDay
+        : l10n.notifDayOfMonth(_monthDay);
+  }
+
   Future<void> _pickMonthDay() async {
     final l10n = context.l10n;
     final picked = await _choose<int>(
@@ -284,6 +294,10 @@ class _NotificationSettingsScreenState
       // 엉뚱한 날로 밀린다 — 아예 28일까지만 준다.
       options: [
         for (var d = 1; d <= 28; d++) (value: d, label: l10n.notifDayOfMonth(d)),
+        // 31일을 고르려는 사람이 원하는 건 사실 **말일**이다. 없는 날짜를
+        // 흉내 내는 대신(「31일」이라 적고 2월엔 28일에 울리면 라벨이
+        // 거짓말이 된다) 원하는 것을 그대로 고르게 한다.
+        (value: NotificationService.lastDayOfMonth, label: l10n.notifDayLastDay),
       ],
     );
     if (picked == null || !mounted) return;

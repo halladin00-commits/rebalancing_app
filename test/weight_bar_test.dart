@@ -118,7 +118,7 @@ void main() {
     }
   });
 
-  testWidgets('허용을 넘으면 경고색, 모자라면 브랜드색', (tester) async {
+  testWidgets('허용을 넘으면 어느 쪽이든 같은 경고색', (tester) async {
     late BuildContext ctx;
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(
@@ -144,7 +144,13 @@ void main() {
         .evaluate()
         .map((e) => (e.widget as WeightBarSegmentBox).color)
         .toList();
-    expect(colors[0], ctx.warningText);
-    expect(colors[1], ctx.brand);
+    // 바로 아래 숫자는 「넘쳤는가」만 색으로 말한다. 막대만 방향을 색으로
+    // 나누면, 같은 화면에서 색이 두 가지 뜻을 갖는다.
+    //
+    // 방향은 색이 아니라 자리가 말한다 — 칸이 세로선(목표)보다 넓으면 초과,
+    // 좁으면 미달이다.
+    expect(colors[0], ctx.warningText, reason: '초과 — 경고색');
+    expect(colors[1], ctx.warningText, reason: '미달도 같은 경고색');
+    expect(colors[0], colors[1], reason: '방향에 따라 색이 갈리면 안 된다');
   });
 }
