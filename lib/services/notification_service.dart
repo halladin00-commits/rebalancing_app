@@ -76,7 +76,10 @@ class NotificationService {
     final localTimezone = await FlutterTimezone.getLocalTimezone();
     tz.setLocalLocation(tz.getLocation(localTimezone.identifier));
     const settings = InitializationSettings(
-      android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+      // 상태바 아이콘은 **알파만** 쓴다. 컬러 런처 아이콘을 그대로 넘기면
+      // 안드로이드 5 이상에서 실루엣만 남아 **흰 덩어리**로 뭉갠다 —
+      // 지금까지 알림에 정체 모를 흰 동그라미가 뜨던 이유다.
+      android: AndroidInitializationSettings('@drawable/ic_stat_notify'),
     );
     await _plugin.initialize(
       settings,

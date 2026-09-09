@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#0F172A</color>
+    <!-- 어댑티브 아이콘 바탕. 앱 헤더·스플래시와 같은 딥그린이라
+         홈 화면에서 앱을 열 때 색이 끊기지 않는다. -->
+    <color name="ic_launcher_background">#0E4F49</color>
 </resources>

@@ -2,4 +2,7 @@
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
     <background android:drawable="@color/ic_launcher_background"/>
     <foreground android:drawable="@mipmap/ic_launcher_foreground"/>
+    <!-- 안드로이드 13 이상에서 배경화면 색에 맞춰 아이콘을 물들일 때 쓴다.
+         이 층이 없으면 테마 아이콘을 켠 폰에서 우리 앱만 혼자 튄다. -->
+    <monochrome android:drawable="@mipmap/ic_launcher_monochrome"/>
 </adaptive-icon>
