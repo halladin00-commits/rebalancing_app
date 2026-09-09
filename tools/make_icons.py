@@ -45,6 +45,10 @@ DOT = 0.058          # 가운데 점 반지름 (넓이로 잰 값 0.0582)
 GAP = 0.0355         # 틈 **폭** (잰 값 0.0355)
 CORNER = 0.2025      # 옛 아이콘 모서리 (잰 값)
 
+# 안드로이드 12+ 스플래시 아이콘. 288dp 판 위에 마크만 놓인다.
+# 예전 자산에서 잰 지름 비율 그대로 쓴다 — 스플래시 크기가 안 바뀐다.
+SPLASH_MARK = 0.5365
+
 # 틈이 놓이는 자리. 12시가 0이고 시계 방향.
 GAPS = (0.0, 120.0, 240.0)
 
@@ -175,6 +179,17 @@ def main():
         n = int(round(48 * k))
         save(full(n, n, BRAND, BRAND, rounded=True),
              '%s/mipmap-%s/ic_launcher.png' % (RES, name))
+
+    # 안드로이드 12부터 앱을 켜는 순간 뜨는 화면은 `launch_background`가
+    # 아니라 **이 그림**을 쓴다. 여기를 안 바꾸면 아이콘·앱 안 로고를 다
+    # 바꿔도 켤 때마다 옛 마크가 한 번씩 나온다 (실제로 그랬다).
+    print('── 스플래시 아이콘 (안드로이드 12+) ──')
+    for name, k in DENSITIES:
+        n = int(round(288 * k))
+        # 판 지름의 SPLASH_MARK 만큼을 마크가 차지한다. render()는 마크를
+        # '보이는 크기'의 RING_OUTER 배로 그리므로 거꾸로 환산한다.
+        save(full(n, int(round(n * SPLASH_MARK / (RING_OUTER * 2))), None, CLEAR),
+             '%s/drawable-%s/ic_splash.png' % (RES, name))
 
     # 상태바 아이콘은 **알파만** 쓴다. 색을 넣으면 안드로이드 5 이상에서
     # 흰 덩어리로 뭉갠다.

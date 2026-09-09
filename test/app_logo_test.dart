@@ -241,4 +241,33 @@ void main() {
         reason: '마크와 글자 사이가 옛 로고(0.30)와 다르다');
     expect(cap, greaterThan(0));
   });
+  test('res/ 의 모든 그림을 생성기가 만든다', () {
+    // 앱 아이콘·앱 안 로고·알림 아이콘을 다 바꿔 놓고 **스플래시를 빠뜨렸다.**
+    // 앱을 켤 때마다 옛 4색 도넛이 한 번씩 나왔는데, 화면이 0.5초라
+    // 실기기에서 우연히 캡처하기 전까지 몰랐다.
+    //
+    // 생성기가 안 만드는 그림이 res/ 에 있으면 여기서 걸린다.
+    const made = {
+      'ic_launcher.png',
+      'ic_launcher_foreground.png',
+      'ic_launcher_monochrome.png',
+      'ic_splash.png',
+      'ic_stat_notify.png',
+    };
+
+    final strays = <String>[];
+    for (final f in Directory('android/app/src/main/res').listSync(recursive: true)) {
+      if (f is! File || !f.path.endsWith('.png')) continue;
+      final name = f.uri.pathSegments.last;
+      if (!made.contains(name)) strays.add(f.path);
+    }
+    expect(strays, isEmpty,
+        reason: '생성기가 안 만드는 그림이다 — 마크를 바꿔도 여기만 옛것이 남는다');
+
+    // 생성기가 정말 그 다섯을 만드는지도 확인한다.
+    final py = File('tools/make_icons.py').readAsStringSync();
+    for (final n in made) {
+      expect(py.contains(n), isTrue, reason: '생성기에 $n 이 없다');
+    }
+  });
 }
