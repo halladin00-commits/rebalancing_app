@@ -522,7 +522,11 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        AppLogo(iconSize: 14, textColor: context.textSecondary),
+                        // 크림 배경 위라 아이콘 색(민트·크림)은 묻힌다. 한 색으로 그린다.
+                        AppLogo(
+                            iconSize: 14,
+                            textColor: context.textSecondary,
+                            mono: true),
                       ],
                     ),
                   ]),
