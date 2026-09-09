@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
@@ -78,5 +81,21 @@ void main() {
       t = NotificationService.nextDayOfMonth(t, last, 9, 0);
     }
     expect(days, [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]);
+  });
+  test('말일 안내는 말일을 골랐을 때만 붙는다', () {
+    // 1~28일은 어느 달에나 있으므로 설명할 것이 없다. 늘 띄워 두면
+    // 15일을 고른 사람도 자기 알림이 달마다 옮겨 다니는 줄 알게 된다.
+    final screen = LineSplitter.split(
+            File('lib/screens/notification_settings_screen.dart')
+                .readAsStringSync())
+        .where((l) => !l.trimLeft().startsWith('//'))
+        .join(' ');
+    final i = screen.indexOf('notifDayCapHint');
+    expect(i, isNot(-1), reason: '말일 안내 문구가 사라졌다');
+    // 문구를 붙이는 조건에 말일 확인이 들어 있어야 한다.
+    final before = screen.substring(0, i);
+    final cond = before.lastIndexOf('_freq ==');
+    expect(before.substring(cond).contains('lastDayOfMonth'), isTrue,
+        reason: '매월이기만 하면 늘 뜬다 — 말일일 때만 떠야 한다');
   });
 }

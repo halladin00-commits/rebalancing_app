@@ -183,7 +183,12 @@ class _NotificationSettingsScreenState
                         ),
                       ],
                     ]),
-                    if (_rebalanceOn && _freq == 'monthly') ...[
+                    // 「말일」을 골랐을 때만 붙인다. 1~28일은 어느 달에나
+                    // 있으므로 설명할 것이 없는데, 늘 띄워 두면 15일을 고른
+                    // 사람도 자기 알림이 달마다 옮겨 다니는 줄 알게 된다.
+                    if (_rebalanceOn &&
+                        _freq == 'monthly' &&
+                        _monthDay == NotificationService.lastDayOfMonth) ...[
                       const SizedBox(height: 8),
                       _hint(context, l10n.notifDayCapHint),
                     ],
