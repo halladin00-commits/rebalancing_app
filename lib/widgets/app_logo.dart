@@ -41,11 +41,11 @@ class AppLogo extends StatelessWidget {
           height: iconSize,
           child: CustomPaint(
             painter: mono
-                ? TargetMarkPainter(accent: fg, light: fg)
-                : const TargetMarkPainter(),
+                ? TargetMarkPainter(accent: fg, light: fg, fill: true)
+                : const TargetMarkPainter(fill: true),
           ),
         ),
-        SizedBox(width: iconSize * 0.34),
+        SizedBox(width: iconSize * 0.30),
         Text(
           'REBALANCING',
           style: TextStyle(
@@ -72,9 +72,18 @@ class TargetMarkPainter extends CustomPainter {
   /// 아래·왼쪽 조각의 색.
   final Color light;
 
+  /// 마크가 상자를 **꽉 채우게** 한다.
+  ///
+  /// 아이콘 자산에서는 마크가 타일 안에 여백을 두고 앉는다(바깥 반지름이
+  /// 타일의 0.307). 로고 잠금 구성에는 타일이 없으므로 그 여백을 그대로
+  /// 두면 마크만 39% 작아지고, 글자와의 간격도 그만큼 벌어진다.
+  /// 실제로 그렇게 나가서 「크기와 간격 비율이 부자연스럽다」는 지적을 받았다.
+  final bool fill;
+
   const TargetMarkPainter({
     this.accent = const Color(0xFF8FE7B0),
     this.light = const Color(0xFFFBF8F1),
+    this.fill = false,
   });
 
   // make_icons.py의 RING_OUTER · RING_INNER · DOT · GAP과 같은 값.
@@ -90,8 +99,11 @@ class TargetMarkPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final v = size.width;
     final c = Offset(v / 2, v / 2);
-    final outer = ringOuter * v;
-    final inner = ringInner * v;
+    // 꽉 채울 때는 바깥 반지름이 상자의 절반이 되도록 전체를 키운다.
+    // 비율은 그대로라 아이콘과 같은 그림이 나온다.
+    final k = fill ? 0.5 / ringOuter : 1.0;
+    final outer = ringOuter * k * v;
+    final inner = ringInner * k * v;
 
     // 고리 = 큰 원에서 작은 원을 뺀 것.
     final ring = Path()
@@ -102,7 +114,7 @@ class TargetMarkPainter extends CustomPainter {
     // 틈은 **폭이 일정한 홈**이다. 부채꼴로 내면 중심으로 갈수록 좁아져
     // 양 변이 벌어진다 — 시안은 평행하다.
     final slots = Path();
-    final half = gap * v / 2;
+    final half = gap * k * v / 2;
     final reach = outer * 1.2;
     for (final deg in gaps) {
       final a = deg * math.pi / 180;
@@ -143,10 +155,10 @@ class TargetMarkPainter extends CustomPainter {
     }
 
     // 홈보다 **나중에** 그린다. 먼저 그리면 홈이 점을 가른다.
-    canvas.drawCircle(c, dot * v, Paint()..color = accent);
+    canvas.drawCircle(c, dot * k * v, Paint()..color = accent);
   }
 
   @override
   bool shouldRepaint(TargetMarkPainter old) =>
-      old.accent != accent || old.light != light;
+      old.accent != accent || old.light != light || old.fill != fill;
 }

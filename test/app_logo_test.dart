@@ -155,4 +155,90 @@ void main() {
     expect(TargetMarkPainter.gaps, [0.0, 120.0, 240.0]);
     expect(py.contains("SEGMENT_ROLES = ('accent', 'light', 'light')"), isTrue);
   });
+  testWidgets('로고 잠금 구성이 예전 비율을 지킨다', (tester) async {
+    // 마크를 아이콘 타일 기준(바깥 반지름 0.307)으로 그리면 상자 안에
+    // 여백이 남아 **마크만 39% 작아지고** 글자와의 간격이 두 배로 벌어진다.
+    // 실제로 그렇게 나갔다. 옛 로고를 재서 얻은 비율과 맞는지 확인한다.
+    //
+    //   옛 로고: 마크 113 · 글자높이 58 · 간격 44
+    //           마크/글자높이 1.95   간격/글자높이 0.76
+    const bg = Color(0xFF0E4F49);
+    final key = GlobalKey();
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        backgroundColor: bg,
+        body: Center(
+          child: RepaintBoundary(
+            key: key,
+            child: Container(
+              color: bg,
+              padding: const EdgeInsets.all(8),
+              child: const AppLogo(iconSize: 60),
+            ),
+          ),
+        ),
+      ),
+    ));
+
+    late ByteData data;
+    late int w, h;
+    await tester.runAsync(() async {
+      final board =
+          key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+      final image = await board.toImage(pixelRatio: 1);
+      w = image.width;
+      h = image.height;
+      data = (await image.toByteData(format: ui.ImageByteFormat.rawRgba))!;
+    });
+
+    bool lit(int x, int y) {
+      final i = (y * w + x) * 4;
+      return data.getUint8(i) + data.getUint8(i + 1) + data.getUint8(i + 2) > 330;
+    }
+
+    // 세로로 칠해진 칸이 있는 열을 찾아 덩어리로 나눈다.
+    final cols = [for (var x = 0; x < w; x++)
+      List.generate(h, (y) => lit(x, y)).any((v) => v)];
+    final runs = <List<int>>[];
+    int? start;
+    for (var x = 0; x < w; x++) {
+      if (cols[x] && start == null) start = x;
+      if (!cols[x] && start != null) {
+        if (x - start! > 2) runs.add([start!, x - 1]);
+        start = null;
+      }
+    }
+    expect(runs.length, greaterThan(2), reason: '마크와 글자를 못 찾았다');
+
+    final mark = runs.first;
+    final textLeft = runs[1][0];
+    final markW = mark[1] - mark[0] + 1;
+    final gapPx = textLeft - mark[1] - 1;
+
+    // 글자 높이 (대문자라 캡 높이)
+    var top = h, bottom = 0;
+    for (var y = 0; y < h; y++) {
+      for (var x = textLeft; x < w; x++) {
+        if (lit(x, y)) {
+          if (y < top) top = y;
+          if (y > bottom) bottom = y;
+          break;
+        }
+      }
+    }
+    final cap = bottom - top + 1;
+
+    // 시험 환경의 글꼴은 실기기와 달라(글자가 통 네모로 그려진다) 글자
+    // 높이로는 비교할 수 없다. 글꼴에 안 기대는 두 가지만 확인한다.
+    //
+    //   1) 마크가 상자를 꽉 채우는가 — 아이콘 타일 기준으로 그리면 61%만 찬다
+    //   2) 간격이 상자의 0.30인가 — 옛 로고와 같은 값
+    //
+    // 실기기에서 잰 옛 로고 비율은 마크/글자높이 1.95, 간격/글자높이 0.76이다.
+    expect(markW / 60.0, closeTo(1.0, 0.06),
+        reason: '마크가 상자를 안 채운다 — 아이콘 타일 기준으로 그린 것이다');
+    expect(gapPx / 60.0, closeTo(0.30, 0.06),
+        reason: '마크와 글자 사이가 옛 로고(0.30)와 다르다');
+    expect(cap, greaterThan(0));
+  });
 }
