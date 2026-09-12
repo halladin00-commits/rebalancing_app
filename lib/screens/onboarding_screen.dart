@@ -483,7 +483,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ? (isKo
                           ? '$n개 담고 시작하기'
                           : 'Add $n and start')
-                      : (isKo ? '빈 상태로 시작하기' : 'Start empty'),
+                      : (isKo ? '직접 만들기' : 'Set up my own'),
                   onGreen: false,
                   onTap: () => _start(isKo),
                 ),
@@ -570,7 +570,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             // 이모지 대신 **그 템플릿의 목표 비중을 그대로** 그린다.
             // 앱 안에서 보게 될 모양과 같고, 그림 하나가 태그 다섯 줄보다
             // 「어떻게 나뉘는지」를 빨리 전한다.
-            _AllocationBar(items: s.items),
+            AllocationBar(weights: [for (final i in s.items) i.weight]),
             const SizedBox(height: 9),
             Wrap(
               spacing: 10,
@@ -594,7 +594,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           width: 8,
           height: 8,
           decoration: BoxDecoration(
-            color: _AllocationBar.toneOf(context, i),
+            color: AllocationBar.toneOf(context, i),
             borderRadius: BorderRadius.circular(2),
           ),
         ),
@@ -928,9 +928,11 @@ Widget _demoBox(BuildContext context, {required Widget child}) => Container(
 ///
 /// 칸 너비가 목표 비중이다. 이모지 하나보다 「어떻게 나뉘는지」를 훨씬
 /// 빨리 전하고, 앱 안에서 보게 될 막대와 같은 언어를 쓴다.
-class _AllocationBar extends StatelessWidget {
-  final List<_Item> items;
-  const _AllocationBar({required this.items});
+class AllocationBar extends StatelessWidget {
+  /// 칸 너비가 될 목표 비중들.
+  final List<double> weights;
+
+  const AllocationBar({super.key, required this.weights});
 
   /// 칸 색. 브랜드 한 색의 농담으로만 간다 — 자산군마다 다른 색을 주면
   /// 그 색이 무슨 뜻인지 또 배워야 한다.
@@ -952,10 +954,14 @@ class _AllocationBar extends StatelessWidget {
       child: SizedBox(
         height: 10,
         child: Row(
+          // **stretch가 없으면 막대가 통째로 사라진다.** Row의 기본값은
+          // center라 자식에게 느슨한 높이를 준다. 자식 없는 ColoredBox는
+          // 그럼 높이 0이 되는데, 예외도 경고도 안 난다.
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            for (var i = 0; i < items.length; i++)
+            for (var i = 0; i < weights.length; i++)
               Expanded(
-                flex: (items[i].weight * 10).round(),
+                flex: (weights[i] * 10).round(),
                 child: ColoredBox(color: toneOf(context, i)),
               ),
           ],
