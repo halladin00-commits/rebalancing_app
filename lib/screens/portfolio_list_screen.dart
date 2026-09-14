@@ -16,6 +16,7 @@ import 'item_search_screen.dart';
 import 'portfolio_reorder_screen.dart';
 import 'transaction_import_screen.dart';
 import '../widgets/app_logo.dart';
+import '../widgets/brand_stat_tile.dart';
 import '../widgets/app_menu.dart';
 import '../widgets/collapsing_header.dart';
 import '../widgets/sparkline_panel.dart';
@@ -344,12 +345,22 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
               // 3줄 대 2줄이 됐다. 나란히 놓고 볼 일이 없어 눈치채지 못한다.
               Row(children: [
                 if (hasAvg)
-                  _brandTile(context, l10n.profitLoss, pnl, pnlPct, pnlColors,
-                      displayCur),
+                  Expanded(
+                      child: BrandStatTile(
+                          label: l10n.profitLoss,
+                          amount: pnl,
+                          pct: pnlPct,
+                          currency: displayCur,
+                          pnlColors: pnlColors)),
                 if (hasAvg && hasDay) const SizedBox(width: 9),
                 if (hasDay)
-                  _brandTile(context, l10n.dayChange, day, dayPct, pnlColors,
-                      displayCur),
+                  Expanded(
+                      child: BrandStatTile(
+                          label: l10n.dayChange,
+                          amount: day,
+                          pct: dayPct,
+                          currency: displayCur,
+                          pnlColors: pnlColors)),
               ]),
             ],
             // 화면에 있는 것은 그림에도 있어야 한다. 추이선이 빠지면
@@ -757,12 +768,22 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
           Row(
             children: [
               if (hasAvg)
-                _brandTile(context, l10n.profitLoss, pnl, pnlPct, pnlColors,
-                    displayCur),
+                Expanded(
+                    child: BrandStatTile(
+                        label: l10n.profitLoss,
+                        amount: pnl,
+                        pct: pnlPct,
+                        currency: displayCur,
+                        pnlColors: pnlColors)),
               if (hasAvg && hasDay) const SizedBox(width: 9),
               if (hasDay)
-                _brandTile(context, l10n.dayChange, day, dayPct, pnlColors,
-                    displayCur),
+                Expanded(
+                    child: BrandStatTile(
+                        label: l10n.dayChange,
+                        amount: day,
+                        pct: dayPct,
+                        currency: displayCur,
+                        pnlColors: pnlColors)),
             ],
           ),
         ],
@@ -810,76 +831,6 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
       return l10n.refreshFailedNote(time);
     }
     return isKo ? '$time 기준' : 'as of $time';
-  }
-
-  /// 딥그린 위 손익 타일 (평가손익 · 전일대비)
-  Widget _brandTile(BuildContext context, String label, double amount,
-      double pct, PnlColorNotifier pnlColors, String currency) {
-    final isPos = amount >= 0;
-    final color = isPos ? pnlColors.onBrandPositive : pnlColors.onBrandNegative;
-    final sign = isPos ? '+' : '−';
-
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.10),
-          borderRadius: BorderRadius.circular(13),
-        ),
-        // 두 줄로 쌓되 **이름표 줄에 퍼센트를 붙인다.**
-        //
-        //   평가손익            +14.86%
-        //             +₩205,705,773
-        //
-        // 세 줄로 쌓으면 타일이 그만큼 높아져 딥그린 헤더가 첫 화면의 36%를
-        // 먹는다. 그렇다고 금액과 퍼센트를 한 줄에 붙이면, 긴 쪽(금액)이
-        // 좁아진 자리에 맞추느라 [FittedBox]에 눌려 작아진다.
-        //
-        // 이름표는 짧고 퍼센트도 짧다 — 둘을 한 줄에 두면 **금액이 줄 하나를
-        // 통째로 쓴다.** 숫자는 오른쪽으로 맞춰 두 타일의 값이 같은 선에 선다.
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                // Flexible이 아니라 Expanded다 — 이름표가 남은 자리를 채워야
-                // 퍼센트가 오른쪽 끝으로 밀린다.
-                Expanded(
-                  child: Text(label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                          fontSize: DS.body,
-                          fontWeight: FontWeight.w600,
-                          color: context.onBrandSecondary)),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  '$sign${pct.abs().toStringAsFixed(2)}%',
-                  style: TextStyle(
-                      fontSize: DS.body,
-                      fontWeight: FontWeight.w600,
-                      color: color),
-                ),
-              ],
-            ),
-            const SizedBox(height: 2),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerRight,
-              child: Text(
-                '$sign${fmtMoney(amount.abs(), currency)}',
-                style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.3,
-                    color: color),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   // ── 액션 카드 2장 ──

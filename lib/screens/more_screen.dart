@@ -235,21 +235,7 @@ class _MoreScreenState extends State<MoreScreen> {
                         context,
                         label: _isKo ? '오픈소스 라이선스' : 'Open source licenses',
                         value: '',
-                        onTap: () => showLicensePage(
-                          context: context,
-                          applicationName: appName,
-                          applicationVersion: appVersionLabel,
-                          applicationIcon: const Padding(
-                            padding: EdgeInsets.only(top: 6, bottom: 2),
-                            child: SizedBox(
-                              width: 44,
-                              height: 44,
-                              child: CustomPaint(
-                                painter: TargetMarkPainter(fill: true),
-                              ),
-                            ),
-                          ),
-                        ),
+                        onTap: _openLicenses,
                       ),
                       // 문의를 받을 때 제일 먼저 물어보게 되는 값이다.
                       _row(
@@ -571,6 +557,47 @@ class _MoreScreenState extends State<MoreScreen> {
   }
 
   // ── 백업 · 복원 ──
+
+  /// 오픈소스 라이선스 고지.
+  ///
+  /// [showLicensePage]를 그냥 부르면 **바탕이 앱과 다른 색으로 나온다.**
+  /// 플러터가 만드는 화면이라 우리 `scaffoldBg`를 안 쓰고, 머티리얼이
+  /// 씨앗 색에서 뽑아낸 옅은 초록빛 흰색이 깔린다. 앱 안에서 여기만
+  /// 남의 화면처럼 보인다.
+  ///
+  /// 그래서 직접 밀면서 두 색을 **모두** 덮어쓴다 — 플러터 판에 따라
+  /// `scaffoldBackgroundColor`를 보기도 하고 `colorScheme.surface`를
+  /// 보기도 해서, 한쪽만 고치면 어느 판에서 다시 어긋난다.
+  void _openLicenses() {
+    final cream = context.scaffoldBg;
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (ctx) {
+        final base = Theme.of(ctx);
+        return Theme(
+          data: base.copyWith(
+            scaffoldBackgroundColor: cream,
+            colorScheme: base.colorScheme.copyWith(surface: cream),
+          ),
+          child: LicensePage(
+            applicationName: appName,
+            applicationVersion: appVersionLabel,
+            // **밝은 바탕용 마크를 쓴다.** 기본 마크는 조각 두 개가
+            // 크림과 같은 색이라 이 화면에서 통째로 사라진다.
+            applicationIcon: const Padding(
+              padding: EdgeInsets.only(top: 6, bottom: 2),
+              child: SizedBox(
+                width: 44,
+                height: 44,
+                child: CustomPaint(
+                  painter: TargetMarkPainter.onLight(fill: true),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    ));
+  }
 
   /// 방침을 기기 브라우저로 연다.
   ///

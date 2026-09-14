@@ -86,6 +86,21 @@ class TargetMarkPainter extends CustomPainter {
     this.fill = false,
   });
 
+  /// **밝은 바탕(크림) 위에 놓는 마크.**
+  ///
+  /// 기본 색은 딥그린 바탕 전용이다. 크림 위에 그대로 올리면 조각 두 개가
+  /// **바탕과 같은 색(`#FBF8F1`)이라 통째로 사라지고**, 민트 조각도 대비가
+  /// 1.39:1 뿐이라 거의 안 보인다. 라이선스 화면에서 실제로 그랬다.
+  ///
+  /// 그래서 역할을 뒤집는다 — 딥그린 위에서 민트가 「눈에 띄는 조각」이었듯,
+  /// 크림 위에서는 **딥그린이 눈에 띄는 조각**이 된다.
+  ///
+  ///   크림 바탕 대비   딥그린 8.87:1 · 세이지 3.17:1   (도형 기준 3:1 이상)
+  ///   두 색끼리        2.79:1                        (조각 강약이 구분된다)
+  const TargetMarkPainter.onLight({this.fill = false})
+      : accent = const Color(0xFF0E4F49),
+        light = const Color(0xFF6B948C);
+
   // make_icons.py의 RING_OUTER · RING_INNER · DOT · GAP과 같은 값.
   static const ringOuter = 0.307;
   static const ringInner = 0.190;

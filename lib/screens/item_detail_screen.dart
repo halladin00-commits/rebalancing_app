@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../main.dart';
+import '../widgets/brand_stat_tile.dart';
 import '../utils/money_format.dart';
 import '../models/portfolio.dart';
 import '../theme/design_system.dart';
@@ -165,54 +166,24 @@ class ItemDetailScreen extends StatelessWidget {
         if (!item.isCash) ...[
           const SizedBox(height: 13),
           Row(children: [
-            _tile(context, l10n.profitLoss, pnl, pnlPct, pf.currency, pnlColors),
+            Expanded(
+                child: BrandStatTile(
+                    label: l10n.profitLoss,
+                    amount: pnl,
+                    pct: pnlPct,
+                    currency: pf.currency,
+                    pnlColors: pnlColors)),
             const SizedBox(width: 9),
-            _tile(context, l10n.dayChange, day, dayPct, pf.currency, pnlColors),
+            Expanded(
+                child: BrandStatTile(
+                    label: l10n.dayChange,
+                    amount: day,
+                    pct: dayPct,
+                    currency: pf.currency,
+                    pnlColors: pnlColors)),
           ]),
         ],
       ]),
-    );
-  }
-
-  Widget _tile(BuildContext context, String label, double? amount, double? pct,
-      String currency, PnlColorNotifier pnlColors) {
-    final has = amount != null && pct != null;
-    final pos = (amount ?? 0) >= 0;
-    final color = !has
-        ? context.onBrandSecondary
-        : (pos ? pnlColors.onBrandPositive : pnlColors.onBrandNegative);
-    final sign = pos ? '+' : '−';
-
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.10),
-          borderRadius: BorderRadius.circular(13),
-        ),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(label,
-              style: TextStyle(
-                  fontSize: DS.body,
-                  fontWeight: FontWeight.w600,
-                  color: context.onBrandSecondary)),
-          const SizedBox(height: 4),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(has ? '$sign${fmtMoney(amount.abs(), currency)}' : '—',
-                style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.3,
-                    color: color)),
-          ),
-          const SizedBox(height: 2),
-          Text(has ? '$sign${pct.abs().toStringAsFixed(2)}%' : '—',
-              style: TextStyle(
-                  fontSize: DS.body, fontWeight: FontWeight.w600, color: color)),
-        ]),
-      ),
     );
   }
 

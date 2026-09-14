@@ -24,6 +24,7 @@ import 'item_search_screen.dart';
 import 'transaction_history_screen.dart';
 import 'target_weights_screen.dart';
 import '../widgets/app_logo.dart';
+import '../widgets/brand_stat_tile.dart';
 import '../services/ad_service.dart';
 import '../widgets/bottom_banner_ad.dart';
 import '../widgets/brand_header.dart';
@@ -297,48 +298,6 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     final pnlPct = (tv - pnl) != 0 ? pnl / (tv - pnl) * 100 : 0.0;
     final dayPct = (tv - day) != 0 ? day / (tv - day) * 100 : 0.0;
 
-    String signed(double v) =>
-        '${v >= 0 ? '+' : '−'}${fmtMoney(v.abs(), pf.currency)}';
-    String pct(double v) =>
-        '${v >= 0 ? '+' : '−'}${v.abs().toStringAsFixed(2)}%';
-
-    Widget tile(String label, double value, double percent) => Expanded(
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(13, 11, 13, 12),
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.16),
-              borderRadius: BorderRadius.circular(DS.tileRadius),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label,
-                    style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: context.onBrandSecondary)),
-                const SizedBox(height: 5),
-                Text(signed(value),
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.3,
-                        color: value >= 0
-                            ? pnlColors.onBrandPositive
-                            : pnlColors.onBrandNegative)),
-                const SizedBox(height: 2),
-                Text(pct(percent),
-                    style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: value >= 0
-                            ? pnlColors.onBrandPositive
-                            : pnlColors.onBrandNegative)),
-              ],
-            ),
-          ),
-        );
-
     return Container(
       width: 380,
       color: context.scaffoldBg,
@@ -383,9 +342,24 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
             if (hasPnl || hasDay) ...[
               const SizedBox(height: 14),
               Row(children: [
-                if (hasPnl) tile(isKo ? '평가손익' : 'Unrealized', pnl, pnlPct),
+                // **화면과 같은 위젯을 부른다.** 손으로 옮겨 적으면 갈라진다.
+                if (hasPnl)
+                  Expanded(
+                      child: BrandStatTile(
+                          label: l10n.profitLoss,
+                          amount: pnl,
+                          pct: pnlPct,
+                          currency: pf.currency,
+                          pnlColors: pnlColors)),
                 if (hasPnl && hasDay) const SizedBox(width: 9),
-                if (hasDay) tile(isKo ? '전일대비' : 'Today', day, dayPct),
+                if (hasDay)
+                  Expanded(
+                      child: BrandStatTile(
+                          label: l10n.dayChange,
+                          amount: day,
+                          pct: dayPct,
+                          currency: pf.currency,
+                          pnlColors: pnlColors)),
               ]),
             ],
             // 화면에 있는 것은 그림에도 있어야 한다 — 선 아래 **기간과
@@ -974,15 +948,21 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
         : fmtMoney(rb.total - pf.additionalInvestment, pf.currency);
 
     final tiles = <Widget>[
-      _brandPnlTile(context, pf, l10n.profitLoss, hasPnl ? totalPnl : null,
-          hasPnl ? totalPnl / totalCost * 100 : null),
+      Expanded(
+          child: BrandStatTile(
+              label: l10n.profitLoss,
+              amount: hasPnl ? totalPnl : null,
+              pct: hasPnl ? totalPnl / totalCost * 100 : null,
+              currency: pf.currency,
+              pnlColors: pnlColors)),
       const SizedBox(width: 9),
-      _brandPnlTile(
-          context,
-          pf,
-          l10n.dayChange,
-          hasDayChange ? totalDayChange : null,
-          hasDayChange ? totalDayChange / totalPrevValue * 100 : null),
+      Expanded(
+          child: BrandStatTile(
+              label: l10n.dayChange,
+              amount: hasDayChange ? totalDayChange : null,
+              pct: hasDayChange ? totalDayChange / totalPrevValue * 100 : null,
+              currency: pf.currency,
+              pnlColors: pnlColors)),
     ];
 
     return Column(
@@ -1062,69 +1042,6 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
   }
 
   /// 딥그린 위 요약 타일.
-  Widget _brandTile(BuildContext context,
-      {required String label,
-      required String value,
-      required String sub,
-      required Color color}) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.10),
-          borderRadius: BorderRadius.circular(13),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label,
-                style: TextStyle(
-                    fontSize: DS.body,
-                    fontWeight: FontWeight.w600,
-                    color: context.onBrandSecondary)),
-            const SizedBox(height: 4),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text(value,
-                  style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -0.3,
-                      color: color)),
-            ),
-            const SizedBox(height: 2),
-            Text(sub,
-                style: TextStyle(
-                    fontSize: DS.body,
-                    fontWeight: FontWeight.w600,
-                    color: color == Colors.white
-                        ? context.onBrandSecondary
-                        : color),
-                overflow: TextOverflow.ellipsis),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// 손익 타일 — 값이 없으면(`amount == null`) 자리만 지킨다.
-  Widget _brandPnlTile(BuildContext context, Portfolio pf, String label,
-      double? amount, double? pct) {
-    final pnlColors = context.watch<PnlColorNotifier>();
-    if (amount == null || pct == null) {
-      return _brandTile(context,
-          label: label, value: '—', sub: '—', color: Colors.white);
-    }
-    final isPos = amount >= 0;
-    final sign = isPos ? '+' : '−';
-    return _brandTile(context,
-        label: label,
-        value: '$sign${fmtMoney(amount.abs(), pf.currency)}',
-        sub: '$sign${pct.abs().toStringAsFixed(2)}%',
-        color: isPos ? pnlColors.onBrandPositive : pnlColors.onBrandNegative);
-  }
-
   // ── Tab: 자산현황 ──
 
   /// 접히는 헤더 + 종목 목록.
