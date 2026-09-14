@@ -70,6 +70,20 @@ void main() {
     }
   });
 
+  test('「유럽인 척하기」가 스토어 빌드에 새어 나가지 않는다', () {
+    // 확인하려고 켜 둔 채 출시하면 **한국 사용자에게도 동의 창이 뜨고**,
+    // 매번 동의 기록을 지우므로 켤 때마다 다시 뜬다.
+    final s = File('lib/services/consent_service.dart').readAsStringSync();
+    expect(
+        s.contains(
+            "static const bool _debugEea = bool.fromEnvironment('UMP_DEBUG_EEA');"),
+        isTrue,
+        reason: '시험용 플래그가 컴파일 시점 값이 아니다 — 켠 채로 나갈 수 있다');
+    for (final bad in const ['_debugEea = true', '_debugEea=true']) {
+      expect(s.contains(bad), isFalse, reason: '시험용 플래그가 못으로 박혀 있다');
+    }
+  });
+
   test('유럽 사용자가 동의를 나중에 바꿀 수 있다', () {
     // 한 번 정한 동의를 되돌릴 통로가 없으면 그것만으로 정책 위반이다.
     final more = File('lib/screens/more_screen.dart').readAsStringSync();

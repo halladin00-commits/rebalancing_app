@@ -21,6 +21,31 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 class ConsentService {
   ConsentService._();
 
+  /// 시험용 — 이 기기를 **유럽에 있는 것처럼** 다룬다.
+  ///
+  /// 동의 창은 유럽 IP에서만 뜬다. 그래서 한국에서 앱을 켜 보는 것으로는
+  /// 「AdMob 콘솔에 올린 메시지가 제대로 뜨는가」를 확인할 수 없다.
+  /// 이 플래그를 켠 빌드만 SDK에 유럽인 척해 달라고 말한다.
+  ///
+  ///   flutter build apk --dart-define=UMP_DEBUG_EEA=true
+  ///
+  /// `bool.fromEnvironment`는 안 주면 거짓이라 **스토어 빌드에는 영향이
+  /// 없다.** 상수라 컴파일할 때 통째로 빠진다.
+  static const bool _debugEea = bool.fromEnvironment('UMP_DEBUG_EEA');
+
+  /// 시험용 기기 식별자. 비워 두면 안 넣는다 (에뮬레이터는 기본 시험 기기다).
+  static const String _debugDeviceId = String.fromEnvironment('UMP_TEST_DEVICE');
+
+  static ConsentRequestParameters _params() {
+    if (!_debugEea) return ConsentRequestParameters();
+    return ConsentRequestParameters(
+      consentDebugSettings: ConsentDebugSettings(
+        debugGeography: DebugGeography.debugGeographyEea,
+        testIdentifiers: _debugDeviceId.isEmpty ? null : [_debugDeviceId],
+      ),
+    );
+  }
+
   static final Completer<void> _resolved = Completer<void>();
 
   /// 동의 상태를 알아낼 때까지 기다린다.
@@ -45,8 +70,16 @@ class ConsentService {
   static Future<void> gather() async {
     final formDone = Completer<void>();
 
+    // 시험용 빌드는 **매번 처음부터** 묻는다. 한 번 답하면 저장되어 다음
+    // 실행부터 창이 안 뜨는데, 확인하려는 게 바로 그 창이다.
+    if (_debugEea) {
+      try {
+        await ConsentInformation.instance.reset();
+      } catch (_) {}
+    }
+
     ConsentInformation.instance.requestConsentInfoUpdate(
-      ConsentRequestParameters(),
+      _params(),
       () async {
         // 「필요하면 띄운다」 — 필요 없는 지역에서는 아무것도 안 한다.
         try {
