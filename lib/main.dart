@@ -21,6 +21,7 @@ import 'services/consent_service.dart';
 import 'services/full_screen_ads.dart';
 import 'services/notification_service.dart';
 import 'widgets/disclaimer_dialog.dart';
+import 'widgets/notification_primer.dart';
 import 'widgets/app_logo.dart';
 import 'l10n/app_localizations.dart';
 
@@ -483,7 +484,19 @@ class _AppEntryPointState extends State<_AppEntryPoint> {
     _promptsDone = true;
     if (!mounted) return;
     await DisclaimerDialog.showIfNeeded(context);
-    await NotificationService.setUpOnFirstRun();
+
+    // **시스템 알림 창을 띄우기 전에 무엇을 보낼지 먼저 말한다.**
+    //
+    // 안드로이드는 그 창을 사실상 한 번만 띄워 준다. 처음 켠 사람은 무엇에
+    // 대한 것인지 모르는 채로 받게 되고, 많은 사람이 반사적으로 거부한다.
+    // 한 번 거부당하면 나중에 켜고 싶어져도 요청이 안 먹는다.
+    //
+    // 「나중에」를 고르면 **요청하지 않는다** — 시스템의 한 번을 아껴 두고,
+    // 더보기에서 알림을 켤 때 그 창이 제대로 뜬다.
+    if (!mounted) return;
+    if (await NotificationPrimer.askFirst(context)) {
+      await NotificationService.setUpOnFirstRun();
+    }
 
     // 앱 오프닝 광고는 **온보딩·면책 고지·알림 권한을 다 지난 뒤에만** 띄운다.
     // 처음 켠 사람에게 첫 화면이 광고면 그 자리에서 지운다.
