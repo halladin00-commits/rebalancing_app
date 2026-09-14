@@ -107,9 +107,17 @@ class NotificationPrimer extends StatelessWidget {
                   // 한 줄에 다 넣으면 좁은 폭에서 「…벌어졌는 / 지」처럼
                   // 마지막 글자만 넘어가 보기 싫다. 두 줄로 나누면 각 줄이
                   // 짧아져 어느 기기에서도 안 넘어간다.
+                  // **네 줄을 같은 꼴로 맞춘다.**
+                  //
+                  // 예전에는 위가 「…벌어졌는지」(간접의문)인데 아래가
+                  // 「그 기간 수익률」(명사구)이라 결이 달랐다. 「언제」 줄도
+                  // 하나는 `-에`, 하나는 `-면`으로 갈려 있었다.
+                  //
+                  // 이제 언제는 둘 다 `-면`, 무엇은 둘 다 `-는지`다.
+                  // 앞의 「두 가지만 보냅니다」에 그대로 이어 읽힌다.
                   _point(
                     context,
-                    when: isKo ? '정해 둔 날에' : 'On the day you pick',
+                    when: isKo ? '정해 둔 날이 되면' : 'When your chosen day comes',
                     what: isKo
                         ? '비중이 얼마나 벌어졌는지'
                         : 'how far your weights drifted',
@@ -117,8 +125,12 @@ class NotificationPrimer extends StatelessWidget {
                   const SizedBox(height: 12),
                   _point(
                     context,
-                    when: isKo ? '월·분기·연이 끝나면' : 'When a period closes',
-                    what: isKo ? '그 기간 수익률' : 'your return for it',
+                    when: isKo
+                        ? '월·분기·연이 끝나면'
+                        : 'When a month, quarter or year ends',
+                    what: isKo
+                        ? '그 기간 수익률이 얼마인지'
+                        : 'what your return was',
                   ),
                 ],
               ),
