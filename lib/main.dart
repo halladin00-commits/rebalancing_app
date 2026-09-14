@@ -498,13 +498,29 @@ class _AppEntryPointState extends State<_AppEntryPoint> {
       await NotificationService.setUpOnFirstRun();
     }
 
-    // 앱 오프닝 광고는 **온보딩·면책 고지·알림 권한을 다 지난 뒤에만** 띄운다.
-    // 처음 켠 사람에게 첫 화면이 광고면 그 자리에서 지운다.
+    // **깔고 처음 여는 날은 앱 오프닝 광고를 띄우지 않는다.**
     //
+    // 온보딩을 넘기고, 면책 고지에 동의하고, 알림까지 정하고 나서 이제야
+    // 앱을 둘러보려는 참이다. 그 자리에서 전면 광고가 뜨면 지금까지 쌓은
+    // 인상이 한 번에 뒤집힌다 — 첫인상은 두 번 만들 수 없다.
+    //
+    // 다음 실행부터는 평소대로 띄운다. 하루치 노출을 잃는 대신, 그날 앱을
+    // 지울 사람을 남긴다.
+    final prefs = await SharedPreferences.getInstance();
+    final opened = prefs.getBool(_keyOpenedBefore) ?? false;
+    await prefs.setBool(_keyOpenedBefore, true);
+    if (!opened) return;
+
     // 이미 받아 둔 것만 띄운다. 아직이면 그냥 넘어간다 — 광고를 기다리느라
     // 앱이 안 열리는 게 광고가 안 뜨는 것보다 나쁘다.
     FullScreenAds.showIfReady();
   }
+
+  /// 이 기기에서 앱을 한 번이라도 끝까지 열어 봤는가.
+  ///
+  /// 첫 실행에만 앱 오프닝 광고를 건너뛰는 데 쓴다. 온보딩 완료 플래그로
+  /// 대신할 수 없다 — 온보딩을 건너뛴 사람도 **그날이 첫날인 건 같다.**
+  static const _keyOpenedBefore = 'opened_before';
 
   Future<void> _checkOnboarding() async {
     final prefs = await SharedPreferences.getInstance();
