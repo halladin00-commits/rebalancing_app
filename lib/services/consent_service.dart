@@ -121,17 +121,43 @@ class ConsentService {
     }
   }
 
-  /// 동의를 다시 고르는 창을 띄운다. 실패하면 참이 아닌 값을 돌려준다.
-  static Future<bool> showPrivacyOptions() async {
+  /// 동의를 다시 고르는 창을 띄운 결과.
+  static Future<ConsentFormResult> showPrivacyOptions() async {
     try {
       FormError? failed;
-      await ConsentForm.showPrivacyOptionsForm((e) => failed = e);
-      if (failed != null) return false;
+      // **시간을 걸어 둔다.** SDK가 아직 창을 준비 중일 때 부르면
+      // 「Privacy options form is being loading」만 로그에 찍고 **콜백을
+      // 부르지 않는다.** 그러면 이 await가 영영 안 끝나서, 누른 사람은
+      // 창도 못 보고 아무 말도 못 듣는다. 실제로 그랬다.
+      var answered = false;
+      await ConsentForm.showPrivacyOptionsForm((e) {
+        failed = e;
+        answered = true;
+      }).timeout(const Duration(seconds: 8), onTimeout: () {});
+
+      if (!answered) return ConsentFormResult.notReady;
+      if (failed != null) return ConsentFormResult.failed;
+
       // 거부로 바꿨으면 이 순간부터 광고를 멈춰야 한다.
       _canShowAds = await ConsentInformation.instance.canRequestAds();
-      return true;
+      return ConsentFormResult.done;
     } catch (_) {
-      return false;
+      return ConsentFormResult.failed;
     }
   }
+}
+
+/// [ConsentService.showPrivacyOptions]의 결과.
+///
+/// 「됐다 / 안 됐다」 둘로 가르면 **아직 준비 중인 것**과 **정말 실패한 것**이
+/// 같은 말을 듣는다. 앞은 다시 누르면 되고, 뒤는 다시 눌러도 안 된다.
+enum ConsentFormResult {
+  /// 창을 띄웠고 사용자가 답했다.
+  done,
+
+  /// SDK가 아직 창을 내려받는 중이다. **잠시 뒤 다시 누르면 된다.**
+  notReady,
+
+  /// 띄우지 못했다.
+  failed;
 }

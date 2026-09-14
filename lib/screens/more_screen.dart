@@ -61,15 +61,21 @@ class _MoreScreenState extends State<MoreScreen> {
   /// 있는 배너까지 그 자리에서 걷어내지는 않으므로, 그 사실을 말해 준다.
   /// 아무 말이 없으면 「눌렀는데 그대로네」로 읽힌다.
   Future<void> _openAdConsent() async {
-    final ok = await ConsentService.showPrivacyOptions();
+    final r = await ConsentService.showPrivacyOptions();
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(ok
-          ? (_isKo
-              ? '저장했습니다. 앱을 다시 켜면 적용됩니다.'
-              : 'Saved. Takes effect next time you open the app.')
-          : (_isKo ? '설정 창을 열지 못했습니다.' : 'Could not open the options.')),
-    ));
+    // 「아직 준비 중」과 「정말 실패」를 가른다 — 앞은 다시 누르면 되고,
+    // 뒤는 다시 눌러도 안 된다. 같은 말을 하면 될 것도 포기하게 된다.
+    final msg = switch (r) {
+      ConsentFormResult.done => _isKo
+          ? '저장했습니다. 앱을 다시 켜면 적용됩니다.'
+          : 'Saved. Takes effect next time you open the app.',
+      ConsentFormResult.notReady => _isKo
+          ? '아직 준비 중입니다. 잠시 뒤 다시 눌러 주세요.'
+          : 'Still loading. Please try again in a moment.',
+      ConsentFormResult.failed =>
+        _isKo ? '설정 창을 열지 못했습니다.' : 'Could not open the options.',
+    };
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
   Future<void> _loadLastBackup() async {
