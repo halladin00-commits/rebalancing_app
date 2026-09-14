@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../main.dart';
+
 /// 「목표 비중」 마크 + REBALANCING 글자.
 ///
 /// 마크는 앱 아이콘과 **같은 그림**이다 — 세 조각으로 나뉜 고리와 가운데 점.
@@ -21,16 +23,23 @@ class AppLogo extends StatelessWidget {
   /// 아주 작을 때(24px 이하) 쓴다. 조각을 나눠 봐야 안 보인다.
   final bool mono;
 
+  /// 밝은 바탕(크림) 위에 놓이는가.
+  ///
+  /// 기본 마크는 딥그린 바탕 전용이다 — 조각 두 개가 크림과 **같은 색**이라
+  /// 밝은 바탕에서는 통째로 사라진다. 라이선스 화면에서 실제로 그랬다.
+  final bool onLight;
+
   const AppLogo({
     super.key,
     this.iconSize = 26,
     this.textColor,
     this.mono = false,
+    this.onLight = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final fg = textColor ?? Colors.white;
+    final fg = textColor ?? (onLight ? context.textPrimary : Colors.white);
     return Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -41,7 +50,11 @@ class AppLogo extends StatelessWidget {
           child: CustomPaint(
             painter: mono
                 ? TargetMarkPainter(accent: fg, light: fg, fill: true)
-                : const TargetMarkPainter(fill: true),
+                : onLight
+                    // 밝은 바탕에서는 역할을 뒤집는다 — 딥그린이 「눈에 띄는
+                    // 조각」이 되고 나머지는 세이지로 물러난다.
+                    ? const TargetMarkPainter.onLight(fill: true)
+                    : const TargetMarkPainter(fill: true),
           ),
         ),
         SizedBox(width: iconSize * 0.30),

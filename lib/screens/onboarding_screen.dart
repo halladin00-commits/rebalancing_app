@@ -267,7 +267,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Widget _buildHow(BuildContext context, bool isKo) {
     return SafeArea(
+      // **stretch를 준다.** 안 주면 Column의 기본값이 center라 머리글
+      // 덩어리가 통째로 가운데로 밀린다 — 목록은 Expanded라 폭을 꽉 채우니
+      // 제목만 안쪽으로 들어간 것처럼 보인다. 좁은 화면에서는 덩어리가
+      // 화면을 꽉 채워 티가 안 나서, 360px 시험은 통과하고 실기기에서만
+      // 어긋났다.
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(_pagePadH, 18, _pagePadH, 0),
@@ -425,7 +431,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final samples = _getSamples(isKo);
 
     return SafeArea(
+      // 2쪽과 같은 이유로 stretch (위 설명 참고).
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(_pagePadH, 24, _pagePadH, 0),

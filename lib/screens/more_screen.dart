@@ -609,19 +609,18 @@ class _MoreScreenState extends State<MoreScreen> {
             ),
           ),
           child: LicensePage(
-            applicationName: appName,
+            // **앱 이름은 다른 화면과 같은 로고 잠금 구성으로 쓴다.**
+            // 플러터 기본은 이름을 그냥 굵은 글자로 찍는데, 헤더·스플래시·
+            // 온보딩이 모두 「마크 + REBALANCING」을 쓰므로 여기만 따로 논다.
+            //
+            // 그래서 이름 자리는 비우고 [applicationIcon]에 로고를 통째로
+            // 넣는다. 크림 바탕이라 밝은 바탕용 색을 쓴다 — 기본 마크는
+            // 조각 두 개가 크림과 같은 색이라 통째로 사라진다.
+            applicationName: '',
             applicationVersion: appVersionLabel,
-            // **밝은 바탕용 마크를 쓴다.** 기본 마크는 조각 두 개가
-            // 크림과 같은 색이라 이 화면에서 통째로 사라진다.
             applicationIcon: const Padding(
-              padding: EdgeInsets.only(top: 6, bottom: 2),
-              child: SizedBox(
-                width: 44,
-                height: 44,
-                child: CustomPaint(
-                  painter: TargetMarkPainter.onLight(fill: true),
-                ),
-              ),
+              padding: EdgeInsets.only(top: 8, bottom: 4),
+              child: AppLogo(iconSize: 24, onLight: true),
             ),
           ),
         );

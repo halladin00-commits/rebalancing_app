@@ -243,4 +243,47 @@ void main() {
     expect(order[0] < order[1], isTrue, reason: '직접 기록이 맨 위여야 한다');
     expect(order[1] < order[2], isTrue, reason: '파일 올리기가 맨 아래여야 한다');
   });
+
+  // **여러 폭에서 잰다.** 폭 하나만 보면 못 잡는다 — 바깥 Column의 기본
+  // 정렬이 center라 머리글 덩어리가 통째로 가운데로 밀렸는데, 좁은 화면에서는
+  // 덩어리가 화면을 꽉 채워 어긋남이 0이 된다. 360px 시험은 통과하고
+  // 실기기(411px)에서만 틀어져서 사용자가 두 번 지적했다.
+  for (final w in const [360.0, 393.0, 411.0, 480.0]) {
+    testWidgets('제목이 카드와 같은 왼쪽 선에서 시작한다 (폭 ${w.toInt()})',
+        (tester) async {
+      await open(tester, size: Size(w, 900));
+      await tester.drag(find.byType(PageView), const Offset(-400, 0));
+      await tester.pumpAndSettle();
+
+      // 2쪽
+      final how = tester.getRect(find.text('세 걸음이면 됩니다')).left;
+      final howCard = tester
+          .getRect(find.ancestor(
+              of: find.text('계좌를 만들고 종목을 담습니다'),
+              matching: find.byType(Container)).first)
+          .left;
+      expect(howCard, closeTo(how, 0.5),
+          reason: '2쪽 제목과 카드 왼쪽 변이 다르다');
+
+      await tester.drag(find.byType(PageView), const Offset(-400, 0));
+      await tester.pumpAndSettle();
+
+      // 3쪽
+      final title = tester.getRect(find.text('어떻게 시작할까요')).left;
+      final sub =
+          tester.getRect(find.textContaining('잘 알려진 자산배분을')).left;
+      final card = tester
+          .getRect(find.ancestor(
+              of: find.text('올웨더 포트폴리오'),
+              matching: find.byType(AnimatedContainer)).first)
+          .left;
+
+      expect(sub, closeTo(title, 0.5), reason: '3쪽 부제가 제목과 안 맞는다');
+      expect(card, closeTo(title, 0.5),
+          reason: '3쪽 제목(${title.toStringAsFixed(1)})과 '
+              '카드 왼쪽 변(${card.toStringAsFixed(1)})이 다르다');
+    });
+  }
 }
+
+// ── 여백 검사는 파일 끝에 따로 둔다 ──

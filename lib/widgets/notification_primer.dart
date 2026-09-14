@@ -57,6 +57,8 @@ class NotificationPrimer extends StatelessWidget {
     // (종료 확인 창과 같은 구성).
     return Dialog(
       backgroundColor: context.cardBg,
+      // 기본값(40)보다 넓게 쓴다 — 좁을수록 한글이 더 자주 넘어간다.
+      insetPadding: const EdgeInsets.symmetric(horizontal: 26, vertical: 24),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(22, 24, 22, 18),
@@ -101,29 +103,36 @@ class NotificationPrimer extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // **언제**를 작은 줄로 위에 올리고 **무엇**을 아래에 둔다.
+                  // 한 줄에 다 넣으면 좁은 폭에서 「…벌어졌는 / 지」처럼
+                  // 마지막 글자만 넘어가 보기 싫다. 두 줄로 나누면 각 줄이
+                  // 짧아져 어느 기기에서도 안 넘어간다.
                   _point(
                     context,
-                    isKo
-                        ? '정해 둔 날에, 비중이 얼마나 벌어졌는지'
-                        : 'How far your weights drifted, on the day you pick',
+                    when: isKo ? '정해 둔 날에' : 'On the day you pick',
+                    what: isKo
+                        ? '비중이 얼마나 벌어졌는지'
+                        : 'how far your weights drifted',
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
                   _point(
                     context,
-                    isKo
-                        ? '월·분기·연이 끝나면, 그 기간 수익률'
-                        : 'Your return for each month, quarter and year',
+                    when: isKo ? '월·분기·연이 끝나면' : 'When a period closes',
+                    what: isKo ? '그 기간 수익률' : 'your return for it',
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 14),
             Text(
+              // **한 줄에 17자를 넘기지 않는다.** 넘으면 마지막 한두 글자만
+              // 다음 줄로 떨어져(「…있습 / 니다.」) 보기 싫다. 문장을 줄여
+              // 줄바꿈을 우리가 정한다.
               isKo
-                  ? '앱을 열지 않아도 챙길 수 있고, 언제든 끌 수 있습니다.\n'
-                      '광고나 홍보는 보내지 않습니다.'
-                  : "You don't have to open the app, and you can turn this "
-                      'off any time. We never send ads.',
+                  ? '앱을 열지 않아도 챙길 수 있습니다.\n'
+                      '언제든 끌 수 있고, 광고는 없습니다.'
+                  : "You don't need to open the app.\n"
+                      'Turn it off any time. No ads.',
               style: TextStyle(
                   fontSize: 12, height: 1.55, color: context.textTertiary),
             ),
@@ -178,12 +187,13 @@ class NotificationPrimer extends StatelessWidget {
     );
   }
 
-  Widget _point(BuildContext context, String text) {
+  Widget _point(BuildContext context,
+      {required String when, required String what}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(top: 6),
+          padding: const EdgeInsets.only(top: 7),
           child: Container(
             width: 4,
             height: 4,
@@ -193,11 +203,23 @@ class NotificationPrimer extends StatelessWidget {
         ),
         const SizedBox(width: 10),
         Expanded(
-          child: Text(text,
-              style: TextStyle(
-                  fontSize: 13,
-                  height: 1.45,
-                  color: context.textPrimary)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(when,
+                  style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: context.textTertiary)),
+              const SizedBox(height: 1),
+              Text(what,
+                  style: TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                      height: 1.35,
+                      color: context.textPrimary)),
+            ],
+          ),
         ),
       ],
     );
