@@ -580,6 +580,8 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     if (portfolios.isNotEmpty) ...[
+                      _buildTrendCard(context, portfolios),
+                      const SizedBox(height: 10),
                       _buildActionCards(context, portfolios),
                       const SizedBox(height: 10),
                       _buildPortfolioCard(context, portfolios),
@@ -799,22 +801,54 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
             ],
           ),
         ],
-        const SizedBox(height: 14),
-        SparklinePanel(
-          points: _history,
-          period: _sparkPeriod,
-          onPeriodChanged: (p) {
-            setState(() => _sparkPeriod = p);
-            _loadHistory();
-          },
-          building: context.watch<PortfolioProvider>().backfilling,
-          asOf: _captureAsOf(portfolios),
-          color: _history.length >= 2 &&
-                  _history.last.totalKrw >= _history.first.totalKrw
-              ? pnlColors.onBrandPositive
-              : pnlColors.onBrandNegative,
-        ),
       ],
+    );
+  }
+
+  /// 자산 추이 — 딥그린 헤더 **밖**, 크림 카드로.
+  ///
+  /// 원래 헤더 안에 있었는데, 그러면 첫 화면의 34%가 통짜 딥그린이 된다.
+  /// 헤더에 꼭 있어야 하는 건 **접혀도 따라오는 것**뿐이고 — 총자산과 손익 —
+  /// 추이는 접히면 어차피 사라진다. 카드로 내리면 같은 자리에 그대로 보이면서
+  /// 녹색 덩어리만 20%로 줄어든다.
+  Widget _buildTrendCard(BuildContext context, List<Portfolio> portfolios) {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final pnlColors = context.watch<PnlColorNotifier>();
+    final up = _history.length >= 2 &&
+        _history.last.totalKrw >= _history.first.totalKrw;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: context.cardBg,
+        borderRadius: BorderRadius.circular(DS.cardRadius),
+        border: Border.all(color: context.cardBorder),
+      ),
+      padding: const EdgeInsets.fromLTRB(DS.cardPaddingH, 12, DS.cardPaddingH, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 헤더 안에서는 딥그린이 곧 「총자산」이라 제목이 필요 없었다.
+          // 카드로 내려오면 이 선이 무엇의 선인지 적어 줘야 한다.
+          Text(isKo ? '자산 추이' : 'Asset trend',
+              style: TextStyle(
+                  fontSize: DS.body,
+                  fontWeight: FontWeight.w700,
+                  color: context.textSecondary)),
+          const SizedBox(height: 8),
+          SparklinePanel(
+            onLight: true,
+            points: _history,
+            period: _sparkPeriod,
+            onPeriodChanged: (p) {
+              setState(() => _sparkPeriod = p);
+              _loadHistory();
+            },
+            building: context.watch<PortfolioProvider>().backfilling,
+            asOf: _captureAsOf(portfolios),
+            color: up ? pnlColors.positiveColor : pnlColors.negativeColor,
+          ),
+        ],
+      ),
     );
   }
 
