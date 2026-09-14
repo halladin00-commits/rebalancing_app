@@ -105,4 +105,23 @@ void main() {
     expect(code.contains('endOfFrame'), isTrue,
         reason: '프레임이 실제로 끝나는 것을 기다려야 한다');
   });
+
+  test('자산 캡처가 손익 타일을 손으로 옮겨 적지 않는다', () {
+    // 캡처 안에 화면과 「같은 모양」의 타일을 손으로 복사해 뒀었다. 화면
+    // 쪽만 고치는 사이 조용히 갈라져 **3줄 대 2줄**이 됐는데, 둘을 나란히
+    // 놓고 볼 일이 없어 사용자가 지적하기 전까지 몰랐다.
+    //
+    // 복사본이 다시 생기면 여기서 걸린다.
+    final source = File('lib/screens/portfolio_list_screen.dart').readAsStringSync();
+    final body = bodyOf(source, '_buildMainCapture');
+
+    expect(body.contains('_brandTile('), isTrue,
+        reason: '캡처가 화면과 같은 타일 위젯을 안 쓴다');
+    // 퍼센트를 캡처가 **직접 찍으면** 타일을 옮겨 적었다는 뜻이다.
+    // (총자산 금액은 타일 밖이라 `fmtMoney`는 남아 있어도 된다.)
+    expect(body.contains("toStringAsFixed(2)}%"), isFalse,
+        reason: '캡처가 퍼센트를 직접 만든다 — 타일을 옮겨 적었다는 뜻이다');
+    expect(body.contains("'평가손익'"), isFalse,
+        reason: '캡처가 문구를 직접 적는다 — l10n을 써야 화면과 같은 말이 나온다');
+  });
 }

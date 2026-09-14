@@ -65,12 +65,6 @@ class SparklinePanel extends StatelessWidget {
   /// 몇 초 걸린다. 그동안 빈 선을 보여주면 **기록이 없는 것과 구분되지 않는다.**
   final bool building;
 
-  /// 밝은 바탕(크림 카드) 위에 놓이는가.
-  ///
-  /// 딥그린 헤더 안이 원래 자리라 글자와 칩이 전부 흰색으로 박혀 있었다.
-  /// 그대로 크림 위에 올리면 **흰 글자가 흰 카드에 묻혀 안 보인다.**
-  final bool onLight;
-
   const SparklinePanel({
     super.key,
     required this.points,
@@ -80,21 +74,7 @@ class SparklinePanel extends StatelessWidget {
     required this.color,
     this.building = false,
     this.forCapture = false,
-    this.onLight = false,
   });
-
-  /// 또렷한 글자 — 기간 이름표처럼 먼저 읽혀야 하는 것.
-  Color _ink(BuildContext context) =>
-      onLight ? context.textPrimary : Colors.white;
-
-  /// 흐린 글자 — 기준 시각처럼 찾을 때만 읽으면 되는 것.
-  Color _inkDim(BuildContext context) =>
-      onLight ? context.textSecondary : context.onBrandSecondary;
-
-  /// 칩 바탕. 딥그린 위에서는 흰색을 옅게 깔고, 크림 위에서는 잉크를 옅게 깐다.
-  Color _chipBg(BuildContext context) => onLight
-      ? context.textPrimary.withValues(alpha: 0.07)
-      : Colors.white.withValues(alpha: 0.16);
 
   /// 선을 그릴 만큼 점이 있는가.
   bool get _hasEnough => points.length >= AssetHistoryService.minPointsForChart;
@@ -131,7 +111,7 @@ class SparklinePanel extends StatelessWidget {
               style: TextStyle(
                   fontSize: DS.caption,
                   fontWeight: FontWeight.w500,
-                  color: _inkDim(context))),
+                  color: context.onBrandSecondary)),
         ]),
       ],
     );
@@ -161,9 +141,7 @@ class SparklinePanel extends StatelessWidget {
                 fontSize: DS.caption,
                 fontWeight: FontWeight.w600,
                 height: 1.45,
-                color: onLight
-                    ? context.textSecondary
-                    : Colors.white.withValues(alpha: 0.9)),
+                color: Colors.white.withValues(alpha: 0.9)),
           ),
         ),
       ],
@@ -180,10 +158,7 @@ class SparklinePanel extends StatelessWidget {
           width: 13,
           height: 13,
           child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: onLight
-                  ? context.textSecondary
-                  : Colors.white.withValues(alpha: 0.85)),
+              strokeWidth: 2, color: Colors.white.withValues(alpha: 0.85)),
         ),
         const SizedBox(width: 8),
         Text(
@@ -191,9 +166,7 @@ class SparklinePanel extends StatelessWidget {
           style: TextStyle(
               fontSize: DS.caption,
               fontWeight: FontWeight.w600,
-              color: onLight
-                  ? context.textSecondary
-                  : Colors.white.withValues(alpha: 0.9)),
+              color: Colors.white.withValues(alpha: 0.9)),
         ),
       ],
     );
@@ -248,8 +221,8 @@ class SparklinePanel extends StatelessWidget {
             height: barH,
             decoration: BoxDecoration(
               color: i == period.index
-                  ? _ink(context)
-                  : _ink(context).withValues(alpha: 0.34),
+                  ? Colors.white
+                  : Colors.white.withValues(alpha: 0.34),
               borderRadius: BorderRadius.circular(barH / 2),
             ),
           ),
@@ -273,14 +246,14 @@ class SparklinePanel extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.fromLTRB(10, 4, 10, 4),
         decoration: BoxDecoration(
-          color: _chipBg(context),
+          color: Colors.white.withValues(alpha: 0.16),
           borderRadius: BorderRadius.circular(DS.chipRadius),
         ),
         child: Text(now,
-            style: TextStyle(
+            style: const TextStyle(
                 fontSize: DS.caption,
                 fontWeight: FontWeight.w800,
-                color: _ink(context))),
+                color: Colors.white)),
       );
     }
 
@@ -297,7 +270,7 @@ class SparklinePanel extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.fromLTRB(10, 4, 8, 4),
             decoration: BoxDecoration(
-              color: _chipBg(context),
+              color: Colors.white.withValues(alpha: 0.16),
               borderRadius: BorderRadius.circular(DS.chipRadius),
             ),
             child: Row(
@@ -307,10 +280,10 @@ class SparklinePanel extends StatelessWidget {
                 const SizedBox(width: 6),
                 Text(
                   now,
-                  style: TextStyle(
+                  style: const TextStyle(
                       fontSize: DS.caption,
                       fontWeight: FontWeight.w800,
-                      color: _ink(context)),
+                      color: Colors.white),
                 ),
               ],
             ),

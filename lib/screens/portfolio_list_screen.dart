@@ -275,6 +275,8 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
   /// 빌드에서 회색 사각형이 저장된다(결산 카드에서 실제로 그랬다).
   Widget _buildMainCapture(List<Portfolio> portfolios) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    // 화면과 **같은 문구**를 쓴다. 캡처에만 글자를 손으로 적어 두면 말이 갈린다.
+    final l10n = context.l10n;
     final pnlColors = context.read<PnlColorNotifier>();
     final displayCur = context.read<MainCurrencyNotifier>().currency;
     final sort = context.read<PortfolioSortNotifier>().sort;
@@ -305,48 +307,6 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
     final pnlPct = (total - pnl) > 0 ? pnl / (total - pnl) * 100 : 0.0;
     final dayPct = (total - day) > 0 ? day / (total - day) * 100 : 0.0;
 
-    String signed(double v) =>
-        '${v >= 0 ? '+' : '−'}${fmtMoney(v.abs(), displayCur)}';
-    String pct(double v) =>
-        '${v >= 0 ? '+' : '−'}${v.abs().toStringAsFixed(2)}%';
-
-    // 화면의 두 타일과 같은 모양
-    Widget tile(String label, double value, double percent) => Expanded(
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(13, 11, 13, 12),
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.16),
-              borderRadius: BorderRadius.circular(DS.tileRadius),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label,
-                    style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: context.onBrandSecondary)),
-                const SizedBox(height: 5),
-                Text(signed(value),
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.3,
-                        color: value >= 0
-                            ? pnlColors.onBrandPositive
-                            : pnlColors.onBrandNegative)),
-                const SizedBox(height: 2),
-                Text(pct(percent),
-                    style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: value >= 0
-                            ? pnlColors.onBrandPositive
-                            : pnlColors.onBrandNegative)),
-              ],
-            ),
-          ),
-        );
 
     return Container(
       width: 380,
@@ -379,10 +339,17 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                     height: 1.08)),
             if (hasAvg || hasDay) ...[
               const SizedBox(height: 14),
+              // **화면과 같은 위젯을 부른다.** 예전에는 여기에 같은 모양을
+              // 손으로 옮겨 적어 뒀는데, 화면 쪽만 고치는 사이 조용히 갈라져
+              // 3줄 대 2줄이 됐다. 나란히 놓고 볼 일이 없어 눈치채지 못한다.
               Row(children: [
-                if (hasAvg) tile(isKo ? '평가손익' : 'Unrealized', pnl, pnlPct),
+                if (hasAvg)
+                  _brandTile(context, l10n.profitLoss, pnl, pnlPct, pnlColors,
+                      displayCur),
                 if (hasAvg && hasDay) const SizedBox(width: 9),
-                if (hasDay) tile(isKo ? '전일대비' : 'Today', day, dayPct),
+                if (hasDay)
+                  _brandTile(context, l10n.dayChange, day, dayPct, pnlColors,
+                      displayCur),
               ]),
             ],
             // 화면에 있는 것은 그림에도 있어야 한다. 추이선이 빠지면
@@ -580,8 +547,6 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     if (portfolios.isNotEmpty) ...[
-                      _buildTrendCard(context, portfolios),
-                      const SizedBox(height: 10),
                       _buildActionCards(context, portfolios),
                       const SizedBox(height: 10),
                       _buildPortfolioCard(context, portfolios),
@@ -801,54 +766,22 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
             ],
           ),
         ],
+        const SizedBox(height: 14),
+        SparklinePanel(
+          points: _history,
+          period: _sparkPeriod,
+          onPeriodChanged: (p) {
+            setState(() => _sparkPeriod = p);
+            _loadHistory();
+          },
+          building: context.watch<PortfolioProvider>().backfilling,
+          asOf: _captureAsOf(portfolios),
+          color: _history.length >= 2 &&
+                  _history.last.totalKrw >= _history.first.totalKrw
+              ? pnlColors.onBrandPositive
+              : pnlColors.onBrandNegative,
+        ),
       ],
-    );
-  }
-
-  /// 자산 추이 — 딥그린 헤더 **밖**, 크림 카드로.
-  ///
-  /// 원래 헤더 안에 있었는데, 그러면 첫 화면의 34%가 통짜 딥그린이 된다.
-  /// 헤더에 꼭 있어야 하는 건 **접혀도 따라오는 것**뿐이고 — 총자산과 손익 —
-  /// 추이는 접히면 어차피 사라진다. 카드로 내리면 같은 자리에 그대로 보이면서
-  /// 녹색 덩어리만 20%로 줄어든다.
-  Widget _buildTrendCard(BuildContext context, List<Portfolio> portfolios) {
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final pnlColors = context.watch<PnlColorNotifier>();
-    final up = _history.length >= 2 &&
-        _history.last.totalKrw >= _history.first.totalKrw;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: context.cardBg,
-        borderRadius: BorderRadius.circular(DS.cardRadius),
-        border: Border.all(color: context.cardBorder),
-      ),
-      padding: const EdgeInsets.fromLTRB(DS.cardPaddingH, 12, DS.cardPaddingH, 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 헤더 안에서는 딥그린이 곧 「총자산」이라 제목이 필요 없었다.
-          // 카드로 내려오면 이 선이 무엇의 선인지 적어 줘야 한다.
-          Text(isKo ? '자산 추이' : 'Asset trend',
-              style: TextStyle(
-                  fontSize: DS.body,
-                  fontWeight: FontWeight.w700,
-                  color: context.textSecondary)),
-          const SizedBox(height: 8),
-          SparklinePanel(
-            onLight: true,
-            points: _history,
-            period: _sparkPeriod,
-            onPeriodChanged: (p) {
-              setState(() => _sparkPeriod = p);
-              _loadHistory();
-            },
-            building: context.watch<PortfolioProvider>().backfilling,
-            asOf: _captureAsOf(portfolios),
-            color: up ? pnlColors.positiveColor : pnlColors.negativeColor,
-          ),
-        ],
-      ),
     );
   }
 
@@ -893,42 +826,54 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
           color: Colors.black.withValues(alpha: 0.10),
           borderRadius: BorderRadius.circular(13),
         ),
-        // 금액과 퍼센트를 **한 줄에** 놓는다. 세 줄로 쌓으면 타일이 그만큼
-        // 높아지고, 딥그린 헤더가 첫 화면의 36%를 먹는다. 포트가 셋만 넘어도
-        // 정작 목록이 화면 밖으로 밀린다.
+        // 두 줄로 쌓되 **이름표 줄에 퍼센트를 붙인다.**
+        //
+        //   평가손익            +14.86%
+        //             +₩205,705,773
+        //
+        // 세 줄로 쌓으면 타일이 그만큼 높아져 딥그린 헤더가 첫 화면의 36%를
+        // 먹는다. 그렇다고 금액과 퍼센트를 한 줄에 붙이면, 긴 쪽(금액)이
+        // 좁아진 자리에 맞추느라 [FittedBox]에 눌려 작아진다.
+        //
+        // 이름표는 짧고 퍼센트도 짧다 — 둘을 한 줄에 두면 **금액이 줄 하나를
+        // 통째로 쓴다.** 숫자는 오른쪽으로 맞춰 두 타일의 값이 같은 선에 선다.
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(label,
-                style: TextStyle(
-                    fontSize: DS.body,
-                    fontWeight: FontWeight.w600,
-                    color: context.onBrandSecondary)),
-            const SizedBox(height: 4),
+            Row(
+              children: [
+                // Flexible이 아니라 Expanded다 — 이름표가 남은 자리를 채워야
+                // 퍼센트가 오른쪽 끝으로 밀린다.
+                Expanded(
+                  child: Text(label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          fontSize: DS.body,
+                          fontWeight: FontWeight.w600,
+                          color: context.onBrandSecondary)),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  '$sign${pct.abs().toStringAsFixed(2)}%',
+                  style: TextStyle(
+                      fontSize: DS.body,
+                      fontWeight: FontWeight.w600,
+                      color: color),
+                ),
+              ],
+            ),
+            const SizedBox(height: 2),
             FittedBox(
               fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  Text(
-                    '$sign${fmtMoney(amount.abs(), currency)}',
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.3,
-                        color: color),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    '$sign${pct.abs().toStringAsFixed(2)}%',
-                    style: TextStyle(
-                        fontSize: DS.body,
-                        fontWeight: FontWeight.w600,
-                        color: color),
-                  ),
-                ],
+              alignment: Alignment.centerRight,
+              child: Text(
+                '$sign${fmtMoney(amount.abs(), currency)}',
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.3,
+                    color: color),
               ),
             ),
           ],
