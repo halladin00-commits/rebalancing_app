@@ -540,7 +540,8 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
               context.read<PortfolioProvider>().deleteItem(pf.id, item.id);
               Navigator.pop(context);
             },
-            style: TextButton.styleFrom(foregroundColor: context.danger),
+            style:
+                TextButton.styleFrom(foregroundColor: context.destructive),
             child: Text(l10n.delete),
           ),
         ],
@@ -712,7 +713,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
           TextButton(
               onPressed: () => Navigator.pop(ctx, true),
               child: Text(l10n.undoAction,
-                  style: TextStyle(color: context.danger))),
+                  style: TextStyle(color: context.destructive))),
         ],
       ),
     );

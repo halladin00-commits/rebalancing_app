@@ -557,7 +557,7 @@ class _RebalanceTabScreenState extends State<RebalanceTabScreen> {
                       fontWeight: FontWeight.w700,
                       // 편차는 손익이 아니므로 손익 색 설정과 분리한다
                       color: needsAdjusting
-                          ? context.danger
+                          ? context.warningText
                           : context.textSecondary,
                     ),
                   ),

@@ -113,7 +113,7 @@ class _MoreScreenState extends State<MoreScreen> {
                       ),
                       _row(
                         context,
-                        label: _isKo ? '손익 색상' : 'P&L color',
+                        label: _isKo ? '오름·내림 색상' : 'Up / down colors',
                         value: context.watch<PnlColorNotifier>().scheme ==
                                 PnlColorScheme.greenRed
                             ? (_isKo ? '+초록 / −빨강' : '+green / −red')
@@ -439,7 +439,7 @@ class _MoreScreenState extends State<MoreScreen> {
   void _pickPnlScheme() {
     final notifier = context.read<PnlColorNotifier>();
     _pickSheet(
-      title: _isKo ? '손익 색상' : 'P&L color',
+      title: _isKo ? '오름·내림 색상' : 'Up / down colors',
       options: [
         (
           label: _isKo ? '+초록 / −빨강' : '+green / −red',

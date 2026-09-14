@@ -150,7 +150,7 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
     try {
       final Uint8List? imageBytes = await _screenshotCtrl.capture(pixelRatio: 3.0);
       if (imageBytes == null) {
-        if (mounted) _showToast(l10n.captureFailed, context.danger);
+        if (mounted) _showToast(l10n.captureFailed, context.destructive);
         setState(() => _saving = false);
         return;
       }
@@ -161,10 +161,10 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
       if (mounted) {
         final ok = result['isSuccess'] == true || result['filePath'] != null;
         _showToast(ok ? l10n.savedToGallery : l10n.saveFailed,
-            ok ? context.brand : context.danger);
+            ok ? context.brand : context.destructive);
       }
     } catch (e) {
-      if (mounted) _showToast(l10n.saveFailedError(e.toString()), context.danger);
+      if (mounted) _showToast(l10n.saveFailedError(e.toString()), context.destructive);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -177,7 +177,7 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
     try {
       final Uint8List? imageBytes = await _screenshotCtrl.capture(pixelRatio: 3.0);
       if (imageBytes == null) {
-        if (mounted) _showToast(l10n.captureFailed, context.danger);
+        if (mounted) _showToast(l10n.captureFailed, context.destructive);
         return;
       }
       final dir = await getTemporaryDirectory();
@@ -187,7 +187,7 @@ class _PortfolioGraphScreenState extends State<PortfolioGraphScreen> {
       await file.writeAsBytes(imageBytes);
       await Share.shareXFiles([XFile(file.path)]);
     } catch (e) {
-      if (mounted) _showToast(l10n.saveFailedError(e.toString()), context.danger);
+      if (mounted) _showToast(l10n.saveFailedError(e.toString()), context.destructive);
     } finally {
       if (mounted) setState(() => _sharing = false);
     }

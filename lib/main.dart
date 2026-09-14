@@ -112,7 +112,13 @@ extension L10nExt on BuildContext {
   AppLocalizations get l10n => AppLocalizations.of(this);
 }
 
-// ── 손익 색상 관리 ──
+// ── 오름·내림 색상 관리 ──
+//
+// 손익뿐 아니라 **매수·매도 배지와 현금 드나듦**도 이 색을 따른다.
+// 국내 HTS에서 매수 호가는 빨강, 상승도 빨강이다 — 따로 배운 두 관습이
+// 아니라 하나다. 그래서 설정 하나로 같이 움직여야 사용자의 머릿속과 맞는다.
+//
+// 예전에는 기본 스킴에서만 우연히 같았고 설정을 바꾸면 손익만 뒤집혔다.
 
 enum PnlColorScheme { greenRed, redBlue }
 
@@ -290,7 +296,22 @@ extension AppColors on BuildContext {
   Color get onTintBody => const Color(0xFF3D5C58);
   Color get progressAccent => const Color(0xFFC08A3E); // 진행 중 기간 점 · 테두리
   /// 파괴적 액션 (앱 종료 · 삭제) 버튼 채움
+  /// **손익 색이다. 다른 뜻에 쓰지 말 것.**
+  ///
+  /// 이 값은 기본 스킴에서 하락색이고, 사용자가 「+빨강 / −파랑」으로
+  /// 바꾸면 **상승색**이 된다. 그래서 이 색으로 삭제·오류·편차를 칠하면
+  /// 설정 한 번에 그 뜻들이 전부 반대 색이 된다. 실제로 그랬다.
+  ///
+  ///   편차가 넘쳤다        → [warningText] 앰버 (막대도 같은 색을 쓴다)
+  ///   삭제·오류           → [destructive]
+  ///   매수·매도           → [PnlColorNotifier]의 상승·하락색
   Color get danger => const Color(0xFFB85127);
+
+  /// 되돌릴 수 없는 것과 잘못된 것 — 삭제·입력 오류·저장 실패.
+  ///
+  /// 손익 하락색(#B85127)과 **명도로 1.65:1** 벌어져 있어 나란히 놓여도
+  /// 다른 색으로 읽힌다. 색만으로 구분하지 않으므로 색맹에게도 통한다.
+  Color get destructive => const Color(0xFF9B1C1C);
 
   // ── 시장 칩 ──
   Color get chipKrText => const Color(0xFF1E4E6B);

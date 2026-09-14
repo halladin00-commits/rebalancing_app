@@ -425,6 +425,7 @@ class _TransactionImportScreenState extends State<TransactionImportScreen> {
       };
 
   Widget _previewRow(BuildContext context, Portfolio pf, ParsedRow r) {
+    final pnlColors = context.watch<PnlColorNotifier>();
     final l10n = context.l10n;
     final amount = r.qty * r.price;
     final cur = r.market == 'US' ? 'USD' : 'KRW';
@@ -446,7 +447,8 @@ class _TransactionImportScreenState extends State<TransactionImportScreen> {
               style: TextStyle(
                   fontSize: 10.5,
                   fontWeight: FontWeight.w800,
-                  color: r.isBuy ? context.brandOnLight : context.danger)),
+                  color: r.isBuy ? pnlColors.positiveColor
+                                 : pnlColors.negativeColor)),
         ),
         const SizedBox(width: 10),
         Expanded(
@@ -681,7 +683,8 @@ class _TransactionImportScreenState extends State<TransactionImportScreen> {
       ),
       child: Row(children: [
         Icon(icon,
-            size: 17, color: danger ? context.danger : context.textSecondary),
+            size: 17,
+            color: danger ? context.destructive : context.textSecondary),
         const SizedBox(width: 9),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -689,7 +692,8 @@ class _TransactionImportScreenState extends State<TransactionImportScreen> {
                 style: TextStyle(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w700,
-                    color: danger ? context.danger : context.textPrimary)),
+                    color:
+                        danger ? context.destructive : context.textPrimary)),
             const SizedBox(height: 3),
             Text(detail,
                 style: TextStyle(

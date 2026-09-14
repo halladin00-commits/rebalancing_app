@@ -364,6 +364,7 @@ class ItemDetailScreen extends StatelessWidget {
 
   Widget _buildTxRow(BuildContext context, Portfolio pf, PortfolioItem item,
       StockTransaction t) {
+    final pnlColors = context.watch<PnlColorNotifier>();
     final l10n = context.l10n;
     final isBuy = t.quantity >= 0;
     final qty = t.quantity.abs();
@@ -392,7 +393,8 @@ class ItemDetailScreen extends StatelessWidget {
                 style: TextStyle(
                     fontSize: DS.caption,
                     fontWeight: FontWeight.w800,
-                    color: isBuy ? context.brandOnLight : context.danger)),
+                    color: isBuy ? pnlColors.positiveColor
+                                 : pnlColors.negativeColor)),
           ),
           const SizedBox(width: 10),
           Expanded(

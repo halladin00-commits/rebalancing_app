@@ -113,7 +113,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                     style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: context.danger)),
+                        color: context.destructive)),
               ],
               const SizedBox(height: 10),
               Row(children: [
@@ -301,7 +301,9 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   Widget _side(BuildContext context, String label, bool buy) {
     final active = _isBuy == buy;
     // 매수는 초록, 매도는 주황 — 손익색과 같은 뜻으로 읽히게 둔다
-    final activeBg = buy ? const Color(0xFF0E7A52) : context.danger;
+    final pnlColors = context.watch<PnlColorNotifier>();
+    final activeBg =
+        buy ? pnlColors.positiveColor : pnlColors.negativeColor;
     return Expanded(
       child: GestureDetector(
         onTap: () => setState(() => _isBuy = buy),
@@ -491,8 +493,9 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                   style: const TextStyle(
                       fontSize: 14, fontWeight: FontWeight.w700)),
               style: OutlinedButton.styleFrom(
-                foregroundColor: context.danger,
-                side: BorderSide(color: context.danger.withValues(alpha: 0.5)),
+                foregroundColor: context.destructive,
+                side: BorderSide(
+                    color: context.destructive.withValues(alpha: 0.5)),
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(DS.buttonRadius)),

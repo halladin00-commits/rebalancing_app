@@ -451,6 +451,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   }
 
   Widget _buildRow(BuildContext context, Portfolio pf, TxEntry e) {
+    final pnlColors = context.watch<PnlColorNotifier>();
     final l10n = context.l10n;
     final isBuy = e.tx.quantity >= 0;
     final qty = e.tx.quantity.abs();
@@ -480,7 +481,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                 style: TextStyle(
                     fontSize: DS.caption,
                     fontWeight: FontWeight.w800,
-                    color: isBuy ? context.brandOnLight : context.danger)),
+                    color: isBuy ? pnlColors.positiveColor
+                                 : pnlColors.negativeColor)),
           ),
           const SizedBox(width: 10),
           Expanded(

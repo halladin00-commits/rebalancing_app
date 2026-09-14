@@ -127,14 +127,15 @@ class AppMenu extends StatelessWidget {
           :final subtitle,
           :final danger
         ):
-        final fg = danger ? context.danger : context.textPrimary;
+        final fg = danger ? context.destructive : context.textPrimary;
         return [
           PopupMenuItem<int>(
             value: i,
             height: subtitle == null ? 42 : 54,
             child: Row(children: [
               Icon(icon,
-                  size: 19, color: danger ? context.danger : context.textStrong),
+                  size: 19,
+                  color: danger ? context.destructive : context.textStrong),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(

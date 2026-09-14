@@ -369,7 +369,8 @@ class _BulkTransactionScreenState extends State<BulkTransactionScreen> {
         _sideBtn(id, true, isBuy, l10n.transactionBuy, context.brandOnLight,
             context.pnlUpTint),
         Container(width: 1, color: context.borderColor),
-        _sideBtn(id, false, isBuy, l10n.transactionSell, context.danger,
+        _sideBtn(id, false, isBuy, l10n.transactionSell,
+            context.watch<PnlColorNotifier>().negativeColor,
             context.pnlDownTint),
       ]),
     );

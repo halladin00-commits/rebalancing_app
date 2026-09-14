@@ -176,7 +176,7 @@ class _MainShellState extends State<MainShell> {
                   child: ElevatedButton(
                     onPressed: () => Navigator.pop(context, true),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: context.danger,
+                      backgroundColor: context.destructive,
                       foregroundColor: Colors.white,
                       elevation: 0,
                       padding: const EdgeInsets.symmetric(vertical: 13),
@@ -274,7 +274,7 @@ class _MainShellState extends State<MainShell> {
                       // 리밸런싱 탭에만 조정 필요 개수를 띄운다
                       (i == 1 && adjustBadge > 0)
                           ? Badge(
-                              backgroundColor: context.danger,
+                              backgroundColor: context.warningText,
                               offset: const Offset(8, -1),
                               label: Text(
                                 '$adjustBadge',

@@ -338,7 +338,7 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
             if (cost > 0)
               line(l10n.buyCostN(trades.where((r) => r.delta > 0).length),
                   '−${fmtMoney(cost, pf.currency)}',
-                  color: context.danger),
+                  color: context.watch<PnlColorNotifier>().negativeColor),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 5),
               child: Divider(height: 1, color: context.dividerColor),
@@ -357,6 +357,7 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
   Widget _captureTradeRow(
       BuildContext context, Portfolio pf, RebalanceItemResult r,
       {required bool isLast}) {
+    final pnlColors = context.watch<PnlColorNotifier>();
     final l10n = context.l10n;
     final item = pf.items.firstWhere((i) => i.id == r.id);
     final isBuy = r.delta > 0;
@@ -379,7 +380,8 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
               style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
-                  color: isBuy ? context.brandOnLight : context.danger)),
+                  color: isBuy ? pnlColors.positiveColor
+                               : pnlColors.negativeColor)),
         ),
         const SizedBox(width: 10),
         Expanded(
@@ -603,7 +605,7 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
                     letterSpacing: -0.3,
-                    color: context.danger)),
+                    color: context.warningText)),
             const SizedBox(width: 9),
             Icon(Icons.arrow_forward, size: 17, color: context.textHint),
             const SizedBox(width: 9),
@@ -612,7 +614,7 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
                     letterSpacing: -0.5,
-                    color: within ? context.brandOnLight : context.danger)),
+                    color: within ? context.brandOnLight : context.warningText)),
             const Spacer(),
             if (threshold > 0)
               Container(
@@ -630,7 +632,7 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
                         fontSize: 10.5,
                         fontWeight: FontWeight.w800,
                         color:
-                            within ? context.brandOnLight : context.danger)),
+                            within ? context.brandOnLight : context.warningText)),
               ),
           ],
         ),
@@ -697,6 +699,7 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
   /// 남긴다 — 무엇이 왜 움직였는지 보이지 않으면 숫자를 믿을 수 없다.
   Widget _buildTradeBlock(BuildContext context, Portfolio pf,
       RebalanceItemResult r, Map<String, double>? baseDeltas) {
+    final pnlColors = context.watch<PnlColorNotifier>();
     final l10n = context.l10n;
     final item = pf.items.firstWhere((i) => i.id == r.id);
     final off = _excluded.contains(r.id);
@@ -733,7 +736,8 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
                   fontWeight: FontWeight.w800,
                   color: off
                       ? context.textTertiary
-                      : (isBuy ? context.brandOnLight : context.danger))),
+                      : (isBuy ? pnlColors.positiveColor
+                               : pnlColors.negativeColor))),
         ),
         const SizedBox(width: 10),
         Expanded(
@@ -960,7 +964,7 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
                 style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: context.danger)),
+                    color: context.warningText)),
           ],
         ]),
       ),
@@ -975,6 +979,7 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
   /// 매수가 한 건뿐이면 나눠 쓸 일이 없으므로 내지 않는다.
   List<Widget>? _buildCashLedger(BuildContext context, Portfolio pf,
       RebalanceResult rb, List<RebalanceItemResult> trades) {
+    final pnlColors = context.watch<PnlColorNotifier>();
     final l10n = context.l10n;
 
     PortfolioItem? cash;
@@ -1076,7 +1081,7 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
           ],
           if (cost > 0)
             line(l10n.buyCostN(buyCount), '−${fmtMoney(cost, pf.currency)}',
-                color: context.danger),
+                color: pnlColors.negativeColor),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 6),
             child: Divider(height: 1, color: context.dividerColor),

@@ -142,7 +142,7 @@ class _PortfolioSettingsScreenState extends State<PortfolioSettingsScreen> {
                     style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: context.danger)),
+                        color: context.destructive)),
               ],
             ],
           ),

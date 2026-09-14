@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -32,6 +33,8 @@ void main() {
         providers: [
           ChangeNotifierProvider(create: (_) => PortfolioProvider()),
           ChangeNotifierProvider(create: (_) => LocaleProvider()),
+          // 매수·매도 시연이 사용자가 고른 오름·내림색을 따른다.
+          ChangeNotifierProvider(create: (_) => PnlColorNotifier()),
         ],
         child: MaterialApp(
           locale: const Locale('ko'),
@@ -47,9 +50,12 @@ void main() {
   testWidgets('1쪽은 기능 나열이 아니라 앱이 하는 일을 말한다', (tester) async {
     await open(tester);
 
-    // 예전에는 아이콘 셋에 홍보 문구를 얹었다. 지금은 앱이 대신 해 주는
-    // 계산을 말하고, 그 자리에서 **실제 비중 막대**를 보여준다.
-    expect(find.textContaining('목표에서'), findsOneWidget);
+    // 처음 여는 사람은 이 앱이 뭐 하는 앱인지도 모른다. 첫 문장이
+    // **무엇을 하는 앱인지**부터 말해야 한다.
+    expect(find.textContaining('포트폴리오를'), findsWidgets);
+    expect(find.textContaining('비중대로 관리합니다'), findsOneWidget);
+    // 「목표 비중」을 이미 아는 사람에게만 통하는 말로 시작하지 않는다.
+    expect(find.textContaining('목표에서'), findsNothing);
     expect(find.byType(WeightBar), findsOneWidget,
         reason: '앱이 실제로 그리는 막대를 보여줘야 말이 통한다');
     expect(find.textContaining('세로선이 목표 비중'), findsOneWidget);
@@ -177,5 +183,41 @@ void main() {
     expect(total, greaterThan(0));
     expect(painted / total, greaterThan(0.5),
         reason: '막대가 안 칠해졌다 — 칸이 높이 0으로 사라진 것이다');
+  });
+  testWidgets('좌우로 쓸어서도 넘어간다', (tester) async {
+    // 아래에 점을 찍어 두면 쓸어 넘길 수 있다고 읽힌다. 점은 있는데
+    // 버튼으로만 넘어가면 손이 한 번 헛돈다.
+    await open(tester);
+
+    await tester.drag(find.byType(PageView), const Offset(-400, 0));
+    await tester.pumpAndSettle();
+    expect(find.text('세 걸음이면 됩니다'), findsOneWidget);
+
+    await tester.drag(find.byType(PageView), const Offset(-400, 0));
+    await tester.pumpAndSettle();
+    expect(find.text('어떻게 시작할까요'), findsOneWidget);
+
+    // 뒤로도 쓸린다
+    await tester.drag(find.byType(PageView), const Offset(400, 0));
+    await tester.pumpAndSettle();
+    expect(find.text('세 걸음이면 됩니다'), findsOneWidget);
+  });
+  test('첫 실행 안내는 손이 덜 가는 순서가 아니라 쓸모 순서로 놓는다', () {
+    // ① 직접 거래 기록 — 결산 탭의 기간별 손익까지 나오는 유일한 길
+    // ② 보유 현황만 빠르게 — 자산·리밸런싱은 되지만 결산은 안 나온다
+    // ③ 거래내역 파일 올리기 — 가장 빠르지만 PC가 있어야 한다
+    //
+    // 파일 올리기가 맨 위에 있으면 PC 없는 사람이 첫 줄에서 막힌다.
+    final src =
+        File('lib/screens/portfolio_list_screen.dart').readAsStringSync();
+    final start = src.indexOf('Widget _buildFirstRun');
+    final body = src.substring(start, start + 2500);
+
+    final order = ['firstRunRecordTitle', 'firstRunQuickTitle', 'firstRunUploadTitle']
+        .map(body.indexOf)
+        .toList();
+    expect(order.every((i) => i >= 0), isTrue, reason: '세 갈래를 못 찾았다');
+    expect(order[0] < order[1], isTrue, reason: '직접 기록이 맨 위여야 한다');
+    expect(order[1] < order[2], isTrue, reason: '파일 올리기가 맨 아래여야 한다');
   });
 }

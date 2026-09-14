@@ -188,7 +188,7 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
                     style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: context.danger)),
+                        color: context.destructive)),
               ],
               const SizedBox(height: 10),
               Row(crossAxisAlignment: CrossAxisAlignment.start, children: [

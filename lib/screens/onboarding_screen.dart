@@ -178,9 +178,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ),
         child: Scaffold(
           backgroundColor: onGreen ? context.appBarBg : context.scaffoldBg,
+          // 아래에 점을 찍어 두면 **좌우로 쓸어 넘길 수 있다고 읽힌다.**
+          // 점은 있는데 버튼으로만 넘어가면 손이 한 번 헛돈다.
           body: PageView(
             controller: _pageCtrl,
-            physics: const NeverScrollableScrollPhysics(),
             onPageChanged: (p) => setState(() => _page = p),
             children: [
               _buildIntro(context, isKo),
@@ -204,25 +205,30 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           children: [
             const AppLogo(iconSize: 26),
             const Spacer(flex: 3),
+            // 처음 여는 사람은 **이 앱이 뭐 하는 앱인지도 모른다.**
+            // 예전 문구(「목표에서 얼마나 벗어났나」)는 「목표 비중」이라는
+            // 말을 이미 아는 사람에게만 통했다. 무엇을 하는 앱인지부터 말한다.
             Text(
-              isKo ? '목표에서\n얼마나 벗어났나' : 'How far from\nyour target?',
+              isKo
+                  ? '주식 포트폴리오를\n비중대로 관리합니다'
+                  : 'Keep your portfolio\nat the weights you set',
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 32,
+                fontSize: 29,
                 fontWeight: FontWeight.w800,
-                letterSpacing: -1.0,
-                height: 1.28,
+                letterSpacing: -0.9,
+                height: 1.32,
               ),
             ),
             const SizedBox(height: 14),
             Text(
               isKo
-                  ? '정해 둔 비중에서 얼마나 밀렸는지,\n'
-                      '되돌리려면 몇 주를 사고팔아야 하는지.\n'
-                      '그 계산을 대신합니다.'
-                  : 'How far your holdings drifted from the\n'
-                      'weights you set, and how many shares to\n'
-                      'trade to bring them back. We do the math.',
+                  ? '여러 계좌에 흩어진 종목을 한곳에서 봅니다.\n'
+                      '정해 둔 비중에서 밀리면, 몇 주를 사고팔면\n'
+                      '되는지 계산해 드립니다.'
+                  : 'See holdings from every account in one place.\n'
+                      'When they drift from your targets, we work out\n'
+                      'how many shares to trade.',
               style: TextStyle(
                 color: context.onBrandSecondary,
                 fontSize: 14.5,
@@ -861,6 +867,8 @@ class _TradeDemo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    // 매수·매도는 사용자가 고른 오름·내림색을 따른다 (앱과 같게).
+    final pnl = context.watch<PnlColorNotifier>();
     Widget row(bool sell, String name, String qty, String amount) => Row(
           children: [
             Container(
@@ -874,7 +882,9 @@ class _TradeDemo extends StatelessWidget {
               child: Text(
                 sell ? (isKo ? '매도' : 'Sell') : (isKo ? '매수' : 'Buy'),
                 style: TextStyle(
-                    color: sell ? context.danger : context.brandOnLight,
+                    color: sell
+                        ? pnl.negativeColor
+                        : pnl.positiveColor,
                     fontSize: 10,
                     fontWeight: FontWeight.w800),
               ),

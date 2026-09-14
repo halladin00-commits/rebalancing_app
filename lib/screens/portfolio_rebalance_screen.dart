@@ -288,7 +288,7 @@ class _PortfolioRebalanceScreenState extends State<PortfolioRebalanceScreen> {
       {required bool isLast}) {
     final exceeds = pf.rebalancingThreshold > 0 &&
         d.drift.abs() >= pf.rebalancingThreshold;
-    final color = exceeds ? context.danger : context.textTertiary;
+    final color = exceeds ? context.warningText : context.textTertiary;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12),
       decoration: isLast
@@ -631,7 +631,7 @@ class _PortfolioRebalanceScreenState extends State<PortfolioRebalanceScreen> {
     // 날에도 절반은 미달로 나온다. 미달은 「떨어졌다」가 아니라 「남들보다 덜
     // 올랐다」인데, 손익 색을 쓰면 같은 줄에서 손익과 편차가 서로 다른 색을
     // 말하게 된다. 게다가 초과는 **팔 것**이라 초록으로 칠하면 신호가 거꾸로다.
-    final driftColor = exceeds ? context.danger : context.textTertiary;
+    final driftColor = exceeds ? context.warningText : context.textTertiary;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
 
     return Container(
