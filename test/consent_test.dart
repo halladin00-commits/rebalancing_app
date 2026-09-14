@@ -59,12 +59,21 @@ void main() {
   test('지역을 앱이 직접 가르지 않는다', () {
     // 나라 목록을 앱에 적어 두면 **규정이 바뀔 때마다 앱을 새로 내야 한다.**
     // 어느 지역에 동의가 필요한지는 Google SDK가 판단한다.
-    // 주석에서는 어느 지역이 대상인지 **설명해야 하므로** 코드 줄만 본다.
+    // 막으려는 것은 **앱이 기기 위치를 보고 스스로 판정하는 것**이다.
+    // 주석에서는 대상 지역을 설명해야 하고, 시험용 플래그 이름
+    // (`UMP_DEBUG_EEA`)과 SDK의 `DebugGeography.debugGeographyEea`는
+    // 「유럽인 척하라」고 SDK에 **맡기는** 것이라 반대 방향이다.
     final code = File('lib/services/consent_service.dart')
         .readAsLinesSync()
         .where((l) => !l.trimLeft().startsWith('//'))
         .join(' ');
-    for (final bad in const ['EEA', 'countryCode', 'Locale(']) {
+    for (final bad in const [
+      'countryCode',
+      'Locale(',
+      'PlatformDispatcher',
+      'timeZoneName',
+      'SimCountryIso',
+    ]) {
       expect(code.contains(bad), isFalse,
           reason: '동의가 필요한 지역을 앱이 직접 가르려 한다 ($bad)');
     }
