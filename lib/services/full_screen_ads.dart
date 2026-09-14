@@ -38,6 +38,12 @@ class FullScreenAds {
           _loading = false;
           _cached = ad;
           _loadedAt = DateTime.now();
+          // 기다리던 중이었으면 그 자리에서 띄운다.
+          final until = _wantUntil;
+          if (until != null && !_touched && DateTime.now().isBefore(until)) {
+            _wantUntil = null;
+            showIfReady();
+          }
         },
         onAdFailedToLoad: (_) {
           _loading = false;
@@ -56,7 +62,34 @@ class FullScreenAds {
   ///
   /// **광고가 과한지 아닌지는 이 숫자 하나로 정해진다.** 늘리면 줄고 줄이면
   /// 는다.
-  static const awayEnough = Duration(minutes: 30);
+  static const awayEnough = Duration(
+      seconds: int.fromEnvironment('AD_AWAY_SECONDS', defaultValue: 30 * 60));
+
+  /// 켠 직후 광고를 기다려 주는 시간.
+  ///
+  /// 켤 때 한 번만 보고 말면 **사실상 한 번도 안 뜬다** — 동의 확인 ·
+  /// SDK 시작 · 광고 요청까지 망 왕복이 여러 번이라, 보는 시점(첫 프레임
+  /// 직후)에는 늘 아직 안 와 있다.
+  ///
+  /// 짧으면(3초) 사실상 못 잡는다 — 동의 확인 · SDK 시작 · 광고 요청까지
+  /// 망 왕복이 여러 번이라 느린 망에서는 한참 걸린다.
+  ///
+  /// 길게 두되 **손이 닿으면 그 자리에서 접는다**([noteUserTouch]).
+  /// 이미 화면을 쓰고 있는 사람에게 튀어나오는 광고가 가장 나쁘다.
+  static const _grace = Duration(
+      seconds: int.fromEnvironment('AD_GRACE_SECONDS', defaultValue: 5));
+
+  /// 이 시각 전에 광고가 오면 띄운다. 지나면 그냥 받아만 둔다.
+  static DateTime? _wantUntil;
+
+  /// 기다리기 시작한 뒤로 화면에 손이 닿았는가.
+  ///
+  /// **닿았으면 안 띄운다.** 앱을 열자마자 뜨는 광고와, 뭔가 누르는 도중에
+  /// 튀어나오는 광고는 전혀 다른 것이다. 뒤엣것은 하던 일을 끊는다.
+  static bool _touched = false;
+
+  /// 화면에 손이 닿았다고 알린다. 앱 뿌리에서 부른다.
+  static void noteUserTouch() => _touched = true;
 
   /// 구글은 받아 둔 앱 오프닝 광고를 4시간까지만 유효하다고 본다.
   static const _adLifetime = Duration(hours: 4);
@@ -84,14 +117,7 @@ class FullScreenAds {
 
       // 새 세션으로 보므로 「이번에 이미 띄웠다」를 푼다.
       _shownThisLaunch = false;
-      _dropIfStale();
-      if (_cached == null) {
-        // 없으면 받아 두기만 한다 — 기다렸다 띄우지 않는다. 늦게 뜨는
-        // 광고는 하던 일을 끊는 광고가 되어 가장 나쁘다.
-        preload();
-        return;
-      }
-      showIfReady();
+      showWhenReady();
     });
   }
 
@@ -105,9 +131,26 @@ class FullScreenAds {
     _loadedAt = null;
   }
 
-  /// 받아 둔 게 있으면 띄운다. 없으면 아무것도 안 한다 — **기다리지 않는다.**
+  /// 있으면 지금, 없으면 **짧게 기다렸다가** 띄운다.
   ///
-  /// 광고를 기다리느라 앱이 안 열리는 게 광고가 안 뜨는 것보다 나쁘다.
+  /// [showIfReady]만 쓰면 사실상 한 번도 안 뜬다 — 켠 직후에 한 번 보는데
+  /// 그때는 광고가 아직 안 와 있고, 그러면 다시 안 본다. 그렇다고 끝까지
+  /// 기다리면 한참 뒤에 튀어나와 하던 일을 끊는다.
+  ///
+  /// [_grace]만큼만 문을 열어 둔다. 그 안에 오면 띄우고, 늦으면 다음을
+  /// 위해 받아만 둔다.
+  static void showWhenReady() {
+    _dropIfStale();
+    if (_cached != null) {
+      showIfReady();
+      return;
+    }
+    _touched = false;
+    _wantUntil = DateTime.now().add(_grace);
+    preload();
+  }
+
+  /// 받아 둔 게 있으면 띄운다. 없으면 아무것도 안 한다 — **기다리지 않는다.**
   static void showIfReady() {
     _dropIfStale();
     final ad = _cached;

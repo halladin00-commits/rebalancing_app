@@ -107,4 +107,19 @@ void main() {
     expect(policy.contains('동의'), isTrue,
         reason: '유럽에서 동의를 받는다는 사실이 방침에 없다');
   });
+
+  test('시험용 광고는 컴파일할 때만 켤 수 있다', () {
+    // 예전에는 손으로 바꾸는 `= false` 상수였다. 그 자리는 양쪽으로 위험하다
+    // — 켠 채로 내보내면 수익이 0이 되고, 끈 채로 시험하면 **실광고를 직접
+    // 눌러** 무효 트래픽으로 계정이 정지될 수 있다.
+    final s = File('lib/services/ad_service.dart').readAsStringSync();
+    expect(
+        s.contains(
+            "static const bool _useTestAds = bool.fromEnvironment('USE_TEST_ADS');"),
+        isTrue,
+        reason: '시험용 광고 스위치가 컴파일 시점 값이 아니다');
+    for (final bad in const ['_useTestAds = true', '_useTestAds=true']) {
+      expect(s.contains(bad), isFalse, reason: '시험용 광고가 못으로 박혀 있다');
+    }
+  });
 }

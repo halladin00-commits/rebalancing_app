@@ -80,7 +80,15 @@ void main() {
         ChangeNotifierProvider(create: (_) => MainCurrencyNotifier()),
         ChangeNotifierProvider(create: (_) => PortfolioSortNotifier()),
       ],
-      child: const RebalancingApp(),
+      // **화면에 손이 닿으면 앱 오프닝 광고를 접는다.**
+      //
+      // 켜자마자 뜨는 광고와, 뭔가 누르는 도중에 튀어나오는 광고는 전혀
+      // 다른 것이다. 뒤엣것은 하던 일을 끊는다. 광고를 기다리는 동안
+      // 사용자가 먼저 움직이면 그걸로 끝낸다.
+      child: Listener(
+        onPointerDown: (_) => FullScreenAds.noteUserTouch(),
+        child: const RebalancingApp(),
+      ),
     ),
   );
 }
@@ -521,9 +529,10 @@ class _AppEntryPointState extends State<_AppEntryPoint> {
     // [FullScreenAds.awayEnough] 참고.
     FullScreenAds.armForegroundShows();
 
-    // 이미 받아 둔 것만 띄운다. 아직이면 그냥 넘어간다 — 광고를 기다리느라
-    // 앱이 안 열리는 게 광고가 안 뜨는 것보다 나쁘다.
-    FullScreenAds.showIfReady();
+    // **짧게 기다렸다 띄운다.** 여기서 한 번만 보고 말면 사실상 한 번도
+    // 안 뜬다 — 이 시점에는 동의 확인도 광고 요청도 아직 안 끝나 있다.
+    // 끝까지 기다리지는 않는다 (FullScreenAds._grace).
+    FullScreenAds.showWhenReady();
   }
 
   /// 이 기기에서 앱을 한 번이라도 끝까지 열어 봤는가.

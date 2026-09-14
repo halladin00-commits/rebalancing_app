@@ -44,8 +44,20 @@ class AdService {
   static const String _testAppOpenId =
       'ca-app-pub-3940256099942544/9257395921';
 
-  // ── 출시 시 false로 변경 ──
-  static const bool _useTestAds = false;
+  /// 구글 시험용 광고 단위를 쓸 것인가.
+  ///
+  /// **손으로 바꾸는 상수였다.** 그 자리는 양쪽으로 다 위험하다 —
+  /// 켠 채로 내보내면 수익이 0이 되고, 끈 채로 시험하면 **실광고를 직접
+  /// 누르게 되어** 무효 트래픽으로 계정이 정지될 수 있다.
+  ///
+  /// 이제 컴파일할 때만 켤 수 있다. 안 주면 거짓이라 **스토어 빌드는
+  /// 어떤 경우에도 실광고**다.
+  ///
+  ///   sh tools/build_review.sh android-x64 --dart-define=USE_TEST_ADS=true
+  ///
+  /// 시험용 단위는 늘 광고를 내주므로, 광고가 뜨는지 확인할 때 쓴다.
+  /// 실제 단위는 에뮬레이터에서 자주 `no fill`이 난다.
+  static const bool _useTestAds = bool.fromEnvironment('USE_TEST_ADS');
 
   /// 자리에 맞는 배너 단위.
   static String bannerIdFor(AdSlot slot) {

@@ -19,10 +19,10 @@ void main() {
     // 상수 **정의**가 아니라 흐름에서 읽는 자리를 찾는다 — 정의는 파일
     // 아래쪽에 있어서, 문자열 값으로 찾으면 늘 광고보다 뒤에 나온다.
     final iFlag = main_.indexOf('getBool(_keyOpenedBefore)');
-    final iShow = main_.indexOf('FullScreenAds.showIfReady()');
+    final iShow = main_.indexOf('FullScreenAds.show');
 
     expect(iFlag, isNot(-1), reason: '첫 실행을 가리는 표시가 없다');
-    expect(iShow, isNot(-1), reason: '앱 오프닝 광고 호출을 못 찾았다');
+    expect(iShow, isNot(-1), reason: '앱 오프닝 광고를 띄우는 호출을 못 찾았다');
     expect(iFlag, lessThan(iShow),
         reason: '광고를 띄운 뒤에 첫 실행을 확인한다 — 순서가 뒤집혔다');
 
@@ -36,7 +36,7 @@ void main() {
     // 나중에 남기면, 그 사이에 앱이 죽었을 때 다음 실행도 첫 실행이 된다.
     // 광고가 영영 안 뜨는 앱이 되는 길이다.
     final iSet = main_.indexOf('setBool(_keyOpenedBefore, true)');
-    final iShow = main_.indexOf('FullScreenAds.showIfReady()');
+    final iShow = main_.indexOf('FullScreenAds.show');
     expect(iSet, isNot(-1), reason: '표시를 남기지 않는다');
     expect(iSet, lessThan(iShow), reason: '표시를 광고 뒤에 남긴다');
   });
@@ -46,7 +46,7 @@ void main() {
     // 보게 된다. 순서가 곧 첫인상이다.
     final iDisclaimer = main_.indexOf('DisclaimerDialog.showIfNeeded');
     final iPrimer = main_.indexOf('NotificationPrimer.askFirst');
-    final iShow = main_.indexOf('FullScreenAds.showIfReady()');
+    final iShow = main_.indexOf('FullScreenAds.show');
 
     expect(iDisclaimer, lessThan(iPrimer), reason: '알림 안내가 고지보다 먼저다');
     expect(iPrimer, lessThan(iShow), reason: '광고가 알림 안내보다 먼저다');
