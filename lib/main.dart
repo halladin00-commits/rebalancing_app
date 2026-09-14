@@ -494,9 +494,14 @@ class _AppEntryPointState extends State<_AppEntryPoint> {
     final loaded = context.watch<PortfolioProvider>().loaded;
 
     if (!_timerDone || !loaded || _onboardingDone == null) {
-      return const Scaffold(
-        backgroundColor: Color(0xFF0E4F49),
-        body: Center(child: AppLogo(iconSize: 38)),
+      // **네이티브 스플래시와 같은 크림이어야 한다.** 여기만 딥그린으로
+      // 두면 앱을 켤 때 크림 → 초록 → 크림으로 한 번 번쩍인다.
+      return Scaffold(
+        backgroundColor: const Color(0xFFFBF8F1),
+        body: Center(
+          child: AppLogo(
+              iconSize: 38, textColor: context.brand, onLight: true),
+        ),
       );
     }
 

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 앱 본문과 같은 크림. 스플래시에서 앱으로 넘어갈 때 바탕이 안 바뀐다. -->
     <item>
-        <color android:color="#0E4F49"/>
+        <color android:color="#FBF8F1"/>
     </item>
 </layer-list>

@@ -2,8 +2,14 @@
 <resources>
     <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <item name="android:windowBackground">@drawable/launch_background</item>
-        <item name="android:windowSplashScreenBackground">#0E4F49</item>
+        <!-- 스플래시는 크림이다. 화면 전체를 덮는 자리라 딥그린으로 두면
+             앱에서 초록 면적이 가장 큰 화면이 되는데 담긴 정보는 로고
+             하나뿐이다. 크림이면 앱 본문 배경과 이어진다. -->
+        <item name="android:windowSplashScreenBackground">#FBF8F1</item>
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_splash</item>
+        <!-- 밝은 바탕이므로 상태바 글자·아이콘을 어둡게. 안 주면 흰 글자가
+             크림 위에 떠서 시각이 안 보인다. -->
+        <item name="android:windowLightStatusBar">true</item>
     </style>
     <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <item name="android:windowBackground">?android:colorBackground</item>
