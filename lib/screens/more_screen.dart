@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../app_info.dart';
 import '../main.dart';
 import '../l10n/app_localizations.dart';
@@ -171,6 +172,14 @@ class _MoreScreenState extends State<MoreScreen> {
                         label: l10n.notice,
                         value: '',
                         onTap: () => DisclaimerDialog.showAlways(context),
+                      ),
+                      // **광고를 띄우는 앱은 앱 안에서도 방침을 볼 수 있어야
+                      // 한다.** Play Console에 주소를 넣는 것만으로는 모자란다.
+                      _row(
+                        context,
+                        label: _isKo ? '개인정보처리방침' : 'Privacy policy',
+                        value: '',
+                        onTap: _openPrivacyPolicy,
                       ),
                       // 플러터와 여러 꾸러미를 쓰므로 **고지 의무가 있다.**
                       // 지금까지 앱 어디에도 없었다.
@@ -514,6 +523,26 @@ class _MoreScreenState extends State<MoreScreen> {
   }
 
   // ── 백업 · 복원 ──
+
+  /// 방침을 기기 브라우저로 연다.
+  ///
+  /// 앱 안에 글을 박아 두지 않는 이유는 **고칠 때마다 앱을 새로 내야 하기
+  /// 때문이다.** 방침은 스토어 심사 중에도 고쳐야 할 수 있다.
+  ///
+  /// 못 열었을 때 조용히 넘어가면 안 된다 — 방침은 「볼 수 있어야」 의무를
+  /// 다한 것이라, 주소를 글로 띄워 직접 칠 수 있게 남긴다.
+  Future<void> _openPrivacyPolicy() async {
+    final ok = await launchUrl(Uri.parse(privacyPolicyUrl),
+        mode: LaunchMode.externalApplication);
+    if (!ok && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(_isKo
+            ? '브라우저를 열지 못했습니다.\n$privacyPolicyUrl'
+            : 'Could not open a browser.\n$privacyPolicyUrl'),
+        duration: const Duration(seconds: 8),
+      ));
+    }
+  }
 
   Future<void> _backup() async {
     final l10n = context.l10n;

@@ -18,3 +18,11 @@ const appBuild = '13';
 
 /// 사용자에게 보이는 판 번호.
 const appVersionLabel = '$appVersion ($appBuild)';
+
+/// 개인정보처리방침 주소.
+///
+/// 문서는 저장소의 `docs/privacy.html`이고, GitHub Pages가 그대로 내보낸다.
+/// **주소가 죽으면 스토어 심사에서 반려된다** — 파일 이름이나 Pages 설정을
+/// 건드릴 때는 이 주소가 살아 있는지 먼저 확인할 것.
+const privacyPolicyUrl =
+    'https://halladin00-commits.github.io/rebalancing_app/privacy.html';
