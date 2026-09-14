@@ -1152,6 +1152,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                   ],
                 ),
                 const SizedBox(height: 10),
+                _buildTargetsPrompt(context, pf),
                 _buildSlimAddCard(context, pf),
               ]),
             ),
@@ -1389,6 +1390,67 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
       children: [_buildSlimAddCard(context, pf)],
+    );
+  }
+
+  /// 「목표 비중을 정해 주세요」 — **목표가 아직 없을 때만** 보인다.
+  ///
+  /// 지금까지 종목을 다 담고 나와도 아무도 다음을 알려주지 않았다. 리밸런싱
+  /// 탭에 들어가야 비로소 버튼이 「목표 비중 맞추기」로 바뀌는데, 거기까지
+  /// 갈 이유를 모르는 사람은 영영 그 화면을 못 만난다.
+  ///
+  /// **목표를 정하고 나면 사라진다.** 할 일이 끝난 안내가 계속 남아 있으면
+  /// 그때부터는 잔소리다.
+  Widget _buildTargetsPrompt(BuildContext context, Portfolio pf) {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    // 종목이 하나뿐이면 비중을 나눌 일이 없다.
+    if (pf.items.length < 2) return const SizedBox.shrink();
+    if ((pf.weightSum - 100).abs() <= 0.01) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: InkWell(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (_) => TargetWeightsScreen(portfolioId: pf.id)),
+        ),
+        borderRadius: BorderRadius.circular(DS.cardRadius),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(16, 14, 14, 14),
+          decoration: BoxDecoration(
+            color: context.highlightBg,
+            borderRadius: BorderRadius.circular(DS.cardRadius),
+          ),
+          child: Row(children: [
+            Icon(Icons.balance, size: 19, color: context.brand),
+            const SizedBox(width: 11),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    isKo ? '목표 비중을 정해 주세요' : 'Set your target weights',
+                    style: TextStyle(
+                        fontSize: DS.rowName,
+                        fontWeight: FontWeight.w700,
+                        color: context.textPrimary),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    isKo
+                        ? '정해 두면 얼마나 벌어졌는지 계산해 드립니다'
+                        : "Then we'll track how far you've drifted",
+                    style: TextStyle(
+                        fontSize: DS.body, color: context.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, size: 19, color: context.textTertiary),
+          ]),
+        ),
+      ),
     );
   }
 

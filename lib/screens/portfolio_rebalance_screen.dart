@@ -365,20 +365,31 @@ class _PortfolioRebalanceScreenState extends State<PortfolioRebalanceScreen> {
             if (pf.items.length >= 2)
               _statusPill(context, needsAdjusting, isKo),
             const Spacer(),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(DS.chipRadius),
-              ),
-              child: Text(
-                isKo
-                    ? '허용 ±${_trimZero(pf.rebalancingThreshold)}%p'
-                    : '±${_trimZero(pf.rebalancingThreshold)}pp',
-                style: TextStyle(
-                    fontSize: DS.caption,
-                    fontWeight: FontWeight.w700,
-                    color: context.onBrandSecondary),
+            // **허용 편차가 앱에서 보이는 유일한 자리다.** 여기가 안 눌리면
+            // 고치러 갈 길이 ⋮ 메뉴뿐이라 사실상 못 찾는다.
+            // 화살표를 붙여 눌리는 것임을 밝힌다 — 칩은 보통 안 눌린다.
+            GestureDetector(
+              onTap: () => _openTargets(pf),
+              behavior: HitTestBehavior.opaque,
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(10, 5, 6, 5),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(DS.chipRadius),
+                ),
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  Text(
+                    isKo
+                        ? '허용 ±${_trimZero(pf.rebalancingThreshold)}%p'
+                        : '±${_trimZero(pf.rebalancingThreshold)}pp',
+                    style: TextStyle(
+                        fontSize: DS.caption,
+                        fontWeight: FontWeight.w700,
+                        color: context.onBrandSecondary),
+                  ),
+                  Icon(Icons.chevron_right,
+                      size: 15, color: context.onBrandSecondary),
+                ]),
               ),
             ),
           ],
@@ -431,6 +442,48 @@ class _PortfolioRebalanceScreenState extends State<PortfolioRebalanceScreen> {
   }
 
   /// 조정이 필요한지 아닌지 — 자산 탭과 **같은 말**을 쓴다.
+  /// 종목 목록 맨 끝에 다는 「바꾸러 가기」 줄.
+  ///
+  /// 이 카드는 종목마다 「현재 → 목표」를 늘어놓는다. 다 읽고 나면 그
+  /// 목표를 바꾸고 싶어지는데, 지금까지는 그 길이 ⋮ 메뉴뿐이었다.
+  Widget _targetsRow(BuildContext context, Portfolio pf, bool isKo) {
+    return InkWell(
+      onTap: () => _openTargets(pf),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 15),
+        decoration: BoxDecoration(
+          border: Border(top: BorderSide(color: context.dividerColor)),
+        ),
+        child: Row(children: [
+          Icon(Icons.balance, size: 17, color: context.brand),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Text(
+              isKo ? '목표 비중 · 허용 편차 바꾸기' : 'Change targets & tolerance',
+              style: TextStyle(
+                  fontSize: DS.rowName,
+                  fontWeight: FontWeight.w600,
+                  color: context.brand),
+            ),
+          ),
+          Icon(Icons.chevron_right, size: 18, color: context.textTertiary),
+        ]),
+      ),
+    );
+  }
+
+  /// 목표 비중·허용 편차를 고치는 화면으로.
+  ///
+  /// **둘은 같은 화면에서 고친다.** 그런데 이 화면은 처음부터 끝까지 목표
+  /// 비중 이야기(「허용 ±3%p」, 「현재 → 목표」)면서 정작 아무것도 안 눌렸다.
+  /// 읽을 수만 있고 손댈 수는 없는 화면이었다.
+  void _openTargets(Portfolio pf) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => TargetWeightsScreen(portfolioId: pf.id)),
+    );
+  }
+
   Widget _statusPill(BuildContext context, bool needsAdjusting, bool isKo) {
     final color =
         needsAdjusting ? context.onBrandWarning : context.onBrandAccent;
@@ -546,7 +599,10 @@ class _PortfolioRebalanceScreenState extends State<PortfolioRebalanceScreen> {
               for (var i = 0; i < drifts.length; i++)
                 _buildDriftRow(context, pf, drifts[i],
                     exceeds: overIds.contains(drifts[i].item.id),
-                    isLast: i == drifts.length - 1),
+                    isLast: false),
+              // **목표들을 다 훑고 난 자리다.** 「이 목표는 누가 정했나,
+              // 바꾸려면 어디로 가나」가 생기는 지점이 바로 여기다.
+              _targetsRow(context, pf, isKo),
             ],
           ),
         ),
