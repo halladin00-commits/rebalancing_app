@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  릴리즈 빌드의 자원 줄이기(shrinkResources)에서 지켜야 할 것.
+
+  줄이기는 **자바 코드와 XML만 훑는다.** Dart 문자열로만 부르는 자원은
+  아무도 안 쓰는 것으로 보여 APK에서 통째로 빠진다. 빠져도 빌드는 성공하고,
+  앱도 켜지고, 터지는 건 그 자원을 처음 쓰는 순간뿐이다.
+
+  실제로 알림 아이콘이 이렇게 빠졌다. `NotificationService.initialize`가
+  예외로 죽어 **알림이 하나도 예약되지 않았는데**, 화면은 멀쩡해서
+  로그를 보기 전까지 몰랐다.
+
+  Dart에서 `@drawable/...` 로 부르는 것을 새로 만들면 여기에 더할 것.
+  `test/android_resources_test.dart` 가 빠뜨리면 잡는다.
+-->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/ic_stat_notify" />
