@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../main.dart';
 import '../l10n/app_localizations.dart';
 import '../services/ad_service.dart';
+import '../services/consent_service.dart';
 import '../services/settlement_service.dart';
 import '../services/notification_service.dart';
 import '../theme/design_system.dart';
@@ -90,7 +91,10 @@ class _MainShellState extends State<MainShell> {
     });
   }
 
-  void _loadExitAd() {
+  Future<void> _loadExitAd() async {
+    // 배너와 같은 규칙 — 동의를 알기 전에는 요청하지 않는다.
+    await ConsentService.resolved;
+    if (!mounted || !ConsentService.canShowAds) return;
     _exitBanner = AdService.createBanner(
       adUnitId: AdService.exitBannerId,
       size: AdSize.mediumRectangle,

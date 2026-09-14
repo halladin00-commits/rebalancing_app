@@ -6,6 +6,7 @@ import '../app_info.dart';
 import '../main.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/elapsed.dart';
+import '../services/consent_service.dart';
 import '../services/notification_service.dart';
 import '../services/storage_service.dart';
 import '../theme/design_system.dart';
@@ -34,11 +35,41 @@ class _MoreScreenState extends State<MoreScreen> {
   DateTime? _lastBackup;
   bool _backupLoaded = false;
 
+  /// 광고 동의를 다시 고를 수 있는 사용자인가 (유럽권).
+  ///
+  /// 기본이 거짓이라, 알아내기 전이나 알아낼 수 없을 때는 줄이 안 보인다.
+  /// 한국 사용자에게는 끝까지 거짓이다.
+  bool _adConsentAvailable = false;
+
   @override
   void initState() {
     super.initState();
     _loadNotifState();
     _loadLastBackup();
+    _loadAdConsentState();
+  }
+
+  Future<void> _loadAdConsentState() async {
+    final required = await ConsentService.isPrivacyOptionsRequired();
+    if (!mounted) return;
+    setState(() => _adConsentAvailable = required);
+  }
+
+  /// 광고 동의를 다시 고르는 창을 띄운다.
+  ///
+  /// 동의를 거부로 바꾸면 **다음에 켤 때부터** 광고가 사라진다. 이미 붙어
+  /// 있는 배너까지 그 자리에서 걷어내지는 않으므로, 그 사실을 말해 준다.
+  /// 아무 말이 없으면 「눌렀는데 그대로네」로 읽힌다.
+  Future<void> _openAdConsent() async {
+    final ok = await ConsentService.showPrivacyOptions();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(ok
+          ? (_isKo
+              ? '저장했습니다. 앱을 다시 켜면 적용됩니다.'
+              : 'Saved. Takes effect next time you open the app.')
+          : (_isKo ? '설정 창을 열지 못했습니다.' : 'Could not open the options.')),
+    ));
   }
 
   Future<void> _loadLastBackup() async {
@@ -181,6 +212,17 @@ class _MoreScreenState extends State<MoreScreen> {
                         value: '',
                         onTap: _openPrivacyPolicy,
                       ),
+                      // **유럽 사용자만 보이는 줄이다.** 한 번 정한 광고 동의를
+                      // 나중에 바꿀 통로가 없으면 그것만으로 정책 위반이다.
+                      // 한국 사용자에게는 아예 안 보인다 — 뜻 없는 설정을
+                      // 목록에 늘리지 않는다.
+                      if (_adConsentAvailable)
+                        _row(
+                          context,
+                          label: _isKo ? '광고 동의 설정' : 'Ad privacy options',
+                          value: '',
+                          onTap: _openAdConsent,
+                        ),
                       // 플러터와 여러 꾸러미를 쓰므로 **고지 의무가 있다.**
                       // 지금까지 앱 어디에도 없었다.
                       _row(

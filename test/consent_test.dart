@@ -1,0 +1,87 @@
+import 'dart:io';
+
+import 'package:flutter_test/flutter_test.dart';
+
+/// 유럽 광고 동의(UMP)가 **뚫리지 않는지** 소스에서 지킨다.
+///
+/// 왜 소스를 읽는 시험인가
+///   동의를 안 받고 광고를 요청해도 **앱은 멀쩡하게 돌아간다.** 광고도
+///   그냥 나온다. 잘못된 줄은 한국에서 앱을 켜 보는 것으로는 알 수 없고,
+///   유럽 사용자에게 광고가 제한되거나 AdMob에서 경고가 와야 안다.
+///
+///   그래서 「광고를 붙이는 자리를 하나 더 만들면서 동의 확인을 빠뜨린다」가
+///   실제로 일어날 수 있는 유일한 경로다. 그 자리를 여기서 막는다.
+void main() {
+  /// 광고를 **실제로 요청하는** 호출들. 자리를 새로 만들면 여기서 걸린다.
+  const requests = [
+    'AdService.createBanner(',
+    'AppOpenAd.load(',
+    'InterstitialAd.load(',
+    'FullScreenAds.preload()',
+    'MobileAds.instance.initialize()',
+  ];
+
+  /// 광고 단위를 정의만 해 두는 곳 — 요청하지 않으므로 동의와 무관하다.
+  const factories = {
+    'lib\\services\\ad_service.dart',
+    'lib/services/ad_service.dart',
+    'lib\\services\\full_screen_ads.dart',
+    'lib/services/full_screen_ads.dart',
+  };
+
+  test('광고를 요청하는 곳은 모두 동의를 먼저 확인한다', () {
+    final offenders = <String>[];
+
+    for (final f in Directory('lib').listSync(recursive: true)) {
+      if (f is! File || !f.path.endsWith('.dart')) continue;
+      if (factories.contains(f.path)) continue;
+
+      final s = f.readAsStringSync();
+      final asks = requests.any(s.contains);
+      if (!asks) continue;
+
+      if (!s.contains('ConsentService')) offenders.add(f.path);
+    }
+
+    expect(offenders, isEmpty,
+        reason: '이 파일들이 동의를 확인하지 않고 광고를 요청한다.\n'
+            '  `await ConsentService.resolved` 뒤에 `canShowAds`를 보고 나서 요청할 것');
+  });
+
+  test('동의를 못 받았을 때의 기본값은 「광고 없음」이다', () {
+    // 기본이 참이면, 동의를 물어보기 **전에** 광고가 한 번 나간다.
+    // 망이 끊겨 물어보지 못한 경우도 마찬가지다.
+    final s = File('lib/services/consent_service.dart').readAsStringSync();
+    expect(s.contains('static bool _canShowAds = false;'), isTrue,
+        reason: '기본값이 참이면 동의 전에 광고가 나간다');
+  });
+
+  test('지역을 앱이 직접 가르지 않는다', () {
+    // 나라 목록을 앱에 적어 두면 **규정이 바뀔 때마다 앱을 새로 내야 한다.**
+    // 어느 지역에 동의가 필요한지는 Google SDK가 판단한다.
+    // 주석에서는 어느 지역이 대상인지 **설명해야 하므로** 코드 줄만 본다.
+    final code = File('lib/services/consent_service.dart')
+        .readAsLinesSync()
+        .where((l) => !l.trimLeft().startsWith('//'))
+        .join(' ');
+    for (final bad in const ['EEA', 'countryCode', 'Locale(']) {
+      expect(code.contains(bad), isFalse,
+          reason: '동의가 필요한 지역을 앱이 직접 가르려 한다 ($bad)');
+    }
+  });
+
+  test('유럽 사용자가 동의를 나중에 바꿀 수 있다', () {
+    // 한 번 정한 동의를 되돌릴 통로가 없으면 그것만으로 정책 위반이다.
+    final more = File('lib/screens/more_screen.dart').readAsStringSync();
+    expect(more.contains('showPrivacyOptions'), isTrue,
+        reason: '더보기에 광고 동의를 다시 고를 줄이 없다');
+    expect(more.contains('isPrivacyOptionsRequired'), isTrue,
+        reason: '그 줄을 **필요한 사용자에게만** 보여야 한다');
+  });
+
+  test('방침에 동의 절차가 적혀 있다', () {
+    final policy = File('docs/privacy.html').readAsStringSync();
+    expect(policy.contains('동의'), isTrue,
+        reason: '유럽에서 동의를 받는다는 사실이 방침에 없다');
+  });
+}

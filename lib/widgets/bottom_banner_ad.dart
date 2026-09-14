@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../services/ad_service.dart';
+import '../services/consent_service.dart';
 
 /// 모든 화면 하단 공통 배너 광고 위젯.
 /// - 광고 로드 전후 관계없이 항상 kBannerHeight(50px)를 예약 → 레이아웃 변화 없음
@@ -72,6 +73,18 @@ class _BottomBannerAdState extends State<BottomBannerAd> {
   }
 
   Future<void> _load() async {
+    // **동의를 알기 전에는 요청하지 않는다.** 유럽에서 동의 전에 광고를
+    // 요청하면 그 자체가 위반이다. 한국처럼 동의가 필요 없는 지역에서는
+    // 곧바로 통과하므로, 실제로 기다리는 건 앱을 켜고 한 번뿐이다.
+    await ConsentService.resolved;
+    if (!mounted) return;
+    if (!ConsentService.canShowAds) {
+      // 자리를 없앤다 — 오지 않을 것을 위해 빈 띠를 남기면 화면 아래가
+      // 이유 없이 비어 보인다. `failed`가 이미 그 뜻이다.
+      setState(() => _failed = true);
+      return;
+    }
+
     final width = MediaQuery.sizeOf(context).width.truncate();
     // **적응형 배너.** 320×50 고정보다 기기 폭을 꽉 채워 단가가 높다.
     // 세로 고정 앱이라 방향은 portrait로 묻는다.

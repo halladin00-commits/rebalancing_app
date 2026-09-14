@@ -17,6 +17,7 @@ import 'services/undo_service.dart';
 import 'screens/main_shell.dart';
 import 'screens/onboarding_screen.dart';
 import 'services/stock_search_service.dart';
+import 'services/consent_service.dart';
 import 'services/full_screen_ads.dart';
 import 'services/notification_service.dart';
 import 'widgets/disclaimer_dialog.dart';
@@ -51,10 +52,19 @@ void main() {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  MobileAds.instance.initialize();
-  // 스플래시가 떠 있는 동안 앱 오프닝 광고를 미리 받는다 —
-  // 켠 다음에 받기 시작하면 사용자가 이미 화면을 쓰는 중에 튀어나온다.
-  FullScreenAds.preload();
+  // **광고는 동의를 확인한 뒤에 시작한다.** 유럽에서는 동의 창을 먼저
+  // 띄워야 하고, 그 전에 광고를 요청하면 그 자체가 위반이다. 한국처럼
+  // 동의가 필요 없는 지역에서는 창 없이 곧바로 참이 되므로, 실제로
+  // 늦어지는 건 Google에 한 번 물어보는 시간뿐이다.
+  //
+  // 기다리지 **않는다** — 앱 화면은 광고와 무관하게 바로 떠야 한다.
+  unawaited(ConsentService.gather().then((_) {
+    if (!ConsentService.canShowAds) return;
+    MobileAds.instance.initialize();
+    // 스플래시가 떠 있는 동안 앱 오프닝 광고를 미리 받는다 —
+    // 켠 다음에 받기 시작하면 사용자가 이미 화면을 쓰는 중에 튀어나온다.
+    FullScreenAds.preload();
+  }));
   StockSearchService.initialize();
   NotificationService.initialize();
   // 결산 알림이 13시 고정으로 바뀌기 전에 다른 시각을 골라 둔 사람이 있다.
