@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../main.dart';
+import '../theme/design_system.dart';
 
 /// 시스템 알림 권한 창을 띄우기 **전에** 무엇을 보낼지 먼저 말한다.
 ///
@@ -50,88 +51,130 @@ class NotificationPrimer extends StatelessWidget {
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
 
-    return AlertDialog(
+    // **[AlertDialog]를 쓰지 않는다.** 머티리얼 기본값이 그대로 나와서 이
+    // 앱이 아니라 안드로이드 대화상자처럼 보인다 — 모서리도, 버튼도, 글자
+    // 크기도 다른 화면과 따로 논다. 앱이 이미 쓰는 [Dialog] 모양을 따른다
+    // (종료 확인 창과 같은 구성).
+    return Dialog(
       backgroundColor: context.cardBg,
-      title: Row(
-        children: [
-          Icon(Icons.notifications_none_rounded,
-              size: 22, color: context.appBarBg),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(22, 24, 22, 18),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 마크를 딥그린 원판에 얹는다 — 앱 아이콘과 같은 자리 느낌을 준다.
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                  color: context.appBarBg, shape: BoxShape.circle),
+              alignment: Alignment.center,
+              child: const Icon(Icons.notifications_none_rounded,
+                  size: 21, color: Colors.white),
+            ),
+            const SizedBox(height: 14),
+            Text(
               isKo ? '알림을 받으시겠어요?' : 'Get reminders?',
               style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.4,
                   color: context.textPrimary),
             ),
-          ),
-        ],
-      ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            isKo ? '두 가지만 보냅니다.' : 'We send just two things.',
-            style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: context.textPrimary),
-          ),
-          const SizedBox(height: 12),
-          _point(
-            context,
-            isKo
-                ? '정해 둔 날에, 비중이 얼마나 벌어졌는지'
-                : 'How far your weights have drifted, on the day you pick',
-          ),
-          const SizedBox(height: 8),
-          _point(
-            context,
-            isKo
-                ? '월·분기·연이 끝나면, 그 기간 수익률'
-                : 'Your return for each month, quarter and year',
-          ),
-          const SizedBox(height: 16),
-          Text(
-            isKo
-                ? '앱을 열지 않아도 챙길 수 있고, 언제든 끌 수 있습니다.\n'
-                    '광고나 홍보는 보내지 않습니다.'
-                : "You don't have to open the app, and you can turn this "
-                    'off any time. We never send ads.',
-            style: TextStyle(
-                fontSize: 12,
-                height: 1.5,
-                color: context.textSecondary),
-          ),
-        ],
-      ),
-      actions: [
-        // **「나중에」도 제대로 된 선택지로 보여야 한다.** 작게 흐려 놓으면
-        // 떠밀린 느낌이 들고, 그 느낌으로 켠 알림은 곧 꺼진다.
-        TextButton(
-          onPressed: () => Navigator.pop(context, false),
-          child: Text(
-            isKo ? '나중에' : 'Not now',
-            style: TextStyle(
-                fontWeight: FontWeight.w600, color: context.textSecondary),
-          ),
+            const SizedBox(height: 6),
+            Text(
+              isKo ? '두 가지만 보냅니다.' : 'We send just two things.',
+              style: TextStyle(
+                  fontSize: 13, height: 1.5, color: context.textSecondary),
+            ),
+            const SizedBox(height: 14),
+            // 두 줄을 카드로 묶는다 — 다른 화면의 목록과 같은 결이 된다.
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(14, 13, 14, 13),
+              decoration: BoxDecoration(
+                color: context.rowBg,
+                borderRadius: BorderRadius.circular(DS.tileRadius),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _point(
+                    context,
+                    isKo
+                        ? '정해 둔 날에, 비중이 얼마나 벌어졌는지'
+                        : 'How far your weights drifted, on the day you pick',
+                  ),
+                  const SizedBox(height: 10),
+                  _point(
+                    context,
+                    isKo
+                        ? '월·분기·연이 끝나면, 그 기간 수익률'
+                        : 'Your return for each month, quarter and year',
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              isKo
+                  ? '앱을 열지 않아도 챙길 수 있고, 언제든 끌 수 있습니다.\n'
+                      '광고나 홍보는 보내지 않습니다.'
+                  : "You don't have to open the app, and you can turn this "
+                      'off any time. We never send ads.',
+              style: TextStyle(
+                  fontSize: 12, height: 1.55, color: context.textTertiary),
+            ),
+            const SizedBox(height: 20),
+            // **「나중에」도 제대로 된 선택지로 보여야 한다.** 작게 흘려 놓으면
+            // 떠밀린 느낌이 들고, 그 느낌으로 켠 알림은 곧 꺼진다.
+            // 그래서 둘을 같은 크기로 나란히 둔다.
+            Row(children: [
+              Expanded(
+                child: SizedBox(
+                  height: DS.buttonHeight,
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: context.borderColor),
+                      shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(DS.buttonRadius)),
+                    ),
+                    child: Text(isKo ? '나중에' : 'Not now',
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: context.textSecondary)),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: SizedBox(
+                  height: DS.buttonHeight,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: context.appBarBg,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(DS.buttonRadius)),
+                    ),
+                    child: Text(isKo ? '알림 받기' : 'Turn on',
+                        style: const TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.w700)),
+                  ),
+                ),
+              ),
+            ]),
+          ],
         ),
-        ElevatedButton(
-          onPressed: () => Navigator.pop(context, true),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: context.appBarBg,
-            foregroundColor: Colors.white,
-            elevation: 0,
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10)),
-          ),
-          child: Text(isKo ? '알림 받기' : 'Turn on',
-              style: const TextStyle(fontWeight: FontWeight.w700)),
-        ),
-      ],
+      ),
     );
   }
 

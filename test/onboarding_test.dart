@@ -202,6 +202,29 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('세 걸음이면 됩니다'), findsOneWidget);
   });
+
+  testWidgets('점은 쪽과 같이 밀려가지 않는다', (tester) async {
+    // 예전에는 점이 각 쪽 **안에** 있어서 쪽과 함께 밀려갔다. 점은
+    // 「지금 몇 번째인가」를 가리키는 표지라 제자리에 있어야 하는데,
+    // 같이 움직이면 내가 넘긴 건지 점이 움직인 건지 구분이 안 된다.
+    //
+    // 점 세 개의 자리를 재서, 쪽을 넘겨도 **세로 위치가 그대로인지** 본다.
+    await open(tester);
+
+    double dotsY() => tester.getRect(find.byKey(const ValueKey('onbDots'))).top;
+
+    final before = dotsY();
+    await tester.drag(find.byType(PageView), const Offset(-400, 0));
+    await tester.pumpAndSettle();
+    expect(find.text('세 걸음이면 됩니다'), findsOneWidget);
+
+    expect(dotsY(), closeTo(before, 0.5),
+        reason: '점이 쪽을 따라 움직였다 — PageView 밖(bottomNavigationBar)에 두어야 한다');
+
+    await tester.drag(find.byType(PageView), const Offset(-400, 0));
+    await tester.pumpAndSettle();
+    expect(dotsY(), closeTo(before, 0.5), reason: '3쪽에서도 제자리여야 한다');
+  });
   test('첫 실행 안내는 손이 덜 가는 순서가 아니라 쓸모 순서로 놓는다', () {
     // ① 직접 거래 기록 — 결산 탭의 기간별 손익까지 나오는 유일한 길
     // ② 보유 현황만 빠르게 — 자산·리밸런싱은 되지만 결산은 안 나온다

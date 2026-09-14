@@ -575,8 +575,38 @@ class _MoreScreenState extends State<MoreScreen> {
         final base = Theme.of(ctx);
         return Theme(
           data: base.copyWith(
+            // **[LicensePage]는 `cardColor`로 칠한다.** 플러터 소스에서
+            // 확인했다(material/about.dart). `scaffoldBackgroundColor`나
+            // `colorScheme.surface`를 아무리 바꿔도 안 먹었던 이유다 —
+            // 머티리얼3에서 `cardColor`의 기본값이 씨앗 색에서 뽑은
+            // 옅은 초록빛 흰색이라, 앱 안에서 여기만 남의 화면처럼 보였다.
+            cardColor: cream,
             scaffoldBackgroundColor: cream,
             colorScheme: base.colorScheme.copyWith(surface: cream),
+            // **글자도 앱과 맞춘다.** 플러터가 만드는 화면이라 제목과 앱
+            // 이름이 머티리얼 기본 크기·굵기로 나온다 — 다른 화면은 굵게
+            // 좁혀 쓰는데 여기만 헐렁해서 남의 화면처럼 보인다.
+            appBarTheme: base.appBarTheme.copyWith(
+              backgroundColor: context.appBarBg,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              titleTextStyle: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.3,
+                  color: Colors.white),
+            ),
+            textTheme: base.textTheme.copyWith(
+              // 「Rebalancing」 — LicensePage가 앱 이름에 쓰는 자리
+              headlineSmall: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.5,
+                  color: context.textPrimary),
+              // 판 번호
+              bodySmall: TextStyle(
+                  fontSize: 12.5, color: context.textSecondary),
+            ),
           ),
           child: LicensePage(
             applicationName: appName,

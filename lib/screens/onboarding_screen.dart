@@ -33,6 +33,12 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   static const _pageCount = 3;
 
+  /// 쪽의 좌우 여백.
+  ///
+  /// 제목은 26, 목록은 20이라 **제목만 안쪽으로 들어가 있었다.** 쪽을 넘길
+  /// 때 글자 시작점이 좌우로 흔들려 보인다. 카드 왼쪽 변에 맞춘다.
+  static const _pagePadH = 20.0;
+
   final _pageCtrl = PageController();
   int _page = 0;
   final _selected = <int>{};
@@ -189,6 +195,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               _buildStart(context, isKo),
             ],
           ),
+          // **점과 버튼은 쓸려 나가지 않는다.**
+          //
+          // 예전에는 이것들이 각 쪽 안에 있어서 쪽과 **함께 밀려갔다.** 점은
+          // 「지금 몇 번째인가」를 가리키는 표지라 제자리에 있어야 하는데,
+          // 같이 밀려가면 내가 넘긴 건지 점이 움직인 건지 구분이 안 된다.
+          //
+          // `bottomNavigationBar`에 두면 PageView 밖이라 아예 안 움직인다.
+          // 바닥 여백도 Scaffold가 알아서 잡아 준다.
+          bottomNavigationBar: _bottomBar(context, isKo, onGreen),
         ),
       ),
     );
@@ -199,7 +214,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget _buildIntro(BuildContext context, bool isKo) {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(26, 28, 26, 20),
+        padding: const EdgeInsets.fromLTRB(_pagePadH, 28, _pagePadH, 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -242,21 +257,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             const _DriftDemo(),
 
             const Spacer(flex: 3),
-            _dots(context, onGreen: true),
-            const SizedBox(height: 16),
-            _primaryButton(
-              context,
-              label: isKo ? '어떻게 쓰는지 보기' : 'See how it works',
-              onGreen: true,
-              onTap: () => _go(1),
-            ),
-            const SizedBox(height: 6),
-            _textButton(
-              context,
-              label: isKo ? '바로 시작하기' : 'Skip',
-              onGreen: true,
-              onTap: () => _go(2),
-            ),
           ],
         ),
       ),
@@ -270,7 +270,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(26, 24, 26, 0),
+            padding: const EdgeInsets.fromLTRB(_pagePadH, 18, _pagePadH, 0),
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
@@ -286,7 +286,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+              padding: const EdgeInsets.fromLTRB(_pagePadH, 14, _pagePadH, 8),
               children: [
                 _step(
                   context,
@@ -299,19 +299,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           'Enter trades and we work out your position.',
                   demo: const _HoldingDemo(),
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 10),
                 _step(
                   context,
                   n: 2,
                   title: isKo ? '종목마다 목표 비중을 정합니다' : 'Set a target weight',
                   desc: isKo
-                      ? '「이 종목은 30%」처럼 정해 둡니다.\n'
+                      // **전각 괄호(「」)를 쓰지 않는다.** 한글 글꼴에 없는
+                      // 글자라 따로 잡히고, 글자 앞에 반 칸이 비어 그 줄만
+                      // 들여쓴 것처럼 보인다. 「글씨체가 다르다」는 지적을
+                      // 받은 자리가 여기다.
+                      ? '이 종목은 30%, 저 종목은 20% 하는 식입니다.\n'
                           '얼마나 벗어나면 손볼지(허용 편차)도 같이요.'
-                      : 'Say “this one should be 30%”,\n'
-                          'and how far it may drift before you act.',
+                      : 'This one 30%, that one 20%, and so on.\n'
+                          'Set how far each may drift before you act.',
                   demo: const _TargetDemo(),
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 10),
                 _step(
                   context,
                   n: 3,
@@ -326,30 +330,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 const SizedBox(height: 10),
                 Text(
                   isKo
-                      ? '주문은 증권사에서 하세요. 이 앱은 사고파는 앱이 아니라 '
-                          '무엇을 얼마나 사고팔지 알려주는 앱입니다.'
-                      : 'Place orders with your broker. This app tells you '
-                          'what to trade — it does not trade for you.',
+                      // 한 줄로 줄였다 — 두 줄이면 이 쪽이 한 화면에 안 들어가
+                      // 스크롤이 생기는데, 정작 아래에 뭐가 더 있는지는 안 보인다.
+                      ? '주문은 증권사에서 하세요. 무엇을 얼마나 살지만 알려드립니다.'
+                      : 'Place orders with your broker — we only tell you what to trade.',
                   style: TextStyle(
                     color: context.textTertiary,
                     fontSize: 12,
                     height: 1.55,
                   ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
-            child: Column(
-              children: [
-                _dots(context, onGreen: false),
-                const SizedBox(height: 14),
-                _primaryButton(
-                  context,
-                  label: isKo ? '다음' : 'Next',
-                  onGreen: false,
-                  onTap: () => _go(2),
                 ),
               ],
             ),
@@ -367,7 +356,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     required Widget demo,
   }) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 15, 16, 16),
+      padding: const EdgeInsets.fromLTRB(16, 13, 16, 13),
       decoration: BoxDecoration(
         color: context.cardBg,
         borderRadius: BorderRadius.circular(DS.listCardRadius),
@@ -434,13 +423,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Widget _buildStart(BuildContext context, bool isKo) {
     final samples = _getSamples(isKo);
-    final n = _selected.length;
 
     return SafeArea(
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(26, 24, 26, 0),
+            padding: const EdgeInsets.fromLTRB(_pagePadH, 24, _pagePadH, 0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -460,6 +448,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           '종목과 비중은 나중에 마음대로 바꿉니다.'
                       : 'Start from a well-known allocation.\n'
                           'You can change everything later.',
+                  // **왼쪽으로 못 박는다.** 안 적으면 기기·글꼴에 따라 가운데로
+                  // 잡혀 제목보다 안쪽에서 시작한다 — 실제로 그래 보였다.
+                  textAlign: TextAlign.left,
                   style: TextStyle(
                     color: context.textSecondary,
                     fontSize: 13,
@@ -471,40 +462,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
           Expanded(
             child: ListView.separated(
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
+              padding: const EdgeInsets.fromLTRB(_pagePadH, 18, _pagePadH, 8),
               itemCount: samples.length,
               separatorBuilder: (_, __) => const SizedBox(height: 10),
               itemBuilder: (_, idx) => _sampleCard(context, idx, samples[idx]),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
-            child: Column(
-              children: [
-                _dots(context, onGreen: false),
-                const SizedBox(height: 14),
-                _primaryButton(
-                  context,
-                  label: n > 0
-                      ? (isKo
-                          ? '$n개 담고 시작하기'
-                          : 'Add $n and start')
-                      : (isKo ? '직접 만들기' : 'Set up my own'),
-                  onGreen: false,
-                  onTap: () => _start(isKo),
-                ),
-                if (n == 0) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    isKo
-                        ? '다음 화면에서 계좌 만드는 법을 안내해 드립니다'
-                        : 'We will walk you through adding an account next',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        color: context.textTertiary, fontSize: 11.5),
-                  ),
-                ],
-              ],
             ),
           ),
         ],
@@ -619,8 +580,100 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   // ══ 공통 부품 ══
 
+  /// 쪽과 **같이 밀려가지 않는** 바닥 — 점과 버튼.
+  ///
+  /// 쪽마다 버튼이 다르므로 여기서 갈라 준다. 1쪽만 딥그린 위라 색도 다르다.
+  Widget _bottomBar(BuildContext context, bool isKo, bool onGreen) {
+    final n = _selected.length;
+
+    // 쪽마다 다른 버튼.
+    final Widget primary = switch (_page) {
+      0 => _primaryButton(
+          key: const ValueKey(0),
+          context,
+          label: isKo ? '어떻게 쓰는지 보기' : 'See how it works',
+          onGreen: true,
+          onTap: () => _go(1),
+        ),
+      1 => _primaryButton(
+          key: const ValueKey(1),
+          context,
+          label: isKo ? '다음' : 'Next',
+          onGreen: false,
+          onTap: () => _go(2),
+        ),
+      _ => _primaryButton(
+          key: ValueKey('start$n'),
+          context,
+          label: n > 0
+              ? (isKo ? '$n개 담고 시작하기' : 'Add $n and start')
+              : (isKo ? '직접 만들기' : 'Set up my own'),
+          onGreen: false,
+          onTap: () => _start(isKo),
+        ),
+    };
+
+    // 버튼 아래 딸림 줄. 쪽마다 있기도 없기도 하다.
+    final Widget below = switch (_page) {
+      0 => _textButton(
+          key: const ValueKey(0),
+          context,
+          label: isKo ? '바로 시작하기' : 'Skip',
+          onGreen: true,
+          onTap: () => _go(2),
+        ),
+      2 when n == 0 => Align(
+          key: const ValueKey(2),
+          alignment: Alignment.centerLeft,
+          // 2쪽 맨 아래 설명과 **같은 정렬**을 쓴다. 한쪽만 가운데로 맞추면
+          // 쪽을 넘길 때 글자가 좌우로 튀는 것처럼 보인다.
+          child: Text(
+            isKo
+                ? '다음 화면에서 계좌 만드는 법을 안내해 드립니다'
+                : 'We will walk you through adding an account next',
+            style: TextStyle(color: context.textTertiary, fontSize: 11.5),
+          ),
+        ),
+      _ => const SizedBox.shrink(key: ValueKey('none')),
+    };
+
+    return Container(
+      color: onGreen ? context.appBarBg : context.scaffoldBg,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(_pagePadH, 8, _pagePadH, 10),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _dots(context, onGreen: onGreen),
+              const SizedBox(height: 12),
+              AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 180), child: primary),
+              // **높이를 못으로 박는다.** 쪽마다 딸림 줄이 있기도 없기도 해서
+              // 바의 키가 달라지면, 그 위의 점이 쪽을 넘길 때마다 위아래로
+              // 튄다. 점은 제자리를 지켜야 「내가 넘겼다」가 읽힌다.
+              const SizedBox(height: 6),
+              SizedBox(
+                height: _belowSlotHeight,
+                width: double.infinity,
+                child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 180), child: below),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 버튼 아래 딸림 줄에 늘 잡아 두는 높이 (= `_textButton`의 키).
+  static const _belowSlotHeight = 42.0;
+
   Widget _dots(BuildContext context, {required bool onGreen}) {
     return Row(
+      // 시험이 이 자리를 재서 쪽과 같이 밀려가지 않는지 확인한다.
+      key: const ValueKey('onbDots'),
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         for (var i = 0; i < _pageCount; i++) ...[
@@ -645,11 +698,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Widget _primaryButton(
     BuildContext context, {
+    Key? key,
     required String label,
     required bool onGreen,
     required VoidCallback onTap,
   }) {
     return SizedBox(
+      key: key,
       width: double.infinity,
       height: DS.buttonHeight,
       child: ElevatedButton(
@@ -670,13 +725,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Widget _textButton(
     BuildContext context, {
+    Key? key,
     required String label,
     required bool onGreen,
     required VoidCallback onTap,
   }) {
     return SizedBox(
+      key: key,
       width: double.infinity,
-      height: 42,
+      height: _belowSlotHeight,
       child: TextButton(
         onPressed: onTap,
         style: TextButton.styleFrom(
