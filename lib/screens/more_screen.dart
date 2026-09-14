@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../app_info.dart';
 import '../main.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/elapsed.dart';
 import '../services/notification_service.dart';
 import '../services/storage_service.dart';
 import '../theme/design_system.dart';
+import '../widgets/app_logo.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/disclaimer_dialog.dart';
 import 'notification_settings_screen.dart';
@@ -170,6 +172,35 @@ class _MoreScreenState extends State<MoreScreen> {
                         value: '',
                         onTap: () => DisclaimerDialog.showAlways(context),
                       ),
+                      // 플러터와 여러 꾸러미를 쓰므로 **고지 의무가 있다.**
+                      // 지금까지 앱 어디에도 없었다.
+                      _row(
+                        context,
+                        label: _isKo ? '오픈소스 라이선스' : 'Open source licenses',
+                        value: '',
+                        onTap: () => showLicensePage(
+                          context: context,
+                          applicationName: appName,
+                          applicationVersion: appVersionLabel,
+                          applicationIcon: const Padding(
+                            padding: EdgeInsets.only(top: 6, bottom: 2),
+                            child: SizedBox(
+                              width: 44,
+                              height: 44,
+                              child: CustomPaint(
+                                painter: TargetMarkPainter(fill: true),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      // 문의를 받을 때 제일 먼저 물어보게 되는 값이다.
+                      _row(
+                        context,
+                        label: _isKo ? '앱 버전' : 'App version',
+                        value: appVersionLabel,
+                        onTap: null,
+                      ),
                     ]),
                   ],
                 ),
@@ -273,7 +304,10 @@ class _MoreScreenState extends State<MoreScreen> {
     required String value,
     String? sub,
     Color? valueColor,
-    required VoidCallback onTap,
+
+    /// 안 주면 눌리지 않는다 — 앱 버전처럼 **보여주기만 하는 줄**에 쓴다.
+    /// 누를 수 없으면 화살표도 안 그린다.
+    VoidCallback? onTap,
   }) {
     return InkWell(
       onTap: onTap,
@@ -321,7 +355,11 @@ class _MoreScreenState extends State<MoreScreen> {
                 ),
               ),
             const SizedBox(width: 2),
-            Icon(Icons.chevron_right, size: 18, color: context.textTertiary),
+            // 못 누르는 줄에 화살표를 그리면 눌러 보고 나서야 안다.
+            if (onTap != null)
+              Icon(Icons.chevron_right, size: 18, color: context.textTertiary)
+            else
+              const SizedBox(width: 18),
           ],
         ),
       ),

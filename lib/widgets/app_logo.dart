@@ -21,18 +21,11 @@ class AppLogo extends StatelessWidget {
   /// 아주 작을 때(24px 이하) 쓴다. 조각을 나눠 봐야 안 보인다.
   final bool mono;
 
-  /// 크림 바탕에 놓인다.
-  ///
-  /// 민트(#8FE7B0)를 크림 위에 그대로 쓰면 대비가 **1.39:1**이라 형태가
-  /// 안 읽힌다. 색을 뒤집어 딥그린으로 그린다.
-  final bool onLight;
-
   const AppLogo({
     super.key,
     this.iconSize = 26,
     this.textColor,
     this.mono = false,
-    this.onLight = false,
   });
 
   @override
@@ -48,9 +41,7 @@ class AppLogo extends StatelessWidget {
           child: CustomPaint(
             painter: mono
                 ? TargetMarkPainter(accent: fg, light: fg, fill: true)
-                : (onLight
-                    ? const TargetMarkPainter.onLight(fill: true)
-                    : const TargetMarkPainter(fill: true)),
+                : const TargetMarkPainter(fill: true),
           ),
         ),
         SizedBox(width: iconSize * 0.30),
@@ -80,11 +71,6 @@ class TargetMarkPainter extends CustomPainter {
   /// 아래·왼쪽 조각의 색.
   final Color light;
 
-  /// 가운데 점. 안 주면 [accent]를 따른다.
-  ///
-  /// 크림 바탕에서는 강조 조각이 연한 색이라 점까지 연하면 안 보인다.
-  /// 그래서 밝은 바탕 판만 점을 따로 정한다.
-  final Color? dotColor;
 
   /// 마크가 상자를 **꽉 채우게** 한다.
   ///
@@ -94,23 +80,11 @@ class TargetMarkPainter extends CustomPainter {
   /// 실제로 그렇게 나가서 「크기와 간격 비율이 부자연스럽다」는 지적을 받았다.
   final bool fill;
 
-  /// 딥그린 바탕용. 민트 조각 + 크림 조각 + 민트 점.
   const TargetMarkPainter({
     this.accent = const Color(0xFF8FE7B0),
     this.light = const Color(0xFFFBF8F1),
-    this.dotColor,
     this.fill = false,
   });
-
-  /// 크림 바탕용. 색을 뒤집는다.
-  ///
-  /// 강조 조각은 앱에 이미 있는 `weightOkFill`(#A9C7BF)을 쓴다 — 새 색을
-  /// 들이지 않으려고. 크림 대비는 1.71:1로 약하지만 옆 조각이 딥그린이라
-  /// 형태는 그 대비가 잡아 준다.
-  const TargetMarkPainter.onLight({this.fill = false})
-      : accent = const Color(0xFFA9C7BF),
-        light = const Color(0xFF0E4F49),
-        dotColor = const Color(0xFF0E4F49);
 
   // make_icons.py의 RING_OUTER · RING_INNER · DOT · GAP과 같은 값.
   static const ringOuter = 0.307;
@@ -181,13 +155,10 @@ class TargetMarkPainter extends CustomPainter {
     }
 
     // 홈보다 **나중에** 그린다. 먼저 그리면 홈이 점을 가른다.
-    canvas.drawCircle(c, dot * k * v, Paint()..color = dotColor ?? accent);
+    canvas.drawCircle(c, dot * k * v, Paint()..color = accent);
   }
 
   @override
   bool shouldRepaint(TargetMarkPainter old) =>
-      old.accent != accent ||
-      old.light != light ||
-      old.dotColor != dotColor ||
-      old.fill != fill;
+      old.accent != accent || old.light != light || old.fill != fill;
 }

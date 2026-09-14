@@ -28,18 +28,6 @@ LIGHT = (251, 248, 241, 255)   # #FBF8F1  앱 크림 배경색
 CLEAR = (0, 0, 0, 0)
 WHITE = (255, 255, 255, 255)
 
-# ── 밝은 바탕용 ──
-#
-# 크림 위에서는 색을 뒤집는다. 민트(#8FE7B0)를 그대로 쓰면 크림과 대비가
-# **1.39:1**이라 형태가 안 읽힌다 (작은 도형은 3:1은 되어야 한다).
-#
-# 새 색을 들이지 않고 앱에 이미 있는 `weightOkFill`을 강조 자리에 쓴다.
-# 크림 대비는 1.71:1로 약하지만, 옆 조각이 딥그린(5.2:1 차이)이라 형태는
-# 그 대비가 잡아 준다. 작은 크기에서는 단색으로 그린다.
-LIGHT_GROUND = (251, 248, 241, 255)  # #FBF8F1  바탕
-LIGHT_ACCENT = (169, 199, 191, 255)  # #A9C7BF  오른쪽 조각
-LIGHT_MARK = (14, 79, 73, 255)       # #0E4F49  아래·왼쪽 조각과 가운데 점
-
 # ── 치수 (보이는 아이콘 한 변에 대한 비율) ──
 #
 # 어댑티브 아이콘은 108 중 가운데 72만 보인다는 보장이 있다. 그래서 비율의
@@ -143,13 +131,6 @@ def full(canvas, visible, bg, hole, rounded=False):
                   rounded=rounded)
 
 
-def on_light(canvas, visible, bg=None):
-    """밝은 바탕용 판. 크림 위에 딥그린으로 그린다."""
-    return render(canvas, visible, bg,
-                  (LIGHT_ACCENT, LIGHT_MARK, LIGHT_MARK), LIGHT_MARK,
-                  bg if bg is not None else CLEAR)
-
-
 def mono(canvas, visible):
     """단색 판. 시스템이 색을 입히므로 흰 실루엣으로 둔다."""
     return render(canvas, visible, None, (WHITE, WHITE, WHITE), WHITE, CLEAR)
@@ -202,17 +183,12 @@ def main():
     # 안드로이드 12부터 앱을 켜는 순간 뜨는 화면은 `launch_background`가
     # 아니라 **이 그림**을 쓴다. 여기를 안 바꾸면 아이콘·앱 안 로고를 다
     # 바꿔도 켤 때마다 옛 마크가 한 번씩 나온다 (실제로 그랬다).
-    #
-    # 스플래시 바탕은 **크림**이다. 화면 전체를 덮는 자리라 딥그린으로 두면
-    # 앱에서 초록 면적이 가장 큰 화면이 되는데, 정작 담긴 정보는 로고 하나다.
-    # 크림이면 아이콘(딥그린) → 스플래시(크림) → 앱 본문(크림)으로 이어진다.
-    # 그래서 마크도 밝은 바탕용으로 그린다.
     print('── 스플래시 아이콘 (안드로이드 12+) ──')
     for name, k in DENSITIES:
         n = int(round(288 * k))
         # 판 지름의 SPLASH_MARK 만큼을 마크가 차지한다. render()는 마크를
         # '보이는 크기'의 RING_OUTER 배로 그리므로 거꾸로 환산한다.
-        save(on_light(n, int(round(n * SPLASH_MARK / (RING_OUTER * 2)))),
+        save(full(n, int(round(n * SPLASH_MARK / (RING_OUTER * 2))), None, CLEAR),
              '%s/drawable-%s/ic_splash.png' % (RES, name))
 
     # 상태바 아이콘은 **알파만** 쓴다. 색을 넣으면 안드로이드 5 이상에서

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- 앱 본문과 같은 크림. 스플래시에서 앱으로 넘어갈 때 바탕이 안 바뀐다. -->
+    <!-- 앱 헤더와 같은 딥그린. 이 판이 줄어들어 헤더가 된다. -->
     <item>
-        <color android:color="#FBF8F1"/>
+        <color android:color="#0E4F49"/>
     </item>
 </layer-list>

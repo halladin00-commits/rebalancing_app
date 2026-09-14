@@ -859,6 +859,9 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
           color: Colors.black.withValues(alpha: 0.10),
           borderRadius: BorderRadius.circular(13),
         ),
+        // 금액과 퍼센트를 **한 줄에** 놓는다. 세 줄로 쌓으면 타일이 그만큼
+        // 높아지고, 딥그린 헤더가 첫 화면의 36%를 먹는다. 포트가 셋만 넘어도
+        // 정작 목록이 화면 밖으로 밀린다.
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -871,20 +874,28 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
             FittedBox(
               fit: BoxFit.scaleDown,
               alignment: Alignment.centerLeft,
-              child: Text(
-                '$sign${fmtMoney(amount.abs(), currency)}',
-                style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.3,
-                    color: color),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Text(
+                    '$sign${fmtMoney(amount.abs(), currency)}',
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.3,
+                        color: color),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    '$sign${pct.abs().toStringAsFixed(2)}%',
+                    style: TextStyle(
+                        fontSize: DS.body,
+                        fontWeight: FontWeight.w600,
+                        color: color),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              '$sign${pct.abs().toStringAsFixed(2)}%',
-              style: TextStyle(
-                  fontSize: DS.body, fontWeight: FontWeight.w600, color: color),
             ),
           ],
         ),

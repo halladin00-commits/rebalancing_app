@@ -2,14 +2,13 @@
 <resources>
     <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <item name="android:windowBackground">@drawable/launch_background</item>
-        <!-- 스플래시는 크림이다. 화면 전체를 덮는 자리라 딥그린으로 두면
-             앱에서 초록 면적이 가장 큰 화면이 되는데 담긴 정보는 로고
-             하나뿐이다. 크림이면 앱 본문 배경과 이어진다. -->
-        <item name="android:windowSplashScreenBackground">#FBF8F1</item>
+        <!-- **딥그린이다.** 한때 크림으로 바꿨다가 되돌렸다.
+             「초록 면적이 넓다」는 이유였는데, 스플래시는 정보를 담는 화면이
+             아니라 브랜드를 각인시키는 자리라 그 잣대가 안 맞는다.
+             무엇보다 이 초록 판이 **그대로 앱 헤더가 된다** — 줄어들어 헤더로
+             앉는 흐름이 크림에서는 「초록이 난데없이 생기는」 모양이 됐다. -->
+        <item name="android:windowSplashScreenBackground">#0E4F49</item>
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_splash</item>
-        <!-- 밝은 바탕이므로 상태바 글자·아이콘을 어둡게. 안 주면 흰 글자가
-             크림 위에 떠서 시각이 안 보인다. -->
-        <item name="android:windowLightStatusBar">true</item>
     </style>
     <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <item name="android:windowBackground">?android:colorBackground</item>
