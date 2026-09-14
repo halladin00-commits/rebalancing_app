@@ -511,6 +511,16 @@ class _AppEntryPointState extends State<_AppEntryPoint> {
     await prefs.setBool(_keyOpenedBefore, true);
     if (!opened) return;
 
+    // **앞으로 돌아올 때도 띄운다.**
+    //
+    // 켤 때만 보면 앱 오프닝 광고는 사실상 안 나간다 — 동의 확인과 광고
+    // 요청에 망 왕복이 두 번 드는데, 확인하는 시점은 첫 프레임 직후다.
+    // 그때 광고가 아직 안 와 있고, 그러면 다시 안 본다.
+    //
+    // 잠깐 나갔다 오는 것(증권사 앱에서 주문 내고 돌아오기)에는 안 뜬다 —
+    // [FullScreenAds.awayEnough] 참고.
+    FullScreenAds.armForegroundShows();
+
     // 이미 받아 둔 것만 띄운다. 아직이면 그냥 넘어간다 — 광고를 기다리느라
     // 앱이 안 열리는 게 광고가 안 뜨는 것보다 나쁘다.
     FullScreenAds.showIfReady();

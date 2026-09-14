@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'ad_service.dart';
@@ -26,7 +28,7 @@ class FullScreenAds {
 
   /// 받아 두기만 한다. 앱을 켜자마자 부른다.
   static void preload() {
-    if (_cached != null || _loading || _shownThisLaunch) return;
+    if (_cached != null || _loading) return;
     _loading = true;
     AppOpenAd.load(
       adUnitId: AdService.appOpenId,
@@ -35,6 +37,7 @@ class FullScreenAds {
         onAdLoaded: (ad) {
           _loading = false;
           _cached = ad;
+          _loadedAt = DateTime.now();
         },
         onAdFailedToLoad: (_) {
           _loading = false;
@@ -43,10 +46,70 @@ class FullScreenAds {
     );
   }
 
+  // ── 앱을 다시 앞으로 불러올 때 ──
+
+  /// 이만큼 넘게 자리를 비웠다 돌아오면 「새로 켠 것」으로 본다.
+  ///
+  /// **이 앱은 증권사 앱과 번갈아 쓴다.** 조정 제안을 보고 넘어가 주문을 내고
+  /// 돌아오는 게 기본 동선인데, 그 왕복마다 광고가 뜨면 하던 일을 끊는다.
+  /// 30분이면 그 왕복은 다 지나가고, 「한참 뒤에 다시 열었다」만 남는다.
+  ///
+  /// **광고가 과한지 아닌지는 이 숫자 하나로 정해진다.** 늘리면 줄고 줄이면
+  /// 는다.
+  static const awayEnough = Duration(minutes: 30);
+
+  /// 구글은 받아 둔 앱 오프닝 광고를 4시간까지만 유효하다고 본다.
+  static const _adLifetime = Duration(hours: 4);
+
+  static DateTime? _loadedAt;
+  static DateTime? _wentAway;
+  static StreamSubscription<AppState>? _appState;
+
+  /// 앞으로 돌아올 때 광고를 띄우기 시작한다.
+  ///
+  /// **깔고 처음 여는 날에는 부르지 않는다.** 그날은 온보딩을 막 지난
+  /// 참이라, 잠깐 나갔다 와도 광고를 보여줄 때가 아니다.
+  static void armForegroundShows() {
+    if (_appState != null) return;
+    AppStateEventNotifier.startListening();
+    _appState = AppStateEventNotifier.appStateStream.listen((state) {
+      if (state == AppState.background) {
+        _wentAway = DateTime.now();
+        return;
+      }
+      final away = _wentAway;
+      _wentAway = null;
+      if (away == null) return;
+      if (DateTime.now().difference(away) < awayEnough) return;
+
+      // 새 세션으로 보므로 「이번에 이미 띄웠다」를 푼다.
+      _shownThisLaunch = false;
+      _dropIfStale();
+      if (_cached == null) {
+        // 없으면 받아 두기만 한다 — 기다렸다 띄우지 않는다. 늦게 뜨는
+        // 광고는 하던 일을 끊는 광고가 되어 가장 나쁘다.
+        preload();
+        return;
+      }
+      showIfReady();
+    });
+  }
+
+  /// 너무 오래 들고 있던 광고는 버린다.
+  static void _dropIfStale() {
+    final at = _loadedAt;
+    if (at == null) return;
+    if (DateTime.now().difference(at) < _adLifetime) return;
+    _cached?.dispose();
+    _cached = null;
+    _loadedAt = null;
+  }
+
   /// 받아 둔 게 있으면 띄운다. 없으면 아무것도 안 한다 — **기다리지 않는다.**
   ///
   /// 광고를 기다리느라 앱이 안 열리는 게 광고가 안 뜨는 것보다 나쁘다.
   static void showIfReady() {
+    _dropIfStale();
     final ad = _cached;
     if (ad == null || _showing || _shownThisLaunch) return;
     _cached = null;
@@ -56,10 +119,14 @@ class FullScreenAds {
       onAdDismissedFullScreenContent: (ad) {
         _showing = false;
         ad.dispose();
+        // **다음 것을 미리 받아 둔다.** 안 그러면 다시 돌아왔을 때 받아 둔
+        // 게 없어서, 그 자리에서는 못 띄우고 또 그다음을 기약하게 된다.
+        preload();
       },
       onAdFailedToShowFullScreenContent: (ad, _) {
         _showing = false;
         ad.dispose();
+        preload();
       },
     );
     ad.show();

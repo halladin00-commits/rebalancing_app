@@ -63,8 +63,25 @@ class _PortfolioRebalanceScreenState extends State<PortfolioRebalanceScreen> {
           // 배너의 존재를 몰라서, 새로고침 알림(스낵바)이 광고를 그대로
           // 덮는다. 광고를 가리는 건 구글 정책 위반이고, 가려진 노출은
           // 무효 트래픽으로 잡힐 수 있다.
-          bottomNavigationBar: const SafeArea(
-              top: false, child: BottomBannerAd(slot: AdSlot.work)),
+          // **버튼을 화면 맨 아래에 못 박고, 광고는 그 위에 둔다.**
+          //
+          // 예전에는 버튼이 본문 끝, 광고가 그 아래였다. 광고가 안 붙는
+          // 날에는 자리가 사라지면서 버튼이 아래로 툭 내려간다 — 쓰는
+          // 사람에게는 광고 사정이 안 보이므로 **버튼이 혼자 움직이는**
+          // 것으로만 읽힌다.
+          //
+          // `bottomNavigationBar`의 마지막 자식은 늘 화면 맨 아래다.
+          // 광고가 붙든 말든 버튼 자리는 그대로고, 대신 본문이 밀린다.
+          bottomNavigationBar: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const BottomBannerAd(slot: AdSlot.work),
+                if (drifts.isNotEmpty) _buildCta(context, pf, isKo),
+              ],
+            ),
+          ),
           body: Column(
             children: [
               BrandHeader(
@@ -116,9 +133,6 @@ class _PortfolioRebalanceScreenState extends State<PortfolioRebalanceScreen> {
                     ? _buildNoPrices(context, isKo)
                     : _buildList(context, pf, drifts, isKo),
               ),
-              // 스크롤 밖에 고정한다. 목록 끝에 두면 버튼을 찾아 내려가는
-              // 사이에 정작 조정할 종목이 화면에서 사라진다.
-              if (drifts.isNotEmpty) _buildCta(context, pf, isKo),
             ],
           ),
         );
