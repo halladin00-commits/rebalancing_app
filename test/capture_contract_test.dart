@@ -10,7 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 ///   안다. 그래서 화면 하나를 고치고 「나머지도 같은 구성이니 됐겠지」로
 ///   넘어가게 되고, 실제로 넘어간 쪽이 매번 틀렸다.
 ///
-///   캡처 화면이 일곱 개다. 새 화면이 하나 붙을 때 여기서 걸리게 해 둔다.
+///   캡처 화면이 여덟 개다. 새 화면이 하나 붙을 때 여기서 걸리게 해 둔다.
 ///
 ///   1. 뿌리가 배경을 안 칠하면 투명하게 찍히고, JPEG로 저장되며 **검은 그림**
 ///   2. 스크롤 위젯을 쓰면 화면 밖 내용이 **잘려서** 안 들어간다
@@ -24,6 +24,7 @@ void main() {
     'lib/screens/portfolio_rebalance_screen.dart': '_buildCapture',
     'lib/screens/portfolio_settlement_screen.dart': '_buildCapture',
     'lib/screens/all_settlement_screen.dart': '_buildCapture',
+    'lib/screens/item_detail_screen.dart': '_buildCapture',
   };
 
   /// 함수 본문을 중괄호 짝으로 잘라 낸다.

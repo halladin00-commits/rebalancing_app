@@ -16,20 +16,20 @@ class ApiService {
           .timeout(const Duration(seconds: 10));
 
       if (response.statusCode != 200) {
-        return ApiResult.error('HTTP ${response.statusCode}');
+        return ApiResult.error('HTTP ${response.statusCode}', ApiErrorKind.network);
       }
 
       final data = json.decode(response.body);
       final krw = data['rates']?['KRW'];
       if (krw == null) {
-        return ApiResult.error('환율 데이터 없음');
+        return ApiResult.error('환율 데이터 없음', ApiErrorKind.noData);
       }
 
       return ApiResult.success(
         (krw as num).toDouble(),
       );
     } catch (e) {
-      return ApiResult.error('환율 조회 실패: $e');
+      return ApiResult.error('환율 조회 실패: $e', ApiErrorKind.network);
     }
   }
 
@@ -39,7 +39,7 @@ class ApiService {
     String market,
   ) async {
     if (ticker.isEmpty) {
-      return ApiResult.error('티커 없음');
+      return ApiResult.error('티커 없음', ApiErrorKind.badTicker);
     }
 
     try {
@@ -53,7 +53,7 @@ class ApiService {
           }
         }
         if (cleanTicker.isEmpty) {
-          return ApiResult.error('$ticker: 유효하지 않은 종목코드');
+          return ApiResult.error('$ticker: 유효하지 않은 종목코드', ApiErrorKind.badTicker);
         }
 
         // KOSPI(.KS) 시도 → 실패 시 KOSDAQ(.KQ) 시도
@@ -66,7 +66,7 @@ class ApiService {
         return await _fetchYahoo(ticker);
       }
     } catch (e) {
-      return ApiResult.error('$ticker: $e');
+      return ApiResult.error('$ticker: $e', ApiErrorKind.network);
     }
   }
 
@@ -78,7 +78,7 @@ class ApiService {
     DateTime periodStart,
     DateTime periodEnd,
   ) async {
-    if (ticker.isEmpty) return ApiResult.error('티커 없음');
+    if (ticker.isEmpty) return ApiResult.error('티커 없음', ApiErrorKind.badTicker);
     try {
       if (market == 'KR') {
         String cleanTicker = ticker;
@@ -86,7 +86,7 @@ class ApiService {
           final rest = cleanTicker.substring(1);
           if (rest.contains(RegExp(r'^[0-9]'))) cleanTicker = rest;
         }
-        if (cleanTicker.isEmpty) return ApiResult.error('유효하지 않은 종목코드');
+        if (cleanTicker.isEmpty) return ApiResult.error('유효하지 않은 종목코드', ApiErrorKind.badTicker);
 
         final r = await _fetchYahooPeriodPrices('$cleanTicker.KS', periodStart, periodEnd);
         if (r.ok) return r;
@@ -95,7 +95,7 @@ class ApiService {
         return await _fetchYahooPeriodPrices(ticker, periodStart, periodEnd);
       }
     } catch (e) {
-      return ApiResult.error('$ticker: $e');
+      return ApiResult.error('$ticker: $e', ApiErrorKind.network);
     }
   }
 
@@ -110,7 +110,7 @@ class ApiService {
     DateTime start,
     DateTime end,
   ) async {
-    if (ticker.isEmpty) return ApiResult.error('티커 없음');
+    if (ticker.isEmpty) return ApiResult.error('티커 없음', ApiErrorKind.badTicker);
     try {
       if (market == 'KR') {
         var clean = ticker;
@@ -118,14 +118,14 @@ class ApiService {
           final rest = clean.substring(1);
           if (rest.contains(RegExp(r'^[0-9]'))) clean = rest;
         }
-        if (clean.isEmpty) return ApiResult.error('유효하지 않은 종목코드');
+        if (clean.isEmpty) return ApiResult.error('유효하지 않은 종목코드', ApiErrorKind.badTicker);
         final r = await _fetchYahooDailyCloses('$clean.KS', start, end);
         if (r.ok) return r;
         return await _fetchYahooDailyCloses('$clean.KQ', start, end);
       }
       return await _fetchYahooDailyCloses(ticker, start, end);
     } catch (e) {
-      return ApiResult.error('$ticker: $e');
+      return ApiResult.error('$ticker: $e', ApiErrorKind.network);
     }
   }
 
@@ -140,14 +140,14 @@ class ApiService {
           .get(Uri.parse(url), headers: {'User-Agent': 'Mozilla/5.0'})
           .timeout(const Duration(seconds: 15));
       if (response.statusCode != 200) {
-        return ApiResult.error('HTTP ${response.statusCode}');
+        return ApiResult.error('HTTP ${response.statusCode}', ApiErrorKind.network);
       }
 
       final data = json.decode(response.body);
       final result = data['chart']?['result']?[0];
       final stamps = result?['timestamp'];
       final closes = result?['indicators']?['quote']?[0]?['close'];
-      if (stamps == null || closes == null) return ApiResult.error('데이터 없음');
+      if (stamps == null || closes == null) return ApiResult.error('데이터 없음', ApiErrorKind.noData);
 
       // 거래소 시간대의 장 시작 시각이 찍혀 온다. 날짜만 쓰므로 현지 날짜로 자른다.
       final out = <DateTime, double>{};
@@ -159,10 +159,10 @@ class ApiService {
         final d = DateTime.fromMillisecondsSinceEpoch((ts[i] as num).toInt() * 1000);
         out[DateTime(d.year, d.month, d.day)] = c.toDouble();
       }
-      if (out.isEmpty) return ApiResult.error('유효한 종가 없음');
+      if (out.isEmpty) return ApiResult.error('유효한 종가 없음', ApiErrorKind.noData);
       return ApiResult.success(out);
     } catch (e) {
-      return ApiResult.error('$symbol: $e');
+      return ApiResult.error('$symbol: $e', ApiErrorKind.network);
     }
   }
 
@@ -178,18 +178,18 @@ class ApiService {
           .get(Uri.parse(url), headers: {'User-Agent': 'Mozilla/5.0'})
           .timeout(const Duration(seconds: 10));
 
-      if (response.statusCode != 200) return ApiResult.error('HTTP ${response.statusCode}');
+      if (response.statusCode != 200) return ApiResult.error('HTTP ${response.statusCode}', ApiErrorKind.network);
 
       final data = json.decode(response.body);
       final closes = data['chart']?['result']?[0]?['indicators']?['quote']?[0]?['close'];
-      if (closes == null || (closes as List).isEmpty) return ApiResult.error('데이터 없음');
+      if (closes == null || (closes as List).isEmpty) return ApiResult.error('데이터 없음', ApiErrorKind.noData);
 
       final validCloses = closes.whereType<num>().map((c) => c.toDouble()).toList();
-      if (validCloses.isEmpty) return ApiResult.error('유효한 종가 없음');
+      if (validCloses.isEmpty) return ApiResult.error('유효한 종가 없음', ApiErrorKind.noData);
 
       return ApiResult.success((first: validCloses.first, last: validCloses.last));
     } catch (e) {
-      return ApiResult.error('$symbol: $e');
+      return ApiResult.error('$symbol: $e', ApiErrorKind.network);
     }
   }
 
@@ -205,7 +205,7 @@ class ApiService {
           .timeout(const Duration(seconds: 10));
 
       if (response.statusCode != 200) {
-        return ApiResult.error('HTTP ${response.statusCode}');
+        return ApiResult.error('HTTP ${response.statusCode}', ApiErrorKind.network);
       }
 
       final data = json.decode(response.body);
@@ -213,7 +213,7 @@ class ApiService {
       final price = meta?['regularMarketPrice'];
 
       if (price == null) {
-        return ApiResult.error('가격 데이터 없음');
+        return ApiResult.error('가격 데이터 없음', ApiErrorKind.noData);
       }
 
       final prevClose = meta?['regularMarketPreviousClose'] ?? meta?['chartPreviousClose'] ?? 0;
@@ -223,21 +223,44 @@ class ApiService {
         previousClose: (prevClose as num).toDouble(),
       ));
     } catch (e) {
-      return ApiResult.error('$symbol: $e');
+      return ApiResult.error('$symbol: $e', ApiErrorKind.network);
     }
   }
+}
+
+/// 왜 실패했는가 — **화면에 보일 말은 화면이 정한다.**
+///
+/// 예전에는 여기서 한국어 문장을 만들어 돌려줬고, 그게 영어 화면의 스낵바
+/// 안에 그대로 박혀 나갔다. 서비스는 **무슨 일이 있었는지**만 말하고,
+/// 어느 말로 적을지는 화면이 정한다.
+enum ApiErrorKind {
+  /// 망이 없거나 서버가 응답하지 않는다.
+  network,
+
+  /// 응답은 왔는데 쓸 값이 없다.
+  noData,
+
+  /// 종목코드가 비었거나 형식이 아니다.
+  badTicker,
+
+  unknown,
 }
 
 /// API 결과 래퍼
 class ApiResult<T> {
   final T? data;
+
+  /// 개발자용 자세한 내용. **화면에 그대로 내지 말 것** — 번역이 안 된다.
   final String? error;
+
+  final ApiErrorKind kind;
   final bool ok;
 
   ApiResult.success(this.data)
       : ok = true,
-        error = null;
-  ApiResult.error(this.error)
+        error = null,
+        kind = ApiErrorKind.unknown;
+  ApiResult.error(this.error, [this.kind = ApiErrorKind.unknown])
       : ok = false,
         data = null;
 }

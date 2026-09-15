@@ -11,10 +11,10 @@ library;
 const appName = 'Rebalancing';
 
 /// `pubspec.yaml`의 `version:`과 **같아야 한다.**
-const appVersion = '1.0.0';
+const appVersion = '1.1.0';
 
 /// `pubspec.yaml`의 `version:` 에서 `+` 뒤 숫자.
-const appBuild = '13';
+const appBuild = '14';
 
 /// 사용자에게 보이는 판 번호.
 const appVersionLabel = '$appVersion ($appBuild)';

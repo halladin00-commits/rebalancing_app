@@ -1,5 +1,12 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
+
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
+import 'package:path_provider/path_provider.dart';
+
+import '../utils/widget_capture.dart';
 
 import '../main.dart';
 import '../widgets/brand_stat_tile.dart';
@@ -11,6 +18,7 @@ import '../utils/share_format.dart';
 import '../services/ad_service.dart';
 import '../widgets/bottom_banner_ad.dart';
 import '../widgets/app_menu.dart';
+import '../widgets/capture_frame.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/list_card.dart';
 import 'item_form_screen.dart';
@@ -21,23 +29,27 @@ import 'transaction_form_screen.dart';
 /// 개편 전에는 바텀시트에 `라벨 — 값` 여섯 줄을 쌓고 아래가 잘렸다.
 /// 시안은 포트 상세와 같은 골격의 **전용 화면**이다 —
 /// 딥그린 헤더(평가금액 + 손익 타일) + 요약 카드 + 거래 내역.
-class ItemDetailScreen extends StatelessWidget {
+class ItemDetailScreen extends StatefulWidget {
   final String portfolioId;
   final String itemId;
 
   const ItemDetailScreen(
       {super.key, required this.portfolioId, required this.itemId});
 
-  // ── 서식 ──
+  @override
+  State<ItemDetailScreen> createState() => _ItemDetailScreenState();
+}
 
+class _ItemDetailScreenState extends State<ItemDetailScreen> {
+  bool _capturing = false;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return Consumer<PortfolioProvider>(
       builder: (context, provider, _) {
-        final pf = provider.getPortfolio(portfolioId);
-        final item = pf?.items.where((i) => i.id == itemId).firstOrNull;
+        final pf = provider.getPortfolio(widget.portfolioId);
+        final item = pf?.items.where((i) => i.id == widget.itemId).firstOrNull;
         if (pf == null || item == null) {
           return Scaffold(body: Center(child: Text(l10n.portfolioNotFound)));
         }
@@ -74,6 +86,180 @@ class ItemDetailScreen extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  // ── 이미지 저장 · 공유 ──
+  //
+  // 종목 화면만 캡처가 없었다. 일부러 뺀 게 아니라 안 넣은 것이다 —
+  // 「무엇을 얼마에 얼마나 들고 있고 지금 얼마인가」가 한 장에 들어가는
+  // 화면이라, 오히려 나누기 좋은 그림이다.
+
+  Future<void> _emit(Portfolio pf, PortfolioItem item,
+      {required bool share}) async {
+    if (_capturing) return;
+    final l10n = context.l10n;
+    setState(() => _capturing = true);
+    try {
+      final bytes = await captureWidget(context, _buildCapture(pf, item));
+      if (bytes == null) {
+        // 그림을 못 만들었다. **말없이 끝내지 않는다** — 시트는 닫혔는데
+        // 아무 일도 안 일어나면 저장된 줄 알고 앨범을 찾게 된다.
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(l10n.saveFailed)));
+        }
+        return;
+      }
+      if (!mounted) return;
+      final stamp = DateTime.now().millisecondsSinceEpoch;
+      if (share) {
+        final dir = await getTemporaryDirectory();
+        final f = File('${dir.path}/item_$stamp.png');
+        await f.writeAsBytes(bytes);
+        await Share.shareXFiles([XFile(f.path)]);
+      } else {
+        final r =
+            await ImageGallerySaverPlus.saveImage(bytes, name: 'item_$stamp');
+        if (!mounted) return;
+        final ok = r['isSuccess'] == true || r['filePath'] != null;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(ok ? l10n.savedToGallery : l10n.saveFailed)));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.saveFailedError(e.toString()))));
+      }
+    } finally {
+      if (mounted) setState(() => _capturing = false);
+    }
+  }
+
+  /// 저장·공유할 그림.
+  ///
+  /// **여기서 읽은 값만 쓴다.** 이 위젯은 `captureWidget`이 만드는 딴
+  /// 트리에서 그려져 Provider도 Localizations도 없다 — 안에서 찾으면
+  /// 릴리즈 빌드에서 회색 사각형이 저장된다.
+  ///
+  /// 손익 타일은 **화면과 같은 위젯**을 쓴다. 손으로 옮겨 적으면 갈라진다.
+  Widget _buildCapture(Portfolio pf, PortfolioItem item) {
+    final l10n = context.l10n;
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final pnlColors = context.read<PnlColorNotifier>();
+
+    double fx = 1.0;
+    if (item.market == 'US' && pf.currency == 'KRW') {
+      fx = pf.exchangeRate;
+    } else if (item.market == 'KR' && pf.currency == 'USD') {
+      fx = 1.0 / pf.exchangeRate;
+    }
+    final value =
+        item.isCash ? item.shares : item.shares * item.currentPrice * fx;
+
+    double? pnl, pnlPct, day, dayPct;
+    if (!item.isCash && item.avgPrice > 0 && item.currentPrice > 0) {
+      pnl = (item.currentPrice - item.avgPrice) * item.shares * fx;
+      pnlPct = (item.currentPrice - item.avgPrice) / item.avgPrice * 100;
+    }
+    if (!item.isCash && item.previousClose > 0 && item.currentPrice > 0) {
+      day = (item.currentPrice - item.previousClose) * item.shares * fx;
+      dayPct =
+          (item.currentPrice - item.previousClose) / item.previousClose * 100;
+    }
+
+    final drift = Rebalancer.allDrifts(pf)
+        .where((d) => d.item.id == item.id)
+        .firstOrNull;
+
+    Widget kv(String k, String v) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 7),
+          child: Row(children: [
+            Text(k,
+                style: TextStyle(
+                    fontSize: DS.rowName,
+                    fontWeight: FontWeight.w600,
+                    color: context.textSecondary)),
+            const Spacer(),
+            Text(v,
+                style: TextStyle(
+                    fontSize: DS.rowAmount,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.3,
+                    color: context.textPrimary)),
+          ]),
+        );
+
+    return CaptureFrame(
+      title: item.displayName(context),
+      subtitle: pf.name,
+      headerBody: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l10n.evaluationAmount,
+              style: TextStyle(
+                  fontSize: DS.body,
+                  fontWeight: FontWeight.w600,
+                  color: context.onBrandSecondary)),
+          const SizedBox(height: 4),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(fmtMoney(value, pf.currency),
+                style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    letterSpacing: -1.2,
+                    height: 1.08)),
+          ),
+          if (pnl != null || day != null) ...[
+            const SizedBox(height: 14),
+            Row(children: [
+              if (pnl != null)
+                Expanded(
+                    child: BrandStatTile(
+                        label: l10n.profitLoss,
+                        amount: pnl,
+                        pct: pnlPct,
+                        currency: pf.currency,
+                        pnlColors: pnlColors)),
+              if (pnl != null && day != null) const SizedBox(width: 9),
+              if (day != null)
+                Expanded(
+                    child: BrandStatTile(
+                        label: l10n.dayChange,
+                        amount: day,
+                        pct: dayPct,
+                        currency: pf.currency,
+                        pnlColors: pnlColors)),
+            ]),
+          ],
+        ],
+      ),
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: context.cardBg,
+            borderRadius: BorderRadius.circular(DS.cardRadius),
+            border: Border.all(color: context.cardBorder),
+          ),
+          padding: const EdgeInsets.symmetric(
+              horizontal: DS.cardPaddingH, vertical: 6),
+          child: Column(children: [
+            if (!item.isCash) ...[
+              kv(l10n.holdingQty,
+                  '${formatShares(item.shares)}${l10n.unitShares}'),
+              kv(l10n.avgCost, fmtPrice(item.avgPrice, item.market)),
+              kv(l10n.currentPrice, fmtPrice(item.currentPrice, item.market)),
+            ],
+            if (drift != null)
+              kv(isKo ? '비중' : 'Weight',
+                  '${drift.currentWeight.toStringAsFixed(2)}%'
+                  ' → ${item.targetWeight.toStringAsFixed(2)}%'),
+          ]),
+        ),
+      ],
     );
   }
 
@@ -126,6 +312,13 @@ class ItemDetailScreen extends StatelessWidget {
         ),
       ]),
       actions: [
+        // **캡처는 메뉴 밖에 둔다.** 이 앱에서 가장 좋은 홍보물인데
+        // 메뉴에 넣으면 아무도 못 찾는다 (다른 화면과 같은 규칙).
+        CaptureMenu(
+          busy: _capturing,
+          onSave: () => _emit(pf, item, share: false),
+          onShare: () => _emit(pf, item, share: true),
+        ),
         AppMenu(entries: _itemMenu(context, pf, item)),
       ],
       childPadding: const EdgeInsets.fromLTRB(22, 4, 22, 18),

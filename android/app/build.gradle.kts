@@ -52,10 +52,20 @@ android {
 
     buildTypes {
         release {
-            signingConfig = if (keystorePropertiesFile.exists())
-                signingConfigs.getByName("release")
-            else
-                signingConfigs.getByName("debug")
+            // **서명 키가 없으면 여기서 멈춘다.**
+            //
+            // 예전에는 없으면 조용히 디버그 키로 떨어졌다. 빌드는 성공하고
+            // 파일도 나오는데 **스토어에 올릴 수 없는 물건**이다. 다른 PC에서
+            // 빌드하거나 key.properties를 잃으면 그대로 사고가 된다.
+            //
+            // 릴리즈 빌드가 조용히 다른 것을 내놓느니 터지는 게 낫다.
+            if (!keystorePropertiesFile.exists()) {
+                throw GradleException(
+                    "android/key.properties 가 없습니다. 릴리즈는 서명 키 없이 만들 수 없습니다.\n" +
+                    "  (디버그 키로 만든 것은 스토어에 올라가지 않습니다)"
+                )
+            }
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(

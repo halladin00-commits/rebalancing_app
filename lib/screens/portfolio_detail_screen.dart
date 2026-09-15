@@ -115,7 +115,9 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     }
     setState(() => _refreshing = true);
     final provider = context.read<PortfolioProvider>();
-    final errors = <String>[];
+    // **문구가 아니라 종류를 모은다.** 예전에는 서비스가 만든 한국어
+    // 문장을 그대로 담아서, 영어 화면의 스낵바 안에 한국어가 박혀 나갔다.
+    final errors = <ApiErrorKind>[];
     int successCount = 0;
 
     if (pf.exchangeAuto) {
@@ -124,7 +126,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
         pf.exchangeRate = r.data!;
         successCount++;
       } else {
-        errors.add(r.error!);
+        errors.add(r.kind);
       }
     }
     if (pf.priceAuto) {
@@ -136,7 +138,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
           item.previousClose = r.data!.previousClose;
           successCount++;
         } else {
-          errors.add(r.error!);
+          errors.add(r.kind);
         }
       }
     }
@@ -151,8 +153,20 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     else if (successCount > 0) {
       _showToast(l10n.refreshPartialFail(errors.length), danger: true);
     } else {
-      _showToast(l10n.updateFailed(errors.first), danger: true);
+      _showToast(l10n.updateFailed(_reasonText(errors.first)), danger: true);
     }
+  }
+
+  /// 왜 못 받았는지 — **화면의 말로** 적는다.
+  String _reasonText(ApiErrorKind kind) {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    return switch (kind) {
+      ApiErrorKind.network =>
+        isKo ? '연결하지 못했습니다' : 'could not connect',
+      ApiErrorKind.noData => isKo ? '시세가 없습니다' : 'no price data',
+      ApiErrorKind.badTicker => isKo ? '종목코드를 확인해 주세요' : 'check the ticker',
+      ApiErrorKind.unknown => isKo ? '알 수 없는 오류' : 'unknown error',
+    };
   }
 
   /// [danger]면 배경을 주의색으로 — 실패를 성공과 같은 모양으로 띄우면
