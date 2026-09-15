@@ -35,12 +35,12 @@ python - <<'PY'
 import io
 p = 'android/app/build.gradle.kts'
 s = io.open(p, encoding='utf-8').read()
-old = """        release {
-            signingConfig ="""
+# `release {` 바로 다음 줄에 끼운다. 블록 안 내용(서명 키 확인 등)이 바뀌어도
+# 버티도록 **여는 줄만** 앵커로 쓴다 — 예전에는 `signingConfig =`까지 묶어
+# 놓아서, 그 위에 줄을 한 줄 더하자 스크립트가 통째로 멈췄다.
+old = '        release {\n'
 assert old in s, 'release 블록을 못 찾았다'
-s = s.replace(old, """        release {
-            applicationIdSuffix = ".review"
-            signingConfig =""", 1)
+s = s.replace(old, '        release {\n            applicationIdSuffix = ".review"\n', 1)
 io.open(p, 'w', encoding='utf-8', newline='').write(s)
 
 p = 'android/app/src/main/AndroidManifest.xml'
