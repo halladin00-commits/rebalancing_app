@@ -170,4 +170,21 @@ void main() {
     expect(card.contains('final Color positiveColor;'), isTrue,
         reason: '기여 목록용 색을 안 받는다');
   });
+
+  test('종목 캡처가 요약 카드를 손으로 옮겨 적지 않는다', () {
+    // **다섯 번째 같은 사고였다.** 캡처에 비슷한 표를 손으로 그렸다가
+    // 「거래 기준」 표시 두 줄과 비중의 `+0.13%p`가 빠졌다. 사용자가 두
+    // 그림을 나란히 놓고 찾아냈다.
+    final s =
+        File('lib/screens/item_detail_screen.dart').readAsStringSync();
+    final body = bodyOf(s, '_buildCapture');
+
+    expect(body.contains('_buildSummaryCard(context'), isTrue,
+        reason: '캡처가 화면과 같은 요약 카드를 안 쓴다');
+    expect(body.contains('BrandStatTile('), isTrue,
+        reason: '캡처가 화면과 같은 손익 타일을 안 쓴다');
+    // 표를 직접 짜던 흔적. 다시 생기면 걸린다.
+    expect(body.contains('Widget kv('), isFalse,
+        reason: '캡처가 표를 직접 짠다 — 화면과 갈라진다');
+  });
 }

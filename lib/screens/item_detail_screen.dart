@@ -145,7 +145,6 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
   /// 손익 타일은 **화면과 같은 위젯**을 쓴다. 손으로 옮겨 적으면 갈라진다.
   Widget _buildCapture(Portfolio pf, PortfolioItem item) {
     final l10n = context.l10n;
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final pnlColors = context.read<PnlColorNotifier>();
 
     double fx = 1.0;
@@ -167,28 +166,6 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
       dayPct =
           (item.currentPrice - item.previousClose) / item.previousClose * 100;
     }
-
-    final drift = Rebalancer.allDrifts(pf)
-        .where((d) => d.item.id == item.id)
-        .firstOrNull;
-
-    Widget kv(String k, String v) => Padding(
-          padding: const EdgeInsets.symmetric(vertical: 7),
-          child: Row(children: [
-            Text(k,
-                style: TextStyle(
-                    fontSize: DS.rowName,
-                    fontWeight: FontWeight.w600,
-                    color: context.textSecondary)),
-            const Spacer(),
-            Text(v,
-                style: TextStyle(
-                    fontSize: DS.rowAmount,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.3,
-                    color: context.textPrimary)),
-          ]),
-        );
 
     return CaptureFrame(
       title: item.displayName(context),
@@ -237,29 +214,14 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
           ],
         ],
       ),
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: context.cardBg,
-            borderRadius: BorderRadius.circular(DS.cardRadius),
-            border: Border.all(color: context.cardBorder),
-          ),
-          padding: const EdgeInsets.symmetric(
-              horizontal: DS.cardPaddingH, vertical: 6),
-          child: Column(children: [
-            if (!item.isCash) ...[
-              kv(l10n.holdingQty,
-                  '${formatShares(item.shares)}${l10n.unitShares}'),
-              kv(l10n.avgCost, fmtPrice(item.avgPrice, item.market)),
-              kv(l10n.currentPrice, fmtPrice(item.currentPrice, item.market)),
-            ],
-            if (drift != null)
-              kv(isKo ? '비중' : 'Weight',
-                  '${drift.currentWeight.toStringAsFixed(2)}%'
-                  ' → ${item.targetWeight.toStringAsFixed(2)}%'),
-          ]),
-        ),
-      ],
+      // **화면과 같은 카드를 그대로 쓴다.**
+      //
+      // 처음엔 여기에 비슷한 표를 손으로 그렸다가, 「거래 기준」 표시 두
+      // 줄과 비중의 `+0.13%p`가 빠졌다. 사용자가 두 그림을 나란히 놓고
+      // 찾아냈다 — 이 앱에서 다섯 번째 같은 사고다.
+      //
+      // 이 카드는 값을 미리 다 계산해서 담으므로 캡처 트리에서도 안전하다.
+      children: [_buildSummaryCard(context, pf, item)],
     );
   }
 
