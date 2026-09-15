@@ -51,4 +51,40 @@ void main() {
     expect(iDisclaimer, lessThan(iPrimer), reason: '알림 안내가 고지보다 먼저다');
     expect(iPrimer, lessThan(iShow), reason: '광고가 알림 안내보다 먼저다');
   });
+
+  test('하루 한도와 간격이 둘 다 있다', () {
+    // **기준 시간만으로는 최악을 못 막는다.** 시장이 출렁이는 날엔 하루에
+    // 열 번도 여는데, 그런 날은 방문 간격이 벌어져 있어도 대여섯 번 보게
+    // 된다. 정작 자주 들여다보는 날이 가장 불안한 날이다.
+    final ads = File('lib/services/full_screen_ads.dart').readAsStringSync();
+
+    expect(ads.contains('dailyCap'), isTrue, reason: '하루 한도가 없다');
+    expect(ads.contains('awayEnough'), isTrue, reason: '최소 간격이 없다');
+
+    // 한도를 세는 값은 **저장**해야 한다. 메모리에만 두면 앱을 껐다 켤
+    // 때마다 한도가 되살아나서 사실상 한도가 없는 것과 같다.
+    final i = ads.indexOf('Future<void> _noteShown()');
+    final body = ads.substring(i, i + 500);
+    expect(body.contains('setInt'), isTrue,
+        reason: '오늘 띄운 횟수를 저장하지 않는다 — 껐다 켜면 한도가 되살아난다');
+
+    // 실제로 띄우는 자리에서 한도를 봐야 한다.
+    final j = ads.indexOf('static void showIfReady()');
+    final show = ads.substring(j, j + 400);
+    expect(show.contains('_quotaLeft'), isTrue,
+        reason: '띄우는 자리에서 한도를 안 본다');
+  });
+
+  test('광고 숫자들은 빌드할 때 바꿀 수 있다', () {
+    // 광고가 과한지는 실기기에서만 알 수 있는데, 확인하려고 1시간을
+    // 기다릴 수는 없다. 기본값은 그대로 두고 시험용 빌드만 줄인다.
+    final ads = File('lib/services/full_screen_ads.dart').readAsStringSync();
+    for (final k in const [
+      'AD_AWAY_SECONDS',
+      'AD_GRACE_SECONDS',
+      'AD_DAILY_CAP',
+    ]) {
+      expect(ads.contains(k), isTrue, reason: '$k 를 빌드에서 못 바꾼다');
+    }
+  });
 }

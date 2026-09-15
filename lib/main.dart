@@ -532,7 +532,7 @@ class _AppEntryPointState extends State<_AppEntryPoint> {
     // **짧게 기다렸다 띄운다.** 여기서 한 번만 보고 말면 사실상 한 번도
     // 안 뜬다 — 이 시점에는 동의 확인도 광고 요청도 아직 안 끝나 있다.
     // 끝까지 기다리지는 않는다 (FullScreenAds._grace).
-    FullScreenAds.showWhenReady();
+    unawaited(FullScreenAds.showWhenReady());
   }
 
   /// 이 기기에서 앱을 한 번이라도 끝까지 열어 봤는가.

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'ad_service.dart';
 
@@ -58,21 +59,22 @@ class FullScreenAds {
   ///
   /// **이 앱은 증권사 앱과 번갈아 쓴다.** 조정 제안을 보고 넘어가 주문을 내고
   /// 돌아오는 게 기본 동선인데, 그 왕복마다 광고가 뜨면 하던 일을 끊는다.
-  /// 30분이면 그 왕복은 다 지나가고, 「한참 뒤에 다시 열었다」만 남는다.
   ///
-  /// **광고가 과한지 아닌지는 이 숫자 하나로 정해진다.** 늘리면 줄고 줄이면
-  /// 는다.
+  /// **1시간인 이유** — 자연스러운 방문(아침·장마감·저녁)은 원래 몇 시간씩
+  /// 벌어져 있어서, 30분이든 2시간이든 평상시 노출 수는 거의 같다. 이 기준이
+  /// 실제로 하는 일은 **증권사 왕복을 걸러내는 것**뿐이다.
+  ///
+  /// 그런데 주문이 열 건쯤 되는 리밸런싱은 30분을 넘긴다. 그러면 일을 막
+  /// 끝내고 확인하러 돌아온 바로 그 순간에 광고가 뜬다 — 가장 나쁜 때다.
+  /// 1시간으로 두면 노출은 사실상 그대로고 그 순간만 없어진다.
   static const awayEnough = Duration(
-      seconds: int.fromEnvironment('AD_AWAY_SECONDS', defaultValue: 30 * 60));
+      seconds: int.fromEnvironment('AD_AWAY_SECONDS', defaultValue: 60 * 60));
 
   /// 켠 직후 광고를 기다려 주는 시간.
   ///
   /// 켤 때 한 번만 보고 말면 **사실상 한 번도 안 뜬다** — 동의 확인 ·
   /// SDK 시작 · 광고 요청까지 망 왕복이 여러 번이라, 보는 시점(첫 프레임
   /// 직후)에는 늘 아직 안 와 있다.
-  ///
-  /// 짧으면(3초) 사실상 못 잡는다 — 동의 확인 · SDK 시작 · 광고 요청까지
-  /// 망 왕복이 여러 번이라 느린 망에서는 한참 걸린다.
   ///
   /// 길게 두되 **손이 닿으면 그 자리에서 접는다**([noteUserTouch]).
   /// 이미 화면을 쓰고 있는 사람에게 튀어나오는 광고가 가장 나쁘다.
@@ -90,6 +92,56 @@ class FullScreenAds {
 
   /// 화면에 손이 닿았다고 알린다. 앱 뿌리에서 부른다.
   static void noteUserTouch() => _touched = true;
+
+  // ── 하루 한도 ──
+
+  /// 하루에 띄울 수 있는 앱 오프닝 광고 수.
+  ///
+  /// **기준 시간만으로는 최악을 못 막는다.** 시장이 출렁이는 날엔 하루에
+  /// 열 번도 여는데, 그런 날은 방문 간격이 벌어져 있어도 대여섯 번 보게
+  /// 된다. 정작 자주 들여다보는 날이 가장 불안한 날이고, 그런 날 광고를
+  /// 다섯 번 보여주면 앱을 지운다.
+  ///
+  /// [awayEnough]가 **평상시 모양**을 정한다면, 이 숫자는 **최악을 자른다.**
+  static const dailyCap = int.fromEnvironment('AD_DAILY_CAP', defaultValue: 3);
+
+  static const _keyCount = 'appopen_count';
+  static const _keyDay = 'appopen_day';
+
+  /// 오늘 몇 번 띄웠나. 앱을 껐다 켜도 이어지도록 저장한다 —
+  /// **메모리에만 두면 껐다 켤 때마다 한도가 되살아난다.**
+  static int _shownToday = 0;
+  static String _today = '';
+
+  static String _dayKey() {
+    final n = DateTime.now();
+    return '${n.year}-${n.month}-${n.day}';
+  }
+
+  /// 저장해 둔 오늘치를 읽어 온다. 날이 바뀌었으면 0부터.
+  static Future<void> _loadQuota() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString(_keyDay) ?? '';
+    _today = _dayKey();
+    _shownToday = saved == _today ? (prefs.getInt(_keyCount) ?? 0) : 0;
+  }
+
+  static Future<void> _noteShown() async {
+    // 날이 바뀌었으면 여기서도 0으로 되돌린다 — 앱을 안 끄고 자정을 넘기면
+    // [_loadQuota]가 다시 불릴 일이 없다.
+    final day = _dayKey();
+    if (day != _today) {
+      _today = day;
+      _shownToday = 0;
+    }
+    _shownToday++;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyDay, _today);
+    await prefs.setInt(_keyCount, _shownToday);
+  }
+
+  static bool get _quotaLeft =>
+      _dayKey() != _today || _shownToday < dailyCap;
 
   /// 구글은 받아 둔 앱 오프닝 광고를 4시간까지만 유효하다고 본다.
   static const _adLifetime = Duration(hours: 4);
@@ -117,7 +169,7 @@ class FullScreenAds {
 
       // 새 세션으로 보므로 「이번에 이미 띄웠다」를 푼다.
       _shownThisLaunch = false;
-      showWhenReady();
+      unawaited(showWhenReady());
     });
   }
 
@@ -139,7 +191,11 @@ class FullScreenAds {
   ///
   /// [_grace]만큼만 문을 열어 둔다. 그 안에 오면 띄우고, 늦으면 다음을
   /// 위해 받아만 둔다.
-  static void showWhenReady() {
+  static Future<void> showWhenReady() async {
+    // 오늘 몇 번 띄웠는지 먼저 읽는다. 기다리는 건 이 한 번뿐이고,
+    // 광고는 어차피 뒤에 온다.
+    await _loadQuota();
+    if (!_quotaLeft) return;
     _dropIfStale();
     if (_cached != null) {
       showIfReady();
@@ -155,9 +211,13 @@ class FullScreenAds {
     _dropIfStale();
     final ad = _cached;
     if (ad == null || _showing || _shownThisLaunch) return;
+    // **여기서도 한 번 더 본다.** 받아 오는 사이에 한도가 찼을 수 있고,
+    // 이 함수는 [showWhenReady]를 거치지 않고 불리기도 한다.
+    if (!_quotaLeft) return;
     _cached = null;
     _showing = true;
     _shownThisLaunch = true;
+    unawaited(_noteShown());
     ad.fullScreenContentCallback = FullScreenContentCallback(
       onAdDismissedFullScreenContent: (ad) {
         _showing = false;
