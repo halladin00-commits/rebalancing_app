@@ -179,12 +179,18 @@ void main() {
         File('lib/screens/item_detail_screen.dart').readAsStringSync();
     final body = bodyOf(s, '_buildCapture');
 
+    // 머리글과 요약 카드 **둘 다** 화면 것을 그대로 불러야 한다.
+    expect(body.contains('_headerBody(context'), isTrue,
+        reason: '캡처가 화면과 같은 머리글을 안 쓴다');
     expect(body.contains('_buildSummaryCard(context'), isTrue,
         reason: '캡처가 화면과 같은 요약 카드를 안 쓴다');
-    expect(body.contains('BrandStatTile('), isTrue,
-        reason: '캡처가 화면과 같은 손익 타일을 안 쓴다');
-    // 표를 직접 짜던 흔적. 다시 생기면 걸린다.
+
+    // 직접 그리던 흔적들. 다시 생기면 걸린다.
     expect(body.contains('Widget kv('), isFalse,
         reason: '캡처가 표를 직접 짠다 — 화면과 갈라진다');
+    expect(body.contains('subtitle:'), isFalse,
+        reason: '포트 이름을 제목 밑 맨 글자로 낸다 — 화면은 칩이다');
+    expect(body.contains('TextStyle('), isFalse,
+        reason: '캡처가 글자 모양을 직접 정한다 — 화면과 갈라진다');
   });
 }

@@ -144,83 +144,16 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
   ///
   /// 손익 타일은 **화면과 같은 위젯**을 쓴다. 손으로 옮겨 적으면 갈라진다.
   Widget _buildCapture(Portfolio pf, PortfolioItem item) {
-    final l10n = context.l10n;
-    final pnlColors = context.read<PnlColorNotifier>();
-
-    double fx = 1.0;
-    if (item.market == 'US' && pf.currency == 'KRW') {
-      fx = pf.exchangeRate;
-    } else if (item.market == 'KR' && pf.currency == 'USD') {
-      fx = 1.0 / pf.exchangeRate;
-    }
-    final value =
-        item.isCash ? item.shares : item.shares * item.currentPrice * fx;
-
-    double? pnl, pnlPct, day, dayPct;
-    if (!item.isCash && item.avgPrice > 0 && item.currentPrice > 0) {
-      pnl = (item.currentPrice - item.avgPrice) * item.shares * fx;
-      pnlPct = (item.currentPrice - item.avgPrice) / item.avgPrice * 100;
-    }
-    if (!item.isCash && item.previousClose > 0 && item.currentPrice > 0) {
-      day = (item.currentPrice - item.previousClose) * item.shares * fx;
-      dayPct =
-          (item.currentPrice - item.previousClose) / item.previousClose * 100;
-    }
-
     return CaptureFrame(
       title: item.displayName(context),
-      subtitle: pf.name,
-      headerBody: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(l10n.evaluationAmount,
-              style: TextStyle(
-                  fontSize: DS.body,
-                  fontWeight: FontWeight.w600,
-                  color: context.onBrandSecondary)),
-          const SizedBox(height: 4),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(fmtMoney(value, pf.currency),
-                style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    letterSpacing: -1.2,
-                    height: 1.08)),
-          ),
-          if (pnl != null || day != null) ...[
-            const SizedBox(height: 14),
-            Row(children: [
-              if (pnl != null)
-                Expanded(
-                    child: BrandStatTile(
-                        label: l10n.profitLoss,
-                        amount: pnl,
-                        pct: pnlPct,
-                        currency: pf.currency,
-                        pnlColors: pnlColors)),
-              if (pnl != null && day != null) const SizedBox(width: 9),
-              if (day != null)
-                Expanded(
-                    child: BrandStatTile(
-                        label: l10n.dayChange,
-                        amount: day,
-                        pct: dayPct,
-                        currency: pf.currency,
-                        pnlColors: pnlColors)),
-            ]),
-          ],
-        ],
-      ),
-      // **화면과 같은 카드를 그대로 쓴다.**
+      // **포트 이름은 [_headerBody] 안의 이름표가 맡는다.**
       //
-      // 처음엔 여기에 비슷한 표를 손으로 그렸다가, 「거래 기준」 표시 두
-      // 줄과 비중의 `+0.13%p`가 빠졌다. 사용자가 두 그림을 나란히 놓고
-      // 찾아냈다 — 이 앱에서 다섯 번째 같은 사고다.
-      //
-      // 이 카드는 값을 미리 다 계산해서 담으므로 캡처 트리에서도 안전하다.
+      // 여기 `subtitle`로 내면 제목 밑 맨 글자가 되어, 화면의 칩과
+      // 모양도 자리도 달라진다 — 실제로 그렇게 나갔다.
+      headerBody:
+          _headerBody(context, pf, item, context.read<PnlColorNotifier>()),
+      // 요약 카드도 화면과 같은 것을 그대로 쓴다. 비슷하게 다시 그렸다가
+      // 「거래 기준」 두 줄과 비중의 `+0.13%p`가 빠진 적이 있다.
       children: [_buildSummaryCard(context, pf, item)],
     );
   }
@@ -228,27 +161,9 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
   // ── 헤더 ──
 
   Widget _buildHeader(BuildContext context, Portfolio pf, PortfolioItem item) {
-    final l10n = context.l10n;
+    // 금액 계산은 [_headerBody] 안에 있다 — 캡처와 나눠 쓰는 자리라
+    // 한 곳에만 둔다.
     final pnlColors = context.watch<PnlColorNotifier>();
-
-    double fx = 1.0;
-    if (item.market == 'US' && pf.currency == 'KRW') {
-      fx = pf.exchangeRate;
-    } else if (item.market == 'KR' && pf.currency == 'USD') {
-      fx = 1.0 / pf.exchangeRate;
-    }
-    final value =
-        item.isCash ? item.shares : item.shares * item.currentPrice * fx;
-
-    double? pnl, pnlPct, day, dayPct;
-    if (!item.isCash && item.avgPrice > 0 && item.currentPrice > 0) {
-      pnl = (item.currentPrice - item.avgPrice) * item.shares * fx;
-      pnlPct = (item.currentPrice - item.avgPrice) / item.avgPrice * 100;
-    }
-    if (!item.isCash && item.previousClose > 0 && item.currentPrice > 0) {
-      day = (item.currentPrice - item.previousClose) * item.shares * fx;
-      dayPct = (item.currentPrice - item.previousClose) / item.previousClose * 100;
-    }
 
     return BrandHeader(
       titleSize: 15,
@@ -284,62 +199,96 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
         AppMenu(entries: _itemMenu(context, pf, item)),
       ],
       childPadding: const EdgeInsets.fromLTRB(22, 4, 22, 18),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Text(l10n.evaluationAmount,
-              style: TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: context.onBrandSecondary)),
-          const Spacer(),
-          // 어느 포트에서 왔는지 알려주는 이름표
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(DS.chipRadius),
-            ),
-            child: Text(pf.name,
-                style: TextStyle(
-                    fontSize: DS.caption,
-                    fontWeight: FontWeight.w700,
-                    color: context.onBrandSecondary)),
-          ),
-        ]),
-        const SizedBox(height: 4),
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.centerLeft,
-          child: Text(fmtMoney(value, pf.currency),
-              style: const TextStyle(
-                  fontSize: DS.displayAmount,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                  letterSpacing: -1.5,
-                  height: 1.08)),
-        ),
-        if (!item.isCash) ...[
-          const SizedBox(height: 13),
-          Row(children: [
-            Expanded(
-                child: BrandStatTile(
-                    label: l10n.profitLoss,
-                    amount: pnl,
-                    pct: pnlPct,
-                    currency: pf.currency,
-                    pnlColors: pnlColors)),
-            const SizedBox(width: 9),
-            Expanded(
-                child: BrandStatTile(
-                    label: l10n.dayChange,
-                    amount: day,
-                    pct: dayPct,
-                    currency: pf.currency,
-                    pnlColors: pnlColors)),
-          ]),
-        ],
-      ]),
+      child: _headerBody(context, pf, item, pnlColors),
     );
+  }
+
+  /// 딥그린 머리 안에 들어가는 것 — **화면과 캡처가 같이 쓴다.**
+  ///
+  /// 「위탁계좌」 이름표를 캡처에서는 제목 밑 맨 글자로 그렸다가 모양도
+  /// 자리도 달라졌다. 비슷하게 다시 그리면 반드시 갈라진다.
+  ///
+  /// [pnlColors]는 **넘겨받는다** — 캡처는 Provider가 없는 딴 트리에서
+  /// 그려지므로 안에서 찾으면 안 된다.
+  Widget _headerBody(BuildContext context, Portfolio pf, PortfolioItem item,
+      PnlColorNotifier pnlColors) {
+    final l10n = context.l10n;
+
+    double fx = 1.0;
+    if (item.market == 'US' && pf.currency == 'KRW') {
+      fx = pf.exchangeRate;
+    } else if (item.market == 'KR' && pf.currency == 'USD') {
+      fx = 1.0 / pf.exchangeRate;
+    }
+    final value =
+        item.isCash ? item.shares : item.shares * item.currentPrice * fx;
+
+    double? pnl, pnlPct, day, dayPct;
+    if (!item.isCash && item.avgPrice > 0 && item.currentPrice > 0) {
+      pnl = (item.currentPrice - item.avgPrice) * item.shares * fx;
+      pnlPct = (item.currentPrice - item.avgPrice) / item.avgPrice * 100;
+    }
+    if (!item.isCash && item.previousClose > 0 && item.currentPrice > 0) {
+      day = (item.currentPrice - item.previousClose) * item.shares * fx;
+      dayPct =
+          (item.currentPrice - item.previousClose) / item.previousClose * 100;
+    }
+
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(children: [
+        Text(l10n.evaluationAmount,
+            style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+                color: context.onBrandSecondary)),
+        const Spacer(),
+        // 어느 포트에서 왔는지 알려주는 이름표
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(DS.chipRadius),
+          ),
+          child: Text(pf.name,
+              style: TextStyle(
+                  fontSize: DS.caption,
+                  fontWeight: FontWeight.w700,
+                  color: context.onBrandSecondary)),
+        ),
+      ]),
+      const SizedBox(height: 4),
+      FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerLeft,
+        child: Text(fmtMoney(value, pf.currency),
+            style: const TextStyle(
+                fontSize: DS.displayAmount,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+                letterSpacing: -1.5,
+                height: 1.08)),
+      ),
+      if (!item.isCash) ...[
+        const SizedBox(height: 13),
+        Row(children: [
+          Expanded(
+              child: BrandStatTile(
+                  label: l10n.profitLoss,
+                  amount: pnl,
+                  pct: pnlPct,
+                  currency: pf.currency,
+                  pnlColors: pnlColors)),
+          const SizedBox(width: 9),
+          Expanded(
+              child: BrandStatTile(
+                  label: l10n.dayChange,
+                  amount: day,
+                  pct: dayPct,
+                  currency: pf.currency,
+                  pnlColors: pnlColors)),
+        ]),
+      ],
+    ]);
   }
 
   // ── 요약 카드 (보유 수량 · 평균 매입가 · 현재가) ──
