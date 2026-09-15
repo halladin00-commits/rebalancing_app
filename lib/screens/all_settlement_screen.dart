@@ -855,7 +855,13 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => PortfolioSettlementScreen(portfolioId: c.portfolioId),
+          // **보던 기간을 그대로 넘긴다.** 여기서 37주를 보다가 포트를
+          // 눌렀는데 이번 달이 뜨면, 방금 본 숫자를 다시 찾아 들어가야 한다.
+          builder: (_) => PortfolioSettlementScreen(
+            portfolioId: c.portfolioId,
+            period: _period,
+            initialKey: _selected,
+          ),
         ),
       ),
       child: Container(
@@ -1134,14 +1140,8 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
 
     return SettlementCaptureCard(
       title: _isKo ? '전체 결산' : 'All portfolios',
-      subtitle: _isKo
-          ? '${settlementPeriodLabel(context, _period, _selected)} 손익 · '
-              '${settlementRangeLabel(range.start, range.end)}'
-          : '${settlementPeriodLabel(context, _period, _selected)} · '
-              '${settlementRangeLabel(range.start, range.end)}',
-      statusLabel: inProgress
-          ? (_isKo ? '진행 중' : 'in progress')
-          : (_isKo ? '마감' : 'closed'),
+      periodLabel: settlementPeriodLabel(context, _period, _selected),
+      rangeLabel: settlementRangeLabel(range.start, range.end),
       absoluteReturn: r?.absoluteReturn,
       returnRate: r?.returnRate ?? 0,
       rateAvailable: r?.rateAvailable ?? false,
@@ -1160,6 +1160,8 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       isKo: _isKo,
       positiveColor: context.read<PnlColorNotifier>().positiveColor,
       negativeColor: context.read<PnlColorNotifier>().negativeColor,
+      // 머리글은 딥그린 위라 다른 색을 쓴다.
+      pnlColors: context.read<PnlColorNotifier>(),
       rows: [
         for (final c in (r?.contributions ?? const []).take(8))
           CaptureRow(

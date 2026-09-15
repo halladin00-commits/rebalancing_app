@@ -29,7 +29,20 @@ import '../widgets/excluded_banner.dart';
 class PortfolioSettlementScreen extends StatefulWidget {
   final String portfolioId;
 
-  const PortfolioSettlementScreen({super.key, required this.portfolioId});
+  /// 넘어오기 전에 보던 기간. **보던 화면을 이어서 보여준다.**
+  ///
+  /// 전체 결산에서 「37주」를 보다가 포트를 눌렀는데 이번 달이 뜨면, 방금
+  /// 본 숫자를 다시 찾아 들어가야 한다. 눌러서 들어간 곳은 **누른 것의
+  /// 안쪽**이어야지 딴 데면 안 된다.
+  final SettlementPeriod? period;
+  final PeriodKey? initialKey;
+
+  const PortfolioSettlementScreen({
+    super.key,
+    required this.portfolioId,
+    this.period,
+    this.initialKey,
+  });
 
   @override
   State<PortfolioSettlementScreen> createState() =>
@@ -69,7 +82,8 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
   @override
   void initState() {
     super.initState();
-    _selected = SettlementService.currentKey(_period);
+    if (widget.period != null) _period = widget.period!;
+    _selected = widget.initialKey ?? SettlementService.currentKey(_period);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _loadedStamp = _pf?.lastUpdated ?? 0;
@@ -948,14 +962,8 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
 
     return SettlementCaptureCard(
       title: pf?.name ?? '',
-      subtitle: _isKo
-          ? '${settlementPeriodLabel(context, _period, _selected)} 손익 · '
-              '${settlementRangeLabel(range.start, range.end)}'
-          : '${settlementPeriodLabel(context, _period, _selected)} · '
-              '${settlementRangeLabel(range.start, range.end)}',
-      statusLabel: inProgress
-          ? (_isKo ? '진행 중' : 'in progress')
-          : (_isKo ? '마감' : 'closed'),
+      periodLabel: settlementPeriodLabel(context, _period, _selected),
+      rangeLabel: settlementRangeLabel(range.start, range.end),
       absoluteReturn: r?.absoluteReturn,
       returnRate: r?.returnRate ?? 0,
       rateAvailable: r?.rateAvailable ?? false,
@@ -974,6 +982,8 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
       isKo: _isKo,
       positiveColor: context.read<PnlColorNotifier>().positiveColor,
       negativeColor: context.read<PnlColorNotifier>().negativeColor,
+      // 머리글은 딥그린 위라 다른 색을 쓴다.
+      pnlColors: context.read<PnlColorNotifier>(),
       rows: [
         for (final c in (r?.contributions ?? const []).take(8))
           CaptureRow(

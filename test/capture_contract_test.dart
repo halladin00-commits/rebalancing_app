@@ -134,4 +134,39 @@ void main() {
     expect(body.contains("'평가손익'"), isFalse,
         reason: '캡처가 문구를 직접 적는다 — l10n을 써야 화면과 같은 말이 나온다');
   });
+
+  test('결산 캡처가 머리글을 손으로 옮겨 적지 않는다', () {
+    // **네 번째 같은 사고다.** 캡처 카드가 화면 머리글을 손으로 복사해
+    // 뒀는데, 그 사이 조용히 갈라져서 캡처만 **밝은 바탕용 손익색**을
+    // 딥그린 위에 썼다(대비가 무너진다). 금액 크기·자간·「수익률」 라벨
+    // 색까지 달라졌다. 나란히 놓고 볼 일이 없어 사용자가 지적할 때까지
+    // 몰랐다.
+    final card =
+        File('lib/widgets/settlement_capture_card.dart').readAsStringSync();
+
+    expect(card.contains('SettlementHeaderBody('), isTrue,
+        reason: '캡처가 화면과 같은 머리글 위젯을 안 쓴다');
+
+    // 머리글을 직접 그리던 흔적. 다시 생기면 걸린다.
+    for (final trace in const [
+      "'시작 평가금액'",
+      "'마감 평가금액'",
+      "'진행 중'",
+    ]) {
+      expect(card.contains(trace), isFalse,
+          reason: '캡처가 머리글을 직접 그린다 ($trace)');
+    }
+  });
+
+  test('딥그린 위 손익색과 밝은 카드 위 손익색을 가른다', () {
+    // 딥그린 위에 밝은 바탕용 진한 색을 쓰면 대비가 무너진다. 캡처 카드는
+    // 머리글(딥그린)과 기여 목록(흰 카드)을 한 그림에 같이 담으므로
+    // **두 벌이 다 필요하다.**
+    final card =
+        File('lib/widgets/settlement_capture_card.dart').readAsStringSync();
+    expect(card.contains('final PnlColorNotifier pnlColors;'), isTrue,
+        reason: '머리글용 색 묶음을 안 받는다');
+    expect(card.contains('final Color positiveColor;'), isTrue,
+        reason: '기여 목록용 색을 안 받는다');
+  });
 }

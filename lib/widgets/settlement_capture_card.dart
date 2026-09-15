@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'settlement_header.dart';
+
 import '../main.dart';
 import '../utils/money_format.dart';
 import '../theme/design_system.dart';
@@ -38,11 +40,11 @@ class SettlementCaptureCard extends StatelessWidget {
   /// `📈 위탁계좌` 또는 `전체 결산`.
   final String title;
 
-  /// `9월 손익 · 9.01 – 9.30`.
-  final String subtitle;
+  /// `9월` — 화면 머리글이 「$periodLabel 손익 · $rangeLabel」로 조립한다.
+  final String periodLabel;
 
-  /// 진행 중 / 마감.
-  final String statusLabel;
+  /// `9.01 – 9.30`.
+  final String rangeLabel;
 
   final double? absoluteReturn;
   final double returnRate;
@@ -74,14 +76,22 @@ class SettlementCaptureCard extends StatelessWidget {
   // Provider도 Localizations도 조상으로 없어서, 안에서 찾으면 빌드가 터지고
   // 릴리즈 빌드에서는 그냥 **회색 사각형**이 저장된다(실제로 그렇게 나왔다).
   final bool isKo;
+
+  /// 기여 목록(**밝은 카드 위**)에 쓰는 손익색.
   final Color positiveColor;
   final Color negativeColor;
+
+  /// 머리글(**딥그린 위**)에 쓰는 손익색 묶음.
+  ///
+  /// 위 둘과 다른 색이다 — 밝은 바탕용 진한 색을 딥그린에 쓰면 대비가
+  /// 무너진다. 실제로 그렇게 나가 있었다.
+  final PnlColorNotifier pnlColors;
 
   const SettlementCaptureCard({
     super.key,
     required this.title,
-    required this.subtitle,
-    required this.statusLabel,
+    required this.periodLabel,
+    required this.rangeLabel,
     required this.absoluteReturn,
     required this.returnRate,
     required this.rateAvailable,
@@ -99,44 +109,11 @@ class SettlementCaptureCard extends StatelessWidget {
     required this.isKo,
     required this.positiveColor,
     required this.negativeColor,
+    required this.pnlColors,
   });
 
   @override
   Widget build(BuildContext context) {
-    final abs = absoluteReturn;
-    final up = (abs ?? 0) >= 0;
-    final color = up ? positiveColor : negativeColor;
-
-    String money(double v) => fmtMoney(v, currency);
-    String signed(double v) => '${v >= 0 ? '+' : '−'}${money(v.abs())}';
-
-    Widget tile(String label, double value) => Expanded(
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(13, 11, 13, 12),
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.16),
-              borderRadius: BorderRadius.circular(DS.tileRadius),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label,
-                    style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: context.onBrandSecondary)),
-                const SizedBox(height: 5),
-                Text(money(value),
-                    style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.3,
-                        color: Colors.white)),
-              ],
-            ),
-          ),
-        );
-
     return Container(
       width: 380,
       color: context.scaffoldBg,
@@ -165,87 +142,29 @@ class SettlementCaptureCard extends StatelessWidget {
               const AppLogo(iconSize: 18, textColor: Colors.white),
             ]),
             const SizedBox(height: 14),
-            // 기간 + 진행 중/마감 — 화면의 첫 줄과 같다
-            Row(children: [
-              Flexible(
-                child: Text(subtitle,
-                    style: TextStyle(
-                        fontSize: DS.body,
-                        fontWeight: FontWeight.w600,
-                        color: context.onBrandSecondary),
-                    overflow: TextOverflow.ellipsis),
-              ),
-              const SizedBox(width: 7),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.18),
-                  borderRadius: BorderRadius.circular(DS.chipRadius),
-                ),
-                child: Text(statusLabel,
-                    style: TextStyle(
-                        fontSize: DS.caption,
-                        fontWeight: FontWeight.w700,
-                        color: context.onBrandSecondary)),
-              ),
-            ]),
-            const SizedBox(height: 4),
-            // 손익 + 수익률 — 화면처럼 좌우로
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              children: [
-                Flexible(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: Text(abs == null ? '—' : signed(abs),
-                        maxLines: 1,
-                        style: TextStyle(
-                            fontSize: 26,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -1.0,
-                            height: 1.1,
-                            color: abs == null ? Colors.white : color)),
-                  ),
-                ),
-                const SizedBox(width: 9),
-                Text(
-                  rateAvailable
-                      ? '${isKo ? '수익률 ' : ''}'
-                          '${returnRate >= 0 ? '+' : '−'}'
-                          '${returnRate.abs().toStringAsFixed(2)}%'
-                      : '—',
-                  style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: rateAvailable ? color : context.onBrandSecondary),
-                ),
-              ],
+            // **화면과 같은 위젯을 쓴다.**
+            //
+            // 예전에는 여기에 같은 머리글을 손으로 옮겨 적었다. 그 사이
+            // 조용히 갈라져서, 캡처만 **밝은 바탕용 손익색**을 딥그린 위에
+            // 쓰고(대비가 무너진다) 금액 크기·자간·「수익률」 라벨 색까지
+            // 달라졌다. 나란히 놓고 볼 일이 없어 사용자가 지적할 때까지
+            // 몰랐다 — 이 앱에서 네 번째다.
+            //
+            // 색은 넘겨받는다. 캡처는 Provider가 없는 딴 트리에서 그려진다.
+            SettlementHeaderBody(
+              periodLabel: periodLabel,
+              rangeLabel: rangeLabel,
+              absoluteReturn: absoluteReturn,
+              returnRate: returnRate,
+              rateAvailable: rateAvailable,
+              startValue: startValue,
+              endValue: endValue,
+              netCashFlow: netCashFlow,
+              partial: false,
+              inProgress: inProgress,
+              currency: currency,
+              pnlColors: pnlColors,
             ),
-            const SizedBox(height: 12),
-            Row(children: [
-              tile(isKo ? '시작 평가금액' : 'Start value', startValue),
-              const SizedBox(width: 9),
-              tile(
-                  inProgress
-                      ? (isKo ? '지금 평가금액' : 'Now')
-                      : (isKo ? '마감 평가금액' : 'End value'),
-                  endValue),
-            ]),
-            if (netCashFlow != 0) ...[
-              const SizedBox(height: 9),
-              Text(
-                isKo
-                    ? '넣고 뺀 돈 ${money(netCashFlow.abs())}은 수익률에서 뺐습니다'
-                    : 'Cash flow of ${money(netCashFlow.abs())} is excluded',
-                style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: context.onBrandSecondary),
-              ),
-            ],
           ]),
         ),
 

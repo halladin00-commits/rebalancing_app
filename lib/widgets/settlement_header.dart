@@ -49,6 +49,12 @@ class SettlementHeaderBody extends StatelessWidget {
   /// 손익이 없을 때(계산 불가) 대신 그릴 것.
   final Widget? fallback;
 
+  /// 오름·내림 색. **캡처에서는 넘겨받는다.**
+  ///
+  /// 캡처는 Provider가 없는 딴 트리에서 그려진다. 안에서 찾으면 릴리즈
+  /// 빌드에서 회색 사각형이 저장된다.
+  final PnlColorNotifier? pnlColors;
+
   const SettlementHeaderBody({
     super.key,
     required this.periodLabel,
@@ -63,12 +69,13 @@ class SettlementHeaderBody extends StatelessWidget {
     required this.inProgress,
     required this.currency,
     this.fallback,
+    this.pnlColors,
   });
 
   @override
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final pnl = context.watch<PnlColorNotifier>();
+    final pnl = pnlColors ?? context.watch<PnlColorNotifier>();
     final abs = absoluteReturn;
     final up = (abs ?? 0) >= 0;
     final color = (up ? pnl.onBrandPositive : pnl.onBrandNegative)
