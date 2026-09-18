@@ -35,6 +35,11 @@ v1.1.0 — The whole app, redrawn
 > changed quantities before they notice anything else. Left unsaid, it reads
 > as a bug.
 
+> **This field is not the full description — do NOT put blank lines between
+> these bullets.** Release notes are plain text, so a single line break
+> survives. And line breaks count toward the 500 characters: this block is
+> at 489, so blank lines would push it over.
+
 ---
 
 ## Short description (80 char limit)
