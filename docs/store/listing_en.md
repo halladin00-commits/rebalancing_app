@@ -35,11 +35,6 @@ v1.1.0 — The whole app, redrawn
 > changed quantities before they notice anything else. Left unsaid, it reads
 > as a bug.
 
-> **This field is not the full description — do NOT put blank lines between
-> these bullets.** Release notes are plain text, so a single line break
-> survives. And line breaks count toward the 500 characters: this block is
-> at 489, so blank lines would push it over.
-
 ---
 
 ## Short description (80 char limit)
@@ -56,13 +51,16 @@ only means something to someone who already rebalances.
 
 ## Full description (4000 char limit)
 
-> **Paste this exactly, blank lines and all.** Play *ignores a single line
-> break* — bullets on consecutive lines are glued into one run-on paragraph.
-> The blank line after every bullet is what keeps them on separate lines.
+> **Line breaks come through exactly as typed.** No blank line needed
+> between bullets (verified).
 >
-> No HTML here on purpose. `<b>` is said to work, but the Console's asset
-> review pane shows it as literal text, and nobody wants to find out which
-> is true on a live listing. The `■` markers carry the structure without it.
+> **Do not judge this from the Console's "asset review" pane.** That pane
+> drops the stored text straight into HTML, so every run of line breaks
+> collapses to one line and tags like `<b>` show up as literal characters.
+> It is not what the live listing looks like.
+>
+> Markdown does nothing — `**bold**` shows its asterisks. `<b>…</b>` is the
+> way to bold. Left out here because the `■` markers already do the work.
 
 ```
 Track your stock portfolio and rebalance it by target weight.
@@ -75,42 +73,31 @@ Covers stocks and ETFs listed in Korea and the United States.
 ■ Assets
 
 • Keep accounts apart — brokerage, ISA, retirement — and still see one combined total
-
 • Korean and US prices and the exchange rate are fetched for you
-
 • Unrealized gain and daily change, per account and per holding
-
 • Chart your total over a week, a month, or a year
 
 
 ■ Rebalancing
 
 • Set a target weight per holding and see how far each one has drifted
-
 • Only holdings past your threshold are flagged — small drift is left alone
-
 • Get the actual number of shares to buy or sell
-
 • Exchange rates and trading fees are built into the math
-
 • Putting money in or taking some out? The plan is calculated around it
-
 • Accounts that allow fractional shares are worked out to the decimal
 
 
 ■ Returns
 
 • Weekly, monthly, quarterly and yearly returns — pick any period
-
 • See which account and which holding contributed how much
-
 • Money paid in and taken out is excluded from the return
 
 
 ■ Transactions
 
 • Record buys and sells by date, quantity and price — share count and average cost follow on their own
-
 • Import a transaction file from your broker in one go
 
 
@@ -122,29 +109,22 @@ Covers stocks and ETFs listed in Korea and the United States.
 ■ Reminders
 
 • On the days you pick, hear how far your weights have drifted
-
 • When a month, quarter or year closes, hear what that period returned
-
 • Reminders are built on your device. Nothing promotional is ever sent
 
 
 ■ Who it's for
 
 • Anyone who rebalances stocks and ETFs on a schedule
-
 • Anyone holding across several accounts with no single view of the whole
-
 • Anyone who reaches for a calculator or a spreadsheet every single time
-
 • Anyone who wants to know how this month, or this quarter, actually went
 
 
 ■ Privacy
 
 • Portfolios, transactions and valuations stay on your device. They are never sent to a server
-
 • Fetching prices sends ticker symbols only — never your quantities or amounts
-
 • Back up and restore to carry everything to a new phone
 
 
