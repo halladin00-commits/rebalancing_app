@@ -54,6 +54,11 @@ only means something to someone who already rebalances.
 > **Line breaks come through exactly as typed.** No blank line needed
 > between bullets (verified).
 >
+> Which cuts both ways — **never hard-wrap prose.** A paragraph folded at 70
+> columns for readability shows up on the store folded, mid-sentence. Keep
+> each paragraph on one line however long it runs.
+> `python tools/check_listing.py` catches folded lines.
+>
 > **Do not judge this from the Console's "asset review" pane.** That pane
 > drops the stored text straight into HTML, so every run of line breaks
 > collapses to one line and tags like `<b>` show up as literal characters.
@@ -63,9 +68,7 @@ only means something to someone who already rebalances.
 > way to bold. Left out here because the `■` markers already do the work.
 
 ```
-Track your stock portfolio and rebalance it by target weight.
-
-See holdings scattered across several accounts in one place, set a target weight for each, and when prices push those weights off target, the app tells you exactly how many shares to buy or sell. No more spreadsheets.
+See holdings scattered across several accounts in one place. Set a target weight for each, and when prices push those weights off target, the app tells you exactly how many shares to buy or sell. No more spreadsheets.
 
 Covers stocks and ETFs listed in Korea and the United States.
 
