@@ -40,12 +40,18 @@ v1.1.0 — The whole app, redrawn
 ## Short description (80 char limit)
 
 ```
-Track your stocks and ETFs, and see how many shares to buy or sell.
+Balance your stocks and ETFs, down to the exact share count
 ```
 
-67 characters. **It leads with what the app is.** This one line is all most
+58 characters. **It leads with what the app is.** This one line is all most
 people read before deciding, and "your weights have drifted from target"
 only means something to someone who already rebalances.
+
+**This slot renders as a large headline.** The earlier line — "Track your
+stocks and ETFs, and see how many shares to buy or sell." — was two flat
+clauses strung together with *and*, and it wrapped onto three lines with a
+stub at the end. One clause plus the payoff phrase reads better big, and
+mirrors the Korean, which does the same thing with 「…부터 …까지」.
 
 ---
 
