@@ -105,6 +105,8 @@ void main() {
     expect(provider.portfolios.first.items.first.shares, 37);
   });
 
+  _fromJsonRepairs();
+
   test('매도가 섞여도 수량이 따라온다', () async {
     await provider.upsertTransaction(
         'p', 'a', tx('t2', -37, 25280, DateTime(2026, 2, 3)));
@@ -114,5 +116,61 @@ void main() {
 
     // 매도는 평단을 흔들지 않는다 — 산 것만으로 낸다
     expect(provider.portfolios.first.items.first.avgPrice, 19830);
+  });
+}
+
+/// 들어오는 자리에서 이미 어긋난 자료를 고치는가.
+///
+/// 옛 판에서 생긴 어긋남은 **저장 파일 안에** 있다. 쓰기 경로를 아무리
+/// 고쳐도 읽을 때 그대로 들어오면 화면은 계속 틀린 값을 보여준다.
+/// 실제 백업에서 12종목 중 2종목이 이랬다.
+void _fromJsonRepairs() {
+  group('저장된 자료를 읽을 때', () {
+    Map<String, dynamic> tx(double q, double p) =>
+        {'id': 'x$q', 'date': 1758121200000, 'quantity': q, 'price': p};
+
+    test('수량이 거래 합보다 적으면 맞춘다 (실제 자료: 221 → 222)', () {
+      final item = PortfolioItem.fromJson({
+        'id': 'a', 'name': 'SOL 미국양자컴퓨팅TOP10', 'ticker': '0023A0',
+        'market': 'KR', 'isCash': false,
+        'shares': 221.0, 'avgPrice': 21318.175675675677,
+        'transactions': [
+          tx(137, 19830), tx(37, 25280), tx(31, 22425), tx(17, 22670),
+        ],
+      });
+      expect(item.shares, 222);
+    });
+
+    test('수량이 거래 합보다 많으면 맞춘다 (실제 자료: 263 → 262)', () {
+      final item = PortfolioItem.fromJson({
+        'id': 'b', 'name': 'PLUS 글로벌휴머노이드로봇액티브', 'ticker': '0035T0',
+        'market': 'KR', 'isCash': false,
+        'shares': 263.0, 'avgPrice': 20519.22725498417,
+        'transactions': [
+          tx(89, 20825), tx(122, 20835), tx(-1, 21905), tx(52, 19250),
+        ],
+      });
+      expect(item.shares, 262);
+      // 평단도 같이 어긋나 있었다 — 산 것만으로 다시 낸다
+      const cost = 89 * 20825 + 122 * 20835 + 52 * 19250;
+      expect(item.avgPrice, closeTo(cost / 263, 0.01));
+    });
+
+    test('예수금은 건드리지 않는다 — 거래가 없고 수량이 곧 금액이다', () {
+      final cash = PortfolioItem.fromJson({
+        'id': 'c', 'name': '예수금', 'market': 'CASH', 'isCash': true,
+        'shares': 1500000.0, 'currentPrice': 1.0, 'transactions': [],
+      });
+      expect(cash.shares, 1500000);
+    });
+
+    test('거래가 없던 옛 종목은 지금까지처럼 합성 거래를 만든다', () {
+      final old = PortfolioItem.fromJson({
+        'id': 'd', 'name': '옛 종목', 'ticker': 'Z', 'market': 'KR',
+        'isCash': false, 'shares': 50.0, 'avgPrice': 1000.0,
+      });
+      expect(old.transactions.length, 1);
+      expect(old.shares, 50, reason: '합성 거래와 수량이 같아야 한다');
+    });
   });
 }

@@ -101,6 +101,28 @@ class PortfolioItem {
     'transactions': transactions.map((t) => t.toJson()).toList(),
   };
 
+  /// 거래 내역이 **하나뿐인 진실**이다. 수량과 평균 매수단가를 거기서 다시 낸다.
+  ///
+  /// 왜 모델에 두나 — 같은 계산이 provider에 세 벌 흩어져 있었다
+  /// (`upsertTransaction`·`deleteTransaction`·`_recalcFromTransactions`).
+  /// 세 벌이면 한 벌만 고쳐지는 날이 온다. 실제로 **거래를 만들지 않고
+  /// `shares`만 덮어쓰는 네 번째 경로**가 있었고, 그래서 자료가 갈라졌다.
+  ///
+  /// 예수금은 건드리지 않는다 — 거래가 없고 `shares`가 곧 금액이다.
+  void syncFromTransactions() {
+    if (isCash || transactions.isEmpty) return;
+    double qty = 0, cost = 0, bought = 0;
+    for (final t in transactions) {
+      qty += t.quantity;
+      if (t.quantity > 0) {
+        cost += t.quantity * t.price;
+        bought += t.quantity;
+      }
+    }
+    shares = qty;
+    avgPrice = bought > 0 ? cost / bought : 0;
+  }
+
   factory PortfolioItem.fromJson(Map<String, dynamic> json) {
     final shares = (json['shares'] ?? 0).toDouble();
     final avgPrice = (json['avgPrice'] ?? 0).toDouble();
@@ -122,7 +144,7 @@ class PortfolioItem {
       ));
     }
 
-    return PortfolioItem(
+    final item = PortfolioItem(
       id: json['id'] ?? '',
       name: json['name'] ?? '',
       ticker: json['ticker'] ?? '',
@@ -139,6 +161,20 @@ class PortfolioItem {
       createdAt: json['createdAt'] ?? today,
       transactions: txList,
     );
+
+    // **들어오는 자리에서 한 번 맞춘다.**
+    //
+    // 옛 판에서는 거래를 넣어도 `shares`를 다시 계산하지 않았다. 그때 어긋난
+    // 값이 저장 파일에 그대로 남아, 쓰기 경로를 고친 뒤에도 계속 따라다녔다.
+    // 실제 자료에서 12종목 중 2종목이 1주씩 어긋나 있었다 — 목록의 평가금액은
+    // 저장된 수량으로, 상세의 평균 매수단가는 거래 합으로 계산돼 **한 화면
+    // 안에서 두 기준이 섞였다.** 경고도 예외도 없었다.
+    //
+    // 고치는 자리를 여기로 잡은 이유: 저장 파일이든 백업 복원이든 자료는
+    // 반드시 이 문을 지난다. 앞으로 어떤 코드가 들어와도 **읽는 순간 다시
+    // 맞춰진다.**
+    item.syncFromTransactions();
+    return item;
   }
 
   PortfolioItem copyWith({

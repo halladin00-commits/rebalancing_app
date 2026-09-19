@@ -859,22 +859,16 @@ class PortfolioProvider extends ChangeNotifier {
   }
 
   /// 거래 내역만으로 보유 수량과 평균 단가를 다시 만든다.
+  ///
+  /// 계산은 `PortfolioItem.syncFromTransactions`가 한다 — 같은 식을 여러 벌
+  /// 두면 한 벌만 고쳐지는 날이 온다. 거래가 다 지워진 경우만 여기서 본다.
   void _recalcFromTransactions(PortfolioItem item) {
     if (item.transactions.isEmpty) {
       item.shares = 0;
       item.avgPrice = 0;
       return;
     }
-    double shares = 0, cost = 0;
-    for (final t in item.transactions) {
-      shares += t.quantity;
-      if (t.quantity > 0) cost += t.quantity * t.price;
-    }
-    item.shares = shares;
-    final bought = item.transactions
-        .where((t) => t.quantity > 0)
-        .fold(0.0, (s, t) => s + t.quantity);
-    item.avgPrice = bought > 0 ? cost / bought : 0;
+    item.syncFromTransactions();
   }
 
   /// 리밸런싱을 실행한 날을 남긴다.
@@ -909,17 +903,6 @@ class PortfolioProvider extends ChangeNotifier {
 
   // ── 거래 내역 관리 ──
 
-  static double _recalcAvgPrice(List<StockTransaction> txs) {
-    double totalCost = 0;
-    double totalQty = 0;
-    for (final t in txs) {
-      if (t.quantity > 0) {
-        totalCost += t.quantity * t.price;
-        totalQty += t.quantity;
-      }
-    }
-    return totalQty > 0 ? totalCost / totalQty : 0;
-  }
 
   Future<void> upsertTransaction(
       String pfId, String itemId, StockTransaction tx) async {
@@ -936,10 +919,8 @@ class PortfolioProvider extends ChangeNotifier {
       txs.add(tx);
     }
     txs.sort((a, b) => a.date.compareTo(b.date));
-    final newShares = txs.fold(0.0, (s, t) => s + t.quantity);
-    final newAvg = _recalcAvgPrice(txs);
-    pf.items[idx] = item.copyWith(
-        transactions: txs, shares: newShares, avgPrice: newAvg);
+    pf.items[idx] = item.copyWith(transactions: txs)
+      ..syncFromTransactions();
     await _save();
   }
 
@@ -951,10 +932,12 @@ class PortfolioProvider extends ChangeNotifier {
     if (idx == -1) return;
     final item = pf.items[idx];
     final txs = item.transactions.where((t) => t.id != txId).toList();
-    final newShares = txs.fold(0.0, (s, t) => s + t.quantity);
-    final newAvg = _recalcAvgPrice(txs);
+    // 마지막 한 건을 지우면 거래가 없어진다 — 그때는 0으로 되돌린다.
     pf.items[idx] = item.copyWith(
-        transactions: txs, shares: newShares, avgPrice: newAvg);
+        transactions: txs,
+        shares: txs.isEmpty ? 0 : null,
+        avgPrice: txs.isEmpty ? 0 : null)
+      ..syncFromTransactions();
     await _save();
   }
 
@@ -1015,24 +998,6 @@ class PortfolioProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> applyRebalancing(
-    String pfId,
-    List<Map<String, dynamic>> results,
-    double residualCash,
-  ) async {
-    final pf = getPortfolio(pfId);
-    if (pf != null) {
-      for (final r in results) {
-        final item = pf.items.firstWhere((i) => i.id == r['id']);
-        item.shares = (r['newShares'] as num).toDouble();
-        if (r['newAvgPrice'] != null) {
-          item.avgPrice = (r['newAvgPrice'] as num).toDouble();
-        }
-      }
-      pf.additionalInvestment = residualCash;
-      await _save();
-    }
-  }
 
   /// 예수금을 **사용자가 적은 값으로** 바꾼다.
   ///
