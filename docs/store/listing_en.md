@@ -74,9 +74,9 @@ mirrors the Korean, which does the same thing with 「…부터 …까지」.
 > way to bold. Left out here because the `■` markers already do the work.
 
 ```
-See holdings scattered across several accounts in one place. Set a target weight for each, and when prices push those weights off target, the app tells you exactly how many shares to buy or sell. No more spreadsheets.
+See holdings scattered across several accounts in one place. Set a target weight for each, and when prices push those weights off target, the app tells you how many shares to buy or sell. No more spreadsheets.
 
-Covers stocks and ETFs listed in Korea and the United States.
+Covers listings in Korea and the United States.
 
 
 ■ Assets
