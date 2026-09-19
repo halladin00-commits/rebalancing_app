@@ -10,6 +10,11 @@
   2. **글자 수 제한.** 영어는 같은 내용이 한글의 두 배쯤 된다. 출시 노트를
      그대로 옮겼더니 683자로 500자 제한을 넘었다.
 
+  3. **간단한 설명이 큰 글씨로 접히는 자리.** 글자 수로 어림잡았다가 두 번
+     빗나갔다 — `ETF` 같은 로마자가 한글보다 좁아 한 줄에 더 들어간다.
+     「…사고팔 수량 계산까지」로 뒀더니 **「계산까지」 넉 자만** 아랫줄에
+     떨어졌다. 여기서는 **글꼴로 실제 폭을 잰다.**
+
 Console의 「애셋 리뷰」 화면으로는 확인할 수 없다 — 그 화면은 저장된 글자를
 그냥 텍스트로 꽂아 넣어서, 줄바꿈이 몇 개든 한 줄로 뭉쳐 보인다.
 
@@ -29,6 +34,42 @@ LIMITS = [
 
 # 글머리표·구역 제목은 한 줄이 곧 한 덩어리라 접힌 게 아니다
 MARKERS = ('•', '■', '✨', '🔧', '🔔', '·')
+
+# 간단한 설명이 큰 글씨 한 줄에 들어가는 폭 (100pt 맑은 고딕 기준).
+#
+# 스토어 화면 캡처에서 **들어간 줄과 한 낱말 더해 넘친 줄**을 골라 역산했다.
+#   들어감  「주식·ETF 비중 관리부터 사고팔 수량」      1617
+#   넘침    「관리합니다. 몇 주를 사고팔지 계산해」      1662
+# 그래서 한 줄 한도는 1617 이상 1662 미만이다. 안전하게 1617로 잡는다.
+ONE_LINE = 1617.0
+FONT = r'C:\Windows\Fonts\malgun.ttf'
+
+
+def text_width(s):
+    """글자 폭. 글꼴을 못 찾으면 재지 않는다 — 없는 자를 지어내지 않는다."""
+    try:
+        from PIL import Image, ImageDraw, ImageFont
+    except ImportError:
+        return None
+    try:
+        f = ImageFont.truetype(FONT, 100)
+    except OSError:
+        return None
+    return ImageDraw.Draw(Image.new('RGB', (8, 8))).textlength(s, font=f)
+
+
+def wrap_at(s, limit):
+    lines, line = [], ''
+    for word in s.split(' '):
+        t = (line + ' ' + word).strip()
+        if not line or text_width(t) <= limit:
+            line = t
+        else:
+            lines.append(line)
+            line = word
+    if line:
+        lines.append(line)
+    return lines
 
 
 def limit_for(head):
@@ -74,6 +115,26 @@ def main():
                 fails += 1
             else:
                 print('   OK       %-22s %4d / %s' % (name, n, lim or '-'))
+
+            if '간단한 설명' in head or 'short description' in head.lower():
+                px = text_width(body)
+                if px is None:
+                    print('            (글꼴이 없어 폭은 못 쟀습니다)')
+                elif px > ONE_LINE:
+                    lines = wrap_at(body, ONE_LINE)
+                    tail = lines[-1]
+                    print('   큰글씨   %s — %d줄로 접힙니다 (폭 %.0f > %.0f)'
+                          % (name, len(lines), px, ONE_LINE))
+                    for l in lines:
+                        print('            | %s' % l)
+                    # 마지막 줄이 짧게 남는 것이 가장 보기 싫다
+                    if text_width(tail) < ONE_LINE * 0.45:
+                        print('            └ 끝에 「%s」만 남습니다. 줄이십시오.'
+                              % tail)
+                        fails += 1
+                else:
+                    print('            큰 글씨 한 줄에 들어갑니다 '
+                          '(폭 %.0f / %.0f)' % (px, ONE_LINE))
 
             for lineno, ln in wrapped_prose(body):
                 print('   줄바꿈   %s %d행: %s…' % (name, lineno, ln[:38]))
