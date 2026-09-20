@@ -17,6 +17,7 @@ import '../widgets/portfolio_actions.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/collapsing_header.dart';
 import '../widgets/period_jump_sheet.dart';
+import '../widgets/contribution_row.dart';
 import '../widgets/settlement_chart.dart';
 import '../widgets/settlement_capture_card.dart';
 import '../widgets/settlement_header.dart';
@@ -783,8 +784,7 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       );
     }
 
-    final sumAbs =
-        r.contributions.fold(0.0, (s, c) => s + c.absoluteReturn.abs());
+    final sumAbs = _sumAbs;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -819,153 +819,36 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
     );
   }
 
-  /// `₩339,380,230 → ₩338,407,160` — 기여 행의 근거.
-  Widget _basisLine(
-      BuildContext context, double start, double end, String currency) {
-    final style = TextStyle(
-        fontSize: DS.caption,
-        fontWeight: FontWeight.w600,
-        color: context.textTertiary);
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      alignment: Alignment.centerLeft,
-      child: Row(children: [
-        Text(fmtMoney(start, currency), style: style),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 5),
-          child: Icon(Icons.arrow_forward,
-              size: 11, color: context.textTertiary),
-        ),
-        Text(fmtMoney(end, currency), style: style),
-      ]),
-    );
-  }
 
+  /// 화면과 캡처가 **같은 위젯**을 쓴다 — `lib/widgets/contribution_row.dart`.
   Widget _contributionRow(
       BuildContext context, PortfolioContribution c, double sumAbs,
       {required bool isLast}) {
     final pnlColors = context.watch<PnlColorNotifier>();
-    final isPos = c.absoluteReturn >= 0;
-    final color = isPos ? pnlColors.positiveColor : pnlColors.negativeColor;
-    final sign = isPos ? '+' : '−';
-    final share = sumAbs > 0 ? c.absoluteReturn.abs() / sumAbs : 0.0;
-
-    return InkWell(
-      // 포트별 결산은 전체와 기간을 각자 기억한다
+    return ContributionRow(
+      name: c.name,
+      absoluteReturn: c.absoluteReturn,
+      returnRate: c.returnRate,
+      rateAvailable: c.rateAvailable,
+      startValue: c.startValue,
+      endValue: c.endValue,
+      share: sumAbs > 0 ? c.absoluteReturn.abs() / sumAbs : 0.0,
+      contribution: c.contribution,
+      currency: 'KRW',
+      isKo: _isKo,
+      positiveColor: pnlColors.positiveColor,
+      negativeColor: pnlColors.negativeColor,
+      isLast: isLast,
+      // 포트별 결산은 **보던 기간을 그대로 넘긴다.** 여기서 37주를 보다가
+      // 눌렀는데 이번 달이 뜨면, 방금 본 숫자를 다시 찾아 들어가야 한다.
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
-          // **보던 기간을 그대로 넘긴다.** 여기서 37주를 보다가 포트를
-          // 눌렀는데 이번 달이 뜨면, 방금 본 숫자를 다시 찾아 들어가야 한다.
           builder: (_) => PortfolioSettlementScreen(
             portfolioId: c.portfolioId,
             period: _period,
             initialKey: _selected,
           ),
-        ),
-      ),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 13),
-        decoration: isLast
-            ? null
-            : BoxDecoration(
-                border:
-                    Border(bottom: BorderSide(color: context.dividerColor))),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    c.name,
-                    style: TextStyle(
-                        fontSize: DS.rowName,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.2,
-                        color: context.textPrimary),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  '$sign${fmtMoney(c.absoluteReturn.abs(), 'KRW')}',
-                  style: TextStyle(
-                      fontSize: DS.rowAmount,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -0.3,
-                      color: color),
-                ),
-                const SizedBox(width: 8),
-                SizedBox(
-                  width: 52,
-                  // 칸 너비는 행끼리 맞추려고 고정이다. 네 자리 수익률
-                  // (+4178.77%)은 이 폭을 넘겨 **두 줄로 쪼개졌다.**
-                  // 줄을 늘리는 대신 글자를 줄인다.
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      c.rateAvailable
-                          ? '${c.returnRate >= 0 ? '+' : '−'}${c.returnRate.abs().toStringAsFixed(2)}%'
-                          : '—',
-                      maxLines: 1,
-                      softWrap: false,
-                      style: TextStyle(
-                          fontSize: DS.returnPct,
-                          fontWeight: FontWeight.w700,
-                          color: color),
-                    ),
-                  ),
-                ),
-                Icon(Icons.chevron_right,
-                    size: 18, color: context.textTertiary),
-              ],
-            ),
-            // 얼마에서 얼마가 됐는지. 손익만 보여주면 그 크기를 가늠할
-            // 기준이 없다 — 100만 원이 큰지 작은지는 원금이 정한다.
-            const SizedBox(height: 3),
-            _basisLine(context, c.startValue, c.endValue, 'KRW'),
-            const SizedBox(height: 7),
-            Row(
-              children: [
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(DS.barTrackRadius),
-                    child: SizedBox(
-                      height: DS.barTrackHeight,
-                      // Stack + FractionallySizedBox를 쓰면 자식 없는 ColoredBox의
-                      // 세로 크기가 0이 되어 막대가 안 보인다. flex로 나눈다.
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Expanded(
-                            flex: (share.clamp(0.0, 1.0) * 1000).round(),
-                            child: ColoredBox(color: color),
-                          ),
-                          Expanded(
-                            flex: ((1 - share.clamp(0.0, 1.0)) * 1000).round(),
-                            child: ColoredBox(color: context.trackBg),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                // 기여도는 무채색 — 손익만 색을 쓴다
-                Text(
-                  _isKo
-                      ? '기여 ${(share * 100).toStringAsFixed(0)}% (${c.contribution >= 0 ? '+' : '−'}${c.contribution.abs().toStringAsFixed(2)}%p)'
-                      : '${(share * 100).toStringAsFixed(0)}% (${c.contribution >= 0 ? '+' : '−'}${c.contribution.abs().toStringAsFixed(2)}pp)',
-                  style: TextStyle(
-                      fontSize: DS.caption,
-                      fontWeight: FontWeight.w600,
-                      color: context.textTertiary),
-                ),
-              ],
-            ),
-          ],
         ),
       ),
     );
@@ -1132,6 +1015,10 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
     }
   }
 
+  /// 기여 막대의 분모. **화면과 캡처가 같은 값을 써야 한다.**
+  double get _sumAbs => (_current?.contributions ?? const [])
+      .fold(0.0, (s, c) => s + c.absoluteReturn.abs());
+
   Widget _buildCapture() {
     final l10n = context.l10n;
     final r = _current;
@@ -1162,6 +1049,8 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       negativeColor: context.read<PnlColorNotifier>().negativeColor,
       // 머리글은 딥그린 위라 다른 색을 쓴다.
       pnlColors: context.read<PnlColorNotifier>(),
+      // 막대 길이는 **화면과 같은 분모**로 낸다. 잘라낸 8개만으로 다시
+      // 재면 막대가 화면보다 길어진다.
       rows: [
         for (final c in (r?.contributions ?? const []).take(8))
           CaptureRow(
@@ -1171,6 +1060,8 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
             rateAvailable: c.rateAvailable,
             startValue: c.startValue,
             endValue: c.endValue,
+            share: _sumAbs > 0 ? c.absoluteReturn.abs() / _sumAbs : 0.0,
+            contribution: c.contribution,
           ),
       ],
     );

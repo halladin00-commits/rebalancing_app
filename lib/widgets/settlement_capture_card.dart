@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'settlement_header.dart';
 
 import '../main.dart';
-import '../utils/money_format.dart';
 import '../theme/design_system.dart';
 import 'settlement_chart.dart';
 
 import '../services/settlement_service.dart';
 import 'app_logo.dart';
+import 'contribution_row.dart';
 
 /// 기여 한 줄. 포트별이든 종목별이든 같은 모양으로 그린다.
 class CaptureRow {
@@ -19,6 +19,15 @@ class CaptureRow {
   final double startValue;
   final double endValue;
 
+  /// 기간 손익 전체에서 이 줄이 차지하는 몫 (0~1). 막대 길이.
+  ///
+  /// **예전에는 이 값이 없었다.** 그래서 캡처에만 막대와 「기여 86%」가
+  /// 통째로 빠져, 화면과 그림이 달랐다.
+  final double share;
+
+  /// 포트 수익률에 보탠 값 (%p).
+  final double contribution;
+
   const CaptureRow({
     required this.name,
     required this.absoluteReturn,
@@ -26,6 +35,8 @@ class CaptureRow {
     required this.rateAvailable,
     required this.startValue,
     required this.endValue,
+    required this.share,
+    required this.contribution,
   });
 }
 
@@ -231,47 +242,23 @@ class SettlementCaptureCard extends StatelessWidget {
     );
   }
 
+  /// **화면이 쓰는 위젯을 그대로 부른다.** 여기서 따로 그리면 또 어긋난다.
   Widget _row(BuildContext context, CaptureRow r, {required bool isLast}) {
-    final up = r.absoluteReturn >= 0;
-    final color = up ? positiveColor : negativeColor;
-    String money(double v) => fmtMoney(v, currency);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: isLast
-          ? null
-          : BoxDecoration(
-              border: Border(bottom: BorderSide(color: context.dividerColor))),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Expanded(
-            child: Text(r.name,
-                style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: context.textPrimary),
-                overflow: TextOverflow.ellipsis),
-          ),
-          const SizedBox(width: 8),
-          Text('${up ? '+' : '−'}${money(r.absoluteReturn.abs())}',
-              style: TextStyle(
-                  fontSize: 14, fontWeight: FontWeight.w800, color: color)),
-          const SizedBox(width: 8),
-          Text(
-              r.rateAvailable
-                  ? '${r.returnRate >= 0 ? '+' : '−'}'
-                      '${r.returnRate.abs().toStringAsFixed(2)}%'
-                  : '—',
-              style: TextStyle(
-                  fontSize: 12.5, fontWeight: FontWeight.w700, color: color)),
-        ]),
-        const SizedBox(height: 3),
-        Text('${money(r.startValue)}  →  ${money(r.endValue)}',
-            style: TextStyle(
-                fontSize: 11.5,
-                fontWeight: FontWeight.w600,
-                color: context.textSecondary)),
-      ]),
+    return ContributionRow(
+      name: r.name,
+      absoluteReturn: r.absoluteReturn,
+      returnRate: r.returnRate,
+      rateAvailable: r.rateAvailable,
+      startValue: r.startValue,
+      endValue: r.endValue,
+      share: r.share,
+      contribution: r.contribution,
+      currency: currency,
+      isKo: isKo,
+      positiveColor: positiveColor,
+      negativeColor: negativeColor,
+      isLast: isLast,
+      // onTap 없음 — 그림에서는 못 누르니 화살표를 두면 거짓말이 된다
     );
   }
 }
