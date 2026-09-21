@@ -14,6 +14,8 @@ import 'package:rebalancing_app/widgets/contribution_row.dart';
 /// 이런 차이는 **예외도 로그도 안 남는다.** 앱에서 그림을 꺼내 화면과
 /// 나란히 놓고 봐야 안다. 그래서 매번 사용자가 먼저 찾았다.
 void main() {
+  _noCaptureOnlyRows();
+
   group('캡처 판이 기여 줄을 따로 그리지 않는다', () {
     final source =
         File('lib/widgets/settlement_capture_card.dart').readAsStringSync();
@@ -106,5 +108,37 @@ void main() {
       expect(find.byIcon(Icons.chevron_right), findsOneWidget,
           reason: '화면에서는 눌러 들어가므로 화살표가 있어야 한다');
     });
+  });
+}
+
+/// **캡처 전용 행 함수를 두지 않는다.**
+///
+/// 지금까지 어긋난 여덟 번 중 네 번이 같은 모양이었다 — 화면 옆에
+/// `_capture…Row`를 따로 만들고, 거기에 화면의 일부만 옮겨 적었다.
+/// 그래서 조용히 빠진 것들:
+///
+///   포트 상세 · 자산 탭   전일대비 (▲0.10%)
+///   포트 리밸런싱         평가금액
+///   결산 두 화면          기여도 막대와 「기여 86% (+3.48%p)」
+///
+/// 빠진 줄은 예외도 로그도 안 남는다. 그림을 꺼내 화면과 나란히 놓고 봐야
+/// 안다. 그래서 **이름부터 막는다** — 캡처가 행을 따로 그리려면 먼저 이
+/// 시험을 지워야 하고, 그때 왜 지우는지 생각하게 된다.
+void _noCaptureOnlyRows() {
+  test('캡처 전용 행 함수(_capture…Row)가 없다', () {
+    final offenders = <String>[];
+    for (final file in Directory('lib/screens').listSync().whereType<File>()) {
+      if (!file.path.endsWith('.dart')) continue;
+      final found = RegExp(r'Widget (_capture\w*Row\w*)\(')
+          .allMatches(file.readAsStringSync())
+          .map((m) => m.group(1)!);
+      for (final name in found) {
+        offenders.add('${file.uri.pathSegments.last}: $name');
+      }
+    }
+    expect(offenders, isEmpty,
+        reason: '캡처가 행을 따로 그리고 있다. 화면이 쓰는 위젯을 부를 것 — '
+            '따로 그리면 화면에만 있는 줄이 그림에서 조용히 빠진다\n'
+            '  ${offenders.join('\n  ')}');
   });
 }

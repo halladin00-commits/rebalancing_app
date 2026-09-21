@@ -395,10 +395,11 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
               border: Border.all(color: context.cardBorder),
             ),
             padding: const EdgeInsets.symmetric(horizontal: DS.cardPaddingH),
+            // 화면이 쓰는 행을 그대로 쓴다 — 여기서 따로 그리면 또 어긋난다.
             child: Column(children: [
               for (var i = 0; i < ordered.length; i++)
-                _capturePortfolioRow(ordered[i], displayCur, avgRate, pnlColors,
-                    isLast: i == ordered.length - 1),
+                _buildPortfolioRow(context, ordered[i],
+                    isLast: i == ordered.length - 1, tappable: false),
             ]),
           ),
         ),
@@ -406,56 +407,6 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
     );
   }
 
-  Widget _capturePortfolioRow(Portfolio pf, String displayCur, double avgRate,
-      PnlColorNotifier pnlColors,
-      {required bool isLast}) {
-    final tvKrw = _toKrw(pf.totalValue, pf);
-    final tv = displayCur == 'USD' ? tvKrw / avgRate : tvKrw;
-    final hasPnl = pf.hasPriceData && pf.hasAvgData;
-    final pnl = pf.unrealizedPnL;
-    final pnlPct = (pf.totalValue - pnl) != 0
-        ? pnl / (pf.totalValue - pnl) * 100
-        : 0.0;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 13),
-      decoration: isLast
-          ? null
-          : BoxDecoration(
-              border: Border(bottom: BorderSide(color: context.dividerColor))),
-      child: Row(children: [
-        Expanded(
-          child: Text(pf.name,
-              style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.2,
-                  color: context.textPrimary),
-              overflow: TextOverflow.ellipsis),
-        ),
-        const SizedBox(width: 10),
-        Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-          Text(fmtMoney(tv, displayCur),
-              style: TextStyle(
-                  fontSize: DS.rowAmount,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.3,
-                  color: context.textPrimary)),
-          if (hasPnl) ...[
-            const SizedBox(height: 3),
-            Text(
-                '${pnlPct >= 0 ? '+' : '−'}${pnlPct.abs().toStringAsFixed(2)}%',
-                style: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w700,
-                    color: pnl >= 0
-                        ? pnlColors.positiveColor
-                        : pnlColors.negativeColor)),
-          ],
-        ]),
-      ]),
-    );
-  }
 
   /// 마지막으로 반영한 기록 갱신 번호.
   int _seenHistorySeq = 0;
@@ -1035,8 +986,14 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
     );
   }
 
+  /// 포트 한 줄 — **화면과 캡처가 같이 쓴다.**
+  ///
+  /// `tappable: false`면 캡처용이다. 그림에서는 못 누르니 화살표를 빼고
+  /// 누르는 동작도 달지 않는다. 나머지는 한 글자도 다르지 않다 — 예전에는
+  /// 캡처가 따로 그리느라 **전일대비(▲0.10%)가 빠지고**, 금액도 포트
+  /// 통화가 아니라 표시 통화로 환산돼 있었다.
   Widget _buildPortfolioRow(BuildContext context, Portfolio pf,
-      {required bool isLast}) {
+      {required bool isLast, bool tappable = true}) {
     final pnlColors = context.watch<PnlColorNotifier>();
     final tv = pf.totalValue;
 
@@ -1049,9 +1006,7 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
     final pnlColor =
         pnl >= 0 ? pnlColors.positiveColor : pnlColors.negativeColor;
 
-    return InkWell(
-      onTap: () => _openDetail(context, pf.id),
-      child: Container(
+    final row = Container(
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: isLast
             ? null
@@ -1112,12 +1067,17 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                 ],
               ],
             ),
-            const SizedBox(width: 8),
-            Icon(Icons.chevron_right, size: 20, color: context.textTertiary),
+            if (tappable) ...[
+              const SizedBox(width: 8),
+              Icon(Icons.chevron_right, size: 20, color: context.textTertiary),
+            ],
           ],
         ),
-      ),
     );
+
+    return tappable
+        ? InkWell(onTap: () => _openDetail(context, pf.id), child: row)
+        : row;
   }
 
   /// 첫 진입 안내 (시안 v17d).

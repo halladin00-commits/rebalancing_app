@@ -242,6 +242,21 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final trades =
         rb.results.where((r) => !r.isCash && r.delta != 0).toList();
+
+    // **화면과 같은 목록을 그린다.** 뺀 줄도 자리에 남긴다 — 화면은
+    // 「제외 · 그대로 두기」로 남겨 두는데 그림에서만 사라지면, 분명 있던
+    // 줄이 어디 갔는지 알 수 없다. 돈 합계와 「함께 실행할 N건」은 그대로
+    // `trades`(실제로 주문할 것)로 센다.
+    final shown = rb.results
+        .where((r) => !r.isCash && (r.delta != 0 || _excluded.contains(r.id)))
+        .toList();
+    Map<String, double>? baseDeltas;
+    if (_excluded.isNotEmpty) {
+      final base = Rebalancer.calculate(pf);
+      if (base != null) {
+        baseDeltas = {for (final b in base.results) b.id: b.delta};
+      }
+    }
     final threshold = pf.rebalancingThreshold;
 
     double maxNow = 0, maxAfter = 0;
@@ -323,9 +338,8 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
         CaptureCard(
           title: l10n.togetherNTrades(trades.length),
           children: [
-            for (var i = 0; i < trades.length; i++)
-              _captureTradeRow(context, pf, trades[i],
-                  isLast: i == trades.length - 1),
+            for (final r in shown)
+              _buildTradeBlock(context, pf, r, baseDeltas, tappable: false),
           ],
         ),
         const SizedBox(height: 14),
@@ -354,72 +368,6 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
     );
   }
 
-  Widget _captureTradeRow(
-      BuildContext context, Portfolio pf, RebalanceItemResult r,
-      {required bool isLast}) {
-    final pnlColors = context.watch<PnlColorNotifier>();
-    final l10n = context.l10n;
-    final item = pf.items.firstWhere((i) => i.id == r.id);
-    final isBuy = r.delta > 0;
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 11),
-      decoration: isLast
-          ? null
-          : BoxDecoration(
-              border: Border(bottom: BorderSide(color: context.dividerColor))),
-      child: Row(children: [
-        Container(
-          width: 34,
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: isBuy ? context.pnlUpTint : context.pnlDownTint,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Text(isBuy ? l10n.buy : l10n.sell,
-              style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  color: isBuy ? pnlColors.positiveColor
-                               : pnlColors.negativeColor)),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(item.displayName(context),
-                    style: TextStyle(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w700,
-                        color: context.textPrimary),
-                    overflow: TextOverflow.ellipsis),
-                const SizedBox(height: 2),
-                Text('${_pct(r.currentWeight)} → ${_pct(r.finalWeight)}',
-                    style: TextStyle(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w600,
-                        color: context.textSecondary)),
-              ]),
-        ),
-        const SizedBox(width: 10),
-        Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-          Text('${formatShares(r.delta.abs())}${l10n.unitShares}',
-              style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.4,
-                  color: context.textPrimary)),
-          const SizedBox(height: 2),
-          Text(fmtMoney(_amountOf(pf, item, r.delta), pf.currency),
-              style: TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w600,
-                  color: context.textSecondary)),
-        ]),
-      ]),
-    );
-  }
 
   // ── 모드 세그먼트 ──
 
@@ -697,8 +645,13 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
   ///
   /// 뺀 종목 때문에 수량이 바뀐 줄은 `재계산` 배지와 함께 **직전 값을 취소선으로**
   /// 남긴다 — 무엇이 왜 움직였는지 보이지 않으면 숫자를 믿을 수 없다.
+  /// 매매 한 줄 — **화면과 캡처가 같이 쓴다.**
+  ///
+  /// `tappable: false`면 캡처용이다. 끄고 켜는 동그라미를 빼는 것 말고는
+  /// 화면과 같다 — 그림에서는 못 누르니 있으면 거짓말이 된다.
   Widget _buildTradeBlock(BuildContext context, Portfolio pf,
-      RebalanceItemResult r, Map<String, double>? baseDeltas) {
+      RebalanceItemResult r, Map<String, double>? baseDeltas,
+      {bool tappable = true}) {
     final pnlColors = context.watch<PnlColorNotifier>();
     final l10n = context.l10n;
     final item = pf.items.firstWhere((i) => i.id == r.id);
@@ -826,21 +779,23 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
                   decorationColor: context.textTertiary,
                   color: context.textSecondary)),
         ]),
-        const SizedBox(width: 8),
-        // 끄면 그 종목을 빼고 나머지를 다시 계산한다
-        GestureDetector(
-          onTap: () => setState(() {
-            if (!_excluded.remove(r.id)) _excluded.add(r.id);
-          }),
-          behavior: HitTestBehavior.opaque,
-          child: Padding(
-            padding: const EdgeInsets.all(2),
-            child: Icon(
-                off ? Icons.radio_button_unchecked : Icons.check_circle,
-                size: 21,
-                color: off ? context.textDisabled : context.brand),
+        if (tappable) ...[
+          const SizedBox(width: 8),
+          // 끄면 그 종목을 빼고 나머지를 다시 계산한다
+          GestureDetector(
+            onTap: () => setState(() {
+              if (!_excluded.remove(r.id)) _excluded.add(r.id);
+            }),
+            behavior: HitTestBehavior.opaque,
+            child: Padding(
+              padding: const EdgeInsets.all(2),
+              child: Icon(
+                  off ? Icons.radio_button_unchecked : Icons.check_circle,
+                  size: 21,
+                  color: off ? context.textDisabled : context.brand),
+            ),
           ),
-        ),
+        ],
       ]),
     );
   }

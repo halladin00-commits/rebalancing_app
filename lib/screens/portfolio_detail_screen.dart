@@ -400,33 +400,18 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              Text(l10n.holdingsSection,
-                  style: TextStyle(
-                      fontSize: DS.sectionTitle,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.2,
-                      color: context.textPrimary)),
-              const Spacer(),
-              Text(_holdingsSummary(context, pf),
-                  style: TextStyle(
-                      fontSize: DS.body,
-                      fontWeight: FontWeight.w600,
-                      color: context.textSecondary)),
-            ]),
+            // 화면이 쓰는 구역 제목 위젯 그대로
+            SectionTitle(
+                title: l10n.holdingsSection,
+                trailing: _holdingsSummary(context, pf)),
             const SizedBox(height: 9),
-            Container(
-              decoration: BoxDecoration(
-                color: context.cardBg,
-                borderRadius: BorderRadius.circular(DS.cardRadius),
-                border: Border.all(color: context.cardBorder),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: DS.cardPaddingH),
-              child: Column(children: [
-                for (var i = 0; i < pf.items.length; i++)
-                  _captureHoldingRow(pf, pf.items[i], pnlColors,
-                      isLast: i == pf.items.length - 1),
-              ]),
+            // 화면이 쓰는 카드와 행을 그대로 쓴다 — 여기서 따로 그리면
+            // 또 어긋난다. 실제로 전일대비가 빠진 채 나갔다.
+            ListCard(
+              rows: [
+                for (final item in pf.items)
+                  _buildHoldingRow(context, pf, item, rb, tappable: false),
+              ],
             ),
           ]),
         ),
@@ -434,81 +419,6 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     );
   }
 
-  Widget _captureHoldingRow(
-      Portfolio pf, PortfolioItem item, PnlColorNotifier pnlColors,
-      {required bool isLast}) {
-    double value = item.shares;
-    if (!item.isCash) {
-      value = item.shares * item.currentPrice;
-      if (item.market == 'US' && pf.currency == 'KRW') {
-        value *= pf.exchangeRate;
-      } else if (item.market == 'KR' && pf.currency == 'USD') {
-        value /= pf.exchangeRate;
-      }
-    }
-    final hasPnl = !item.isCash && item.avgPrice > 0 && item.currentPrice > 0;
-    final pct = hasPnl
-        ? (item.currentPrice - item.avgPrice) / item.avgPrice * 100
-        : 0.0;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: isLast
-          ? null
-          : BoxDecoration(
-              border: Border(bottom: BorderSide(color: context.dividerColor))),
-      child: Row(children: [
-        MarketChip(
-          market: item.isCash ? 'CASH' : item.market,
-          label: item.isCash
-              ? context.l10n.cash
-              : (item.market == 'US' ? 'US' : 'KR'),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(item.displayName(context),
-                    style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: context.textPrimary),
-                    overflow: TextOverflow.ellipsis),
-                if (!item.isCash) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                      '${fmtPrice(item.currentPrice, item.market)} · '
-                      '${formatShares(item.shares)}${context.l10n.unitShares}',
-                      style: TextStyle(
-                          fontSize: DS.body,
-                          fontWeight: FontWeight.w600,
-                          color: context.textSecondary)),
-                ],
-              ]),
-        ),
-        const SizedBox(width: 10),
-        Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-          Text(fmtMoney(value, pf.currency),
-              style: TextStyle(
-                  fontSize: DS.rowAmount,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.3,
-                  color: context.textPrimary)),
-          if (hasPnl) ...[
-            const SizedBox(height: 3),
-            Text('${pct >= 0 ? '+' : '−'}${pct.abs().toStringAsFixed(2)}%',
-                style: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w700,
-                    color: pct >= 0
-                        ? pnlColors.positiveColor
-                        : pnlColors.negativeColor)),
-          ],
-        ]),
-      ]),
-    );
-  }
   void _showDeleteConfirm(Portfolio pf, PortfolioItem item) {
     final l10n = context.l10n;
     showDialog(
@@ -1284,8 +1194,14 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
   ///
   /// 좌: [시장 칩] 이름 14.5/700 / 보조 줄 `₩21,450 · 220주`
   /// 우: 평가금액 15/700 / 전일대비 11/600 무채색 + 누적 12.5/700 손익색
+  /// 종목 한 줄 — **화면과 캡처가 같이 쓴다.**
+  ///
+  /// `tappable: false`면 캡처용이다. 그림에서는 못 누르니 화살표를 빼고
+  /// 누르는 동작도 달지 않는다. 그 밖의 것은 **한 글자도 다르지 않다** —
+  /// 예전에는 캡처가 따로 그리느라 전일대비(▲0.10%)가 통째로 빠졌다.
   Widget _buildHoldingRow(BuildContext context, Portfolio pf,
-      PortfolioItem item, RebalanceResult? rb) {
+      PortfolioItem item, RebalanceResult? rb,
+      {bool tappable = true}) {
     final pnlColors = context.watch<PnlColorNotifier>();
 
     // 기준통화 환산 (US 종목을 원화 포트에 담는 경우 등)
@@ -1338,7 +1254,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
       returnText: returnText,
       returnColor: returnColor,
       padding: const EdgeInsets.symmetric(vertical: 12),
-      onTap: () => _showItemSheet(pf, item, rb),
+      onTap: tappable ? () => _showItemSheet(pf, item, rb) : null,
     );
   }
 

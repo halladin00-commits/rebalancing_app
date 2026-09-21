@@ -72,9 +72,28 @@ void main() {
 
   test('캡처에는 누르는 표시를 넣지 않는다', () {
     // 그림에서는 누를 데가 없다. 화살표가 찍히면 눌러 보려다 만다.
-    final i = reb.indexOf('Widget _buildCapture');
-    final j = reb.indexOf('Widget _captureDriftRow');
-    final body = reb.substring(i, j);
+    //
+    // 예전에는 `_buildCapture`부터 `_captureDriftRow`까지를 잘라 봤다.
+    // 캡처가 화면 행을 쓰게 되면서 `_captureDriftRow`가 없어지자 자르기가
+    // 깨졌다 — **다음 함수 이름을 끝으로 삼으면 안 된다.** 중괄호로 센다.
+    final start = reb.indexOf('Widget _buildCapture');
+    expect(start, isNot(-1), reason: '_buildCapture 를 못 찾았다');
+    final open = reb.indexOf(') {', start) + 2;
+    var depth = 0;
+    var end = -1;
+    for (var k = open; k < reb.length; k++) {
+      if (reb[k] == '{') depth++;
+      if (reb[k] == '}') {
+        depth--;
+        if (depth == 0) {
+          end = k;
+          break;
+        }
+      }
+    }
+    expect(end, isNot(-1), reason: '_buildCapture 본문을 못 잘랐다');
+    final body = reb.substring(open, end);
+
     expect(body.contains('chevron_right'), isFalse,
         reason: '캡처 그림에 누르는 화살표가 들어갔다');
     expect(body.contains('_openTargets'), isFalse);

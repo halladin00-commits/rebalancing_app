@@ -286,9 +286,12 @@ class _PortfolioRebalanceScreenState extends State<PortfolioRebalanceScreen> {
           const SizedBox(height: 14),
           CaptureCard(
             title: isKo ? '종목별 비중' : 'Weight by holding',
+            // 화면이 쓰는 행을 그대로 쓴다 — 여기서 따로 그리면 또 어긋난다.
+            // 실제로 평가금액이 빠진 채 나갔다.
             children: [
               for (var i = 0; i < drifts.length; i++)
-                _captureDriftRow(context, pf, drifts[i], isKo,
+                _buildDriftRow(context, pf, drifts[i],
+                    exceeds: over.any((o) => o.item.id == drifts[i].item.id),
                     isLast: i == drifts.length - 1),
             ],
           ),
@@ -297,44 +300,6 @@ class _PortfolioRebalanceScreenState extends State<PortfolioRebalanceScreen> {
     );
   }
 
-  Widget _captureDriftRow(
-      BuildContext context, Portfolio pf, ItemDrift d, bool isKo,
-      {required bool isLast}) {
-    final exceeds = pf.rebalancingThreshold > 0 &&
-        d.drift.abs() >= pf.rebalancingThreshold;
-    final color = exceeds ? context.warningText : context.textTertiary;
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: isLast
-          ? null
-          : BoxDecoration(
-              border: Border(bottom: BorderSide(color: context.dividerColor))),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Expanded(
-            child: Text(d.item.displayName(context),
-                style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: context.textPrimary),
-                overflow: TextOverflow.ellipsis),
-          ),
-          const SizedBox(width: 8),
-          Text(fmtPp(d.drift, isKo),
-              style: TextStyle(
-                  fontSize: 13.5, fontWeight: FontWeight.w800, color: color)),
-        ]),
-        const SizedBox(height: 3),
-        Text(
-            '${d.currentWeight.toStringAsFixed(2)}%  →  '
-            '${d.item.targetWeight.toStringAsFixed(2)}%',
-            style: TextStyle(
-                fontSize: 11.5,
-                fontWeight: FontWeight.w600,
-                color: context.textSecondary)),
-      ]),
-    );
-  }
 
   // ── 헤더: 최대 편차 ──
 
