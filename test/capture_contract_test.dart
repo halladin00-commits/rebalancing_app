@@ -107,33 +107,35 @@ void main() {
         reason: '프레임이 실제로 끝나는 것을 기다려야 한다');
   });
 
-  test('두 캡처 모두 손익 타일을 손으로 옮겨 적지 않는다', () {
-    // 포트 상세 캡처도 같은 복사본을 갖고 있었다.
-    final detail = File('lib/screens/portfolio_detail_screen.dart').readAsStringSync();
-    final detailBody = bodyOf(detail, '_buildAssetCapture');
-    expect(detailBody.contains('BrandStatTile('), isTrue,
-        reason: '포트 상세 캡처가 화면과 같은 타일 위젯을 안 쓴다');
-    expect(detailBody.contains("toStringAsFixed(2)}%"), isFalse,
-        reason: '포트 상세 캡처가 퍼센트를 직접 만든다');
-  });
-
-  test('자산 캡처가 손익 타일을 손으로 옮겨 적지 않는다', () {
-    // 캡처 안에 화면과 「같은 모양」의 타일을 손으로 복사해 뒀었다. 화면
-    // 쪽만 고치는 사이 조용히 갈라져 **3줄 대 2줄**이 됐는데, 둘을 나란히
-    // 놓고 볼 일이 없어 사용자가 지적하기 전까지 몰랐다.
-    //
-    // 복사본이 다시 생기면 여기서 걸린다.
-    final source = File('lib/screens/portfolio_list_screen.dart').readAsStringSync();
-    final body = bodyOf(source, '_buildMainCapture');
-
-    expect(body.contains('BrandStatTile('), isTrue,
-        reason: '캡처가 화면과 같은 타일 위젯을 안 쓴다');
-    // 퍼센트를 캡처가 **직접 찍으면** 타일을 옮겨 적었다는 뜻이다.
-    // (총자산 금액은 타일 밖이라 `fmtMoney`는 남아 있어도 된다.)
-    expect(body.contains("toStringAsFixed(2)}%"), isFalse,
-        reason: '캡처가 퍼센트를 직접 만든다 — 타일을 옮겨 적었다는 뜻이다');
-    expect(body.contains("'평가손익'"), isFalse,
-        reason: '캡처가 문구를 직접 적는다 — l10n을 써야 화면과 같은 말이 나온다');
+  /// **캡처는 글자 모양을 스스로 정하지 않는다.**
+  ///
+  /// 지금까지 화면과 그림이 어긋난 것이 열네 번이다. 전부 같은 뿌리였다 —
+  /// 캡처가 화면의 어떤 부분을 **손으로 옮겨 적고**, 그 뒤 화면만 고쳐진다.
+  /// 빠진 것들: 전일대비 · 평가금액 · 환율 배지 · 기여도 막대 ·
+  /// 제외한 줄. 크기가 갈린 것들: 총액 35 대 28, 이름 15.5 대 15.
+  ///
+  /// 한 자리씩 막는 것으로는 안 끝났다. **능력을 없앤다** —
+  /// `_buildCapture` 본문에 `TextStyle(`이 하나도 없으면, 캡처는 화면과
+  /// 다르게 그릴 방법이 없다. 모든 글자가 화면도 쓰는 위젯에서 나온다.
+  ///
+  /// 그림에만 있는 제목은 `CaptureTitle`·`CaptureFrame`이 한 곳에서 꾸민다.
+  ///
+  /// 한계도 적어 둔다 — 이 시험은 **구역을 통째로 빼먹는 것은 못 잡는다.**
+  /// 없는 것은 코드에 안 보인다. 그건 실기기로 꺼내 보는 수밖에 없다.
+  test('캡처 본문이 글자 모양을 스스로 정하지 않는다', () {
+    final offenders = <String>[];
+    builders.forEach((path, name) {
+      final body = bodyOf(File(path).readAsStringSync(), name);
+      final n = 'TextStyle('.allMatches(body).length;
+      if (n > 0) {
+        offenders.add('${path.split('/').last} · $name — $n곳');
+      }
+    });
+    expect(offenders, isEmpty,
+        reason: '캡처가 글자 모양을 직접 정하고 있다 — '
+            '화면이 쓰는 위젯을 부르거나, 그림에만 있는 것이면 '
+            'CaptureTitle/CaptureFrame에 맡길 것: '
+            '${offenders.join(' / ')}');
   });
 
   test('결산 캡처가 머리글을 손으로 옮겨 적지 않는다', () {

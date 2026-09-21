@@ -13,6 +13,7 @@ import '../widgets/portfolio_actions.dart';
 import '../utils/elapsed.dart';
 import '../utils/rebalancer.dart';
 import '../widgets/app_logo.dart';
+import '../widgets/capture_frame.dart';
 import '../widgets/app_menu.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/weight_bar.dart';
@@ -198,11 +199,8 @@ class _RebalanceTabScreenState extends State<RebalanceTabScreen> {
           padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text(context.l10n.tabRebalancing,
-                  style: const TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white)),
+              // 그림에만 있는 제목 — 꾸밈은 한 곳(CaptureTitle)에서 한다
+              CaptureTitle(text: context.l10n.tabRebalancing),
               const AppLogo(iconSize: 18, textColor: Colors.white),
             ]),
             const SizedBox(height: 12),

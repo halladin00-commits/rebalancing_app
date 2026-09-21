@@ -29,6 +29,7 @@ import '../services/ad_service.dart';
 import '../widgets/bottom_banner_ad.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/app_menu.dart';
+import '../widgets/capture_frame.dart';
 import '../widgets/cash_edit_sheet.dart';
 import '../widgets/collapsing_header.dart';
 import '../widgets/dashed_border_box.dart';
@@ -301,16 +302,9 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
   /// 회색 사각형이 저장된다.
   Widget _buildAssetCapture(Portfolio pf, RebalanceResult? rb) {
     final l10n = context.l10n;
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final pnlColors = context.read<PnlColorNotifier>();
-
-    final tv = pf.totalValue;
-    final hasPnl = pf.hasPriceData && pf.hasAvgData;
-    final hasDay = pf.hasPriceData && pf.hasDayData;
-    final pnl = pf.unrealizedPnL;
-    final day = pf.dayPnL;
-    final pnlPct = (tv - pnl) != 0 ? pnl / (tv - pnl) * 100 : 0.0;
-    final dayPct = (tv - day) != 0 ? day / (tv - day) * 100 : 0.0;
+    // 합계는 화면과 **같은 식**으로 낸다 — 딴 경로로 다시 세면 그림과
+    // 화면의 금액이 갈릴 수 있다.
+    final h = _headerTotals(pf);
 
     return Container(
       width: 380,
@@ -326,73 +320,21 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
           ),
           padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            // 포트 이름과 로고는 그림에만 있는 것 — 화면에는 앱바가 그 일을 한다
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               Flexible(
-                child: Text(pf.name,
-                    style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.3,
-                        color: Colors.white),
-                    overflow: TextOverflow.ellipsis),
+                child: CaptureTitle(text: pf.name),
               ),
               const SizedBox(width: 10),
-              AppLogo(iconSize: 18, textColor: Colors.white),
+              const AppLogo(iconSize: 18, textColor: Colors.white),
             ]),
             const SizedBox(height: 14),
-            Text(l10n.evaluationAmount,
-                style: TextStyle(
-                    fontSize: DS.body,
-                    fontWeight: FontWeight.w600,
-                    color: context.onBrandSecondary)),
-            const SizedBox(height: 4),
-            Text(fmtMoney(tv, pf.currency),
-                style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    letterSpacing: -1.2,
-                    height: 1.08)),
-            if (hasPnl || hasDay) ...[
-              const SizedBox(height: 14),
-              Row(children: [
-                // **화면과 같은 위젯을 부른다.** 손으로 옮겨 적으면 갈라진다.
-                if (hasPnl)
-                  Expanded(
-                      child: BrandStatTile(
-                          label: l10n.profitLoss,
-                          amount: pnl,
-                          pct: pnlPct,
-                          currency: pf.currency,
-                          pnlColors: pnlColors)),
-                if (hasPnl && hasDay) const SizedBox(width: 9),
-                if (hasDay)
-                  Expanded(
-                      child: BrandStatTile(
-                          label: l10n.dayChange,
-                          amount: day,
-                          pct: dayPct,
-                          currency: pf.currency,
-                          pnlColors: pnlColors)),
-              ]),
-            ],
-            // 화면에 있는 것은 그림에도 있어야 한다 — 선 아래 **기간과
-            // 기준 시각도 같이.** 그림은 남한테 보여주는 것이라, 며칠치
-            // 선인지·언제 시세인지 없으면 받는 쪽이 알 수가 없다.
-            if (_history.length >= 2) ...[
-              const SizedBox(height: 14),
-              SparklinePanel(
-                forCapture: true,
-                points: _history,
-                period: _sparkPeriod,
-                asOf: isKo
-                    ? '${_fmtTimeShort(pf.lastUpdated)} 기준'
-                    : 'as of ${_fmtTimeShort(pf.lastUpdated)}',
-                color: _history.last.totalKrw >= _history.first.totalKrw
-                    ? pnlColors.onBrandPositive
-                    : pnlColors.onBrandNegative,
-              ),
-            ],
+            // 나머지는 화면이 쓰는 머리글 그대로 — 여기서 따로 그리면
+            // 또 어긋난다. 실제로 큰 금액을 딴 식으로 내고 있었다
+            // (화면 `rb.total − 추가입금` vs 캡처 `pf.totalValue`).
+            _buildHeaderBody(context, pf, rb, h.hasPnl, h.hasDayChange,
+                h.pnl, h.cost, h.dayChange, h.prevValue,
+                forCapture: true),
           ]),
         ),
 
@@ -728,29 +670,13 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
 
         final rb = Rebalancer.calculate(pf);
 
-        double totalPnl = 0,
-            totalCost = 0,
-            totalDayChange = 0,
-            totalPrevValue = 0;
-        for (final item in pf.items) {
-          if (item.isCash || item.currentPrice <= 0) continue;
-          double fx = 1.0;
-          if (item.market == 'US' && pf.currency == 'KRW')
-            fx = pf.exchangeRate;
-          else if (item.market == 'KR' && pf.currency == 'USD')
-            fx = 1.0 / pf.exchangeRate;
-          if (item.avgPrice > 0) {
-            totalPnl += (item.currentPrice - item.avgPrice) * item.shares * fx;
-            totalCost += item.avgPrice * item.shares * fx;
-          }
-          if (item.previousClose > 0) {
-            totalDayChange +=
-                (item.currentPrice - item.previousClose) * item.shares * fx;
-            totalPrevValue += item.previousClose * item.shares * fx;
-          }
-        }
-        final hasPnl = totalCost > 0;
-        final hasDayChange = totalPrevValue > 0;
+        final h = _headerTotals(pf);
+        final totalPnl = h.pnl;
+        final totalCost = h.cost;
+        final totalDayChange = h.dayChange;
+        final totalPrevValue = h.prevValue;
+        final hasPnl = h.hasPnl;
+        final hasDayChange = h.hasDayChange;
 
         return PopScope(
           canPop: !_editMode,
@@ -850,6 +776,50 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
   /// 두 탭 모두 `큰 금액 + 타일 2개 + 하단 한 줄`이라는 같은 골격을 써서
   /// 탭을 오갈 때 헤더 높이가 흔들리지 않게 한다. 값이 없는 칸은 감추지 않고
   /// `—`로 남겨 자리를 지킨다.
+  /// 머리글에 들어갈 합계. **화면과 캡처가 같은 식을 쓴다.**
+  ///
+  /// 예전에는 캡처가 `pf.unrealizedPnL` 같은 딴 경로로 같은 숫자를 다시
+  /// 냈다. 두 식이 같은 값을 낸다는 보장이 없고, 한쪽만 고쳐지면
+  /// **그림과 화면의 금액이 달라진다.**
+  ({
+    double pnl,
+    double cost,
+    double dayChange,
+    double prevValue,
+    bool hasPnl,
+    bool hasDayChange
+  }) _headerTotals(Portfolio pf) {
+    double pnl = 0, cost = 0, dayChange = 0, prevValue = 0;
+    for (final item in pf.items) {
+      if (item.isCash || item.currentPrice <= 0) continue;
+      double fx = 1.0;
+      if (item.market == 'US' && pf.currency == 'KRW') {
+        fx = pf.exchangeRate;
+      } else if (item.market == 'KR' && pf.currency == 'USD') {
+        fx = 1.0 / pf.exchangeRate;
+      }
+      if (item.avgPrice > 0) {
+        pnl += (item.currentPrice - item.avgPrice) * item.shares * fx;
+        cost += item.avgPrice * item.shares * fx;
+      }
+      if (item.previousClose > 0) {
+        dayChange += (item.currentPrice - item.previousClose) * item.shares * fx;
+        prevValue += item.previousClose * item.shares * fx;
+      }
+    }
+    return (
+      pnl: pnl,
+      cost: cost,
+      dayChange: dayChange,
+      prevValue: prevValue,
+      hasPnl: cost > 0,
+      hasDayChange: prevValue > 0,
+    );
+  }
+
+  /// 딥그린 머리글 — **화면과 캡처가 같이 쓴다.**
+  ///
+  /// `forCapture: true`면 그림용이다. 기간을 바꾸는 동작만 빠진다.
   Widget _buildHeaderBody(
       BuildContext context,
       Portfolio pf,
@@ -859,7 +829,8 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
       double totalPnl,
       double totalCost,
       double totalDayChange,
-      double totalPrevValue) {
+      double totalPrevValue,
+      {bool forCapture = false}) {
     final l10n = context.l10n;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final hasForeign =

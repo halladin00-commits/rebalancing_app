@@ -204,58 +204,12 @@ class _PortfolioRebalanceScreenState extends State<PortfolioRebalanceScreen> {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final drifts = Rebalancer.allDrifts(pf);
     final over = Rebalancer.needsAdjusting(pf);
-    final needsAdjusting = over.isNotEmpty;
-    final worst = drifts.isEmpty ? null : drifts.first;
-    final valueColor =
-        needsAdjusting ? context.onBrandWarning : context.onBrandAccent;
-
     return CaptureFrame(
       title: pf.name,
-      headerBody: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(children: [
-              if (pf.items.length >= 2)
-                _statusPill(context, needsAdjusting, isKo),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.16),
-                  borderRadius: BorderRadius.circular(DS.chipRadius),
-                ),
-                child: Text(
-                  isKo
-                      ? '허용 ±${_trimZero(pf.rebalancingThreshold)}%p'
-                      : '±${_trimZero(pf.rebalancingThreshold)}pp',
-                  style: TextStyle(
-                      fontSize: DS.caption,
-                      fontWeight: FontWeight.w700,
-                      color: context.onBrandSecondary),
-                ),
-              ),
-            ]),
-            const SizedBox(height: 10),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              children: [
-                Text(worst == null ? '—' : fmtPp(worst.drift, isKo),
-                    style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -1.0,
-                        height: 1.1,
-                        color: valueColor)),
-                const SizedBox(width: 8),
-                Text(isKo ? '최대 편차' : 'largest drift',
-                    style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w600,
-                        color: context.onBrandSecondary)),
-              ],
-            ),
-          ]),
+      // 화면이 쓰는 머리글 그대로 — 따로 그리면 또 어긋난다.
+      // 실제로 편차 숫자가 35 대 26으로 갈라졌고, 상태줄이 빠져 있었다.
+      headerBody:
+          _buildMaxDrift(context, pf, drifts, over, isKo, forCapture: true),
       children: [
         if (drifts.isNotEmpty) ...[
           CaptureCard(
@@ -276,11 +230,11 @@ class _PortfolioRebalanceScreenState extends State<PortfolioRebalanceScreen> {
                 ],
               ),
               const SizedBox(height: 10),
-              Text(isKo ? '세로선이 목표 비중' : 'Vertical lines are targets',
-                  style: TextStyle(
-                      fontSize: DS.body,
-                      fontWeight: FontWeight.w500,
-                      color: context.textSecondary)),
+              // 막대 읽는 법 — 그림에만 붙인다. 화면에는 바로 아래 목록이
+              // 있어 굳이 설명할 필요가 없다.
+              CaptureNote(text: isKo
+                  ? '세로선이 목표 비중'
+                  : 'Vertical lines are targets'),
             ],
           ),
           const SizedBox(height: 14),
@@ -303,8 +257,14 @@ class _PortfolioRebalanceScreenState extends State<PortfolioRebalanceScreen> {
 
   // ── 헤더: 최대 편차 ──
 
+  /// 최대 편차 머리글 — **화면과 캡처가 같이 쓴다.**
+  ///
+  /// `forCapture: true`면 허용 편차 칩이 안 눌리고 화살표도 빠진다.
+  /// 예전에는 캡처가 이 블록을 손으로 옮겨 적어 **편차 숫자가 35 대 26으로**
+  /// 갈라졌고, 「조정 필요/유지」 상태줄도 그림에서 빠져 있었다.
   Widget _buildMaxDrift(BuildContext context, Portfolio pf,
-      List<ItemDrift> drifts, List<ItemDrift> over, bool isKo) {
+      List<ItemDrift> drifts, List<ItemDrift> over, bool isKo,
+      {bool forCapture = false}) {
     if (drifts.isEmpty) {
       return Text(
         isKo ? '시세를 받으면 편차를 계산합니다' : 'Drift needs current prices',
@@ -334,7 +294,7 @@ class _PortfolioRebalanceScreenState extends State<PortfolioRebalanceScreen> {
             // 고치러 갈 길이 ⋮ 메뉴뿐이라 사실상 못 찾는다.
             // 화살표를 붙여 눌리는 것임을 밝힌다 — 칩은 보통 안 눌린다.
             GestureDetector(
-              onTap: () => _openTargets(pf),
+              onTap: forCapture ? null : () => _openTargets(pf),
               behavior: HitTestBehavior.opaque,
               child: Container(
                 padding: const EdgeInsets.fromLTRB(10, 5, 6, 5),
@@ -352,8 +312,10 @@ class _PortfolioRebalanceScreenState extends State<PortfolioRebalanceScreen> {
                         fontWeight: FontWeight.w700,
                         color: context.onBrandSecondary),
                   ),
-                  Icon(Icons.chevron_right,
-                      size: 15, color: context.onBrandSecondary),
+                  // 그림에서는 못 누르니 화살표를 빼야 거짓말이 안 된다
+                  if (!forCapture)
+                    Icon(Icons.chevron_right,
+                        size: 15, color: context.onBrandSecondary),
                 ]),
               ),
             ),

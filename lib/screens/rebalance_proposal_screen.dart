@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../utils/widget_capture.dart';
 import '../widgets/app_menu.dart';
 import '../widgets/capture_frame.dart';
+import '../widgets/money_line.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -239,7 +240,6 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
   Widget _buildCapture(
       BuildContext context, Portfolio pf, RebalanceResult rb) {
     final l10n = context.l10n;
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final trades =
         rb.results.where((r) => !r.isCash && r.delta != 0).toList();
 
@@ -257,18 +257,6 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
         baseDeltas = {for (final b in base.results) b.id: b.delta};
       }
     }
-    final threshold = pf.rebalancingThreshold;
-
-    double maxNow = 0, maxAfter = 0;
-    for (final r in rb.results) {
-      final item = pf.items.firstWhere((i) => i.id == r.id);
-      final now = r.currentWeight - item.targetWeight;
-      final after = r.finalWeight - item.targetWeight;
-      if (now.abs() > maxNow.abs()) maxNow = now;
-      if (after.abs() > maxAfter.abs()) maxAfter = after;
-    }
-    final within = threshold <= 0 || maxAfter.abs() < threshold;
-
     double proceeds = 0, cost = 0;
     for (final r in trades) {
       final item = pf.items.firstWhere((i) => i.id == r.id);
@@ -282,58 +270,20 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
     final diff = proceeds - cost;
 
     Widget line(String label, String value, {Color? color, bool bold = false}) =>
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 3),
-          child: Row(children: [
-            Expanded(
-              child: Text(label,
-                  style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w600,
-                      color: context.textSecondary)),
-            ),
-            Text(value,
-                style: TextStyle(
-                    fontSize: bold ? 14 : 12.5,
-                    fontWeight: bold ? FontWeight.w800 : FontWeight.w700,
-                    color: color ?? context.textPrimary)),
-          ]),
-        );
+        MoneyLine(
+            label: label,
+            value: value,
+            color: color,
+            bold: bold,
+            padding: const EdgeInsets.symmetric(vertical: 3));
 
     return CaptureFrame(
       title: l10n.proposalTitle,
       subtitle: pf.name,
-      headerBody: Row(
-        crossAxisAlignment: CrossAxisAlignment.baseline,
-        textBaseline: TextBaseline.alphabetic,
-        children: [
-          Text(_pp(maxNow),
-              style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: context.onBrandSecondary)),
-          const SizedBox(width: 9),
-          Icon(Icons.arrow_forward, size: 16, color: context.onBrandSecondary),
-          const SizedBox(width: 9),
-          Text(_pp(maxAfter),
-              style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.8,
-                  color: within
-                      ? context.onBrandAccent
-                      : context.onBrandWarning)),
-          const SizedBox(width: 9),
-          Flexible(
-            child: Text(isKo ? '조정 후 최대 편차' : 'drift after',
-                style: TextStyle(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w600,
-                    color: context.onBrandSecondary),
-                overflow: TextOverflow.ellipsis),
-          ),
-        ],
-      ),
+      // 화면이 쓰는 머리글 그대로 — 따로 그리면 또 어긋난다. 실제로
+      // 편차 숫자가 22 대 24로 갈라졌고, 허용 배지와 「N건을 모두
+      // 주문했을 때」 줄이 그림에서 빠져 있었다.
+      headerBody: _buildHeadline(context, pf, rb, trades),
       children: [
         CaptureCard(
           title: l10n.togetherNTrades(trades.length),
@@ -975,21 +925,9 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
       }
     }
 
+    // 캡처와 **같은 위젯**을 쓴다. 각자 그리던 때 11.5 대 12.5로 갈라졌다.
     Widget line(String label, String value, {Color? color, bool bold = false}) =>
-        Row(children: [
-          Expanded(
-            child: Text(label,
-                style: TextStyle(
-                    fontSize: 11.5,
-                    fontWeight: bold ? FontWeight.w700 : FontWeight.w600,
-                    color: bold ? context.textPrimary : context.textSecondary)),
-          ),
-          Text(value,
-              style: TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: bold ? FontWeight.w700 : FontWeight.w600,
-                  color: color ?? context.textPrimary)),
-        ]);
+        MoneyLine(label: label, value: value, color: color, bold: bold);
 
     return [
       Container(

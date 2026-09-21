@@ -20,6 +20,47 @@ import 'app_logo.dart';
 ///
 /// 그림에는 화면의 것 중 **광고·탭바·누를 수 있는 표시**를 뺀다.
 /// 그림에서는 누를 수 없으니 화살표가 있으면 거짓말이 된다.
+/// 그림 맨 위의 이름 — **그림에만 있는 것**이다.
+///
+/// 화면에서는 앱바가 이 일을 하므로 화면 위젯을 가져다 쓸 수가 없다. 대신
+/// **한 곳에서만 꾸민다** — 캡처마다 손으로 적어 두면 어떤 그림은 w700,
+/// 어떤 그림은 w800이 된다(실제로 그랬다).
+class CaptureTitle extends StatelessWidget {
+  final String text;
+
+  const CaptureTitle({super.key, required this.text});
+
+  @override
+  Widget build(BuildContext context) => Text(
+        text,
+        style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.3,
+            color: Colors.white),
+        overflow: TextOverflow.ellipsis,
+      );
+}
+
+/// 그림에만 붙이는 한 줄 설명 (「세로선이 목표 비중」처럼).
+///
+/// 화면에는 바로 옆에 목록이 있어 설명할 필요가 없지만, 그림은 혼자
+/// 돌아다니므로 읽는 법이 붙어야 한다. **꾸밈은 여기서만** 한다.
+class CaptureNote extends StatelessWidget {
+  final String text;
+
+  const CaptureNote({super.key, required this.text});
+
+  @override
+  Widget build(BuildContext context) => Text(
+        text,
+        style: TextStyle(
+            fontSize: DS.body,
+            fontWeight: FontWeight.w500,
+            color: context.textSecondary),
+      );
+}
+
 class CaptureFrame extends StatelessWidget {
   /// 딥그린 머리에 들어갈 제목 (`위탁계좌`, `조정 제안`…).
   final String title;

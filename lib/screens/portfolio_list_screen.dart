@@ -271,42 +271,12 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
   ///
   /// 광고와 탭바, 조정/결산 카드만 뺀다. 그건 화면의 것이지 자산의 것이 아니다.
   ///
-  /// **여기서 읽은 값만 쓴다.** 이 위젯은 `captureFromWidget`이 만드는 딴
-  /// 트리에서 그려져 Provider도 Localizations도 없다 — 안에서 찾으면 릴리즈
-  /// 빌드에서 회색 사각형이 저장된다(결산 카드에서 실제로 그랬다).
+  /// 머리글과 행은 **화면이 쓰는 것을 그대로 부른다.** 예전에는 여기서
+  /// 값을 다시 세고 같은 모양을 손으로 옮겨 적었는데, 화면만 고쳐지는 사이
+  /// 총액이 35 대 28로, 환율 배지는 아예 없는 그림이 나갔다.
   Widget _buildMainCapture(List<Portfolio> portfolios) {
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    // 화면과 **같은 문구**를 쓴다. 캡처에만 글자를 손으로 적어 두면 말이 갈린다.
-    final l10n = context.l10n;
-    final pnlColors = context.read<PnlColorNotifier>();
-    final displayCur = context.read<MainCurrencyNotifier>().currency;
     final sort = context.read<PortfolioSortNotifier>().sort;
     final ordered = sortPortfolios(portfolios, sort);
-
-    double totalKrw = 0, pnlKrw = 0, dayKrw = 0;
-    bool hasAvg = false, hasDay = false;
-    for (final pf in portfolios) {
-      totalKrw += _toKrw(pf.totalValue, pf);
-      if (pf.hasAvgData) {
-        pnlKrw += _toKrw(pf.unrealizedPnL, pf);
-        hasAvg = true;
-      }
-      if (pf.hasDayData) {
-        dayKrw += _toKrw(pf.dayPnL, pf);
-        hasDay = true;
-      }
-    }
-    final rates = portfolios
-        .where((p) => p.exchangeRate > 0)
-        .map((p) => p.exchangeRate)
-        .toList();
-    final avgRate =
-        rates.isNotEmpty ? rates.reduce((a, b) => a + b) / rates.length : 1370.0;
-    final total = displayCur == 'USD' ? totalKrw / avgRate : totalKrw;
-    final pnl = displayCur == 'USD' ? pnlKrw / avgRate : pnlKrw;
-    final day = displayCur == 'USD' ? dayKrw / avgRate : dayKrw;
-    final pnlPct = (total - pnl) > 0 ? pnl / (total - pnl) * 100 : 0.0;
-    final dayPct = (total - day) > 0 ? day / (total - day) * 100 : 0.0;
 
 
     return Container(
@@ -325,63 +295,9 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             AppLogo(iconSize: 20, textColor: Colors.white),
             const SizedBox(height: 14),
-            Text(isKo ? '총 자산' : 'Total assets',
-                style: TextStyle(
-                    fontSize: DS.body,
-                    fontWeight: FontWeight.w600,
-                    color: context.onBrandSecondary)),
-            const SizedBox(height: 4),
-            Text(fmtMoney(total, displayCur),
-                style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    letterSpacing: -1.2,
-                    height: 1.08)),
-            if (hasAvg || hasDay) ...[
-              const SizedBox(height: 14),
-              // **화면과 같은 위젯을 부른다.** 예전에는 여기에 같은 모양을
-              // 손으로 옮겨 적어 뒀는데, 화면 쪽만 고치는 사이 조용히 갈라져
-              // 3줄 대 2줄이 됐다. 나란히 놓고 볼 일이 없어 눈치채지 못한다.
-              Row(children: [
-                if (hasAvg)
-                  Expanded(
-                      child: BrandStatTile(
-                          label: l10n.profitLoss,
-                          amount: pnl,
-                          pct: pnlPct,
-                          currency: displayCur,
-                          pnlColors: pnlColors)),
-                if (hasAvg && hasDay) const SizedBox(width: 9),
-                if (hasDay)
-                  Expanded(
-                      child: BrandStatTile(
-                          label: l10n.dayChange,
-                          amount: day,
-                          pct: dayPct,
-                          currency: displayCur,
-                          pnlColors: pnlColors)),
-              ]),
-            ],
-            // 화면에 있는 것은 그림에도 있어야 한다. 추이선이 빠지면
-            // 「지금 얼마인가」만 남고 「어떻게 왔는가」가 사라진다.
-            //
-            // 선 아래 **기간과 기준 시각도 같이 남긴다.** 그림은 남한테
-            // 보여주는 것이라, 며칠치 선인지·언제 시세인지 없으면 받는
-            // 쪽이 알 수가 없다.
-            if (_history.length >= 2) ...[
-              const SizedBox(height: 14),
-              SparklinePanel(
-                forCapture: true,
-                points: _history,
-                period: _sparkPeriod,
-                asOf: _captureAsOf(portfolios),
-                // 화면과 같은 규칙 — 올랐으면 상승색, 내렸으면 하락색
-                color: _history.last.totalKrw >= _history.first.totalKrw
-                    ? pnlColors.onBrandPositive
-                    : pnlColors.onBrandNegative,
-              ),
-            ],
+            // 화면이 쓰는 머리글을 그대로 쓴다 — 여기서 따로 그리면 또
+            // 어긋난다. 실제로 총액 35→28, 환율 배지 누락으로 갈라졌었다.
+            _buildTotalAssets(context, portfolios, forCapture: true),
           ]),
         ),
 
@@ -605,7 +521,16 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
     );
   }
 
-  Widget _buildTotalAssets(BuildContext context, List<Portfolio> portfolios) {
+  /// 총자산 머리글 — **화면과 캡처가 같이 쓴다.**
+  ///
+  /// `forCapture: true`면 그림용이다. 기간을 바꾸는 동작과 「만드는 중」
+  /// 표시만 빠지고 나머지는 같다.
+  ///
+  /// 예전에는 캡처가 이 블록을 손으로 옮겨 적었다. 그 사이 화면만 고쳐져
+  /// **총액이 35 대 28로, 「총 자산」이 12.5 대 11.5로 갈라졌고, 환율
+  /// 배지(1 USD = ₩1,439)는 그림에서 통째로 빠졌다.**
+  Widget _buildTotalAssets(BuildContext context, List<Portfolio> portfolios,
+      {bool forCapture = false}) {
     final l10n = context.l10n;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final pnlColors = context.watch<PnlColorNotifier>();
@@ -740,13 +665,17 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
         ],
         const SizedBox(height: 14),
         SparklinePanel(
+          forCapture: forCapture,
           points: _history,
           period: _sparkPeriod,
-          onPeriodChanged: (p) {
-            setState(() => _sparkPeriod = p);
-            _loadHistory();
-          },
-          building: context.watch<PortfolioProvider>().backfilling,
+          onPeriodChanged: forCapture
+              ? null
+              : (p) {
+                  setState(() => _sparkPeriod = p);
+                  _loadHistory();
+                },
+          building:
+              forCapture ? false : context.watch<PortfolioProvider>().backfilling,
           asOf: _captureAsOf(portfolios),
           color: _history.length >= 2 &&
                   _history.last.totalKrw >= _history.first.totalKrw
