@@ -185,7 +185,7 @@
   "menuGroupData": "Data",
   "menuGroupThisPortfolio": "This portfolio",
   "editPortfolios": "Edit portfolio list",
-  "editPortfoliosHint": "Drag to reorder; use \u22ee to rename, duplicate, or delete",
+  "editPortfoliosHint": "Drag to reorder; use ⋮ to rename, duplicate, or delete",
   "reorderPortfolios": "Reorder portfolios",
   "reorderItems": "Edit holdings list",
   "holdingQty": "Quantity",
@@ -642,7 +642,7 @@
   "cashCheckAtBroker": "Copy the balance from your broker. The app does not calculate it for you.",
   "cashInWeightTitle": "Count toward weights",
   "cashInWeightOn": "Cash gets a target weight and takes part in rebalancing.",
-  "cashInWeightOff": "Excluded from weights, and never spent when rebalancing — use \u00abAdd cash\u00bb in the plan to spend it.",
+  "cashInWeightOff": "Excluded from weights, and never spent when rebalancing — use «Add cash» in the plan to spend it.",
   "cashCheckAfterTrade": "Cash is not calculated for you. Check your broker after the fills and update it.",
   "cashAfterAdjust": "Cash after adjusting",
   "cashSharedNote": "The buys draw on the same cash — computing them separately does not add up.",
@@ -950,6 +950,15 @@
   "@notifDayOfMonth": {
     "placeholders": {
       "day": {
+        "type": "int"
+      }
+    }
+  },
+  "captureTruncated": "…and {count} more in the app",
+  "@captureTruncated": {
+    "description": "캡처가 목록을 잘랐을 때. 잘린 줄 없이 두면 그림이 전부인 줄 안다.",
+    "placeholders": {
+      "count": {
         "type": "int"
       }
     }

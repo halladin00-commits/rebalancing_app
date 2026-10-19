@@ -450,10 +450,14 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
 
     final all = [...item.transactions]..sort((a, b) => b.date.compareTo(a.date));
     final txs = limit == null ? all : all.take(limit).toList();
+    final hidden = all.length - txs.length;
     return ListCard(
       rows: [
         for (final t in txs)
           _buildTxRow(context, pf, item, t, tappable: tappable),
+        // **잘렸으면 잘렸다고 말한다.** 제목은 「20건」인데 다섯 줄만 그려
+        // 두면 그림을 보는 사람은 그게 전부인 줄 안다.
+        if (hidden > 0) CaptureTruncated(count: hidden),
       ],
     );
   }

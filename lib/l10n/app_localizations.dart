@@ -2443,6 +2443,12 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'모든 결산 알림에 적용됩니다'**
   String get settlementNotifTimeHint;
+
+  /// 캡처가 목록을 잘랐을 때. 잘린 줄 없이 두면 그림이 전부인 줄 안다.
+  ///
+  /// In ko, this message translates to:
+  /// **'…외 {count}건은 앱에서 보세요'**
+  String captureTruncated(int count);
 }
 
 class _AppLocalizationsDelegate

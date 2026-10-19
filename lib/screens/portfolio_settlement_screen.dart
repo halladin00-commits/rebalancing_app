@@ -857,6 +857,10 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
     final range = SettlementService.periodRange(_period, _selected);
     final inProgress = r?.isCurrentPeriod ?? !range.end.isBefore(DateTime.now());
     final cur = pf?.currency ?? 'KRW';
+    // 결산에서 빠진 종목 — 화면과 같은 식으로 구한다
+    final excluded = pf == null
+        ? const <PortfolioItem>[]
+        : SettlementService.excludedItems(pf, _period, _selected);
 
     return SettlementCaptureCard(
       title: pf?.name ?? '',
@@ -883,6 +887,13 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
       rowsTitle: _isKo ? '종목별 기여' : 'Contribution by holding',
       // 화면 제목 오른쪽에 붙는 말. 빠지면 수수료가 반영된 값으로 읽힌다.
       rowsNote: _isKo ? '수수료 전 값' : 'before fees',
+      // 결산에서 빠진 종목은 **그림에도** 밝힌다. 화면에만 띠가 있으면
+      // 그림을 받아 본 사람은 틀린 숫자를 맞는 줄 알고 본다.
+      excludedItems: excluded,
+      excludedAmount: pf == null
+          ? ''
+          : fmtMoney(
+              SettlementService.excludedValue(pf, excluded), pf.currency),
       isKo: _isKo,
       positiveColor: context.read<PnlColorNotifier>().positiveColor,
       negativeColor: context.read<PnlColorNotifier>().negativeColor,
@@ -890,6 +901,9 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
       pnlColors: context.read<PnlColorNotifier>(),
       // 막대 길이는 **화면과 같은 분모**로 낸다. 잘라낸 8개만으로 다시
       // 재면 막대가 화면보다 길어진다.
+      // 여덟 줄까지만 — 넘으면 **잘렸다고 말한다.** 말없이 자르면 그림을
+      // 보는 사람은 그게 전부인 줄 안다 (10종목 포트에서 2개가 사라졌다).
+      hiddenRows: ((r?.contributions.length ?? 0) - 8).clamp(0, 999),
       rows: [
         for (final c in (r?.contributions ?? const []).take(8))
           CaptureRow(

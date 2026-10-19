@@ -634,8 +634,8 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
 
   // ── 차트 카드 (기간 선택 컨트롤) ──
 
-  /// 결산에서 빠진 종목을 밝힌다 — 전 포트를 합쳐서 센다.
-  Widget _buildExcluded(BuildContext context) {
+  /// 결산에서 빠진 종목 — **화면과 캡처가 같은 식을 쓴다.**
+  ({List<PortfolioItem> items, double value}) _excludedAll() {
     final excluded = <PortfolioItem>[];
     double value = 0;
     for (final pf in widget.portfolios) {
@@ -646,6 +646,14 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       final v = SettlementService.excludedValue(pf, e);
       value += pf.currency == 'USD' ? v * pf.exchangeRate : v;
     }
+    return (items: excluded, value: value);
+  }
+
+  /// 결산에서 빠진 종목을 밝힌다 — 전 포트를 합쳐서 센다.
+  Widget _buildExcluded(BuildContext context) {
+    final x = _excludedAll();
+    final excluded = x.items;
+    final value = x.value;
     if (excluded.isEmpty) return const SizedBox.shrink();
 
     return Padding(
@@ -1048,6 +1056,9 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       chartRangeLabel: _fullRangeLabel(
           range.start, inProgress ? DateTime.now() : range.end),
       rowsTitle: _isKo ? '포트별 기여' : 'Contribution by portfolio',
+      // 결산에서 빠진 종목은 **그림에도** 밝힌다.
+      excludedItems: _excludedAll().items,
+      excludedAmount: fmtMoney(_excludedAll().value, 'KRW'),
       isKo: _isKo,
       positiveColor: context.read<PnlColorNotifier>().positiveColor,
       negativeColor: context.read<PnlColorNotifier>().negativeColor,
@@ -1055,6 +1066,9 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       pnlColors: context.read<PnlColorNotifier>(),
       // 막대 길이는 **화면과 같은 분모**로 낸다. 잘라낸 8개만으로 다시
       // 재면 막대가 화면보다 길어진다.
+      // 여덟 줄까지만 — 넘으면 **잘렸다고 말한다.** 말없이 자르면 그림을
+      // 보는 사람은 그게 전부인 줄 안다 (10종목 포트에서 2개가 사라졌다).
+      hiddenRows: ((r?.contributions.length ?? 0) - 8).clamp(0, 999),
       rows: [
         for (final c in (r?.contributions ?? const []).take(8))
           CaptureRow(

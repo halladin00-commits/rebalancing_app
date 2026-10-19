@@ -1346,4 +1346,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get settlementNotifTimeHint => '모든 결산 알림에 적용됩니다';
+
+  @override
+  String captureTruncated(int count) {
+    return '…외 $count건은 앱에서 보세요';
+  }
 }

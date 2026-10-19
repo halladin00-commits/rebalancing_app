@@ -1378,4 +1378,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settlementNotifTimeHint => 'Applies to all settlement reminders';
+
+  @override
+  String captureTruncated(int count) {
+    return '…and $count more in the app';
+  }
 }

@@ -61,6 +61,29 @@ class CaptureNote extends StatelessWidget {
       );
 }
 
+/// `…외 15건은 앱에서 보세요` — 캡처가 목록을 잘랐을 때 마지막에 붙는 줄.
+///
+/// 그림은 혼자 돌아다닌다. 잘렸다는 말이 없으면 **그게 전부인 줄 안다** —
+/// 거래 20건짜리 종목의 그림이 다섯 줄만 보여주고, 열 종목짜리 포트의
+/// 결산이 여덟 줄만 보여줬다.
+class CaptureTruncated extends StatelessWidget {
+  final int count;
+
+  const CaptureTruncated({super.key, required this.count});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 11),
+        child: Text(
+          context.l10n.captureTruncated(count),
+          style: TextStyle(
+              fontSize: DS.caption,
+              fontWeight: FontWeight.w600,
+              color: context.textTertiary),
+        ),
+      );
+}
+
 class CaptureFrame extends StatelessWidget {
   /// 딥그린 머리에 들어갈 제목 (`위탁계좌`, `조정 제안`…).
   final String title;

@@ -205,7 +205,9 @@
   },
   "withinTolerance": "허용 안",
   "calcBasisTitle": "계산 기준",
-  "@calcBasisTitle": {"description": "접히는 안내 묶음의 제목"},
+  "@calcBasisTitle": {
+    "description": "접히는 안내 묶음의 제목"
+  },
   "roundingWholeShares": "단주는 반올림",
   "roundingWholeSharesDesc": "1주 단위로만 계산합니다. 목표 비중에 0에 가장 가까운 수량으로 맞춥니다.",
   "roundingFractional": "소수점 거래",
@@ -893,7 +895,13 @@
   "sortManualNote": "직접 배치 후에는 금액이 바뀌어도 순서가 그대로입니다.",
   "rename": "이름 변경",
   "duplicatedTo": "{name} (으)로 복제했습니다",
-  "@duplicatedTo": {"placeholders": {"name": {"type": "String"}}},
+  "@duplicatedTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "duplicate": "복제",
   "copySuffix": "(복사)",
   "feeLabel": "수수료",
@@ -952,6 +960,15 @@
   "@notifDayOfMonth": {
     "placeholders": {
       "day": {
+        "type": "int"
+      }
+    }
+  },
+  "captureTruncated": "…외 {count}건은 앱에서 보세요",
+  "@captureTruncated": {
+    "description": "캡처가 목록을 잘랐을 때. 잘린 줄 없이 두면 그림이 전부인 줄 안다.",
+    "placeholders": {
+      "count": {
         "type": "int"
       }
     }

@@ -249,6 +249,14 @@ class _PortfolioRebalanceScreenState extends State<PortfolioRebalanceScreen> {
                     isLast: i == drifts.length - 1),
             ],
           ),
+        ] else ...[
+          // **빈 그림을 내보내지 않는다.** 시세가 없으면 머리글만 남아
+          // 딥그린 띠 한 줄짜리 그림이 저장됐다 — 받은 사람은 그게 뭔지
+          // 알 수가 없다. 화면이 하는 말을 그림에도 그대로 싣는다.
+          CaptureCard(
+            padding: const EdgeInsets.fromLTRB(16, 22, 16, 22),
+            children: [_buildNoPrices(context, isKo)],
+          ),
         ],
       ],
     );

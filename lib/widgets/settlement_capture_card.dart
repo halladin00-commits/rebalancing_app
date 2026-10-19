@@ -3,11 +3,14 @@ import 'package:flutter/material.dart';
 import 'settlement_header.dart';
 
 import '../main.dart';
+import '../models/portfolio.dart';
 import '../theme/design_system.dart';
 import 'settlement_chart.dart';
 
 import '../services/settlement_service.dart';
 import 'app_logo.dart';
+import 'excluded_banner.dart';
+import 'capture_frame.dart';
 import 'list_card.dart';
 import 'contribution_row.dart';
 
@@ -75,6 +78,22 @@ class SettlementCaptureCard extends StatelessWidget {
   /// **화면에는 있는데 그림에만 없던 것**이다. 「수수료 전 값」이 빠지면
   /// 그림을 보는 사람은 수수료가 반영된 값으로 읽는다.
   final String? rowsNote;
+
+  /// 결산에서 빠진 종목. 비어 있으면 띠를 안 그린다.
+  ///
+  /// **그림에 꼭 들어가야 한다.** 결산 숫자가 일부 종목을 빼고 낸 값인데
+  /// 그 사실이 그림에 없으면, 받아 본 사람은 **틀린 숫자를 맞는 줄 알고**
+  /// 본다. 화면에는 띠가 있었는데 그림에만 없었다.
+  final List<PortfolioItem> excludedItems;
+
+  /// 빠진 종목의 평가액 합계 (서식 입힌 문자열).
+  final String excludedAmount;
+
+  /// 목록에서 잘라낸 줄 수. 0이면 안 그린다.
+  ///
+  /// 그림은 혼자 돌아다니므로 **잘렸다는 말이 없으면 그게 전부인 줄 안다.**
+  /// 열 종목짜리 포트의 결산이 여덟 줄만 보여주고 있었다.
+  final int hiddenRows;
   final List<CaptureRow> rows;
 
   /// 화면에 있는 막대그래프. 없으면 그리지 않는다.
@@ -120,6 +139,9 @@ class SettlementCaptureCard extends StatelessWidget {
     required this.currency,
     required this.rowsTitle,
     this.rowsNote,
+    this.hiddenRows = 0,
+    this.excludedItems = const [],
+    this.excludedAmount = '',
     this.bars = const [],
     this.selectedBar,
     this.showYearBoundary = false,
@@ -221,6 +243,13 @@ class SettlementCaptureCard extends StatelessWidget {
               const SizedBox(height: 14),
             ],
 
+            // ── 결산에서 빠진 종목 ──
+            if (excludedItems.isNotEmpty) ...[
+              // 누르는 링크는 뺀다 — 그림에서는 못 누른다
+              ExcludedBanner(items: excludedItems, amountText: excludedAmount),
+              const SizedBox(height: 14),
+            ],
+
             // ── 기여 ──
             if (rows.isNotEmpty) ...[
               // 화면이 쓰는 구역 제목 위젯 그대로
@@ -236,7 +265,9 @@ class SettlementCaptureCard extends StatelessWidget {
                     const EdgeInsets.symmetric(horizontal: DS.cardPaddingH),
                 child: Column(children: [
                   for (var i = 0; i < rows.length; i++)
-                    _row(context, rows[i], isLast: i == rows.length - 1),
+                    _row(context, rows[i],
+                        isLast: hiddenRows == 0 && i == rows.length - 1),
+                  if (hiddenRows > 0) CaptureTruncated(count: hiddenRows),
                 ]),
               ),
             ],
