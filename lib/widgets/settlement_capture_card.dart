@@ -8,6 +8,7 @@ import 'settlement_chart.dart';
 
 import '../services/settlement_service.dart';
 import 'app_logo.dart';
+import 'list_card.dart';
 import 'contribution_row.dart';
 
 /// 기여 한 줄. 포트별이든 종목별이든 같은 모양으로 그린다.
@@ -68,6 +69,12 @@ class SettlementCaptureCard extends StatelessWidget {
 
   /// 기여 목록 제목 — `포트별 기여` / `종목별 기여`.
   final String rowsTitle;
+
+  /// 구역 제목 오른쪽의 보조 설명 (`수수료 전 값`처럼).
+  ///
+  /// **화면에는 있는데 그림에만 없던 것**이다. 「수수료 전 값」이 빠지면
+  /// 그림을 보는 사람은 수수료가 반영된 값으로 읽는다.
+  final String? rowsNote;
   final List<CaptureRow> rows;
 
   /// 화면에 있는 막대그래프. 없으면 그리지 않는다.
@@ -112,6 +119,7 @@ class SettlementCaptureCard extends StatelessWidget {
     required this.inProgress,
     required this.currency,
     required this.rowsTitle,
+    this.rowsNote,
     this.bars = const [],
     this.selectedBar,
     this.showYearBoundary = false,
@@ -215,12 +223,8 @@ class SettlementCaptureCard extends StatelessWidget {
 
             // ── 기여 ──
             if (rows.isNotEmpty) ...[
-              Text(rowsTitle,
-                  style: TextStyle(
-                      fontSize: DS.sectionTitle,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.2,
-                      color: context.textPrimary)),
+              // 화면이 쓰는 구역 제목 위젯 그대로
+              SectionTitle(title: rowsTitle, trailing: rowsNote),
               const SizedBox(height: 9),
               Container(
                 decoration: BoxDecoration(

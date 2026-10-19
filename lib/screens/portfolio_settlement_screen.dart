@@ -875,8 +875,14 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
       bars: _buildBars(),
       selectedBar: _selected,
       showYearBoundary: _period != SettlementPeriod.yearly,
-      chartRangeLabel: _fullRangeLabel(range.start, range.end),
+      // **진행 중이면 오늘까지**를 쓴다 — 화면과 같은 규칙이다.
+      // 기간 끝까지로 적으면 그림이 **실제보다 넓은 기간**의 값인 것처럼
+      // 말한다. 10월 19일에 뽑은 그림이 「10.01 – 10.31」이라고 했다.
+      chartRangeLabel: _fullRangeLabel(
+          range.start, inProgress ? DateTime.now() : range.end),
       rowsTitle: _isKo ? '종목별 기여' : 'Contribution by holding',
+      // 화면 제목 오른쪽에 붙는 말. 빠지면 수수료가 반영된 값으로 읽힌다.
+      rowsNote: _isKo ? '수수료 전 값' : 'before fees',
       isKo: _isKo,
       positiveColor: context.read<PnlColorNotifier>().positiveColor,
       negativeColor: context.read<PnlColorNotifier>().negativeColor,

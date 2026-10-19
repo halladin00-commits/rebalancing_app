@@ -154,7 +154,21 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
           _headerBody(context, pf, item, context.read<PnlColorNotifier>()),
       // 요약 카드도 화면과 같은 것을 그대로 쓴다. 비슷하게 다시 그렸다가
       // 「거래 기준」 두 줄과 비중의 `+0.13%p`가 빠진 적이 있다.
-      children: [_buildSummaryCard(context, pf, item)],
+      children: [
+        _buildSummaryCard(context, pf, item),
+        // **거래 내역도 넣는다.** 화면에는 바로 아래 있는데 그림에만 없었다 —
+        // 수량과 평단이 어디서 나온 값인지 그림만 보고는 알 수 없었다.
+        // 최근 5건까지만 — 수십 건이면 그림이 한없이 길어진다.
+        if (item.transactions.isNotEmpty) ...[
+          const SizedBox(height: 13),
+          SectionTitle(
+            title: context.l10n.transactionHistory,
+            trailing: context.l10n.txCountLabel(item.transactions.length),
+          ),
+          const SizedBox(height: DS.cardGap),
+          _buildTransactions(context, pf, item, tappable: false, limit: 5),
+        ],
+      ],
     );
   }
 
@@ -401,8 +415,13 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
 
   // ── 거래 내역 ──
 
+  /// 거래 내역 — **화면과 캡처가 같이 쓴다.**
+  ///
+  /// `limit`을 주면 그만큼만 그린다. 그림은 혼자 돌아다니므로 수십 건을
+  /// 다 담으면 한없이 길어진다. 다른 캡처도 같은 이유로 잘라 쓴다.
   Widget _buildTransactions(
-      BuildContext context, Portfolio pf, PortfolioItem item) {
+      BuildContext context, Portfolio pf, PortfolioItem item,
+      {bool tappable = true, int? limit}) {
     final l10n = context.l10n;
     if (item.transactions.isEmpty) {
       return Container(
@@ -429,30 +448,36 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
       );
     }
 
-    final txs = [...item.transactions]..sort((a, b) => b.date.compareTo(a.date));
+    final all = [...item.transactions]..sort((a, b) => b.date.compareTo(a.date));
+    final txs = limit == null ? all : all.take(limit).toList();
     return ListCard(
       rows: [
-        for (final t in txs) _buildTxRow(context, pf, item, t),
+        for (final t in txs)
+          _buildTxRow(context, pf, item, t, tappable: tappable),
       ],
     );
   }
 
   Widget _buildTxRow(BuildContext context, Portfolio pf, PortfolioItem item,
-      StockTransaction t) {
+      StockTransaction t,
+      {bool tappable = true}) {
     final pnlColors = context.watch<PnlColorNotifier>();
     final l10n = context.l10n;
     final isBuy = t.quantity >= 0;
     final qty = t.quantity.abs();
     final amount = qty * t.price;
 
-    return InkWell(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => TransactionFormScreen(
-              portfolio: pf, item: item, transaction: t),
-        ),
-      ),
+    // 그림에서는 못 누르니 누르는 동작을 달지 않는다
+    final row = InkWell(
+      onTap: tappable
+          ? () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => TransactionFormScreen(
+                      portfolio: pf, item: item, transaction: t),
+                ),
+              )
+          : null,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 11),
         child: Row(children: [
@@ -515,6 +540,8 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
         ]),
       ),
     );
+  
+    return row;
   }
 
   // ── more_vert 메뉴 ──
