@@ -8,6 +8,7 @@ import '../l10n/app_localizations.dart';
 import '../utils/elapsed.dart';
 import '../services/consent_service.dart';
 import '../services/notification_service.dart';
+import '../services/review_service.dart';
 import '../services/storage_service.dart';
 import '../theme/design_system.dart';
 import '../widgets/app_logo.dart';
@@ -236,6 +237,14 @@ class _MoreScreenState extends State<MoreScreen> {
                         label: _isKo ? '오픈소스 라이선스' : 'Open source licenses',
                         value: '',
                         onTap: _openLicenses,
+                      ),
+                      // 만족한 사람이 **스스로** 별점을 남길 길. 별점 창은
+                      // Google이 띄울지 정하고 횟수도 막지만, 이건 언제든 된다.
+                      _row(
+                        context,
+                        label: _isKo ? '앱 평가하기' : 'Rate this app',
+                        value: '',
+                        onTap: _openStorePage,
                       ),
                       // 문의를 받을 때 제일 먼저 물어보게 되는 값이다.
                       _row(
@@ -644,6 +653,19 @@ class _MoreScreenState extends State<MoreScreen> {
             ? '브라우저를 열지 못했습니다.\n$privacyPolicyUrl'
             : 'Could not open a browser.\n$privacyPolicyUrl'),
         duration: const Duration(seconds: 8),
+      ));
+    }
+  }
+
+  /// 스토어의 앱 페이지를 연다. 못 열면 말없이 넘어가지 않는다.
+  Future<void> _openStorePage() async {
+    final ok = await ReviewService.openStorePage();
+    if (!ok && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(_isKo
+            ? '스토어를 열지 못했습니다. Play 스토어에서 Rebalancing을 검색해 주세요.'
+            : 'Could not open the store. Search for Rebalancing on Google Play.'),
+        duration: const Duration(seconds: 5),
       ));
     }
   }
