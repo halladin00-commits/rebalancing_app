@@ -22,18 +22,22 @@ v1.1.0 — The whole app, redrawn
 ✨ New
 • New icon and a redesigned interface throughout
 • A first-run intro: what target weights and thresholds mean
-• Edit target weights and thresholds right where the numbers appear
-• Save and share an image from a holding's screen too
+• Edit targets and thresholds where the numbers appear
 
 🔧 Changed calculation
-• Fixed what the threshold means. Only holdings past it are adjusted, so quantities may differ from the previous version
+• Fixed what the threshold means — only holdings past it are adjusted, so quantities may differ
+• Share counts now follow your transaction history; holdings where the two disagreed will change
 
-🔔 Reminders now arrive at 1 PM, and monthly ones can land on the last day
+🔔 Reminders arrive at 1 PM; monthly ones can land on the last day
 ```
 
-> **Do not drop the "Changed calculation" item.** Existing users notice the
+> **Do not drop either "Changed calculation" line.** Existing users notice the
 > changed quantities before they notice anything else. Left unsaid, it reads
 > as a bug.
+>
+> The second line especially: the app **silently corrects share counts** where
+> they disagreed with the transaction history. For that person, a number that
+> was right yesterday is different today.
 
 ---
 
