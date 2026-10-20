@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../main.dart';
 import '../theme/design_system.dart';
 import 'app_logo.dart';
+import 'list_card.dart';
 
 /// 저장·공유할 그림의 **공통 틀**.
 ///
@@ -171,12 +172,20 @@ class CaptureFrame extends StatelessWidget {
 /// 그림 안의 카드 하나. 화면의 카드와 같은 모양.
 class CaptureCard extends StatelessWidget {
   final String? title;
+
+  /// 제목 오른쪽의 보조 설명 (`현재 → 목표`처럼).
+  ///
+  /// **화면에는 있는데 그림에만 없던 것**이다. 빠지면 두 퍼센트 중 어느
+  /// 쪽이 지금이고 어느 쪽이 목표인지 그림만 보고는 알 수 없다.
+  final String? titleNote;
+
   final List<Widget> children;
   final EdgeInsets padding;
 
   const CaptureCard({
     super.key,
     this.title,
+    this.titleNote,
     required this.children,
     this.padding = const EdgeInsets.symmetric(horizontal: DS.cardPaddingH),
   });
@@ -185,12 +194,8 @@ class CaptureCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       if (title != null) ...[
-        Text(title!,
-            style: TextStyle(
-                fontSize: DS.sectionTitle,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.2,
-                color: context.textPrimary)),
+        // 화면이 쓰는 구역 제목 위젯 그대로
+        SectionTitle(title: title!, trailing: titleNote),
         const SizedBox(height: 9),
       ],
       Container(

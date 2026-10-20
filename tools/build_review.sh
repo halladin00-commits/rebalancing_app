@@ -21,6 +21,20 @@ if [ -n "$(git status --porcelain android/)" ]; then
   exit 1
 fi
 
+# **두 번 겹쳐 돌리지 않는다.**
+#
+# 이 스크립트는 android/ 를 잠깐 고쳤다가 끝날 때 되돌린다. 두 개가 겹치면
+# 한쪽이 되돌리는 사이 다른 쪽이 고쳐 놔서, 끝난 뒤에도 **패치가 남는다.**
+# 실제로 arm64와 x86_64를 동시에 돌렸다가 그렇게 됐다 — 그 상태로 다음
+# 빌드를 하면 스토어판에 `.review` 꼬리표가 붙는다.
+LOCK=".build_review.lock"
+if ! mkdir "$LOCK" 2>/dev/null; then
+  echo "검토용 빌드가 이미 돌고 있다. 끝난 뒤에 다시 하라." >&2
+  echo "  (멈춘 것이 확실하면: rm -rf $LOCK)" >&2
+  exit 1
+fi
+
+
 TARGET="${1:-android-arm64}"
 case "$TARGET" in
   android-arm64) ABI=arm64-v8a ;;
@@ -28,7 +42,10 @@ case "$TARGET" in
   *) echo "모르는 타깃: $TARGET" >&2; exit 1 ;;
 esac
 
-restore() { git checkout -- android/app/build.gradle.kts android/app/src/main/AndroidManifest.xml; }
+restore() {
+  git checkout -- android/app/build.gradle.kts android/app/src/main/AndroidManifest.xml
+  rmdir "$LOCK" 2>/dev/null
+}
 trap restore EXIT
 
 python - <<'PY'

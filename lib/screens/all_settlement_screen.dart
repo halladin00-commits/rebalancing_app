@@ -690,7 +690,7 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _fullRangeLabel(range.start, range.end),
+                      _chartRangeLabel(range),
                       style: TextStyle(
                           fontSize: DS.returnPct,
                           fontWeight: FontWeight.w700,
@@ -944,6 +944,17 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
         'Dec',
       ][m - 1];
 
+  /// 차트 카드의 기간 글씨 — **화면과 캡처가 같이 쓴다.**
+  ///
+  /// 이 화면은 **기간 끝까지**를 적는다. 아래 줄이 「막대를 눌러 기간 선택」
+  /// 이라 지금까지가 아니라 어느 기간인지를 말하는 자리다. 포트 결산은
+  /// 「N일 경과」를 같이 적으므로 오늘까지로 끊는다 — 규칙이 다르다.
+  ///
+  /// 한 함수로 묶어 둔다. 한쪽만 고치면 그림과 화면이 갈라진다 —
+  /// 실제로 캡처만 오늘까지로 바꿨다가 화면 10.31 / 그림 10.20이 됐다.
+  String _chartRangeLabel(({DateTime start, DateTime end}) r) =>
+      _fullRangeLabel(r.start, r.end);
+
   String _fullRangeLabel(DateTime a, DateTime b) =>
       '${a.year}.${a.month.toString().padLeft(2, '0')}.${a.day.toString().padLeft(2, '0')}'
       ' – '
@@ -1050,11 +1061,7 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       bars: _buildBars(l10n),
       selectedBar: _selected,
       showYearBoundary: _period != SettlementPeriod.yearly,
-      // **진행 중이면 오늘까지**를 쓴다 — 화면과 같은 규칙이다.
-      // 기간 끝까지로 적으면 그림이 **실제보다 넓은 기간**의 값인 것처럼
-      // 말한다. 10월 19일에 뽑은 그림이 「10.01 – 10.31」이라고 했다.
-      chartRangeLabel: _fullRangeLabel(
-          range.start, inProgress ? DateTime.now() : range.end),
+      chartRangeLabel: _chartRangeLabel(range),
       rowsTitle: _isKo ? '포트별 기여' : 'Contribution by portfolio',
       // 결산에서 빠진 종목은 **그림에도** 밝힌다.
       excludedItems: _excludedAll().items,

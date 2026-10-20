@@ -240,6 +240,8 @@ class _PortfolioRebalanceScreenState extends State<PortfolioRebalanceScreen> {
           const SizedBox(height: 14),
           CaptureCard(
             title: isKo ? '종목별 비중' : 'Weight by holding',
+            // 두 퍼센트 중 어느 쪽이 지금인지 알려주는 말. 화면에만 있었다.
+            titleNote: isKo ? '현재 → 목표' : 'current → target',
             // 화면이 쓰는 행을 그대로 쓴다 — 여기서 따로 그리면 또 어긋난다.
             // 실제로 평가금액이 빠진 채 나갔다.
             children: [

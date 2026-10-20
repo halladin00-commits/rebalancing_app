@@ -551,8 +551,7 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _fullRangeLabel(range.start,
-                          inProgress ? DateTime.now() : range.end),
+                      _chartRangeLabel(range, inProgress),
                       style: TextStyle(
                           fontSize: DS.returnPct,
                           fontWeight: FontWeight.w700,
@@ -767,6 +766,15 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
         'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
       ][m - 1];
 
+  /// 차트 카드의 기간 글씨 — **화면과 캡처가 같이 쓴다.**
+  ///
+  /// 이 화면은 **진행 중이면 오늘까지** 끊는다. 바로 아래에 「N일 경과」를
+  /// 같이 적으므로, 기간 끝까지로 쓰면 아직 안 온 날까지 센 값처럼 보인다.
+  /// 전체 결산은 규칙이 다르다 — 거기선 기간 끝까지를 쓴다.
+  String _chartRangeLabel(
+          ({DateTime start, DateTime end}) r, bool inProgress) =>
+      _fullRangeLabel(r.start, inProgress ? DateTime.now() : r.end);
+
   String _fullRangeLabel(DateTime a, DateTime b) =>
       '${a.year}.${a.month.toString().padLeft(2, '0')}.${a.day.toString().padLeft(2, '0')}'
       ' – '
@@ -879,11 +887,7 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
       bars: _buildBars(),
       selectedBar: _selected,
       showYearBoundary: _period != SettlementPeriod.yearly,
-      // **진행 중이면 오늘까지**를 쓴다 — 화면과 같은 규칙이다.
-      // 기간 끝까지로 적으면 그림이 **실제보다 넓은 기간**의 값인 것처럼
-      // 말한다. 10월 19일에 뽑은 그림이 「10.01 – 10.31」이라고 했다.
-      chartRangeLabel: _fullRangeLabel(
-          range.start, inProgress ? DateTime.now() : range.end),
+      chartRangeLabel: _chartRangeLabel(range, inProgress),
       rowsTitle: _isKo ? '종목별 기여' : 'Contribution by holding',
       // 화면 제목 오른쪽에 붙는 말. 빠지면 수수료가 반영된 값으로 읽힌다.
       rowsNote: _isKo ? '수수료 전 값' : 'before fees',

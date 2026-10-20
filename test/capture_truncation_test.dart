@@ -39,6 +39,30 @@ void main() {
 
   _excludedBannerReachesCapture();
 
+  /// **차트 기간 글씨는 화면과 캡처가 같은 함수를 써야 한다.**
+  ///
+  /// 두 결산 화면이 **서로 다른 규칙**을 쓴다 — 포트 결산은 오늘까지로
+  /// 끊고(「N일 경과」를 같이 적으므로), 전체 결산은 기간 끝까지를 쓴다.
+  /// 캡처만 한쪽 규칙으로 바꿨다가 화면 10.31 / 그림 10.20이 됐다.
+  ///
+  /// 각 화면 안에서 **한 함수**를 둘이 같이 쓰면 갈라질 수가 없다.
+  test('차트 기간 글씨를 화면과 캡처가 같은 함수로 낸다', () {
+    for (final f in [
+      'lib/screens/all_settlement_screen.dart',
+      'lib/screens/portfolio_settlement_screen.dart',
+    ]) {
+      final src = File(f).readAsStringSync();
+      final calls = RegExp(r'_chartRangeLabel\(').allMatches(src).length;
+      // 정의 1 + 화면 1 + 캡처 1 = 3
+      expect(calls, greaterThanOrEqualTo(3),
+          reason: '${f.split('/').last}: 화면과 캡처가 같은 함수를 안 쓴다');
+      // 날짜를 직접 만드는 곳이 함수 밖에 또 있으면 갈라질 수 있다
+      final direct = RegExp(r'_fullRangeLabel\(').allMatches(src).length;
+      expect(direct, lessThanOrEqualTo(2),
+          reason: '${f.split('/').last}: _fullRangeLabel 을 여러 곳에서 직접 부른다');
+    }
+  });
+
   test('「잘림」 문구가 두 언어에 다 있다', () {
     for (final f in ['lib/l10n/app_ko.arb', 'lib/l10n/app_en.arb']) {
       expect(File(f).readAsStringSync(), contains('captureTruncated'),
