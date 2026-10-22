@@ -26,3 +26,9 @@
 -keep class com.google.gson.** { *; }
 -keep,allowobfuscation,allowshrinking class com.google.gson.reflect.TypeToken
 -keep,allowobfuscation,allowshrinking class * extends com.google.gson.reflect.TypeToken
+
+# 잔고 캡처 글자 읽기 — 플러그인은 중국어·일본어·힌디어 모델도 부를 수 있게
+# 짜여 있지만 앱에는 한국어 모델만 넣었다. 없는 쪽은 부르지 않으므로 경고만 끈다.
+-dontwarn com.google.mlkit.vision.text.chinese.**
+-dontwarn com.google.mlkit.vision.text.devanagari.**
+-dontwarn com.google.mlkit.vision.text.japanese.**
