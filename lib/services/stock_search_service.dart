@@ -40,6 +40,15 @@ class StockSearchService {
     _checkAndUpdate();
   }
 
+  /// 국내 종목 전체 — 잔고 캡처에서 읽은 이름을 종목에 대 보는 데 쓴다.
+  static Future<List<StockSearchResult>> krStocks() async {
+    if (!_initialized) await initialize();
+    return [
+      for (final e in _krNameMap.entries)
+        StockSearchResult(ticker: e.key, name: e.value, market: 'KR')
+    ];
+  }
+
   /// 종목 검색 — Hybrid 방식
   /// 한글 포함: 로컬 JSON (Yahoo Finance가 한글 HTTP 400 반환)
   /// 영문/숫자: Yahoo + 로컬 병합 후 스코어 재정렬 (정확 일치 누락 방지)

@@ -16,6 +16,7 @@ import '../utils/share_format.dart';
 import '../services/api_service.dart';
 import '../services/excel_import_service.dart';
 import '../widgets/portfolio_actions.dart';
+import 'holdings_import_screen.dart';
 import 'transaction_import_screen.dart';
 import 'item_form_screen.dart';
 import 'portfolio_settings_screen.dart';
@@ -424,6 +425,8 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
       MenuSection(l10n.menuGroupData),
       MenuAction(Icons.upload_file, l10n.excelImportTitle,
           () => _openImport(context, pf)),
+      MenuAction(Icons.document_scanner_outlined, l10n.holdingsImportTitle,
+          () => _openHoldingsImport(context, pf)),
       // 되돌릴 게 없으면 안 낸다 — 늘 있는 항목이면 무엇을 되돌리는지 모른다.
       if (_undo != null)
         MenuAction(Icons.undo, l10n.undoLastTitle, () => _confirmUndo(pf, _undo!),
@@ -571,6 +574,19 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
           : '${l10n.undoDone(b.count)}\n'
               '${l10n.undoKeptItems(kept.join(", "))}'),
     ));
+  }
+
+  Future<void> _openHoldingsImport(BuildContext context, Portfolio pf) async {
+    final l10n = context.l10n;
+    final added = await Navigator.push<int?>(
+      context,
+      MaterialPageRoute(
+          builder: (_) => HoldingsImportScreen(portfolioId: pf.id)),
+    );
+    if (!context.mounted || added == null || added == 0) return;
+    _syncUndoForCurrent();
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.holdingsAdded(added))));
   }
 
   Future<void> _openImport(BuildContext context, Portfolio pf) async {

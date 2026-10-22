@@ -1351,4 +1351,134 @@ class AppLocalizationsKo extends AppLocalizations {
   String captureTruncated(int count) {
     return '…외 $count건은 앱에서 보세요';
   }
+
+  @override
+  String get holdingsImportTitle => '잔고 캡처로 불러오기';
+
+  @override
+  String get holdingsStep1 => '1 / 2 · 캡처 고르기';
+
+  @override
+  String holdingsStep2(int count) {
+    return '2 / 2 · 캡처 $count장';
+  }
+
+  @override
+  String get holdingsHowTitle => '이렇게 찍어 주세요';
+
+  @override
+  String get holdingsHowBody =>
+      'NH 나무 앱의 「주식잔고」 화면을 캡처하세요. 종목이 많으면 스크롤하며 여러 장 찍어 한꺼번에 고르면 됩니다. 겹쳐 찍힌 종목은 하나로 합칩니다.';
+
+  @override
+  String get holdingsSupportNote => '지금은 NH 나무의 국내 종목만 읽습니다.';
+
+  @override
+  String get holdingsPrivacyNote => '캡처는 이 폰 안에서만 읽고, 어디로도 보내지 않습니다.';
+
+  @override
+  String get pickScreenshots => '캡처 고르기';
+
+  @override
+  String get pickScreenshotsDesc => '여러 장 한 번에';
+
+  @override
+  String holdingsReading(int done, int total) {
+    return '읽는 중 $done / $total';
+  }
+
+  @override
+  String get holdingsModelNotReady => '글자 읽기 준비가 아직 안 됐습니다. 1분쯤 뒤에 다시 해 주세요.';
+
+  @override
+  String get holdingsReadFailed => '캡처를 읽지 못했습니다. 다시 시도해 주세요.';
+
+  @override
+  String get holdingsNoneFound => '종목을 찾지 못했습니다. NH 나무 「주식잔고」 화면 캡처인지 확인해 주세요.';
+
+  @override
+  String holdingsSkippedShots(int count) {
+    return '잔고 화면이 아닌 캡처 $count장은 건너뛰었습니다.';
+  }
+
+  @override
+  String holdingsUnreadable(String names) {
+    return '다 읽지 못한 종목: $names';
+  }
+
+  @override
+  String get holdingsSummaryTitle => '캡처에서 찾은 종목';
+
+  @override
+  String holdingsSummaryCount(int count) {
+    return '$count개';
+  }
+
+  @override
+  String holdingsSummaryLine(int add, int same, int diff) {
+    return '새 종목 $add · 일치 $same · 수량 차이 $diff';
+  }
+
+  @override
+  String get holdingsNewSection => '새 종목';
+
+  @override
+  String get holdingsCheckSection => '확인이 필요한 종목';
+
+  @override
+  String get holdingsExistingSection => '이미 있는 종목';
+
+  @override
+  String get holdingsBuyNote =>
+      '고른 종목은 오늘 날짜, 오늘 현재가로 매수 1건씩 기록합니다. 그래서 결산은 오늘부터 잡히고, 평가손익은 0에서 시작합니다.';
+
+  @override
+  String get holdingsExistingNote =>
+      '이미 있는 종목은 바꾸지 않습니다. 수량이 다르면 거래 내역을 확인해 주세요.';
+
+  @override
+  String holdingsQtyLine(String qty, String value) {
+    return '$qty주 · 평가 $value';
+  }
+
+  @override
+  String get holdingsSameQty => '수량 일치';
+
+  @override
+  String holdingsQtyDiff(String app, String broker) {
+    return '앱 $app주 · 증권사 $broker주';
+  }
+
+  @override
+  String get issueNumbersOff => '숫자를 잘못 읽었을 수 있어요. 수량을 확인하세요.';
+
+  @override
+  String issueNameGuessed(String name) {
+    return '읽은 이름: $name';
+  }
+
+  @override
+  String get issueNameAmbiguous => '비슷한 종목이 여럿이에요. 눌러서 고르세요.';
+
+  @override
+  String get issueNotFound => '종목을 못 찾았어요. 직접 추가해 주세요.';
+
+  @override
+  String get issueForeign => '해외 종목은 아직 못 불러와요.';
+
+  @override
+  String get holdingsPickStock => '어느 종목인가요?';
+
+  @override
+  String holdingsAddN(int count) {
+    return '$count개 종목 추가';
+  }
+
+  @override
+  String get holdingsNothingToAdd => '추가할 종목 없음';
+
+  @override
+  String holdingsAdded(int count) {
+    return '$count개 종목을 추가했습니다. 목표 비중을 정해 주세요.';
+  }
 }

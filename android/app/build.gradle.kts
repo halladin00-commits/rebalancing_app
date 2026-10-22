@@ -78,6 +78,21 @@ android {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+
+    // 잔고 캡처 글자 읽기 — 모델은 **Play 서비스가 받아 온다.**
+    //
+    // 플러그인은 영문 모델을 앱 안에 넣는 판(text-recognition, 아키텍처당
+    // 약 4MB)을 끌고 온다. 그걸 빼고 Play 서비스 판으로 바꾸면 앱은 약
+    // 0.26MB만 는다. 대신 처음 쓸 때 모델을 한 번 내려받는다.
+    // 한국어 모델은 한글과 로마자·숫자를 같이 읽으므로 이것 하나면 된다.
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.1")
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition-korean:16.0.1")
+}
+
+// 플러그인이 끌고 오는 「모델을 앱에 넣는 판」을 뺀다 — 위 Play 서비스 판과
+// 클래스 이름이 같아서, 둘이 같이 들어가면 크기만 늘고 충돌할 수 있다.
+configurations.all {
+    exclude(group = "com.google.mlkit", module = "text-recognition")
 }
 
 flutter {

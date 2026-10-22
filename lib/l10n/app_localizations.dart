@@ -2449,6 +2449,216 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'…외 {count}건은 앱에서 보세요'**
   String captureTruncated(int count);
+
+  /// No description provided for @holdingsImportTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'잔고 캡처로 불러오기'**
+  String get holdingsImportTitle;
+
+  /// No description provided for @holdingsStep1.
+  ///
+  /// In ko, this message translates to:
+  /// **'1 / 2 · 캡처 고르기'**
+  String get holdingsStep1;
+
+  /// No description provided for @holdingsStep2.
+  ///
+  /// In ko, this message translates to:
+  /// **'2 / 2 · 캡처 {count}장'**
+  String holdingsStep2(int count);
+
+  /// No description provided for @holdingsHowTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'이렇게 찍어 주세요'**
+  String get holdingsHowTitle;
+
+  /// No description provided for @holdingsHowBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'NH 나무 앱의 「주식잔고」 화면을 캡처하세요. 종목이 많으면 스크롤하며 여러 장 찍어 한꺼번에 고르면 됩니다. 겹쳐 찍힌 종목은 하나로 합칩니다.'**
+  String get holdingsHowBody;
+
+  /// No description provided for @holdingsSupportNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'지금은 NH 나무의 국내 종목만 읽습니다.'**
+  String get holdingsSupportNote;
+
+  /// No description provided for @holdingsPrivacyNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'캡처는 이 폰 안에서만 읽고, 어디로도 보내지 않습니다.'**
+  String get holdingsPrivacyNote;
+
+  /// No description provided for @pickScreenshots.
+  ///
+  /// In ko, this message translates to:
+  /// **'캡처 고르기'**
+  String get pickScreenshots;
+
+  /// No description provided for @pickScreenshotsDesc.
+  ///
+  /// In ko, this message translates to:
+  /// **'여러 장 한 번에'**
+  String get pickScreenshotsDesc;
+
+  /// No description provided for @holdingsReading.
+  ///
+  /// In ko, this message translates to:
+  /// **'읽는 중 {done} / {total}'**
+  String holdingsReading(int done, int total);
+
+  /// No description provided for @holdingsModelNotReady.
+  ///
+  /// In ko, this message translates to:
+  /// **'글자 읽기 준비가 아직 안 됐습니다. 1분쯤 뒤에 다시 해 주세요.'**
+  String get holdingsModelNotReady;
+
+  /// No description provided for @holdingsReadFailed.
+  ///
+  /// In ko, this message translates to:
+  /// **'캡처를 읽지 못했습니다. 다시 시도해 주세요.'**
+  String get holdingsReadFailed;
+
+  /// No description provided for @holdingsNoneFound.
+  ///
+  /// In ko, this message translates to:
+  /// **'종목을 찾지 못했습니다. NH 나무 「주식잔고」 화면 캡처인지 확인해 주세요.'**
+  String get holdingsNoneFound;
+
+  /// No description provided for @holdingsSkippedShots.
+  ///
+  /// In ko, this message translates to:
+  /// **'잔고 화면이 아닌 캡처 {count}장은 건너뛰었습니다.'**
+  String holdingsSkippedShots(int count);
+
+  /// No description provided for @holdingsUnreadable.
+  ///
+  /// In ko, this message translates to:
+  /// **'다 읽지 못한 종목: {names}'**
+  String holdingsUnreadable(String names);
+
+  /// No description provided for @holdingsSummaryTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'캡처에서 찾은 종목'**
+  String get holdingsSummaryTitle;
+
+  /// No description provided for @holdingsSummaryCount.
+  ///
+  /// In ko, this message translates to:
+  /// **'{count}개'**
+  String holdingsSummaryCount(int count);
+
+  /// No description provided for @holdingsSummaryLine.
+  ///
+  /// In ko, this message translates to:
+  /// **'새 종목 {add} · 일치 {same} · 수량 차이 {diff}'**
+  String holdingsSummaryLine(int add, int same, int diff);
+
+  /// No description provided for @holdingsNewSection.
+  ///
+  /// In ko, this message translates to:
+  /// **'새 종목'**
+  String get holdingsNewSection;
+
+  /// No description provided for @holdingsCheckSection.
+  ///
+  /// In ko, this message translates to:
+  /// **'확인이 필요한 종목'**
+  String get holdingsCheckSection;
+
+  /// No description provided for @holdingsExistingSection.
+  ///
+  /// In ko, this message translates to:
+  /// **'이미 있는 종목'**
+  String get holdingsExistingSection;
+
+  /// No description provided for @holdingsBuyNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'고른 종목은 오늘 날짜, 오늘 현재가로 매수 1건씩 기록합니다. 그래서 결산은 오늘부터 잡히고, 평가손익은 0에서 시작합니다.'**
+  String get holdingsBuyNote;
+
+  /// No description provided for @holdingsExistingNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'이미 있는 종목은 바꾸지 않습니다. 수량이 다르면 거래 내역을 확인해 주세요.'**
+  String get holdingsExistingNote;
+
+  /// No description provided for @holdingsQtyLine.
+  ///
+  /// In ko, this message translates to:
+  /// **'{qty}주 · 평가 {value}'**
+  String holdingsQtyLine(String qty, String value);
+
+  /// No description provided for @holdingsSameQty.
+  ///
+  /// In ko, this message translates to:
+  /// **'수량 일치'**
+  String get holdingsSameQty;
+
+  /// No description provided for @holdingsQtyDiff.
+  ///
+  /// In ko, this message translates to:
+  /// **'앱 {app}주 · 증권사 {broker}주'**
+  String holdingsQtyDiff(String app, String broker);
+
+  /// No description provided for @issueNumbersOff.
+  ///
+  /// In ko, this message translates to:
+  /// **'숫자를 잘못 읽었을 수 있어요. 수량을 확인하세요.'**
+  String get issueNumbersOff;
+
+  /// No description provided for @issueNameGuessed.
+  ///
+  /// In ko, this message translates to:
+  /// **'읽은 이름: {name}'**
+  String issueNameGuessed(String name);
+
+  /// No description provided for @issueNameAmbiguous.
+  ///
+  /// In ko, this message translates to:
+  /// **'비슷한 종목이 여럿이에요. 눌러서 고르세요.'**
+  String get issueNameAmbiguous;
+
+  /// No description provided for @issueNotFound.
+  ///
+  /// In ko, this message translates to:
+  /// **'종목을 못 찾았어요. 직접 추가해 주세요.'**
+  String get issueNotFound;
+
+  /// No description provided for @issueForeign.
+  ///
+  /// In ko, this message translates to:
+  /// **'해외 종목은 아직 못 불러와요.'**
+  String get issueForeign;
+
+  /// No description provided for @holdingsPickStock.
+  ///
+  /// In ko, this message translates to:
+  /// **'어느 종목인가요?'**
+  String get holdingsPickStock;
+
+  /// No description provided for @holdingsAddN.
+  ///
+  /// In ko, this message translates to:
+  /// **'{count}개 종목 추가'**
+  String holdingsAddN(int count);
+
+  /// No description provided for @holdingsNothingToAdd.
+  ///
+  /// In ko, this message translates to:
+  /// **'추가할 종목 없음'**
+  String get holdingsNothingToAdd;
+
+  /// No description provided for @holdingsAdded.
+  ///
+  /// In ko, this message translates to:
+  /// **'{count}개 종목을 추가했습니다. 목표 비중을 정해 주세요.'**
+  String holdingsAdded(int count);
 }
 
 class _AppLocalizationsDelegate

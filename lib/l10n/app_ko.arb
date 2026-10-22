@@ -972,5 +972,132 @@
         "type": "int"
       }
     }
+  },
+  "holdingsImportTitle": "잔고 캡처로 불러오기",
+  "holdingsStep1": "1 / 2 · 캡처 고르기",
+  "holdingsStep2": "2 / 2 · 캡처 {count}장",
+  "@holdingsStep2": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "holdingsHowTitle": "이렇게 찍어 주세요",
+  "holdingsHowBody": "NH 나무 앱의 「주식잔고」 화면을 캡처하세요. 종목이 많으면 스크롤하며 여러 장 찍어 한꺼번에 고르면 됩니다. 겹쳐 찍힌 종목은 하나로 합칩니다.",
+  "holdingsSupportNote": "지금은 NH 나무의 국내 종목만 읽습니다.",
+  "holdingsPrivacyNote": "캡처는 이 폰 안에서만 읽고, 어디로도 보내지 않습니다.",
+  "pickScreenshots": "캡처 고르기",
+  "pickScreenshotsDesc": "여러 장 한 번에",
+  "holdingsReading": "읽는 중 {done} / {total}",
+  "@holdingsReading": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "holdingsModelNotReady": "글자 읽기 준비가 아직 안 됐습니다. 1분쯤 뒤에 다시 해 주세요.",
+  "holdingsReadFailed": "캡처를 읽지 못했습니다. 다시 시도해 주세요.",
+  "holdingsNoneFound": "종목을 찾지 못했습니다. NH 나무 「주식잔고」 화면 캡처인지 확인해 주세요.",
+  "holdingsSkippedShots": "잔고 화면이 아닌 캡처 {count}장은 건너뛰었습니다.",
+  "@holdingsSkippedShots": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "holdingsUnreadable": "다 읽지 못한 종목: {names}",
+  "@holdingsUnreadable": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "holdingsSummaryTitle": "캡처에서 찾은 종목",
+  "holdingsSummaryCount": "{count}개",
+  "@holdingsSummaryCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "holdingsSummaryLine": "새 종목 {add} · 일치 {same} · 수량 차이 {diff}",
+  "@holdingsSummaryLine": {
+    "placeholders": {
+      "add": {
+        "type": "int"
+      },
+      "same": {
+        "type": "int"
+      },
+      "diff": {
+        "type": "int"
+      }
+    }
+  },
+  "holdingsNewSection": "새 종목",
+  "holdingsCheckSection": "확인이 필요한 종목",
+  "holdingsExistingSection": "이미 있는 종목",
+  "holdingsBuyNote": "고른 종목은 오늘 날짜, 오늘 현재가로 매수 1건씩 기록합니다. 그래서 결산은 오늘부터 잡히고, 평가손익은 0에서 시작합니다.",
+  "holdingsExistingNote": "이미 있는 종목은 바꾸지 않습니다. 수량이 다르면 거래 내역을 확인해 주세요.",
+  "holdingsQtyLine": "{qty}주 · 평가 {value}",
+  "@holdingsQtyLine": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      },
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "holdingsSameQty": "수량 일치",
+  "holdingsQtyDiff": "앱 {app}주 · 증권사 {broker}주",
+  "@holdingsQtyDiff": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      },
+      "broker": {
+        "type": "String"
+      }
+    }
+  },
+  "issueNumbersOff": "숫자를 잘못 읽었을 수 있어요. 수량을 확인하세요.",
+  "issueNameGuessed": "읽은 이름: {name}",
+  "@issueNameGuessed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "issueNameAmbiguous": "비슷한 종목이 여럿이에요. 눌러서 고르세요.",
+  "issueNotFound": "종목을 못 찾았어요. 직접 추가해 주세요.",
+  "issueForeign": "해외 종목은 아직 못 불러와요.",
+  "holdingsPickStock": "어느 종목인가요?",
+  "holdingsAddN": "{count}개 종목 추가",
+  "@holdingsAddN": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "holdingsNothingToAdd": "추가할 종목 없음",
+  "holdingsAdded": "{count}개 종목을 추가했습니다. 목표 비중을 정해 주세요.",
+  "@holdingsAdded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

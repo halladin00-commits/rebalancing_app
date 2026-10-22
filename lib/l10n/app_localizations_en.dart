@@ -1383,4 +1383,139 @@ class AppLocalizationsEn extends AppLocalizations {
   String captureTruncated(int count) {
     return '…and $count more in the app';
   }
+
+  @override
+  String get holdingsImportTitle => 'Import from screenshots';
+
+  @override
+  String get holdingsStep1 => '1 / 2 · Pick screenshots';
+
+  @override
+  String holdingsStep2(int count) {
+    return '2 / 2 · $count screenshots';
+  }
+
+  @override
+  String get holdingsHowTitle => 'How to capture';
+
+  @override
+  String get holdingsHowBody =>
+      'In the NH Namu app, capture the stock balance screen. If you hold many stocks, scroll and take several screenshots, then pick them all at once. Stocks that appear twice are merged.';
+
+  @override
+  String get holdingsSupportNote =>
+      'For now, only Korean-listed holdings from NH Namu can be read.';
+
+  @override
+  String get holdingsPrivacyNote =>
+      'Screenshots are read on this phone and never sent anywhere.';
+
+  @override
+  String get pickScreenshots => 'Pick screenshots';
+
+  @override
+  String get pickScreenshotsDesc => 'Several at once';
+
+  @override
+  String holdingsReading(int done, int total) {
+    return 'Reading $done / $total';
+  }
+
+  @override
+  String get holdingsModelNotReady =>
+      'Text reading isn\'t ready yet. Try again in a minute.';
+
+  @override
+  String get holdingsReadFailed =>
+      'Couldn\'t read the screenshots. Please try again.';
+
+  @override
+  String get holdingsNoneFound =>
+      'No holdings found. Make sure these are screenshots of the stock balance screen in NH Namu.';
+
+  @override
+  String holdingsSkippedShots(int count) {
+    return 'Skipped $count screenshots that aren\'t the balance screen.';
+  }
+
+  @override
+  String holdingsUnreadable(String names) {
+    return 'Couldn\'t fully read: $names';
+  }
+
+  @override
+  String get holdingsSummaryTitle => 'Found in screenshots';
+
+  @override
+  String holdingsSummaryCount(int count) {
+    return '$count';
+  }
+
+  @override
+  String holdingsSummaryLine(int add, int same, int diff) {
+    return 'New $add · Match $same · Differs $diff';
+  }
+
+  @override
+  String get holdingsNewSection => 'New holdings';
+
+  @override
+  String get holdingsCheckSection => 'Needs a look';
+
+  @override
+  String get holdingsExistingSection => 'Already in the app';
+
+  @override
+  String get holdingsBuyNote =>
+      'Each holding you pick is recorded as one buy today at today\'s price, so returns count from today and gain/loss starts at zero.';
+
+  @override
+  String get holdingsExistingNote =>
+      'Holdings already in the app are left as they are. If a count differs, check its transaction history.';
+
+  @override
+  String holdingsQtyLine(String qty, String value) {
+    return '$qty sh · $value';
+  }
+
+  @override
+  String get holdingsSameQty => 'Matches';
+
+  @override
+  String holdingsQtyDiff(String app, String broker) {
+    return 'App $app · Broker $broker';
+  }
+
+  @override
+  String get issueNumbersOff => 'Numbers may be misread. Check the count.';
+
+  @override
+  String issueNameGuessed(String name) {
+    return 'Read as: $name';
+  }
+
+  @override
+  String get issueNameAmbiguous => 'Several stocks match. Tap to choose.';
+
+  @override
+  String get issueNotFound => 'Not found. Please add it yourself.';
+
+  @override
+  String get issueForeign => 'Overseas holdings aren\'t supported yet.';
+
+  @override
+  String get holdingsPickStock => 'Which stock is it?';
+
+  @override
+  String holdingsAddN(int count) {
+    return 'Add $count holdings';
+  }
+
+  @override
+  String get holdingsNothingToAdd => 'Nothing to add';
+
+  @override
+  String holdingsAdded(int count) {
+    return 'Added $count holdings. Set their target weights next.';
+  }
 }

@@ -31,6 +31,11 @@
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-7508564356740806~7723962448"/>
+        <!-- 잔고 캡처 글자 읽기 모델을 설치할 때 미리 받게 한다.
+             없으면 처음 쓰는 순간에야 받기 시작해서 첫 시도가 실패한다. -->
+        <meta-data
+            android:name="com.google.mlkit.vision.DEPENDENCIES"
+            android:value="ocr_korean" />
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />

@@ -962,5 +962,132 @@
         "type": "int"
       }
     }
+  },
+  "holdingsImportTitle": "Import from screenshots",
+  "holdingsStep1": "1 / 2 · Pick screenshots",
+  "holdingsStep2": "2 / 2 · {count} screenshots",
+  "@holdingsStep2": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "holdingsHowTitle": "How to capture",
+  "holdingsHowBody": "In the NH Namu app, capture the stock balance screen. If you hold many stocks, scroll and take several screenshots, then pick them all at once. Stocks that appear twice are merged.",
+  "holdingsSupportNote": "For now, only Korean-listed holdings from NH Namu can be read.",
+  "holdingsPrivacyNote": "Screenshots are read on this phone and never sent anywhere.",
+  "pickScreenshots": "Pick screenshots",
+  "pickScreenshotsDesc": "Several at once",
+  "holdingsReading": "Reading {done} / {total}",
+  "@holdingsReading": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "holdingsModelNotReady": "Text reading isn't ready yet. Try again in a minute.",
+  "holdingsReadFailed": "Couldn't read the screenshots. Please try again.",
+  "holdingsNoneFound": "No holdings found. Make sure these are screenshots of the stock balance screen in NH Namu.",
+  "holdingsSkippedShots": "Skipped {count} screenshots that aren't the balance screen.",
+  "@holdingsSkippedShots": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "holdingsUnreadable": "Couldn't fully read: {names}",
+  "@holdingsUnreadable": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "holdingsSummaryTitle": "Found in screenshots",
+  "holdingsSummaryCount": "{count}",
+  "@holdingsSummaryCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "holdingsSummaryLine": "New {add} · Match {same} · Differs {diff}",
+  "@holdingsSummaryLine": {
+    "placeholders": {
+      "add": {
+        "type": "int"
+      },
+      "same": {
+        "type": "int"
+      },
+      "diff": {
+        "type": "int"
+      }
+    }
+  },
+  "holdingsNewSection": "New holdings",
+  "holdingsCheckSection": "Needs a look",
+  "holdingsExistingSection": "Already in the app",
+  "holdingsBuyNote": "Each holding you pick is recorded as one buy today at today's price, so returns count from today and gain/loss starts at zero.",
+  "holdingsExistingNote": "Holdings already in the app are left as they are. If a count differs, check its transaction history.",
+  "holdingsQtyLine": "{qty} sh · {value}",
+  "@holdingsQtyLine": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      },
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "holdingsSameQty": "Matches",
+  "holdingsQtyDiff": "App {app} · Broker {broker}",
+  "@holdingsQtyDiff": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      },
+      "broker": {
+        "type": "String"
+      }
+    }
+  },
+  "issueNumbersOff": "Numbers may be misread. Check the count.",
+  "issueNameGuessed": "Read as: {name}",
+  "@issueNameGuessed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "issueNameAmbiguous": "Several stocks match. Tap to choose.",
+  "issueNotFound": "Not found. Please add it yourself.",
+  "issueForeign": "Overseas holdings aren't supported yet.",
+  "holdingsPickStock": "Which stock is it?",
+  "holdingsAddN": "Add {count} holdings",
+  "@holdingsAddN": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "holdingsNothingToAdd": "Nothing to add",
+  "holdingsAdded": "Added {count} holdings. Set their target weights next.",
+  "@holdingsAdded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }
