@@ -15,6 +15,7 @@ class UndoBatch {
   /// 무엇을 되돌리는지 화면에 적기 위한 구분.
   static const kindProposal = 'proposal';
   static const kindImport = 'import';
+  static const kindScan = 'scan';
 
   final String portfolioId;
   final String kind;

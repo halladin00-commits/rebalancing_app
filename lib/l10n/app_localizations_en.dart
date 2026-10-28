@@ -1518,4 +1518,49 @@ class AppLocalizationsEn extends AppLocalizations {
   String holdingsAdded(int count) {
     return 'Added $count holdings. Set their target weights next.';
   }
+
+  @override
+  String issueQtyConflict(String qtys) {
+    return 'This stock appears with different counts ($qtys). Please check it yourself.';
+  }
+
+  @override
+  String issuePriceOff(String shot, String live) {
+    return 'Price differs from the screenshot ($shot vs $live now). It may be a different stock.';
+  }
+
+  @override
+  String get issueSimilarNames =>
+      'Similar names exist. Make sure it\'s the right one.';
+
+  @override
+  String get holdingsChooseOther => 'Choose another';
+
+  @override
+  String get holdingsInList => 'Already listed';
+
+  @override
+  String get holdingsCheckingPrices => 'Checking prices';
+
+  @override
+  String get holdingsPriceCheckFailed =>
+      'Couldn\'t fetch prices, so holdings weren\'t cross-checked by price. Check stocks with similar names yourself.';
+
+  @override
+  String holdingsShotPrice(String price) {
+    return 'Screenshot price $price';
+  }
+
+  @override
+  String get holdingsNameUnknown => 'A holding with an unreadable name';
+
+  @override
+  String undoFromScan(int count, String when) {
+    return 'Screenshot import · $count · $when';
+  }
+
+  @override
+  String undoConfirmItemsScan(int count) {
+    return '$count holdings created by this import will also be removed.';
+  }
 }

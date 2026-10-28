@@ -40,6 +40,8 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
   final _picked = <int>{};
 
   bool _busy = false;
+  bool _checkingPrices = false;
+  bool _priceCheckFailed = false;
   int _done = 0;
   int _total = 0;
 
@@ -179,7 +181,10 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
                         child: CircularProgressIndicator(
                             strokeWidth: 2, color: context.textSecondary)),
                     const SizedBox(width: 10),
-                    Text(l10n.holdingsReading(_done, _total),
+                    Text(
+                        _checkingPrices
+                            ? l10n.holdingsCheckingPrices
+                            : l10n.holdingsReading(_done, _total),
                         style: const TextStyle(
                             fontSize: 13.5, fontWeight: FontWeight.w700)),
                   ])
@@ -236,7 +241,7 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
         : const <StockSearchResult>[];
     if (!mounted) return;
 
-    final rows = error == null
+    var rows = error == null
         ? buildHoldingRows(shots, pf, stocks)
         : const <HoldingRow>[];
     if (error == null && rows.isEmpty) error = l10n.holdingsNoneFound;
@@ -246,8 +251,22 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
       messenger.showSnackBar(SnackBar(content: Text(error)));
       return;
     }
+
+    // 이름으로 찾은 종목이 맞는지 **시세로 한 번 더** 대 본다. 수량 검산은
+    // 숫자를 잘못 읽은 것만 잡는다 — 이름이 잘려 다른 종목으로 찾아진 것은
+    // 숫자가 멀쩡해서 못 잡는다.
+    setState(() => _checkingPrices = true);
+    final tickers = priceTickers(rows);
+    final live = tickers.isEmpty
+        ? const <String, double>{}
+        : await HoldingsOcrService.livePrices(tickers);
+    if (!mounted) return;
+    rows = [for (final r in rows) r.withLive(live)];
+
     setState(() {
       _busy = false;
+      _checkingPrices = false;
+      _priceCheckFailed = tickers.isNotEmpty && live.isEmpty;
       _rows = rows;
       _shotCount = paths.length;
       _skippedShots = shots.where((s) => s.notHoldingsScreen).length;
@@ -268,10 +287,10 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
     final l10n = context.l10n;
     final idx = List.generate(rows.length, (i) => i);
     final fresh = idx
-        .where((i) => rows[i].existing == null && rows[i].issue == null)
+        .where((i) => rows[i].existing == null && rows[i].issues.isEmpty)
         .toList();
     final check = idx
-        .where((i) => rows[i].existing == null && rows[i].issue != null)
+        .where((i) => rows[i].existing == null && rows[i].issues.isNotEmpty)
         .toList();
     final existing = idx.where((i) => rows[i].existing != null).toList();
     final same = existing.where((i) => rows[i].sameQty == true).length;
@@ -313,8 +332,17 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
         ],
         if (_unreadable.isNotEmpty) ...[
           const SizedBox(height: 9),
-          _note(context, Icons.error_outline,
-              l10n.holdingsUnreadable(_unreadable.join(' · ')),
+          _note(
+              context,
+              Icons.error_outline,
+              l10n.holdingsUnreadable(_unreadable
+                  .map((n) => n.isEmpty ? l10n.holdingsNameUnknown : n)
+                  .join(' · ')),
+              warn: true),
+        ],
+        if (_priceCheckFailed) ...[
+          const SizedBox(height: 9),
+          _note(context, Icons.wifi_off, l10n.holdingsPriceCheckFailed,
               warn: true),
         ],
         if (fresh.isNotEmpty || check.isNotEmpty) ...[
@@ -361,51 +389,39 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
       BuildContext context, Portfolio pf, List<HoldingRow> rows, int i) {
     final l10n = context.l10n;
     final r = rows[i];
-    final issue = r.issue;
     final picked = _picked.contains(i);
     final qty = formatShares(r.scan.qty);
 
-    String? issueText;
-    switch (issue) {
-      case HoldingIssue.numbersOff:
-        issueText = l10n.issueNumbersOff;
-      case HoldingIssue.nameGuessed:
-        issueText = l10n.issueNameGuessed(r.scan.name);
-      case HoldingIssue.nameAmbiguous:
-        issueText = l10n.issueNameAmbiguous;
-      case HoldingIssue.notFound:
-        issueText = l10n.issueNotFound;
-      case HoldingIssue.foreign:
-        issueText = l10n.issueForeign;
-      case null:
-        issueText = null;
-    }
+    String issueText(HoldingIssue issue) => switch (issue) {
+          HoldingIssue.foreign => l10n.issueForeign,
+          HoldingIssue.notFound => l10n.issueNotFound,
+          HoldingIssue.nameAmbiguous => l10n.issueNameAmbiguous,
+          HoldingIssue.qtyConflict => l10n.issueQtyConflict(r.conflictQtys
+              .map((q) => '${formatShares(q)}${l10n.unitShares}')
+              .join(' · ')),
+          HoldingIssue.numbersOff => l10n.issueNumbersOff,
+          HoldingIssue.nameGuessed => l10n.issueNameGuessed(r.scan.name),
+          HoldingIssue.priceOff => l10n.issuePriceOff(
+              fmtMoney(r.scan.currentPrice, 'KRW'),
+              fmtMoney(r.live[r.stock!.ticker]!, 'KRW')),
+          HoldingIssue.similarNames => l10n.issueSimilarNames,
+        };
 
-    Widget? trailing;
-    if (r.existing != null) {
-      final same = r.sameQty == true;
-      trailing = Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: same ? context.subtleFill : context.warningBg,
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Text(
-            same
-                ? l10n.holdingsSameQty
-                : l10n.holdingsQtyDiff(
-                    formatShares(r.existing!.shares), qty),
-            style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: same ? context.textSecondary : context.warningText)),
-      );
-    }
+    // 있는 종목은 수량만 맞대 본다. 오른쪽 꼬리표로 두면 큰 글씨에서 이름을
+    // 밀어내고 넘친다 — 이름 밑 한 줄로 둔다.
+    final same = r.sameQty == true;
+    final existingLine = r.existing == null || r.conflictQtys.isNotEmpty
+        ? null
+        : same
+            ? l10n.holdingsSameQty
+            : l10n.holdingsQtyDiff(formatShares(r.existing!.shares), qty);
 
     final canPick = r.addable;
-    final ambiguous = issue == HoldingIssue.nameAmbiguous;
+    final mustChoose =
+        r.existing == null && r.lookup.kind == NameMatch.ambiguous;
+    final canChange = r.existing == null && !mustChoose && r.choices.isNotEmpty;
     VoidCallback? onTap;
-    if (ambiguous) {
+    if (mustChoose) {
       onTap = () => _chooseStock(context, pf, rows, i);
     } else if (canPick) {
       onTap = () => setState(() => picked ? _picked.remove(i) : _picked.add(i));
@@ -426,7 +442,7 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
                   onChanged: (_) => onTap?.call(),
                 )
               : Icon(
-                  ambiguous
+                  mustChoose
                       ? Icons.touch_app_outlined
                       : (r.existing != null
                           ? Icons.inventory_2_outlined
@@ -450,19 +466,43 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                     color: context.textSecondary)),
-            // 있는 종목도 검산이 틀리면 알린다 — 「차이」가 잘못 읽은 탓일 수 있다
-            if (issueText != null) ...[
+            if (existingLine != null) ...[
               const SizedBox(height: 3),
-              Text(issueText,
+              Text(existingLine,
+                  style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color:
+                          same ? context.textSecondary : context.warningText)),
+            ],
+            // 걸리는 것은 전부 적는다. 있는 종목도 검산이 틀리면 알린다 —
+            // 「차이」가 잘못 읽은 탓일 수 있다
+            for (final issue in r.issues) ...[
+              const SizedBox(height: 3),
+              Text(issueText(issue),
                   style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                       height: 1.4,
                       color: context.warningText)),
             ],
+            if (canChange) ...[
+              const SizedBox(height: 4),
+              GestureDetector(
+                onTap: () => _chooseStock(context, pf, rows, i),
+                behavior: HitTestBehavior.opaque,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Text('${l10n.holdingsChooseOther} ›',
+                      style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w800,
+                          color: context.brand)),
+                ),
+              ),
+            ],
           ]),
         ),
-        if (trailing != null) ...[const SizedBox(width: 8), trailing],
       ]),
     );
     if (onTap == null) return row;
@@ -470,11 +510,26 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
         onTap: onTap, behavior: HitTestBehavior.opaque, child: row);
   }
 
-  /// 그렇게 시작하는 종목이 여럿일 때 — 후보 중에서 고른다.
+  /// 후보 중에서 종목을 고른다 — 그렇게 시작하는 종목이 여럿이거나, 이름이
+  /// 비슷한 종목이 있을 때.
+  ///
+  /// 시세가 캡처의 현재가와 가까운 것부터 보여 준다. 다른 줄이 이미 고른
+  /// 종목은 못 고르게 한다 — 같은 종목이 둘 생긴다.
   Future<void> _chooseStock(BuildContext context, Portfolio pf,
       List<HoldingRow> rows, int i) async {
     final l10n = context.l10n;
     final r = rows[i];
+    final taken = {
+      for (var j = 0; j < rows.length; j++)
+        if (j != i && rows[j].stock != null) rows[j].stock!.ticker,
+    };
+    double gap(StockSearchResult c) {
+      final p = r.live[c.ticker];
+      if (p == null || r.scan.currentPrice <= 0) return double.infinity;
+      return (p / r.scan.currentPrice - 1).abs();
+    }
+
+    final choices = [...r.choices]..sort((a, b) => gap(a).compareTo(gap(b)));
     final chosen = await showModalBottomSheet<StockSearchResult>(
       context: context,
       backgroundColor: context.cardBg,
@@ -507,10 +562,13 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
             const SizedBox(height: 5),
             Align(
               alignment: Alignment.centerLeft,
-              child: Text(l10n.issueNameGuessed(r.scan.name),
+              child: Text(
+                  '${l10n.issueNameGuessed(r.scan.name)}\n'
+                  '${l10n.holdingsShotPrice(fmtMoney(r.scan.currentPrice, 'KRW'))}',
                   style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
+                      height: 1.5,
                       color: ctx.textSecondary)),
             ),
             const SizedBox(height: 10),
@@ -519,33 +577,12 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
                   maxHeight: MediaQuery.of(ctx).size.height * 0.45),
               child: SingleChildScrollView(
                 child: Column(children: [
-                  for (final c in r.lookup.candidates)
-                    GestureDetector(
-                      onTap: () => Navigator.pop(ctx, c),
-                      behavior: HitTestBehavior.opaque,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          border: Border(
-                              bottom: BorderSide(color: ctx.dividerColor)),
-                        ),
-                        child: Row(children: [
-                          Expanded(
-                            child: Text(c.name,
-                                style: TextStyle(
-                                    fontSize: 13.5,
-                                    fontWeight: FontWeight.w700,
-                                    color: ctx.textPrimary),
-                                overflow: TextOverflow.ellipsis),
-                          ),
-                          Text(c.ticker,
-                              style: TextStyle(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w600,
-                                  color: ctx.textTertiary)),
-                        ]),
-                      ),
-                    ),
+                  for (final c in choices)
+                    _choiceRow(ctx, c,
+                        price: r.live[c.ticker],
+                        near: r.live[c.ticker] != null &&
+                            r.nearShot(r.live[c.ticker]!),
+                        taken: taken.contains(c.ticker)),
                 ]),
               ),
             ),
@@ -557,8 +594,51 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
     setState(() {
       final updated = r.withStock(chosen, findExisting(pf, chosen, chosen.name));
       _rows = [...rows]..[i] = updated;
-      if (updated.addable) _picked.add(i);
+      if (updated.addable) {
+        _picked.add(i);
+      } else {
+        _picked.remove(i);
+      }
     });
+  }
+
+  Widget _choiceRow(BuildContext context, StockSearchResult c,
+      {double? price, required bool near, required bool taken}) {
+    final l10n = context.l10n;
+    final row = Container(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: context.dividerColor)),
+      ),
+      child: Row(children: [
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(c.name,
+                style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w700,
+                    color: taken ? context.textTertiary : context.textPrimary),
+                overflow: TextOverflow.ellipsis),
+            const SizedBox(height: 2),
+            Text(
+                [
+                  c.ticker,
+                  if (price != null) fmtMoney(price, 'KRW'),
+                  if (taken) l10n.holdingsInList,
+                ].join(' · '),
+                style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: near ? FontWeight.w800 : FontWeight.w600,
+                    color: near && !taken ? context.brand : context.textTertiary)),
+          ]),
+        ),
+      ]),
+    );
+    if (taken) return row;
+    return GestureDetector(
+        onTap: () => Navigator.pop(context, c),
+        behavior: HitTestBehavior.opaque,
+        child: row);
   }
 
   // ── 확정 ──
@@ -614,7 +694,7 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
     if (createdIds.isNotEmpty) {
       await UndoService.save(UndoBatch(
         portfolioId: pf.id,
-        kind: UndoBatch.kindImport,
+        kind: UndoBatch.kindScan,
         at: now.millisecondsSinceEpoch,
         transactions: undoTx,
         createdItemIds: createdIds,

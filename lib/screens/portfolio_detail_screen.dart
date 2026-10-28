@@ -513,9 +513,11 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     final d = DateTime.fromMillisecondsSinceEpoch(b.at);
     String two(int v) => v.toString().padLeft(2, '0');
     final when = '${two(d.month)}.${two(d.day)} ${two(d.hour)}:${two(d.minute)}';
-    return b.kind == UndoBatch.kindImport
-        ? l10n.undoFromImport(b.count, when)
-        : l10n.undoFromProposal(b.count, when);
+    return switch (b.kind) {
+      UndoBatch.kindImport => l10n.undoFromImport(b.count, when),
+      UndoBatch.kindScan => l10n.undoFromScan(b.count, when),
+      _ => l10n.undoFromProposal(b.count, when),
+    };
   }
 
   /// **무엇이 사라지는지 먼저 말하고 묻는다.** 되돌리기도 되돌릴 수 없다.
@@ -524,7 +526,9 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     final lines = <String>[
       l10n.undoConfirmTrades(b.count),
       if (b.createdItemIds.isNotEmpty)
-        l10n.undoConfirmItems(b.createdItemIds.length),
+        b.kind == UndoBatch.kindScan
+            ? l10n.undoConfirmItemsScan(b.createdItemIds.length)
+            : l10n.undoConfirmItems(b.createdItemIds.length),
       if (b.cashItemId != null) l10n.undoConfirmCash,
     ];
 

@@ -2,6 +2,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 
+import 'api_service.dart';
 import 'holdings_scan.dart';
 
 /// 글자 읽는 모델을 아직 내려받는 중이다.
@@ -21,6 +22,34 @@ class HoldingsOcrService {
     );
     if (picked == null) return const [];
     return [for (final f in picked.files) if (f.path != null) f.path!];
+  }
+
+  /// 종목 코드들의 지금 시세. 받지 못한 것은 빠진다.
+  ///
+  /// 읽은 이름으로 찾은 종목이 맞는지 **시세로 한 번 더 대 보는** 데 쓴다.
+  /// 종목 코드만 보낸다 — 수량·금액은 보내지 않는다(시세 갱신과 같다).
+  ///
+  /// 시세 갱신처럼 4개씩 나눠 받는다. 망이 나쁘면 한 종목에 20초까지 걸릴 수
+  /// 있어서, [limit]이 지나면 그때까지 받은 것만 쓴다.
+  static Future<Map<String, double>> livePrices(Iterable<String> tickers,
+      {Duration limit = const Duration(seconds: 15)}) async {
+    final out = <String, double>{};
+    final queue = tickers.toSet().toList();
+    Future<void> lane() async {
+      while (queue.isNotEmpty) {
+        final t = queue.removeLast();
+        final r = await ApiService.fetchStockPrice(t, 'KR');
+        final p = r.data?.currentPrice ?? 0;
+        if (r.ok && p > 0) out[t] = p;
+      }
+    }
+
+    await Future.any([
+      Future.wait([for (var i = 0; i < 4; i++) lane()]),
+      Future.delayed(limit),
+    ]);
+    // 시간이 지나 돌아온 뒤에도 늦게 온 값이 섞이지 않게 떼어 낸다
+    return Map.of(out);
   }
 
   /// [paths]를 한 장씩 읽는다. [onProgress]는 끝낸 장 수를 받는다.

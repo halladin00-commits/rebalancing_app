@@ -1089,5 +1089,57 @@
         "type": "int"
       }
     }
+  },
+  "issueQtyConflict": "This stock appears with different counts ({qtys}). Please check it yourself.",
+  "@issueQtyConflict": {
+    "placeholders": {
+      "qtys": {
+        "type": "String"
+      }
+    }
+  },
+  "issuePriceOff": "Price differs from the screenshot ({shot} vs {live} now). It may be a different stock.",
+  "@issuePriceOff": {
+    "placeholders": {
+      "shot": {
+        "type": "String"
+      },
+      "live": {
+        "type": "String"
+      }
+    }
+  },
+  "issueSimilarNames": "Similar names exist. Make sure it's the right one.",
+  "holdingsChooseOther": "Choose another",
+  "holdingsInList": "Already listed",
+  "holdingsCheckingPrices": "Checking prices",
+  "holdingsPriceCheckFailed": "Couldn't fetch prices, so holdings weren't cross-checked by price. Check stocks with similar names yourself.",
+  "holdingsShotPrice": "Screenshot price {price}",
+  "@holdingsShotPrice": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "holdingsNameUnknown": "A holding with an unreadable name",
+  "undoFromScan": "Screenshot import · {count} · {when}",
+  "@undoFromScan": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "undoConfirmItemsScan": "{count} holdings created by this import will also be removed.",
+  "@undoConfirmItemsScan": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

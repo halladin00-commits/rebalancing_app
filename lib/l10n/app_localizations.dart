@@ -2659,6 +2659,72 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'{count}개 종목을 추가했습니다. 목표 비중을 정해 주세요.'**
   String holdingsAdded(int count);
+
+  /// No description provided for @issueQtyConflict.
+  ///
+  /// In ko, this message translates to:
+  /// **'같은 종목이 다른 수량으로 나와요({qtys}). 직접 확인해 주세요.'**
+  String issueQtyConflict(String qtys);
+
+  /// No description provided for @issuePriceOff.
+  ///
+  /// In ko, this message translates to:
+  /// **'시세가 캡처와 달라요(캡처 {shot} · 지금 {live}). 다른 종목일 수 있어요.'**
+  String issuePriceOff(String shot, String live);
+
+  /// No description provided for @issueSimilarNames.
+  ///
+  /// In ko, this message translates to:
+  /// **'이름이 비슷한 종목이 있어요. 맞는지 확인하세요.'**
+  String get issueSimilarNames;
+
+  /// No description provided for @holdingsChooseOther.
+  ///
+  /// In ko, this message translates to:
+  /// **'다른 종목 고르기'**
+  String get holdingsChooseOther;
+
+  /// No description provided for @holdingsInList.
+  ///
+  /// In ko, this message translates to:
+  /// **'목록에 있음'**
+  String get holdingsInList;
+
+  /// No description provided for @holdingsCheckingPrices.
+  ///
+  /// In ko, this message translates to:
+  /// **'시세 확인 중'**
+  String get holdingsCheckingPrices;
+
+  /// No description provided for @holdingsPriceCheckFailed.
+  ///
+  /// In ko, this message translates to:
+  /// **'시세를 받지 못해 종목을 시세로 대조하지 못했습니다. 이름이 비슷한 종목은 직접 확인해 주세요.'**
+  String get holdingsPriceCheckFailed;
+
+  /// No description provided for @holdingsShotPrice.
+  ///
+  /// In ko, this message translates to:
+  /// **'캡처 현재가 {price}'**
+  String holdingsShotPrice(String price);
+
+  /// No description provided for @holdingsNameUnknown.
+  ///
+  /// In ko, this message translates to:
+  /// **'이름을 못 읽은 종목'**
+  String get holdingsNameUnknown;
+
+  /// No description provided for @undoFromScan.
+  ///
+  /// In ko, this message translates to:
+  /// **'캡처 불러오기 {count}건 · {when}'**
+  String undoFromScan(int count, String when);
+
+  /// No description provided for @undoConfirmItemsScan.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 불러오기가 만든 종목 {count}개도 함께 지웁니다.'**
+  String undoConfirmItemsScan(int count);
 }
 
 class _AppLocalizationsDelegate

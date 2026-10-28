@@ -1481,4 +1481,48 @@ class AppLocalizationsKo extends AppLocalizations {
   String holdingsAdded(int count) {
     return '$count개 종목을 추가했습니다. 목표 비중을 정해 주세요.';
   }
+
+  @override
+  String issueQtyConflict(String qtys) {
+    return '같은 종목이 다른 수량으로 나와요($qtys). 직접 확인해 주세요.';
+  }
+
+  @override
+  String issuePriceOff(String shot, String live) {
+    return '시세가 캡처와 달라요(캡처 $shot · 지금 $live). 다른 종목일 수 있어요.';
+  }
+
+  @override
+  String get issueSimilarNames => '이름이 비슷한 종목이 있어요. 맞는지 확인하세요.';
+
+  @override
+  String get holdingsChooseOther => '다른 종목 고르기';
+
+  @override
+  String get holdingsInList => '목록에 있음';
+
+  @override
+  String get holdingsCheckingPrices => '시세 확인 중';
+
+  @override
+  String get holdingsPriceCheckFailed =>
+      '시세를 받지 못해 종목을 시세로 대조하지 못했습니다. 이름이 비슷한 종목은 직접 확인해 주세요.';
+
+  @override
+  String holdingsShotPrice(String price) {
+    return '캡처 현재가 $price';
+  }
+
+  @override
+  String get holdingsNameUnknown => '이름을 못 읽은 종목';
+
+  @override
+  String undoFromScan(int count, String when) {
+    return '캡처 불러오기 $count건 · $when';
+  }
+
+  @override
+  String undoConfirmItemsScan(int count) {
+    return '이 불러오기가 만든 종목 $count개도 함께 지웁니다.';
+  }
 }

@@ -1099,5 +1099,57 @@
         "type": "int"
       }
     }
+  },
+  "issueQtyConflict": "같은 종목이 다른 수량으로 나와요({qtys}). 직접 확인해 주세요.",
+  "@issueQtyConflict": {
+    "placeholders": {
+      "qtys": {
+        "type": "String"
+      }
+    }
+  },
+  "issuePriceOff": "시세가 캡처와 달라요(캡처 {shot} · 지금 {live}). 다른 종목일 수 있어요.",
+  "@issuePriceOff": {
+    "placeholders": {
+      "shot": {
+        "type": "String"
+      },
+      "live": {
+        "type": "String"
+      }
+    }
+  },
+  "issueSimilarNames": "이름이 비슷한 종목이 있어요. 맞는지 확인하세요.",
+  "holdingsChooseOther": "다른 종목 고르기",
+  "holdingsInList": "목록에 있음",
+  "holdingsCheckingPrices": "시세 확인 중",
+  "holdingsPriceCheckFailed": "시세를 받지 못해 종목을 시세로 대조하지 못했습니다. 이름이 비슷한 종목은 직접 확인해 주세요.",
+  "holdingsShotPrice": "캡처 현재가 {price}",
+  "@holdingsShotPrice": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "holdingsNameUnknown": "이름을 못 읽은 종목",
+  "undoFromScan": "캡처 불러오기 {count}건 · {when}",
+  "@undoFromScan": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "undoConfirmItemsScan": "이 불러오기가 만든 종목 {count}개도 함께 지웁니다.",
+  "@undoConfirmItemsScan": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }
