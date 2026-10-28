@@ -159,12 +159,14 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
         const SizedBox(height: 9),
         _note(context, Icons.info_outline, l10n.holdingsSupportNote),
         const SizedBox(height: 13),
+        // 높이를 못박지 않는다 — 큰 글씨에서 둘째 줄이 잘렸다. 최소만 정한다.
         SizedBox(
           width: double.infinity,
-          height: 62,
           child: ElevatedButton(
             onPressed: _busy ? null : () => _pick(pf),
             style: ElevatedButton.styleFrom(
+              minimumSize: const Size.fromHeight(62),
+              padding: const EdgeInsets.symmetric(vertical: 10),
               backgroundColor: context.brand,
               foregroundColor: Colors.white,
               disabledBackgroundColor: context.disabledFill,

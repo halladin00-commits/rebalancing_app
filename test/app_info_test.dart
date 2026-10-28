@@ -77,4 +77,37 @@ void main() {
     expect(missing, isEmpty,
         reason: '이 주소들이 방침에 없다. 새로 붙인 곳이면 방침에 무엇이 오가는지 적어야 한다');
   });
+
+  test('밖과 통신하는 꾸러미가 모두 방침에 적혀 있다', () {
+    // 위 검사는 **코드에 적힌 주소**만 본다. 광고·글자 읽기 꾸러미는 주소를
+    // 코드에 드러내지 않고 Google Play 서비스를 거쳐 직접 보낸다. 글자 읽기를
+    // 붙였을 때 위 검사는 통과했는데 방침에는 빠져 있었다.
+    //
+    // Google·Firebase 꾸러미를 새로 붙이면 여기 목록에서 막힌다 — 무엇을
+    // 보내는지 확인하고 방침에 적은 뒤에 목록에 더한다.
+    const sdks = {
+      'google_mobile_ads': 'AdMob',
+      'google_mlkit_text_recognition': 'ML Kit',
+    };
+    final policy = File('docs/privacy.html').readAsStringSync();
+    final deps = RegExp(r'^  ([a-z0-9_]+):', multiLine: true)
+        .allMatches(File('pubspec.yaml').readAsStringSync())
+        .map((m) => m.group(1)!)
+        .toSet();
+
+    final unknown = deps
+        .where((d) =>
+            (d.startsWith('google_') || d.startsWith('firebase')) &&
+            !sdks.containsKey(d))
+        .toList();
+    expect(unknown, isEmpty,
+        reason: '밖과 통신할 수 있는 꾸러미다. 무엇을 보내는지 방침에 적고 목록에 더한다');
+
+    for (final e in sdks.entries) {
+      if (!deps.contains(e.key)) continue;
+      // 한국어·영어 두 판 모두에 있어야 한다
+      expect(e.value.allMatches(policy).length, greaterThanOrEqualTo(2),
+          reason: '${e.key}를 쓰는데 방침(한·영)에 「${e.value}」가 없다');
+    }
+  });
 }

@@ -45,9 +45,13 @@ class HoldingsOcrService {
     Future<void> lane() async {
       while (queue.isNotEmpty) {
         final t = queue.removeLast();
-        final r = await ApiService.fetchStockPrice(t, 'KR');
-        final p = r.data?.currentPrice ?? 0;
-        if (r.ok && p > 0) out[t] = p;
+        // 하나가 터져도 나머지는 받는다 — 터진 채로 두면 화면이
+        // 「시세 확인 중」에서 영영 안 넘어간다
+        try {
+          final r = await ApiService.fetchStockPrice(t, 'KR');
+          final p = r.data?.currentPrice ?? 0;
+          if (r.ok && p > 0) out[t] = p;
+        } catch (_) {}
       }
     }
 

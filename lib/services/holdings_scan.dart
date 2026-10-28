@@ -258,12 +258,22 @@ class StockLookup {
 /// - 증권사가 이름을 잘라서 보여 준다(「…TOP4」 ← 「…TOP4 Plus」). 그렇게
 ///   **시작하는 종목이 하나뿐이면** 그 종목
 /// - 한두 글자 잘못 읽었으면(「AI」 → 「A」) 가장 가까운 것 — 사용자가 확인한다
-StockLookup lookupStock(String ocrName, List<StockSearchResult> list) {
+StockLookup lookupStock(String ocrName, List<StockSearchResult> list) =>
+    _lookup(ocrName, list, [for (final s in list) _norm(s.name)]);
+
+/// [norms]는 [list] 이름을 미리 다듬어 둔 것. 종목이 만사천 개라 종목마다
+/// 다시 다듬으면 캡처 한 번에 수십만 번이 된다.
+StockLookup _lookup(
+    String ocrName, List<StockSearchResult> list, List<String> norms) {
   final q = _norm(ocrName.replaceAll('…', '').replaceAll('...', ''));
   if (q.isEmpty) return const StockLookup(NameMatch.none);
 
-  final exact = list.where((s) => _norm(s.name) == q).toList();
-  final prefix = list.where((s) => _norm(s.name).startsWith(q)).toList();
+  final exact = <StockSearchResult>[];
+  final prefix = <StockSearchResult>[];
+  for (var i = 0; i < list.length; i++) {
+    if (norms[i] == q) exact.add(list[i]);
+    if (norms[i].startsWith(q)) prefix.add(list[i]);
+  }
   if (exact.length == 1) {
     final longer = prefix.where((s) => s.ticker != exact.first.ticker);
     return StockLookup(NameMatch.exact,
@@ -282,13 +292,13 @@ StockLookup lookupStock(String ocrName, List<StockSearchResult> list) {
   StockSearchResult? best;
   var bestD = limit + 1;
   var tie = false;
-  for (final s in list) {
-    final n = _norm(s.name);
+  for (var i = 0; i < list.length; i++) {
+    final n = norms[i];
     if ((n.length - q.length).abs() > limit) continue;
     final d = _distance(n, q, limit);
     if (d < bestD) {
       bestD = d;
-      best = s;
+      best = list[i];
       tie = false;
     } else if (d == bestD) {
       tie = true;
@@ -517,9 +527,10 @@ PortfolioItem? findExisting(Portfolio pf, StockSearchResult? s, String name) {
 List<HoldingRow> buildHoldingRows(
     List<HoldingsShot> shots, Portfolio pf, List<StockSearchResult> stocks) {
   final rows = <HoldingRow>[];
+  final norms = [for (final s in stocks) _norm(s.name)];
   for (final shot in shots) {
     for (final h in shot.holdings) {
-      final lookup = lookupStock(h.name, stocks);
+      final lookup = _lookup(h.name, stocks, norms);
       final existing = findExisting(pf, lookup.stock, h.name);
       // 0주는 넣을 것이 없다. 앱에 있는 종목이면 「증권사 0주」라는 차이가
       // 보여야 하니 남긴다.
