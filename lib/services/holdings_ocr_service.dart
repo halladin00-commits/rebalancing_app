@@ -15,10 +15,17 @@ class OcrModelNotReady implements Exception {}
 /// 잔고 캡처를 **이 기기 안에서** 읽는다. 캡처는 어디로도 보내지 않는다.
 class HoldingsOcrService {
   /// 갤러리에서 캡처를 여러 장 고른다. 안 골랐으면 빈 목록.
+  ///
+  /// **압축을 끈다.** file_picker는 사진을 고르면 기본으로 JPEG 화질 30으로
+  /// 다시 눌러 **공용 「사진」 폴더에 사본을 남긴다**(지우지도 않는다).
+  /// 계좌 캡처의 사본이 갤러리에 쌓이고, 뭉개진 글씨를 읽느라 「AI」를
+  /// 「A」로 읽었다. 끄면 원본을 앱 전용 임시 폴더에만 복사한다.
   static Future<List<String>> pickScreenshots() async {
     final picked = await FilePicker.platform.pickFiles(
       type: FileType.image,
       allowMultiple: true,
+      allowCompression: false,
+      compressionQuality: 0,
     );
     if (picked == null) return const [];
     return [for (final f in picked.files) if (f.path != null) f.path!];
