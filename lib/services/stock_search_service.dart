@@ -30,19 +30,44 @@ class StockSearchService {
 
   static List<Map<String, dynamic>>? _stocks;
   static Map<String, String> _krNameMap = {}; // 코드 → 한글 이름 빠른 조회
-  static bool _initialized = false;
+  static Future<void>? _init;
+  static Future<void>? _update;
+  static bool _fromBundle = false;
 
-  /// 초기화 — 앱 시작 시 호출
-  static Future<void> initialize() async {
-    if (_initialized) return;
+  /// 처음 켠 폰이 최신 목록을 기다려 주는 시간. 넘으면 넣어 둔 목록으로 간다 —
+  /// 인터넷이 없는 사람을 여기서 붙잡지 않는다.
+  static Duration firstRunWait = const Duration(seconds: 5);
+
+  @visibleForTesting
+  static void resetForTest() {
+    _stocks = null;
+    _krNameMap = {};
+    _init = null;
+    _update = null;
+    _fromBundle = false;
+  }
+
+  /// 초기화 — 앱 시작 시 호출. 여러 번 불러도 한 번만 읽는다.
+  static Future<void> initialize() => _init ??= _initialize();
+
+  static Future<void> _initialize() async {
     await _loadStocks();
-    _initialized = true;
-    _checkAndUpdate();
+    _update = _checkAndUpdate();
+  }
+
+  /// 목록을 쓰기 직전에 부른다. 앱에 넣어 둔 목록은 출시한 날의 것이라
+  /// 그 뒤 상장한 종목이 없다 — 받아 둔 목록이 아직 없는 첫 실행에서만,
+  /// 지금 받고 있는 최신 목록을 잠깐 기다린다. 두 번째 실행부터는 안 기다린다.
+  static Future<void> _ready() async {
+    await initialize();
+    final update = _update;
+    if (!_fromBundle || update == null) return;
+    await update.timeout(firstRunWait, onTimeout: () {});
   }
 
   /// 국내 종목 전체 — 잔고 캡처에서 읽은 이름을 종목에 대 보는 데 쓴다.
   static Future<List<StockSearchResult>> krStocks() async {
-    if (!_initialized) await initialize();
+    await _ready();
     return [
       for (final e in _krNameMap.entries)
         StockSearchResult(ticker: e.key, name: e.value, market: 'KR')
@@ -53,9 +78,9 @@ class StockSearchService {
   /// 한글 포함: 로컬 JSON (Yahoo Finance가 한글 HTTP 400 반환)
   /// 영문/숫자: Yahoo + 로컬 병합 후 스코어 재정렬 (정확 일치 누락 방지)
   static Future<List<StockSearchResult>> search(String query) async {
-    if (!_initialized) await initialize();
     final q = query.trim();
     if (q.isEmpty) return [];
+    await _ready();
 
     if (RegExp(r'[가-힣]').hasMatch(q)) {
       return _searchLocal(q);
@@ -196,6 +221,7 @@ class StockSearchService {
     try {
       final jsonStr = await rootBundle.loadString('assets/kr_stocks.json');
       _stocks = await compute(_parseStocks, jsonStr);
+      _fromBundle = true;
       _buildKrNameMap();
       if (kDebugMode) print('종목 데이터 로드: 번들 (${_stocks!.length}건)');
     } catch (e) {
@@ -265,6 +291,7 @@ class StockSearchService {
       await metaFile.writeAsString(metaResp.body);
 
       _stocks = list.cast<Map<String, dynamic>>();
+      _fromBundle = false;
       _buildKrNameMap(); // 한글 이름 맵도 갱신
       if (kDebugMode) print('종목 데이터 업데이트 완료: ${_stocks!.length}건');
     } catch (e) {

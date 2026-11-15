@@ -166,6 +166,7 @@ void main() {
   test('국내 종목은 이름으로 종목을 찾는다', () {
     final words = load();
     final list = stocks();
+    const delisted = {'ACETDF2050액티브적격'};
     // 옛 이름(KINDEX·KBSTAR·ARIRANG·KOSEF)과 해외 종목이 섞인 캡처는 뺐다
     for (final k in [
       'kiwoom_01.jpg', 'kiwoom_02.jpg', 'koreainv_03.jpg', 'samsung_03.jpg',
@@ -175,6 +176,8 @@ void main() {
     ]) {
       for (final h in parseHoldings(words[k]!).holdings) {
         if (h.foreign) continue;
+        // 캡처가 찍힌 뒤 상장폐지된 종목 — 목록에 없는 것이 맞다
+        if (delisted.contains(h.name)) continue;
         final m = lookupStock(h.name, list);
         expect(m.stock, isNotNull, reason: '$k · ${h.name}');
       }
