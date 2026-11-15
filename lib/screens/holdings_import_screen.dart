@@ -12,6 +12,14 @@ import '../theme/design_system.dart';
 import '../utils/money_format.dart';
 import '../utils/share_format.dart';
 
+/// 잔고 캡처 불러오기를 **눈에 띄는 자리**(첫 화면·종목 추가)에 내놓을까.
+///
+/// 한국 증권사 앱 화면과 국내 종목만 읽는다. 영어 화면을 쓰는 해외 사용자
+/// 에게는 쓸 수 없는 기능이라, 맨 위에 두면 자리만 차지한다. 포트 메뉴의
+/// 줄은 언어와 상관없이 남아 있다.
+bool holdingsCaptureOffered(BuildContext context) =>
+    Localizations.localeOf(context).languageCode == 'ko';
+
 /// 잔고 캡처로 불러오기.
 ///
 /// 거래내역 업로드와 같은 두 단계다 — 캡처를 고르고, **넣기 전에 무엇이

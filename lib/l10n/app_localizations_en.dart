@@ -1264,6 +1264,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createAndUpload => 'Create and upload';
 
   @override
+  String get hintThenCapture =>
+      'You\'ll go straight to importing from screenshots.';
+
+  @override
+  String get createAndCapture => 'Create and import';
+
+  @override
+  String get firstRunCaptureTitle => 'Import from screenshots';
+
+  @override
+  String get firstRunFastest => 'fastest';
+
+  @override
+  String get firstRunCaptureDesc =>
+      'Pick screenshots of your broker app\'s holdings screen and we read the stocks and quantities. Korean-listed stocks only.';
+
+  @override
+  String get firstRunCaptureCta => 'Start from screenshots';
+
+  @override
+  String get captureCardTitle => 'Add all at once from screenshots';
+
+  @override
+  String get captureCardDesc => 'Reads your broker app\'s holdings screen';
+
+  @override
   String get sortManual => 'Manual';
 
   @override

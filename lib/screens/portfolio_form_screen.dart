@@ -15,13 +15,13 @@ class PortfolioFormScreen extends StatefulWidget {
   /// 저장 후 호출. 새로 만들었으면 곧바로 종목을 담게 할 수 있다.
   final void Function(String name) onSave;
 
-  /// 만든 뒤 파일 올리기로 가는 경우 (시안 v17d의 `파일로 시작`).
+  /// 만든 뒤 어디로 가는가 (시안 v17d의 `파일로 시작` 등).
   /// 안내와 버튼 문구가 실제로 가는 곳과 달라지면 안 된다.
-  final bool uploadNext;
+  final AfterCreate next;
 
   const PortfolioFormScreen({
     super.key,
-    this.uploadNext = false,
+    this.next = AfterCreate.search,
     this.initialName,
     this.isEdit = false,
     required this.onSave,
@@ -31,6 +31,18 @@ class PortfolioFormScreen extends StatefulWidget {
   State<PortfolioFormScreen> createState() => _PortfolioFormScreenState();
 }
 
+
+/// 포트폴리오를 만든 뒤 이어서 갈 곳.
+enum AfterCreate {
+  /// 종목 검색 — 하나씩 담는다
+  search,
+
+  /// 거래내역 파일 올리기
+  upload,
+
+  /// 잔고 캡처로 불러오기
+  capture,
+}
 
 /// 이름 길이 상한. 목록에서 한 줄에 들어가야 한다.
 const _maxNameLength = 20;
@@ -69,7 +81,11 @@ class _PortfolioFormScreenState extends State<PortfolioFormScreen> {
               if (!widget.isEdit) ...[
                 _hint(context, Icons.balance, l10n.hintTargetsInRebalanceTab),
                 const SizedBox(height: 8),
-                _hint(context, Icons.lightbulb_outline, widget.uploadNext ? l10n.hintThenUpload : l10n.hintThenAddStocks),
+                _hint(context, Icons.lightbulb_outline, switch (widget.next) {
+                      AfterCreate.upload => l10n.hintThenUpload,
+                      AfterCreate.capture => l10n.hintThenCapture,
+                      AfterCreate.search => l10n.hintThenAddStocks,
+                    }),
               ],
             ],
           ),
@@ -218,7 +234,13 @@ class _PortfolioFormScreenState extends State<PortfolioFormScreen> {
                 borderRadius: BorderRadius.circular(DS.buttonRadius)),
           ),
           child: Text(
-              widget.isEdit ? l10n.saveChanges : widget.uploadNext ? l10n.createAndUpload : l10n.createAndAddStocks,
+              widget.isEdit
+                  ? l10n.saveChanges
+                  : switch (widget.next) {
+                      AfterCreate.upload => l10n.createAndUpload,
+                      AfterCreate.capture => l10n.createAndCapture,
+                      AfterCreate.search => l10n.createAndAddStocks,
+                    },
               style:
                   const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w800)),
         ),

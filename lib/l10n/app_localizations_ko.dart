@@ -1237,6 +1237,31 @@ class AppLocalizationsKo extends AppLocalizations {
   String get createAndUpload => '만들고 파일 올리기';
 
   @override
+  String get hintThenCapture => '만들면 바로 잔고 캡처 불러오기로 넘어갑니다.';
+
+  @override
+  String get createAndCapture => '만들고 캡처 불러오기';
+
+  @override
+  String get firstRunCaptureTitle => '잔고 캡처로 불러오기';
+
+  @override
+  String get firstRunFastest => '가장 빠름';
+
+  @override
+  String get firstRunCaptureDesc =>
+      '증권사 앱의 잔고 화면을 캡처해 고르면 종목과 수량을 읽어 옵니다. 국내 종목만 됩니다.';
+
+  @override
+  String get firstRunCaptureCta => '캡처로 시작';
+
+  @override
+  String get captureCardTitle => '잔고 캡처로 한꺼번에 담기';
+
+  @override
+  String get captureCardDesc => '증권사 앱 잔고 화면에서 읽어 옵니다';
+
+  @override
   String get sortManual => '직접 배치';
 
   @override

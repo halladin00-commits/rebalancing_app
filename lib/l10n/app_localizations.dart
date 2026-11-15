@@ -2246,6 +2246,54 @@ abstract class AppLocalizations {
   /// **'만들고 파일 올리기'**
   String get createAndUpload;
 
+  /// No description provided for @hintThenCapture.
+  ///
+  /// In ko, this message translates to:
+  /// **'만들면 바로 잔고 캡처 불러오기로 넘어갑니다.'**
+  String get hintThenCapture;
+
+  /// No description provided for @createAndCapture.
+  ///
+  /// In ko, this message translates to:
+  /// **'만들고 캡처 불러오기'**
+  String get createAndCapture;
+
+  /// No description provided for @firstRunCaptureTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'잔고 캡처로 불러오기'**
+  String get firstRunCaptureTitle;
+
+  /// No description provided for @firstRunFastest.
+  ///
+  /// In ko, this message translates to:
+  /// **'가장 빠름'**
+  String get firstRunFastest;
+
+  /// No description provided for @firstRunCaptureDesc.
+  ///
+  /// In ko, this message translates to:
+  /// **'증권사 앱의 잔고 화면을 캡처해 고르면 종목과 수량을 읽어 옵니다. 국내 종목만 됩니다.'**
+  String get firstRunCaptureDesc;
+
+  /// No description provided for @firstRunCaptureCta.
+  ///
+  /// In ko, this message translates to:
+  /// **'캡처로 시작'**
+  String get firstRunCaptureCta;
+
+  /// No description provided for @captureCardTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'잔고 캡처로 한꺼번에 담기'**
+  String get captureCardTitle;
+
+  /// No description provided for @captureCardDesc.
+  ///
+  /// In ko, this message translates to:
+  /// **'증권사 앱 잔고 화면에서 읽어 옵니다'**
+  String get captureCardDesc;
+
   /// No description provided for @sortManual.
   ///
   /// In ko, this message translates to:

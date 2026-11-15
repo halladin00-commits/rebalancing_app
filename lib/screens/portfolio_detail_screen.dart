@@ -1379,12 +1379,16 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: InkWell(
+        // 종목 추가 안에서 잔고 캡처로 담았을 수 있다 — 돌아오면 메뉴의
+        // 「마지막 기록 되돌리기」 줄을 다시 읽는다
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(
             builder: (_) => ItemSearchScreen(portfolio: pf),
           ),
-        ),
+        ).then((_) {
+          if (mounted) _syncUndoForCurrent();
+        }),
         borderRadius: BorderRadius.circular(DS.tileRadius),
         child: DashedBorderBox(
           color: const Color(0xFFD6CFBC),

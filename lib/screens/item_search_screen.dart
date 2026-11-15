@@ -11,6 +11,7 @@ import '../models/portfolio.dart';
 import '../services/api_service.dart';
 import '../services/stock_search_service.dart';
 import '../theme/design_system.dart';
+import 'holdings_import_screen.dart';
 import 'item_form_screen.dart';
 import '../widgets/list_card.dart';
 
@@ -82,6 +83,11 @@ class _ItemSearchScreenState extends State<ItemSearchScreen> {
       resizeToAvoidBottomInset: true,
       body: Column(children: [
         _buildHeader(context),
+        // 찾기 시작했으면 치운다 — 키보드가 올라오면 결과 볼 자리가 모자란다
+        if (holdingsCaptureOffered(context) &&
+            !cashMode &&
+            _ctl.text.trim().isEmpty)
+          _buildCaptureCard(context),
         _buildSearchField(context),
         _buildFilters(context),
         Expanded(
@@ -146,6 +152,67 @@ class _ItemSearchScreenState extends State<ItemSearchScreen> {
         ),
       ),
     );
+  }
+
+  // ── 잔고 캡처 ──
+
+  /// 종목을 하나씩 찾아 담기 전에, **한꺼번에 담는 길**을 먼저 보여 준다.
+  ///
+  /// 포트 메뉴 안에만 있을 때는 만든 사람도 못 찾았다. 종목을 담으러 온
+  /// 사람이 가장 먼저 보는 자리가 여기다.
+  Widget _buildCaptureCard(BuildContext context) {
+    final l10n = context.l10n;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 13, 16, 0),
+      child: Material(
+        color: context.brand,
+        borderRadius: BorderRadius.circular(DS.tileRadius),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(DS.tileRadius),
+          onTap: () => _openCapture(context),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
+            child: Row(children: [
+              const Icon(Icons.document_scanner_outlined,
+                  size: 22, color: Colors.white),
+              const SizedBox(width: 11),
+              Expanded(
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(l10n.captureCardTitle,
+                          style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.2,
+                              color: Colors.white)),
+                      const SizedBox(height: 2),
+                      Text(l10n.captureCardDesc,
+                          style: TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w600,
+                              color: context.onBrandSecondary)),
+                    ]),
+              ),
+              const Icon(Icons.chevron_right, size: 20, color: Colors.white),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openCapture(BuildContext context) async {
+    final l10n = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+    final nav = Navigator.of(context);
+    final added = await nav.push<int?>(MaterialPageRoute(
+        builder: (_) =>
+            HoldingsImportScreen(portfolioId: widget.portfolio.id)));
+    if (!mounted || added == null || added == 0) return;
+    // 한꺼번에 담았으면 더 찾을 것이 없다 — 포트로 돌려보낸다
+    messenger.showSnackBar(SnackBar(content: Text(l10n.holdingsAdded(added))));
+    nav.pop();
   }
 
   // ── 검색창 ──

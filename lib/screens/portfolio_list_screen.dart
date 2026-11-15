@@ -15,6 +15,7 @@ import 'portfolio_form_screen.dart';
 import 'item_search_screen.dart';
 import 'portfolio_reorder_screen.dart';
 import 'transaction_import_screen.dart';
+import 'holdings_import_screen.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/brand_stat_tile.dart';
 import '../widgets/app_menu.dart';
@@ -159,12 +160,13 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
     ];
   }
 
-  void _showCreateDialog(BuildContext context, {bool uploadAfter = false}) {
+  void _showCreateDialog(BuildContext context,
+      {AfterCreate next = AfterCreate.search}) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => PortfolioFormScreen(
-          uploadNext: uploadAfter,
+          next: next,
           onSave: (name) {
             final pf = Portfolio(id: _uid(), name: name);
             context.read<PortfolioProvider>().addPortfolio(pf);
@@ -178,12 +180,22 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => uploadAfter
-                      // 파일로 시작 — 종목까지 파일이 만들어 준다
-                      ? TransactionImportScreen(portfolioId: pf.id)
-                      : ItemSearchScreen(portfolio: pf),
+                  builder: (_) => switch (next) {
+                    // 파일로 시작 — 종목까지 파일이 만들어 준다
+                    AfterCreate.upload =>
+                      TransactionImportScreen(portfolioId: pf.id),
+                    AfterCreate.capture =>
+                      HoldingsImportScreen(portfolioId: pf.id),
+                    AfterCreate.search => ItemSearchScreen(portfolio: pf),
+                  },
                 ),
-              );
+              ).then((r) {
+                // 캡처로 담고 돌아왔으면 몇 개 담겼는지 알린다
+                if (next != AfterCreate.capture || r is! int || r == 0) return;
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(context.l10n.holdingsAdded(r))));
+              });
             });
           },
         ),
@@ -1046,12 +1058,28 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                 color: context.textSecondary)),
       ),
       const SizedBox(height: 13),
+      // 캡처가 맨 위다 — 폰에 이미 있는 화면을 찍기만 하면 돼서 가장 빨리
+      // 끝난다. 한국 증권사 앱 화면만 읽으므로 한국어 화면에서만 보인다.
+      if (holdingsCaptureOffered(context)) ...[
+        _firstRunOption(
+          context,
+          icon: Icons.document_scanner_outlined,
+          title: l10n.firstRunCaptureTitle,
+          badge: l10n.firstRunFastest,
+          badgeStrong: true,
+          desc: l10n.firstRunCaptureDesc,
+          cta: l10n.firstRunCaptureCta,
+          filled: true,
+          onTap: () => _startFirstRun(context, next: AfterCreate.capture),
+        ),
+        const SizedBox(height: 10),
+      ],
       _firstRunOption(
         context,
         icon: Icons.history,
         title: l10n.firstRunRecordTitle,
         badge: l10n.firstRunRecommended,
-        badgeStrong: true,
+        badgeStrong: !holdingsCaptureOffered(context),
         desc: l10n.firstRunRecordDesc,
         cta: l10n.firstRunRecordCta,
         onTap: () => _startFirstRun(context),
@@ -1074,15 +1102,16 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
         badgeStrong: false,
         desc: l10n.firstRunUploadDesc,
         cta: l10n.firstRunUploadCta,
-        onTap: () => _startFirstRun(context, upload: true),
+        onTap: () => _startFirstRun(context, next: AfterCreate.upload),
       ),
       const SizedBox(height: 14),
     ]);
   }
 
   /// 어느 갈래를 골라도 포트폴리오부터 만들어야 한다. 만든 뒤 갈 곳만 다르다.
-  void _startFirstRun(BuildContext context, {bool upload = false}) =>
-      _showCreateDialog(context, uploadAfter: upload);
+  void _startFirstRun(BuildContext context,
+          {AfterCreate next = AfterCreate.search}) =>
+      _showCreateDialog(context, next: next);
 
   Widget _firstRunOption(
     BuildContext context, {
@@ -1093,6 +1122,7 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
     required String desc,
     required String cta,
     required VoidCallback onTap,
+    bool filled = false,
   }) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
@@ -1146,7 +1176,10 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
           child: OutlinedButton(
             onPressed: onTap,
             style: OutlinedButton.styleFrom(
-              foregroundColor: context.brandOnLight,
+              // 맨 위 갈래 하나만 채운다 — 넷이 똑같이 생기면 어디부터
+              // 볼지 알 수 없다
+              backgroundColor: filled ? context.brand : null,
+              foregroundColor: filled ? Colors.white : context.brandOnLight,
               side: BorderSide(color: context.brand, width: 1.3),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(DS.buttonRadius)),
