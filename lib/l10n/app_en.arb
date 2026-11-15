@@ -1001,6 +1001,7 @@
   "holdingsModelNotReady": "Text reading isn't ready yet. Try again in a minute.",
   "holdingsReadFailed": "Couldn't read the screenshots. Please try again.",
   "holdingsNoneFound": "No holdings found. Make sure the screenshots show stock names and quantities.",
+  "holdingsForeignSkipped": "Left out {count} overseas holdings — they can't be imported yet.",
   "holdingsNoQuantity": "Couldn't read {count} screenshots that don't show quantities. Capture a screen that shows how many shares you hold.",
   "issueNumbersUnchecked": "There was nothing on screen to cross-check the quantity against. Please confirm it.",
   "holdingsSkippedShots": "Skipped {count} screenshots that aren't the balance screen.",

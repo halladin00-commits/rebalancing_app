@@ -43,6 +43,7 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
   int _shotCount = 0;
   int _skippedShots = 0;
   int _noQtyShots = 0;
+  int _foreignSkipped = 0;
   List<String> _unreadable = const [];
 
   /// 고른 줄 — 줄의 순번.
@@ -255,6 +256,14 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
     var rows = error == null
         ? buildHoldingRows(shots, pf, stocks)
         : const <HoldingRow>[];
+    // 해외 종목은 넣지 못한다. 줄마다 「못 불러와요」를 달아 늘어놓으면
+    // 해외 주식이 많은 사람은 넣을 수 있는 종목을 그 사이에서 찾아야 한다
+    // (토스 캡처 한 장에 열두 줄이 그랬다) — 빼고 몇 개였는지만 알린다.
+    final foreign = rows.where((r) => r.scan.foreign).length;
+    rows = rows.where((r) => !r.scan.foreign).toList();
+    if (error == null && rows.isEmpty && foreign > 0) {
+      error = l10n.holdingsForeignSkipped(foreign);
+    }
     if (error == null && rows.isEmpty) {
       // 잔고 표는 있는데 수량 칸이 없는 화면이었으면 그렇다고 말한다 —
       // 「잔고 화면인지 확인」이라고 하면 잔고 화면을 찍은 사람은 막힌다
@@ -290,6 +299,7 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
       _skippedShots = shots.where((s) => s.notHoldingsScreen).length;
       _noQtyShots =
           shots.where((s) => s.noQuantity && s.holdings.isEmpty).length;
+      _foreignSkipped = foreign;
       _unreadable = [for (final s in shots) ...s.unreadable];
       _picked
         ..clear()
@@ -355,6 +365,11 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
           _note(context, Icons.image_not_supported_outlined,
               l10n.holdingsNoQuantity(_noQtyShots),
               warn: true),
+        ],
+        if (_foreignSkipped > 0) ...[
+          const SizedBox(height: 9),
+          _note(context, Icons.public_off_outlined,
+              l10n.holdingsForeignSkipped(_foreignSkipped)),
         ],
         if (_unreadable.isNotEmpty) ...[
           const SizedBox(height: 9),

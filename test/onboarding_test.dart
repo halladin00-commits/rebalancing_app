@@ -234,14 +234,19 @@ void main() {
     final src =
         File('lib/screens/portfolio_list_screen.dart').readAsStringSync();
     final start = src.indexOf('Widget _buildFirstRun');
-    final body = src.substring(start, start + 2500);
+    final body = src.substring(start, start + 3500);
 
-    final order = ['firstRunRecordTitle', 'firstRunQuickTitle', 'firstRunUploadTitle']
-        .map(body.indexOf)
-        .toList();
-    expect(order.every((i) => i >= 0), isTrue, reason: '세 갈래를 못 찾았다');
-    expect(order[0] < order[1], isTrue, reason: '직접 기록이 맨 위여야 한다');
-    expect(order[1] < order[2], isTrue, reason: '파일 올리기가 맨 아래여야 한다');
+    // 잔고 캡처가 그 위다 — 폰에 이미 있는 화면을 찍기만 하면 된다
+    final order = [
+      'firstRunCaptureTitle',
+      'firstRunRecordTitle',
+      'firstRunQuickTitle',
+      'firstRunUploadTitle'
+    ].map(body.indexOf).toList();
+    expect(order.every((i) => i >= 0), isTrue, reason: '네 갈래를 못 찾았다');
+    expect(order[0] < order[1], isTrue, reason: '잔고 캡처가 맨 위여야 한다');
+    expect(order[1] < order[2], isTrue, reason: '직접 기록이 그다음이어야 한다');
+    expect(order[2] < order[3], isTrue, reason: '파일 올리기가 맨 아래여야 한다');
   });
 
   // **여러 폭에서 잰다.** 폭 하나만 보면 못 잡는다 — 바깥 Column의 기본

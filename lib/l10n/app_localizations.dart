@@ -2576,6 +2576,12 @@ abstract class AppLocalizations {
   /// **'종목을 찾지 못했습니다. 종목명과 보유수량이 보이는 잔고 화면인지 확인해 주세요.'**
   String get holdingsNoneFound;
 
+  /// No description provided for @holdingsForeignSkipped.
+  ///
+  /// In ko, this message translates to:
+  /// **'해외 종목 {count}개는 아직 못 불러와서 뺐습니다.'**
+  String holdingsForeignSkipped(int count);
+
   /// No description provided for @holdingsNoQuantity.
   ///
   /// In ko, this message translates to:

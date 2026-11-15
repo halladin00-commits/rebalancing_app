@@ -1423,6 +1423,11 @@ class AppLocalizationsKo extends AppLocalizations {
       '종목을 찾지 못했습니다. 종목명과 보유수량이 보이는 잔고 화면인지 확인해 주세요.';
 
   @override
+  String holdingsForeignSkipped(int count) {
+    return '해외 종목 $count개는 아직 못 불러와서 뺐습니다.';
+  }
+
+  @override
   String holdingsNoQuantity(int count) {
     return '수량이 안 보이는 화면 $count장은 읽지 못했습니다. 보유수량이 나오는 화면을 캡처해 주세요.';
   }

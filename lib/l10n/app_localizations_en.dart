@@ -1460,6 +1460,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'No holdings found. Make sure the screenshots show stock names and quantities.';
 
   @override
+  String holdingsForeignSkipped(int count) {
+    return 'Left out $count overseas holdings — they can\'t be imported yet.';
+  }
+
+  @override
   String holdingsNoQuantity(int count) {
     return 'Couldn\'t read $count screenshots that don\'t show quantities. Capture a screen that shows how many shares you hold.';
   }

@@ -1011,6 +1011,8 @@
   "holdingsModelNotReady": "글자 읽기 준비가 아직 안 됐습니다. 1분쯤 뒤에 다시 해 주세요.",
   "holdingsReadFailed": "캡처를 읽지 못했습니다. 다시 시도해 주세요.",
   "holdingsNoneFound": "종목을 찾지 못했습니다. 종목명과 보유수량이 보이는 잔고 화면인지 확인해 주세요.",
+  "holdingsForeignSkipped": "해외 종목 {count}개는 아직 못 불러와서 뺐습니다.",
+  "@holdingsForeignSkipped": {"placeholders": {"count": {"type": "int"}}},
   "holdingsNoQuantity": "수량이 안 보이는 화면 {count}장은 읽지 못했습니다. 보유수량이 나오는 화면을 캡처해 주세요.",
   "@holdingsNoQuantity": {"placeholders": {"count": {"type": "int"}}},
   "issueNumbersUnchecked": "수량을 맞춰 볼 숫자가 화면에 없었어요. 맞는지 확인하세요.",
