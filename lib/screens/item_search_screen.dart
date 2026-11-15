@@ -344,7 +344,12 @@ class _ItemSearchScreenState extends State<ItemSearchScreen> {
       leading: MarketChip(market: r.market, label: r.market),
       title: r.name,
       titleSize: 14.5,
-      subtitle: Text(r.ticker,
+      // 「애플」로 찾았는데 줄에는 Apple Inc.만 보이면 맞게 찾았는지 모른다
+      subtitle: Text(
+          r.koName != null &&
+                  Localizations.localeOf(context).languageCode == 'ko'
+              ? '${r.ticker} · ${r.koName}'
+              : r.ticker,
           style: TextStyle(
               fontSize: DS.body,
               fontWeight: FontWeight.w600,

@@ -11,12 +11,20 @@ class StockSearchResult {
   final String market; // 'KR' or 'US'
   final bool isEtf;
 
+  /// 미국 종목의 한글 이름들 (「애플」「애플 컴퓨터」). 일부 종목에만 있다.
+  ///
+  /// 종목 이름은 영문([name]) 그대로 둔다 — 이건 **찾는 데만** 쓴다.
+  final List<String> koNames;
+
   StockSearchResult({
     required this.ticker,
     required this.name,
     required this.market,
     this.isEtf = false,
+    this.koNames = const [],
   });
+
+  String? get koName => koNames.isEmpty ? null : koNames.first;
 }
 
 class StockSearchService {
@@ -111,7 +119,13 @@ class StockSearchService {
     for (final s in _stocks!) {
       final ticker = (s['t'] as String).toLowerCase();
       final name = (s['n'] as String).toLowerCase();
-      if (!name.contains(q) && !ticker.contains(q)) continue;
+      final k = s['k'] as String?;
+      final ko = k == null || k.isEmpty ? const <String>[] : k.split('|');
+      if (!name.contains(q) &&
+          !ticker.contains(q) &&
+          _koScore(q, ko) == null) {
+        continue;
+      }
 
       final marketCode = s['m'] as String;
       final market = (marketCode == 'KS' || marketCode == 'KQ') ? 'KR' : 'US';
@@ -122,10 +136,32 @@ class StockSearchService {
         name: s['n'] as String,
         market: market,
         isEtf: isEtf,
+        koNames: ko,
       ));
     }
 
     return _sortByScore(q, items).take(15).toList();
+  }
+
+  /// 한글 이름으로 맞은 정도 — 이름으로 맞은 것과 같은 점수를 준다.
+  /// 띄어쓰기는 보지 않는다(「버크셔해서웨이」로도 찾는다). 안 맞으면 null.
+  static int? _koScore(String q, List<String> koNames) {
+    if (koNames.isEmpty) return null;
+    final want = q.replaceAll(' ', '');
+    if (want.isEmpty) return null;
+    int? best;
+    for (final n in koNames) {
+      final have = n.replaceAll(' ', '').toLowerCase();
+      final score = have == want
+          ? 1
+          : have.startsWith(want)
+              ? 3
+              : have.contains(want)
+                  ? 5
+                  : null;
+      if (score != null && (best == null || score < best)) best = score;
+    }
+    return best;
   }
 
   /// 스코어 기반 정렬: 정확일치(0) → 이름일치(1) → 티커시작(2) → 이름시작(3) → 티커포함(4) → 이름포함(5)
@@ -135,14 +171,16 @@ class StockSearchService {
     for (final item in items) {
       final ticker = item.ticker.toLowerCase();
       final name = item.name.toLowerCase();
-      int score;
+      int? score;
       if (ticker == q)               { score = 0; }
       else if (name == q)            { score = 1; }
       else if (ticker.startsWith(q)) { score = 2; }
       else if (name.startsWith(q))   { score = 3; }
       else if (ticker.contains(q))   { score = 4; }
       else if (name.contains(q))     { score = 5; }
-      else                           { continue; }
+      final ko = _koScore(q, item.koNames);
+      if (ko != null && (score == null || ko < score)) score = ko;
+      if (score == null) continue;
       scored.add(_ScoredResult(result: item, score: score));
     }
     scored.sort((a, b) => a.score.compareTo(b.score));
