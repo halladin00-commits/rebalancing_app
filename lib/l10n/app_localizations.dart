@@ -2525,13 +2525,13 @@ abstract class AppLocalizations {
   /// No description provided for @holdingsHowBody.
   ///
   /// In ko, this message translates to:
-  /// **'NH 나무 앱의 「주식잔고」 화면을 캡처하세요. 종목이 많으면 스크롤하며 여러 장 찍어 한꺼번에 고르면 됩니다. 겹쳐 찍힌 종목은 하나로 합칩니다.'**
+  /// **'증권사 앱에서 종목명과 보유수량이 함께 보이는 잔고 화면을 캡처하세요. 종목이 많으면 스크롤하며 여러 장 찍어 한꺼번에 고르면 됩니다. 겹쳐 찍힌 종목은 하나로 합칩니다.'**
   String get holdingsHowBody;
 
   /// No description provided for @holdingsSupportNote.
   ///
   /// In ko, this message translates to:
-  /// **'지금은 NH 나무의 국내 종목만 읽습니다.'**
+  /// **'국내 종목만 읽습니다. 넣기 전에 읽은 내용을 보여 드립니다.'**
   String get holdingsSupportNote;
 
   /// No description provided for @holdingsPrivacyNote.
@@ -2573,8 +2573,20 @@ abstract class AppLocalizations {
   /// No description provided for @holdingsNoneFound.
   ///
   /// In ko, this message translates to:
-  /// **'종목을 찾지 못했습니다. NH 나무 「주식잔고」 화면 캡처인지 확인해 주세요.'**
+  /// **'종목을 찾지 못했습니다. 종목명과 보유수량이 보이는 잔고 화면인지 확인해 주세요.'**
   String get holdingsNoneFound;
+
+  /// No description provided for @holdingsNoQuantity.
+  ///
+  /// In ko, this message translates to:
+  /// **'수량이 안 보이는 화면 {count}장은 읽지 못했습니다. 보유수량이 나오는 화면을 캡처해 주세요.'**
+  String holdingsNoQuantity(int count);
+
+  /// No description provided for @issueNumbersUnchecked.
+  ///
+  /// In ko, this message translates to:
+  /// **'수량을 맞춰 볼 숫자가 화면에 없었어요. 맞는지 확인하세요.'**
+  String get issueNumbersUnchecked;
 
   /// No description provided for @holdingsSkippedShots.
   ///

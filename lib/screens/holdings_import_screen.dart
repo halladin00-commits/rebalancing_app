@@ -42,6 +42,7 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
   List<HoldingRow>? _rows;
   int _shotCount = 0;
   int _skippedShots = 0;
+  int _noQtyShots = 0;
   List<String> _unreadable = const [];
 
   /// 고른 줄 — 줄의 순번.
@@ -254,7 +255,14 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
     var rows = error == null
         ? buildHoldingRows(shots, pf, stocks)
         : const <HoldingRow>[];
-    if (error == null && rows.isEmpty) error = l10n.holdingsNoneFound;
+    if (error == null && rows.isEmpty) {
+      // 잔고 표는 있는데 수량 칸이 없는 화면이었으면 그렇다고 말한다 —
+      // 「잔고 화면인지 확인」이라고 하면 잔고 화면을 찍은 사람은 막힌다
+      final noQty = shots.where((s) => s.noQuantity).length;
+      error = noQty > 0
+          ? l10n.holdingsNoQuantity(noQty)
+          : l10n.holdingsNoneFound;
+    }
 
     if (error != null) {
       setState(() => _busy = false);
@@ -280,6 +288,8 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
       _rows = rows;
       _shotCount = paths.length;
       _skippedShots = shots.where((s) => s.notHoldingsScreen).length;
+      _noQtyShots =
+          shots.where((s) => s.noQuantity && s.holdings.isEmpty).length;
       _unreadable = [for (final s in shots) ...s.unreadable];
       _picked
         ..clear()
@@ -339,6 +349,12 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
           const SizedBox(height: 9),
           _note(context, Icons.image_not_supported_outlined,
               l10n.holdingsSkippedShots(_skippedShots)),
+        ],
+        if (_noQtyShots > 0) ...[
+          const SizedBox(height: 9),
+          _note(context, Icons.image_not_supported_outlined,
+              l10n.holdingsNoQuantity(_noQtyShots),
+              warn: true),
         ],
         if (_unreadable.isNotEmpty) ...[
           const SizedBox(height: 9),
@@ -410,6 +426,7 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
               .map((q) => '${formatShares(q)}${l10n.unitShares}')
               .join(' · ')),
           HoldingIssue.numbersOff => l10n.issueNumbersOff,
+          HoldingIssue.numbersUnchecked => l10n.issueNumbersUnchecked,
           HoldingIssue.nameGuessed => l10n.issueNameGuessed(r.scan.name),
           HoldingIssue.priceOff => l10n.issuePriceOff(
               fmtMoney(r.scan.currentPrice, 'KRW'),

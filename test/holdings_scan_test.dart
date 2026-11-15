@@ -130,6 +130,13 @@ void main() {
       expect(parseNamuHoldings(s.words).holdings.single.verified, isFalse);
     });
 
+    test('평가금액이 수수료만큼 모자란 것은 검산이 맞는 것으로 본다', () {
+      // 팔 때 들 비용을 평가금액에서 미리 빼는 증권사가 있다
+      final s = _Screen()..header();
+      s.holding([['ALPHA']], '50', '1,173,415', '23,517', '23,470');
+      expect(parseNamuHoldings(s.words).holdings.single.verified, isTrue);
+    });
+
     test('국가가 해외면 해외 종목으로 표시한다', () {
       final s = _Screen()..header();
       s.holding([['ALPHA']], '10', '1,000', '90', '100',
@@ -187,10 +194,14 @@ void main() {
           enders: ['곡H', '헌금']); // 「국내 현금」을 잘못 읽었다
       s.holding([['GAMMA']], '20', '2,000', '90', '100');
       s.holding([['BETA']], '30', '3,000', '90', '100');
+      // 종목 사이는 「국내 현금」 줄이 아니라 **숫자 줄의 짝**으로 가른다.
+      // 그 줄을 잘못 읽어도 종목이 엉겨 붙지 않는다 — 잘못 읽힌 글자는
+      // 이름에 붙어 나가고, 종목 찾기에서 걸러져 사용자가 본다.
       final shot = parseNamuHoldings(s.words);
-      expect(shot.holdings.map((h) => h.name), ['BETA']);
-      expect(shot.unreadable, hasLength(1));
-      expect(shot.unreadable.single, contains('ALPHA'));
+      expect(shot.holdings.map((h) => h.qty), [10, 20, 30]);
+      expect(shot.holdings.first.name, startsWith('ALPHA'));
+      expect(shot.holdings.skip(1).map((h) => h.name), ['GAMMA', 'BETA']);
+      expect(shot.unreadable, isEmpty);
     });
 
     test('가운데 칸의 숫자가 모자라면 읽지 못한 종목으로 알린다', () {
@@ -201,6 +212,25 @@ void main() {
       // GAMMA의 현재가를 못 읽었다
       s.words.removeWhere((w) =>
           s.words.indexOf(w) >= start && w.text == '100' && w.left == 943);
+      // 현재가는 평가금액 ÷ 수량으로 셈할 수 있다. 다만 맞춰 본 것이
+      // 아니라서 「확인됨」이 아니다
+      final shot = parseNamuHoldings(s.words);
+      expect(shot.holdings.map((h) => h.name), ['ALPHA', 'GAMMA']);
+      final gamma = shot.holdings.last;
+      expect(gamma.priceDerived, isTrue);
+      expect(gamma.currentPrice, 100);
+      expect(gamma.check, NumberCheck.none);
+      expect(shot.unreadable, isEmpty);
+    });
+
+    test('가운데 칸의 수량도 평가금액도 못 읽었으면 읽지 못한 종목으로 알린다', () {
+      final s = _Screen()..header();
+      s.holding([['ALPHA']], '10', '1,000', '90', '100');
+      final start = s.words.length;
+      s.holding([['GAMMA']], '10', '1,000', '90', '100');
+      s.words.removeWhere((w) =>
+          s.words.indexOf(w) >= start &&
+          (w.text == '10' || w.text == '1,000'));
       final shot = parseNamuHoldings(s.words);
       expect(shot.holdings.map((h) => h.name), ['ALPHA']);
       expect(shot.unreadable, ['GAMMA']);
@@ -344,7 +374,7 @@ void main() {
     test('걸리는 데가 있으면 처음에 골라 두지 않는다', () {
       final rows = buildHoldingRows([
         HoldingsShot(holdings: [
-          _h('ALPHA 미국테크100액티브', 10, value: 999), // 검산 실패
+          _h('ALPHA 미국테크100액티브', 10, value: 1100), // 검산 실패
           _h('DELTA 글로벌A인공지능액티브', 3), // 이름 짐작
           _h('GAMMA 미국', 3), // 여럿
           _h('없는종목', 3),

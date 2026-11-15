@@ -1,225 +1,12 @@
-import 'dart:math' as math;
-
 import '../models/portfolio.dart';
+import 'holdings_parse.dart';
 import 'stock_search_service.dart';
 
-/// 잔고 캡처에서 읽은 낱말 하나와 그 자리(픽셀).
-///
-/// 글자 읽기(ML Kit)와 떼어 둔다 — 이 파일은 **읽힌 결과를 표로 되돌리는**
-/// 일만 한다. 그래야 기기 없이 시험할 수 있다.
-class OcrWord {
-  final String text;
-  final double left, top, right, bottom;
-  const OcrWord(this.text, this.left, this.top, this.right, this.bottom);
+export 'holdings_parse.dart';
 
-  double get cx => (left + right) / 2;
-  double get cy => (top + bottom) / 2;
-  double get height => bottom - top;
-}
-
-/// 캡처의 종목 한 줄.
-class ScannedHolding {
-  /// 화면에 적힌 그대로의 이름. 길면 증권사가 잘라서 보여 준다.
-  final String name;
-  final double qty;
-  final double avgPrice;
-  final double currentPrice;
-  final double value;
-
-  /// 국가 칸이 해외다 — 외화로 적혀 있어 아직 못 다룬다.
-  final bool foreign;
-
-  const ScannedHolding({
-    required this.name,
-    required this.qty,
-    required this.avgPrice,
-    required this.currentPrice,
-    required this.value,
-    this.foreign = false,
-  });
-
-  /// **수량 × 현재가 = 평가금액** 인가.
-  ///
-  /// 증권사는 이 셋을 원 단위까지 맞춰서 보여 준다. 숫자 하나라도 잘못
-  /// 읽었으면 여기서 어긋난다 — 글자 읽기를 믿을지 말지는 이것으로 정한다.
-  bool get verified => (qty * currentPrice - value).abs() < 1;
-
-  /// 숫자 네 개가 모두 같은가 — 두 캡처에 겹쳐 찍힌 같은 줄이다.
-  bool sameNumbers(ScannedHolding o) =>
-      qty == o.qty &&
-      value == o.value &&
-      currentPrice == o.currentPrice &&
-      avgPrice == o.avgPrice;
-}
-
-/// 캡처 한 장을 읽은 결과.
-class HoldingsShot {
-  final List<ScannedHolding> holdings;
-
-  /// 표 안에 있는데 다 읽지 못한 종목의 이름. 이름까지 못 읽었으면 빈 문자열.
-  final List<String> unreadable;
-
-  /// 잔고 표의 머리글(종목명·잔고수량·매입가)을 찾지 못했다.
-  final bool notHoldingsScreen;
-
-  const HoldingsShot({
-    this.holdings = const [],
-    this.unreadable = const [],
-    this.notHoldingsScreen = false,
-  });
-}
-
-/// 이름 밑 둘째 줄의 「국가」.
-const _countries = {'국내', '해외', '미국', '중국', '일본', '홍콩', '베트남'};
-
-/// 이름 밑 둘째 줄의 「구분」.
-const _accountKinds = {'현금', '신용', '대출', '담보', '융자', '대주'};
-
-/// 둘째 머리글 줄에 있는 말. 여기까지가 머리글이다.
-const _subHeaders = ['국가', '구분', '수익률', '평가금액', '현재가'];
-
-final _numberLike = RegExp(r'^-?[\d,.]+$');
-
-/// 「국내 현금」 칸의 낱말인가.
-///
-/// 「국내수」처럼 군더더기를 한 글자 붙이거나, 「국내현금」처럼 붙여 읽기도
-/// 한다. 그 말들을 지우고 한 글자 이하만 남으면 그 칸의 낱말로 본다.
-bool _isEnder(String t) {
-  var rest = t;
-  for (final e in [..._countries, ..._accountKinds]) {
-    rest = rest.replaceAll(e, '');
-  }
-  return rest.length < t.length && rest.length <= 1;
-}
-
-bool _isForeign(String t) =>
-    _countries.any((c) => c != '국내' && t.startsWith(c));
-
-/// NH 나무 「주식잔고」 화면을 읽는다.
-///
-/// 표는 종목마다 두 줄이다.
-///
-/// ```
-/// 종목명        평가손익   잔고수량   매입가
-/// 국가 구분     수익률     평가금액   현재가
-/// ```
-///
-/// 이름이 길면 두 줄로 꺾이고, 그 밑에 「국내 현금」이 온다. 그래서 칸은
-/// **「국내 현금」 줄에서 끝난다**고 본다. 숫자는 머리글의 가로 자리로 칸을
-/// 가르고, 한 칸 안에서 위의 것이 첫 줄(수량·매입가), 아래 것이 둘째 줄
-/// (평가금액·현재가)이다.
-HoldingsShot parseNamuHoldings(List<OcrWord> words) {
-  // 머리글은 「종목명」과 **같은 줄에 「잔고수량」·「매입가」가 있는 것**이다.
-  // 화면 위쪽에 검색칸 같은 다른 「종목명」이 있어도 헷갈리지 않는다.
-  for (final header in words.where((w) => w.text.contains('종목명'))) {
-    bool sameRow(OcrWord w) => (w.cy - header.cy).abs() < header.height;
-    OcrWord? headerWord(String s) =>
-        words.where((w) => sameRow(w) && w.text.contains(s)).firstOrNull;
-
-    final qtyH = headerWord('잔고수량') ?? headerWord('수량');
-    final priceH = headerWord('매입가');
-    if (qtyH == null || priceH == null) continue;
-    return _parseTable(words, header, qtyH, priceH, headerWord('평가손익'));
-  }
-  return const HoldingsShot(notHoldingsScreen: true);
-}
-
-HoldingsShot _parseTable(List<OcrWord> words, OcrWord header, OcrWord qtyH,
-    OcrWord priceH, OcrWord? plH) {
-  final plLeft = plH?.left ?? (header.right + qtyH.left) / 2;
-
-  // 둘째 머리글 줄까지가 머리글이다
-  var dataTop = header.bottom;
-  for (final w in words) {
-    if (w.top > header.bottom &&
-        w.top < header.bottom + header.height * 2.2 &&
-        _subHeaders.any(w.text.contains)) {
-      if (w.bottom > dataTop) dataTop = w.bottom;
-    }
-  }
-
-  final body = words.where((w) => w.top > dataTop).toList();
-  final left = body.where((w) => w.cx < plLeft).toList();
-  final qtyCol = body
-      .where((w) => w.cx >= qtyH.left && w.cx < priceH.left && _isNum(w))
-      .toList();
-  final priceCol =
-      body.where((w) => w.cx >= priceH.left && _isNum(w)).toList();
-
-  // 왼쪽 칸의 줄들. **낱말이 전부** 「국내 현금」인 줄에서 종목 한 칸이
-  // 끝난다 — 이름 속 낱말 하나로 칸을 끊지 않는다.
-  final leftRows = _rows(left);
-  final enders =
-      leftRows.where((r) => r.every((w) => _isEnder(w.text))).toList();
-
-  final holdings = <ScannedHolding>[];
-  final unreadable = <String>[];
-  var from = dataTop;
-  for (var i = 0; i < enders.length; i++) {
-    final end = enders[i];
-    final endTop = end.map((w) => w.top).reduce(math.min);
-    final endBottom = end.map((w) => w.bottom).reduce(math.max);
-    // 둘째 줄 숫자는 「국내 현금」과 같은 높이에 있다. 숫자 상자가 조금
-    // 처져도 이 칸에 들게 반 줄 여유를 둔다.
-    final to = endBottom + (endBottom - endTop) / 2;
-    bool inBand(OcrWord w) => w.cy > from && w.cy <= to;
-
-    final name = leftRows
-        .where((r) => !enders.contains(r) && inBand(r.first))
-        .map((r) => r.map((w) => w.text).join(' '))
-        .join();
-    final q = _rows(qtyCol.where(inBand).toList()).map(_joinNumber).toList();
-    final p = _rows(priceCol.where(inBand).toList()).map(_joinNumber).toList();
-    from = to;
-
-    // 맨 위 칸은 머리글 밑으로 반쯤 말려 들어간 것일 수 있다 — 이름이나
-    // 숫자 줄이 모자란다. 앞뒤 캡처에 온전히 있으니 **그것만** 조용히
-    // 넘긴다. 나머지는 못 읽었다고 알린다 — 조용히 빠지면 사용자는 종목이
-    // 빠진 줄 모른다.
-    final parsed = !q.contains(null) && !p.contains(null);
-    final short = q.length < 2 || p.length < 2;
-    if (i == 0 && parsed && (short || name.isEmpty)) continue;
-    if (name.isEmpty || !parsed || q.length != 2 || p.length != 2) {
-      unreadable.add(name);
-      continue;
-    }
-    holdings.add(ScannedHolding(
-      name: name,
-      qty: q[0]!,
-      value: q[1]!,
-      avgPrice: p[0]!,
-      currentPrice: p[1]!,
-      foreign: end.any((w) => _isForeign(w.text)),
-    ));
-  }
-  return HoldingsShot(holdings: holdings, unreadable: unreadable);
-}
-
-bool _isNum(OcrWord w) => _numberLike.hasMatch(w.text);
-
-/// 가로로 한 줄에 놓인 낱말끼리 묶는다. 위에서 아래로, 줄 안에서는 왼쪽부터.
-List<List<OcrWord>> _rows(List<OcrWord> words) {
-  final sorted = [...words]..sort((a, b) => a.cy.compareTo(b.cy));
-  final rows = <List<OcrWord>>[];
-  for (final w in sorted) {
-    final last = rows.isEmpty ? null : rows.last;
-    if (last != null && w.cy < last.first.bottom && w.cy > last.first.top) {
-      last.add(w);
-    } else {
-      rows.add([w]);
-    }
-  }
-  for (final r in rows) {
-    r.sort((a, b) => a.left.compareTo(b.left));
-  }
-  return rows;
-}
-
-/// 한 줄의 숫자 조각을 하나로 — 「-1,724,3 72」처럼 사이가 떠서 둘로 읽히기도 한다.
-double? _joinNumber(List<OcrWord> row) {
-  final s = row.map((w) => w.text).join().replaceAll(',', '');
-  return double.tryParse(s);
-}
+/// 예전 이름 — NH 나무만 읽던 때의 것. 지금은 [parseHoldings]가 화면 모양을
+/// 보고 읽는다.
+HoldingsShot parseNamuHoldings(List<OcrWord> words) => parseHoldings(words);
 
 // ── 종목 찾기 ──
 
@@ -265,7 +52,9 @@ StockLookup lookupStock(String ocrName, List<StockSearchResult> list) =>
 /// 다시 다듬으면 캡처 한 번에 수십만 번이 된다.
 StockLookup _lookup(
     String ocrName, List<StockSearchResult> list, List<String> norms) {
-  final q = _norm(ocrName.replaceAll('…', '').replaceAll('...', ''));
+  // 잘린 이름 끝의 말줄임표와 닫히지 않은 괄호를 뗀다 (「…Nifty50(」)
+  final q = _norm(ocrName.replaceAll('…', ''))
+      .replaceFirst(RegExp(r'[.(]+$'), '');
   if (q.isEmpty) return const StockLookup(NameMatch.none);
 
   final exact = <StockSearchResult>[];
@@ -347,6 +136,10 @@ enum HoldingIssue {
   /// 수량 × 현재가 ≠ 평가금액 — 숫자를 잘못 읽었을 수 있다
   numbersOff,
 
+  /// 읽은 수량을 맞춰 볼 다른 숫자가 화면에 없었다 — 틀렸다는 것이 아니라
+  /// **맞는지 모른다.** 사용자가 한 번 본다
+  numbersUnchecked,
+
   /// 이름을 한두 글자 다르게 읽었다 — 고른 종목이 맞는지 봐야 한다
   nameGuessed,
 
@@ -413,8 +206,17 @@ class HoldingRow {
       }
     }
     if (conflictQtys.isNotEmpty) out.add(HoldingIssue.qtyConflict);
-    if (!scan.verified) out.add(HoldingIssue.numbersOff);
     final s = stock;
+    if (scan.check == NumberCheck.failed) {
+      out.add(HoldingIssue.numbersOff);
+    } else if (scan.check == NumberCheck.none && existing == null) {
+      // 현재가를 평가금액 ÷ 수량으로 셈한 화면이면, 그 값이 지금 시세와
+      // 맞는 것이 곧 수량을 맞춰 본 것이다. 그것도 못 했으면 확인을 받는다.
+      final p = s == null ? null : live[s.ticker];
+      if (!(scan.priceDerived && p != null && nearShot(p))) {
+        out.add(HoldingIssue.numbersUnchecked);
+      }
+    }
     if (existing == null && s != null) {
       if (lookup.kind == NameMatch.fuzzy) out.add(HoldingIssue.nameGuessed);
       final p = live[s.ticker];
@@ -529,6 +331,10 @@ List<HoldingRow> buildHoldingRows(
   final rows = <HoldingRow>[];
   final norms = [for (final s in stocks) _norm(s.name)];
   for (final shot in shots) {
+    // **한 장 안에서** 같은 종목이 두 줄이면 한 계좌에 나뉘어 적힌 것이다
+    // (「현금 1주」와 「소수점 0.8주」). 한 화면이 같은 줄을 두 번 보여 주지는
+    // 않으니 겹쳐 찍힌 것일 수 없다 — 더한다.
+    final mine = <HoldingRow>[];
     for (final h in shot.holdings) {
       final lookup = _lookup(h.name, stocks, norms);
       final existing = findExisting(pf, lookup.stock, h.name);
@@ -536,6 +342,17 @@ List<HoldingRow> buildHoldingRows(
       // 보여야 하니 남긴다.
       if (existing == null && h.qty <= 0) continue;
       final row = HoldingRow(h, lookup, existing);
+      final k = row._key == null
+          ? -1
+          : mine.indexWhere((r) => r._key == row._key);
+      if (k == -1) {
+        mine.add(row);
+      } else {
+        mine[k] = HoldingRow(
+            _sum(mine[k].scan, h), mine[k].lookup, mine[k].existing);
+      }
+    }
+    for (final row in mine) {
       final j = rows.indexWhere((r) => r.isSameHolding(row));
       if (j == -1) {
         rows.add(row);
@@ -545,6 +362,27 @@ List<HoldingRow> buildHoldingRows(
     }
   }
   return rows;
+}
+
+/// 한 화면에 두 줄로 나뉘어 적힌 같은 종목을 하나로 더한다.
+ScannedHolding _sum(ScannedHolding a, ScannedHolding b) {
+  final qty = a.qty + b.qty;
+  final cost = a.avgPrice * a.qty + b.avgPrice * b.qty;
+  final checks = {a.check, b.check};
+  return ScannedHolding(
+    name: a.name,
+    qty: qty,
+    avgPrice: qty > 0 ? cost / qty : 0,
+    currentPrice: a.currentPrice,
+    value: a.value + b.value,
+    foreign: a.foreign || b.foreign,
+    priceDerived: a.priceDerived || b.priceDerived,
+    check: checks.contains(NumberCheck.failed)
+        ? NumberCheck.failed
+        : checks.contains(NumberCheck.none)
+            ? NumberCheck.none
+            : NumberCheck.ok,
+  );
 }
 
 /// 시세로 대조할 종목 코드 — 새로 넣을 수 있는 줄의 종목과, 이름이 비슷해

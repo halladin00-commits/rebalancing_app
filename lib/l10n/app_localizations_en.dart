@@ -1426,11 +1426,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get holdingsHowBody =>
-      'In the NH Namu app, capture the stock balance screen. If you hold many stocks, scroll and take several screenshots, then pick them all at once. Stocks that appear twice are merged.';
+      'In your broker app, capture the holdings screen that shows stock names together with quantities. If you hold many stocks, scroll and take several screenshots, then pick them all at once. Stocks that appear twice are merged.';
 
   @override
   String get holdingsSupportNote =>
-      'For now, only Korean-listed holdings from NH Namu can be read.';
+      'Only Korean-listed stocks are read. You\'ll see what was read before anything is added.';
 
   @override
   String get holdingsPrivacyNote =>
@@ -1457,7 +1457,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get holdingsNoneFound =>
-      'No holdings found. Make sure these are screenshots of the stock balance screen in NH Namu.';
+      'No holdings found. Make sure the screenshots show stock names and quantities.';
+
+  @override
+  String holdingsNoQuantity(int count) {
+    return 'Couldn\'t read $count screenshots that don\'t show quantities. Capture a screen that shows how many shares you hold.';
+  }
+
+  @override
+  String get issueNumbersUnchecked =>
+      'There was nothing on screen to cross-check the quantity against. Please confirm it.';
 
   @override
   String holdingsSkippedShots(int count) {

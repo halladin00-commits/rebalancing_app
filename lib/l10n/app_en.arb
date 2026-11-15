@@ -982,8 +982,8 @@
     }
   },
   "holdingsHowTitle": "How to capture",
-  "holdingsHowBody": "In the NH Namu app, capture the stock balance screen. If you hold many stocks, scroll and take several screenshots, then pick them all at once. Stocks that appear twice are merged.",
-  "holdingsSupportNote": "For now, only Korean-listed holdings from NH Namu can be read.",
+  "holdingsHowBody": "In your broker app, capture the holdings screen that shows stock names together with quantities. If you hold many stocks, scroll and take several screenshots, then pick them all at once. Stocks that appear twice are merged.",
+  "holdingsSupportNote": "Only Korean-listed stocks are read. You'll see what was read before anything is added.",
   "holdingsPrivacyNote": "Screenshots are read on this phone and never sent anywhere.",
   "pickScreenshots": "Pick screenshots",
   "pickScreenshotsDesc": "Several at once",
@@ -1000,7 +1000,9 @@
   },
   "holdingsModelNotReady": "Text reading isn't ready yet. Try again in a minute.",
   "holdingsReadFailed": "Couldn't read the screenshots. Please try again.",
-  "holdingsNoneFound": "No holdings found. Make sure these are screenshots of the stock balance screen in NH Namu.",
+  "holdingsNoneFound": "No holdings found. Make sure the screenshots show stock names and quantities.",
+  "holdingsNoQuantity": "Couldn't read {count} screenshots that don't show quantities. Capture a screen that shows how many shares you hold.",
+  "issueNumbersUnchecked": "There was nothing on screen to cross-check the quantity against. Please confirm it.",
   "holdingsSkippedShots": "Skipped {count} screenshots that aren't the balance screen.",
   "@holdingsSkippedShots": {
     "placeholders": {

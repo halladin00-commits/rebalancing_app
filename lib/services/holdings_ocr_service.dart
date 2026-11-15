@@ -71,7 +71,7 @@ class HoldingsOcrService {
     try {
       for (final path in paths) {
         final r = await rec.processImage(InputImage.fromFilePath(path));
-        shots.add(parseNamuHoldings([
+        shots.add(parseHoldings([
           for (final b in r.blocks)
             for (final l in b.lines)
               for (final e in l.elements)

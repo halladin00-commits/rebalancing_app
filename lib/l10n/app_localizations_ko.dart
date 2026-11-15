@@ -1393,10 +1393,10 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get holdingsHowBody =>
-      'NH 나무 앱의 「주식잔고」 화면을 캡처하세요. 종목이 많으면 스크롤하며 여러 장 찍어 한꺼번에 고르면 됩니다. 겹쳐 찍힌 종목은 하나로 합칩니다.';
+      '증권사 앱에서 종목명과 보유수량이 함께 보이는 잔고 화면을 캡처하세요. 종목이 많으면 스크롤하며 여러 장 찍어 한꺼번에 고르면 됩니다. 겹쳐 찍힌 종목은 하나로 합칩니다.';
 
   @override
-  String get holdingsSupportNote => '지금은 NH 나무의 국내 종목만 읽습니다.';
+  String get holdingsSupportNote => '국내 종목만 읽습니다. 넣기 전에 읽은 내용을 보여 드립니다.';
 
   @override
   String get holdingsPrivacyNote => '캡처는 이 폰 안에서만 읽고, 어디로도 보내지 않습니다.';
@@ -1419,7 +1419,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String get holdingsReadFailed => '캡처를 읽지 못했습니다. 다시 시도해 주세요.';
 
   @override
-  String get holdingsNoneFound => '종목을 찾지 못했습니다. NH 나무 「주식잔고」 화면 캡처인지 확인해 주세요.';
+  String get holdingsNoneFound =>
+      '종목을 찾지 못했습니다. 종목명과 보유수량이 보이는 잔고 화면인지 확인해 주세요.';
+
+  @override
+  String holdingsNoQuantity(int count) {
+    return '수량이 안 보이는 화면 $count장은 읽지 못했습니다. 보유수량이 나오는 화면을 캡처해 주세요.';
+  }
+
+  @override
+  String get issueNumbersUnchecked => '수량을 맞춰 볼 숫자가 화면에 없었어요. 맞는지 확인하세요.';
 
   @override
   String holdingsSkippedShots(int count) {
