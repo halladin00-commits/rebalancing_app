@@ -5,12 +5,12 @@ import 'settlement_header.dart';
 import '../main.dart';
 import '../models/portfolio.dart';
 import '../theme/design_system.dart';
+import '../utils/money_format.dart';
 import 'settlement_chart.dart';
 
 import '../services/settlement_service.dart';
 import 'app_logo.dart';
 import 'excluded_banner.dart';
-import 'capture_frame.dart';
 import 'list_card.dart';
 import 'contribution_row.dart';
 
@@ -42,6 +42,39 @@ class CaptureRow {
     required this.share,
     required this.contribution,
   });
+}
+
+/// 그림 한 장에 싣는 기여 줄 수. 스무 줄이면 그림 세로가 가로의 여섯 배쯤이다.
+const captureMaxRows = 20;
+
+/// 그림에 실을 줄을 고른다 — 넘치면 **금액이 작은 줄부터** 뺀다.
+///
+/// 예전에는 앞에서 여덟 줄만 남겼다. 종목별 기여는 번 순서로 늘어서 있어서
+/// 잘리는 것이 늘 **가장 많이 잃은 종목**이었다 — 10종목 ISA에서 손실 1·2위
+/// (합쳐 −23만 원)가 그림에서 사라지고, 그림 속 금액을 더해도 맨 위 손익과
+/// 맞지 않았다. 번 쪽이든 잃은 쪽이든 큰 것은 남기고, 뺀 줄은 합계로 적는다.
+///
+/// 남긴 줄의 순서는 받은 그대로다.
+({List<CaptureRow> rows, int hidden, double hiddenSum}) fitCaptureRows(
+    List<CaptureRow> all,
+    {int max = captureMaxRows}) {
+  if (all.length <= max) return (rows: all, hidden: 0, hiddenSum: 0.0);
+  final bySize = [for (var i = 0; i < all.length; i++) i]
+    ..sort((a, b) =>
+        all[b].absoluteReturn.abs().compareTo(all[a].absoluteReturn.abs()));
+  final keep = bySize.take(max).toSet();
+  var sum = 0.0;
+  for (var i = 0; i < all.length; i++) {
+    if (!keep.contains(i)) sum += all[i].absoluteReturn;
+  }
+  return (
+    rows: [
+      for (var i = 0; i < all.length; i++)
+        if (keep.contains(i)) all[i]
+    ],
+    hidden: all.length - max,
+    hiddenSum: sum,
+  );
 }
 
 /// 저장·공유할 결산 이미지.
@@ -89,11 +122,8 @@ class SettlementCaptureCard extends StatelessWidget {
   /// 빠진 종목의 평가액 합계 (서식 입힌 문자열).
   final String excludedAmount;
 
-  /// 목록에서 잘라낸 줄 수. 0이면 안 그린다.
-  ///
-  /// 그림은 혼자 돌아다니므로 **잘렸다는 말이 없으면 그게 전부인 줄 안다.**
-  /// 열 종목짜리 포트의 결산이 여덟 줄만 보여주고 있었다.
-  final int hiddenRows;
+  /// 기여 줄 **전부.** 자르지 말고 넘긴다 — 넘치면 이 카드가
+  /// [fitCaptureRows]로 고르고, 뺀 줄의 수와 합계를 마지막에 적는다.
   final List<CaptureRow> rows;
 
   /// 화면에 있는 막대그래프. 없으면 그리지 않는다.
@@ -139,7 +169,6 @@ class SettlementCaptureCard extends StatelessWidget {
     required this.currency,
     required this.rowsTitle,
     this.rowsNote,
-    this.hiddenRows = 0,
     this.excludedItems = const [],
     this.excludedAmount = '',
     this.bars = const [],
@@ -263,12 +292,29 @@ class SettlementCaptureCard extends StatelessWidget {
                 ),
                 padding:
                     const EdgeInsets.symmetric(horizontal: DS.cardPaddingH),
-                child: Column(children: [
-                  for (var i = 0; i < rows.length; i++)
-                    _row(context, rows[i],
-                        isLast: hiddenRows == 0 && i == rows.length - 1),
-                  if (hiddenRows > 0) CaptureTruncated(count: hiddenRows),
-                ]),
+                child: Builder(builder: (context) {
+                  final fit = fitCaptureRows(rows);
+                  return Column(children: [
+                    for (var i = 0; i < fit.rows.length; i++)
+                      _row(context, fit.rows[i],
+                          isLast:
+                              fit.hidden == 0 && i == fit.rows.length - 1),
+                    if (fit.hidden > 0)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 11),
+                        child: Text(
+                          context.l10n.captureOthersSum(
+                              fit.hidden,
+                              '${fit.hiddenSum >= 0 ? '+' : '−'}'
+                              '${fmtMoney(fit.hiddenSum.abs(), currency)}'),
+                          style: TextStyle(
+                              fontSize: DS.caption,
+                              fontWeight: FontWeight.w600,
+                              color: context.textTertiary),
+                        ),
+                      ),
+                  ]);
+                }),
               ),
             ],
           ]),

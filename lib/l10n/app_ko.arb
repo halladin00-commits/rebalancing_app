@@ -981,6 +981,14 @@
       }
     }
   },
+  "captureOthersSum": "그 외 {count}건 합계 {amount}",
+  "@captureOthersSum": {
+    "description": "결산 그림이 줄을 뺐을 때 마지막 줄. 뺀 줄의 합계를 적어 그림 속 금액이 맨 위 손익과 맞게 한다.",
+    "placeholders": {
+      "count": {"type": "int"},
+      "amount": {"type": "String"}
+    }
+  },
   "holdingsImportTitle": "잔고 캡처로 불러오기",
   "holdingsStep1": "1 / 2 · 캡처 고르기",
   "holdingsStep2": "2 / 2 · 캡처 {count}장",

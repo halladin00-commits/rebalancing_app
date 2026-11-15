@@ -1378,6 +1378,11 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String captureOthersSum(int count, String amount) {
+    return '그 외 $count건 합계 $amount';
+  }
+
+  @override
   String get holdingsImportTitle => '잔고 캡처로 불러오기';
 
   @override

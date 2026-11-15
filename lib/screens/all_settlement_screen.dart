@@ -1071,13 +1071,10 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       negativeColor: context.read<PnlColorNotifier>().negativeColor,
       // 머리글은 딥그린 위라 다른 색을 쓴다.
       pnlColors: context.read<PnlColorNotifier>(),
-      // 막대 길이는 **화면과 같은 분모**로 낸다. 잘라낸 8개만으로 다시
-      // 재면 막대가 화면보다 길어진다.
-      // 여덟 줄까지만 — 넘으면 **잘렸다고 말한다.** 말없이 자르면 그림을
-      // 보는 사람은 그게 전부인 줄 안다 (10종목 포트에서 2개가 사라졌다).
-      hiddenRows: ((r?.contributions.length ?? 0) - 8).clamp(0, 999),
+      // 막대 길이는 **화면과 같은 분모**로 낸다.
+      // 줄은 **전부** 넘긴다 — 넘치면 카드가 고르고 뺀 합계를 적는다.
       rows: [
-        for (final c in (r?.contributions ?? const []).take(8))
+        for (final c in r?.contributions ?? const [])
           CaptureRow(
             name: c.name,
             absoluteReturn: c.absoluteReturn,

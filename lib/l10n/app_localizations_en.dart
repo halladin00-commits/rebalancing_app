@@ -1411,6 +1411,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String captureOthersSum(int count, String amount) {
+    return '$count more, total $amount';
+  }
+
+  @override
   String get holdingsImportTitle => 'Import from screenshots';
 
   @override

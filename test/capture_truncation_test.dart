@@ -25,7 +25,7 @@ void main() {
       final src = File(path).readAsStringSync();
       final cuts = RegExp(r'\.take\(').allMatches(src).length;
       if (cuts == 0) continue;
-      final tells = 'hiddenRows'.allMatches(src).length +
+      final tells = 'fitCaptureRows'.allMatches(src).length +
           'CaptureTruncated'.allMatches(src).length;
       if (tells == 0) {
         offenders.add('${path.split('/').last}: 자르기 $cuts곳, 알림 없음');

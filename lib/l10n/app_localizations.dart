@@ -2498,6 +2498,12 @@ abstract class AppLocalizations {
   /// **'…외 {count}건은 앱에서 보세요'**
   String captureTruncated(int count);
 
+  /// 결산 그림이 줄을 뺐을 때 마지막 줄. 뺀 줄의 합계를 적어 그림 속 금액이 맨 위 손익과 맞게 한다.
+  ///
+  /// In ko, this message translates to:
+  /// **'그 외 {count}건 합계 {amount}'**
+  String captureOthersSum(int count, String amount);
+
   /// No description provided for @holdingsImportTitle.
   ///
   /// In ko, this message translates to:

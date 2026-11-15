@@ -971,6 +971,14 @@
       }
     }
   },
+  "captureOthersSum": "{count} more, total {amount}",
+  "@captureOthersSum": {
+    "description": "결산 그림이 줄을 뺐을 때 마지막 줄. 뺀 줄의 합계를 적어 그림 속 금액이 맨 위 손익과 맞게 한다.",
+    "placeholders": {
+      "count": {"type": "int"},
+      "amount": {"type": "String"}
+    }
+  },
   "holdingsImportTitle": "Import from screenshots",
   "holdingsStep1": "1 / 2 · Pick screenshots",
   "holdingsStep2": "2 / 2 · {count} screenshots",
