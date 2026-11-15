@@ -69,6 +69,11 @@ StockLookup _lookup(
         stock: exact.first, alternatives: longer.take(10).toList());
   }
   if (prefix.length == 1) {
+    // 짧은 이름은 잘린 것이 아니라 **다른 종목**이기 쉽다 — 해외 종목
+    // 「인텔」이 「인텔리안테크」로 찾아진다. 고르게 한다.
+    if (q.length < 4) {
+      return StockLookup(NameMatch.ambiguous, candidates: prefix);
+    }
     return StockLookup(NameMatch.prefix, stock: prefix.first);
   }
   if (prefix.length > 1) {
@@ -76,14 +81,20 @@ StockLookup _lookup(
         candidates: prefix.take(12).toList());
   }
 
-  // 잘못 읽은 글자 — 길이가 비슷한 것만 본다
+  // 잘못 읽은 글자 — 길이가 비슷한 것만 본다. 짧은 이름은 한 글자만 달라도
+  // 딴 종목이다(「쿠팡」 ← 「쿠콘」, 「SCHD」 ← 「SHD」) — 짐작하지 않는다.
+  if (q.length < 5) return const StockLookup(NameMatch.none);
   final limit = q.length >= 10 ? 2 : 1;
   StockSearchResult? best;
   var bestD = limit + 1;
   var tie = false;
+  // 우선주는 보통주와 **딴 종목**이다. 종목 목록에 우선주가 빠져 있으면
+  // 「한국금융지주우」가 한 글자 차이인 「한국금융지주」로 짐작된다 — 막는다.
+  final preferred = _preferred.hasMatch(q);
   for (var i = 0; i < list.length; i++) {
     final n = norms[i];
     if ((n.length - q.length).abs() > limit) continue;
+    if (_preferred.hasMatch(n) != preferred) continue;
     final d = _distance(n, q, limit);
     if (d < bestD) {
       bestD = d;
@@ -98,6 +109,9 @@ StockLookup _lookup(
   }
   return const StockLookup(NameMatch.none);
 }
+
+/// 우선주 이름의 끝 — 「삼성전자우」「현대차2우B」.
+final _preferred = RegExp(r'우[A-C]?$');
 
 /// 편집 거리. [limit]을 넘으면 더 세지 않는다.
 int _distance(String a, String b, int limit) {

@@ -272,13 +272,15 @@ void main() {
 1053 | 140:베이커  239:휴즈  550:\$677.42
 1099 | 149:10.599645  511:+66.42  594:(10.8%)
 ''', h: 24));
-      expect(
-          shot.holdings.map((h) => h.name), ['ALPHA', 'BETA글로벌반도체성장기업']);
-      expect(shot.holdings.map((h) => h.qty), [1, 181]);
-      expect(shot.holdings.map((h) => h.value), [119600, 3288770]);
-      expect(shot.holdings.last.currentPrice, 18170);
+      expect(shot.holdings.map((h) => h.name),
+          ['ALPHA', 'BETA글로벌반도체성장기업', '베이커 휴즈']);
+      expect(shot.holdings.map((h) => h.qty), [1, 181, 10.599645]);
+      expect(shot.holdings.map((h) => h.value).take(2), [119600, 3288770]);
+      expect(shot.holdings[1].currentPrice, 18170);
       expect(shot.holdings.every((h) => h.priceDerived), isTrue);
       expect(shot.holdings.every((h) => h.check == NumberCheck.none), isTrue);
+      // 「해외주식」 밑의 종목은 해외 종목이다 — 넣지 않는다
+      expect(shot.holdings.map((h) => h.foreign), [false, false, true]);
     });
 
     test('「원」을 %로 읽은 평가금을 손익으로 보지 않는다', () {
@@ -306,8 +308,11 @@ void main() {
 1406 | 81:1주
 1434 | 694:-11.10%  844:(11,300원)
 ''', h: 30));
-      expect(shot.holdings.map((h) => h.name), ['ALPHA 미국테크', 'GAMMA']);
-      expect(shot.holdings.map((h) => h.value), [324155, 90500]);
+      // 「3.163*」 — 소수점 수량의 「주」를 딴 글자로 읽었다
+      expect(shot.holdings.map((h) => h.name),
+          ['엔비디아', 'ALPHA 미국테크', 'GAMMA']);
+      expect(shot.holdings.map((h) => h.qty), [3.163, 13, 1]);
+      expect(shot.holdings.map((h) => h.value), [854475, 324155, 90500]);
     });
 
     test('현재가가 따로 적힌 화면 — 오른쪽 숫자(1주 평균)를 평가금으로 쓰지 않는다',
@@ -333,6 +338,36 @@ void main() {
       expect(
           shot.holdings.map((h) => h.currentPrice), [213500, 87465, 1263000]);
       expect(shot.holdings.every((h) => !h.priceDerived), isTrue);
+    });
+
+    test('정렬·보기 전환 줄을 첫 종목 이름에 붙이지 않는다', () {
+      final shot = parseHoldings(_screen('''
+ 610 | 76:전체  162:4  254:한국  342:2  436:미국  522:2
+ 758 | 65:평가금액  248:순  610:\$원  761:평가금  905:현재가
+ 890 | 80:ALPHA
+ 919 | 819:854,475
+ 959 | 80:13주
+ 984 | 683:+11.04%  844:(84,998원)
+''', h: 30));
+      expect(shot.holdings.single.name, 'ALPHA');
+      expect(shot.holdings.single.value, 854475);
+    });
+
+    test('다음 종목의 수량을 못 읽어도 그 종목의 현재가를 집지 않는다', () {
+      final shot = parseHoldings(_screen('''
+ 640 | 50:종목명  321:총수익  538:1주  600:평균  716:금액
+1412 | 46:ALPHA하이닉  580:2,089,000
+1447 | 357:-39.6%
+1480 | 65:스  718:현재가
+1500 | 344:828,715
+1538 | 68:1주  612:1,263,000
+1612 | 67:GAMMA
+1643 | 358:-10.3%  641:25,040
+1671 | 65:고배당주
+1700 | 330:118.951  564:현재가  662:22,460원
+'''));
+      expect(shot.holdings.single.name, 'ALPHA하이닉스');
+      expect(shot.holdings.single.currentPrice, 1263000);
     });
 
     test('「현금 20주」 밑에 이름표가 있는 화면 — 수량 × 현재가로 맞춰 본다', () {
@@ -376,6 +411,29 @@ void main() {
             value: qty * 100,
             priceDerived: derived,
             check: check);
+
+    test('우선주를 보통주로 짐작하지 않는다', () {
+      final list = [
+        StockSearchResult(ticker: '1', name: '한국알파지주', market: 'KR'),
+        StockSearchResult(ticker: '2', name: '델타전자우', market: 'KR'),
+      ];
+      // 목록에 우선주가 없다 — 한 글자 차이인 보통주로 가면 안 된다
+      expect(lookupStock('한국알파지주우', list).kind, NameMatch.none);
+      // 우선주끼리는 잘못 읽은 글자를 짐작한다
+      expect(lookupStock('델타전지우', list).stock?.ticker, '2');
+    });
+
+    test('짧은 이름은 짐작하지 않는다 — 해외 종목이 국내 종목으로 간다', () {
+      final list = [
+        StockSearchResult(ticker: '1', name: '쿠콘', market: 'KR'),
+        StockSearchResult(ticker: '2', name: '인텔리안테크', market: 'KR'),
+      ];
+      expect(lookupStock('쿠팡', list).kind, NameMatch.none);
+      // 그렇게 시작하는 종목이 하나뿐이어도 짧으면 고르게 한다
+      final intel = lookupStock('인텔', list);
+      expect(intel.kind, NameMatch.ambiguous);
+      expect(intel.stock, isNull);
+    });
 
     test('한 장 안에서 같은 종목이 두 줄이면 더한다 (현금 + 소수점)', () {
       final rows = buildHoldingRows([

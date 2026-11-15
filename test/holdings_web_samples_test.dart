@@ -74,7 +74,8 @@ void main() {
   }, skip: skip);
 
   // 캡처마다 [종목 수량들]. 이름은 남의 잔고라 적지 않는다 — 수량이 차례로
-  // 맞으면 종목을 빠뜨리거나 칸을 헷갈리지 않은 것이다.
+  // 맞으면 종목을 빠뜨리거나 칸을 헷갈리지 않은 것이다. 해외로 표시된
+  // 종목은 뺀다(넣지 않는 것들이다).
   const expected = <String, List<double>>{
     // 표
     'kiwoom_01.jpg': [10, 2, 6, 10, 146, 20, 23, 50],
@@ -85,7 +86,7 @@ void main() {
     'koreainv_03.jpg': [429, 824, 165, 725, 393],
     'koreainv_04.jpg': [1, 80, 1294, 110],
     'samsung_03.jpg': [1302, 890],
-    'kb_02.jpg': [145, 5, 5, 18, 55, 10],
+    'kb_02.jpg': [145, 5, 5, 18],
     'shinhan_01.jpg': [24, 13, 92, 400, 1],
     'daishin_01.png': [6],
     'daishin_02.jpg': [11, 14, 1, 34, 12, 9, 26],
@@ -103,7 +104,7 @@ void main() {
     'toss_02.jpg': [60],
     'toss_04.jpg': [104, 54, 165, 5, 1],
     'toss_06.jpg': [17],
-    'kakaopay_01.jpg': [13, 1],
+    'kakaopay_01.jpg': [3.163, 13, 1, 0.1195],
     'shinhan_04.jpg': [20],
   };
 
@@ -111,7 +112,8 @@ void main() {
     final words = load();
     for (final e in expected.entries) {
       final shot = parseHoldings(words[e.key]!);
-      expect(shot.holdings.map((h) => h.qty), e.value, reason: e.key);
+      expect(shot.holdings.where((h) => !h.foreign).map((h) => h.qty), e.value,
+          reason: e.key);
     }
   }, skip: skip);
 
@@ -141,6 +143,26 @@ void main() {
     }
   }, skip: skip);
 
+  test('해외 종목이 국내 종목으로 잘못 찾아지지 않는다', () {
+    // 토스·카카오페이·미니스탁의 해외 종목 이름(「인텔」「쿠팡」「SCHD」)이
+    // 비슷한 국내 종목(「인텔리안테크」「쿠콘」「SHD」)으로 짐작되면 안 된다
+    final words = load();
+    final list = stocks();
+    for (final k in [
+      'etc_01.jpg', 'etc_02.jpg', 'etc_03.jpg', 'kakaopay_02.png',
+      'kakaopay_03.png', 'toss_02.jpg', 'toss_05.jpg',
+      'toss_07.png', 'toss_08.jpg',
+    ]) {
+      final shot = parseHoldings(words[k]!);
+      expect(shot.notHoldingsScreen, isFalse, reason: k);
+      for (final h in shot.holdings) {
+        final m = lookupStock(h.name, list);
+        if (m.stock == null) continue;
+        expect(m.kind, NameMatch.exact, reason: '$k · ${h.name}');
+      }
+    }
+  }, skip: skip);
+
   test('국내 종목은 이름으로 종목을 찾는다', () {
     final words = load();
     final list = stocks();
@@ -148,10 +170,11 @@ void main() {
     for (final k in [
       'kiwoom_01.jpg', 'kiwoom_02.jpg', 'koreainv_03.jpg', 'samsung_03.jpg',
       'shinhan_01.jpg', 'kb_01.png', 'kb_03.jpg', 'mirae_03.jpg',
-      'toss_01.jpg', 'toss_04.jpg', 'kakaopay_01.jpg', 'nh_05.jpg',
+      'toss_01.jpg', 'toss_04.jpg', 'nh_05.jpg',
       'nh_06.jpg', 'shinhan_04.jpg',
     ]) {
       for (final h in parseHoldings(words[k]!).holdings) {
+        if (h.foreign) continue;
         final m = lookupStock(h.name, list);
         expect(m.stock, isNotNull, reason: '$k · ${h.name}');
       }

@@ -830,6 +830,12 @@ HoldingsShot? _parseCards(List<OcrWord> words) {
 
 final _sharesToken = RegExp(r'^\d[\d,.]*주/?$');
 
+/// 소수점 수량 — 「10.599645주」의 「주」는 자주 빠지거나 딴 글자로 읽힌다
+/// (「9.195161Ę」「3.163*」). 소수점 아래가 길면 왼쪽에 있는 한 수량으로 본다.
+/// 대개 해외 종목이라 넣지는 못하지만, 통째로 못 본 척하면 「잔고 화면이
+/// 아니다」라고 말하게 된다.
+final _fractionToken = RegExp(r'^\d+\.\d{2,}(\.{1,3}|[^\d\s%)])?$');
+
 /// 손익·수익률로 보이는 낱말 — 부호나 괄호로 시작하거나 「12.3%」 꼴이다.
 /// 「14,309,353%」는 아니다(「원」을 %로 읽은 평가금).
 final _signed = RegExp(r'^[+\-−(]|\d\.\d+%');
@@ -846,14 +852,43 @@ final _signed = RegExp(r'^[+\-−(]|\d\.\d+%');
 /// 같은 왼쪽 자리에서 시작하는 줄이고, 평가금은 오른쪽의 부호 없는 숫자다.
 /// 현재가가 화면에 없으니 평가금 ÷ 수량으로 셈한다.
 HoldingsShot? _parseList(List<OcrWord> words) {
-  final anchors = words.where((w) => _sharesToken.hasMatch(w.text)).toList()
+  if (words.isEmpty) return null;
+  final width = words.map((w) => w.right).reduce(math.max);
+  var anchors = words
+      // 수량은 왼쪽에 있다. 오른쪽의 「1주 평균 금액」은 머리글이다
+      .where((w) =>
+          w.left < 0.45 * width &&
+          (_sharesToken.hasMatch(w.text) || _fractionToken.hasMatch(w.text)))
+      .toList()
     ..sort((a, b) => a.top.compareTo(b.top));
   if (anchors.isEmpty) return null;
   final h = _median(anchors.map((w) => w.height));
-  final width = words.map((w) => w.right).reduce(math.max);
+  // 수량은 한 세로줄에 놓인다. 「주」가 없는 소수는 그 줄에 있을 때만
+  // 수량이다 — 「118.951」은 쉼표를 점으로 읽은 금액일 수 있다.
+  final shares = anchors.where((w) => _sharesToken.hasMatch(w.text));
+  final column =
+      _median((shares.isNotEmpty ? shares : anchors).map((w) => w.left));
+  anchors = anchors
+      .where((w) =>
+          _sharesToken.hasMatch(w.text) ||
+          (w.left - column).abs() <= 1.5 * h)
+      .toList();
   final lines = _lines(words, 0.6 * h);
   int lineOf(OcrWord w) => lines.indexWhere((l) => l.contains(w));
   final anchorLines = {for (final a in anchors) lineOf(a)};
+
+  // 「해외주식」 밑에 놓인 종목은 해외 종목이다. 이름만으로는 국내 종목과
+  // 헷갈린다(「인텔」 ← 「인텔리안테크」).
+  final sections = [
+    for (final l in lines)
+      if (l.any((w) => w.text == '해외주식') !=
+          l.any((w) => w.text == '국내주식'))
+        (y: _lineCy(l), foreign: l.any((w) => w.text == '해외주식'))
+  ];
+  bool inForeignSection(double y) {
+    final above = sections.where((s) => s.y < y);
+    return above.isNotEmpty && above.last.foreign;
+  }
 
   final recs = <({OcrWord anchor, List<OcrWord> name, double top})>[];
   for (final a in anchors) {
@@ -871,9 +906,16 @@ HoldingsShot? _parseList(List<OcrWord> words) {
       if (anchorLines.contains(k)) break;
       final line = lines[k];
       final text = line.map((w) => w.text).join();
-      if (text.contains('평균') || text.contains('종목명')) break;
+      // 정렬·보기 전환 줄(「평가금액 순 … 평가금 현재가」)은 이름이 아니다
+      if (text.contains('평균') ||
+          text.contains('종목명') ||
+          text.contains('평가금') ||
+          line.any((w) => w.text == '보기')) {
+        break;
+      }
       if (!line.any((w) => (w.left - alignX).abs() <= 1.2 * h)) continue;
-      if (lastCy - _lineCy(line) > 5 * h) break;
+      // 수량에서 이름까지는 손익 줄이 끼어 멀 수 있지만, 이름 줄끼리는 붙어 있다
+      if (lastCy - _lineCy(line) > (taken == 0 ? 5 : 3.5) * h) break;
       // 이름 줄 가운데의 숫자(「+26.7%」)는 이름이 아니다. 줄 맨 앞의
       // 숫자는 이름이다(「TIGER / 200」)
       nameToks.addAll(line.where((w) =>
@@ -892,17 +934,25 @@ HoldingsShot? _parseList(List<OcrWord> words) {
   for (var i = 0; i < recs.length; i++) {
     final r = recs[i];
     final from = r.top - 0.3 * h;
-    final to = i + 1 < recs.length
-        ? recs[i + 1].top - 0.3 * h
-        : r.anchor.bottom + 5 * h;
+    // 다음 종목 전까지. 다만 너무 멀리 가지 않는다 — 구역 사이의
+    // 「총 평가금액 684,095」가 앞 종목의 평가금액으로 읽힌다
+    final to = math.min(
+        i + 1 < recs.length ? recs[i + 1].top - 0.3 * h : double.infinity,
+        r.anchor.bottom + 6 * h);
     final inRange =
         lines.where((l) => _lineCy(l) >= from && _lineCy(l) < to).toList();
     final cells = <_F, String>{_F.qty: r.anchor.text};
+    // 현재가는 **맨 위 「현재가」 이름표**에서만 읽는다. 다음 종목의 수량을
+    // 못 읽으면 그 종목 줄들이 이 종목 범위에 들어온다 — 거기 적힌 현재가를
+    // 집으면 딴 종목 값이 된다.
+    final curLine = inRange
+        .where((l) => l.any((w) => w.text.contains('현재가')))
+        .firstOrNull;
     for (final l in inRange) {
       for (final e in _pairs(l).entries) {
-        if (e.key != _F.qty && e.key != _F.avail) {
-          cells.putIfAbsent(e.key, () => e.value);
-        }
+        if (e.key == _F.qty || e.key == _F.avail) continue;
+        if (e.key == _F.cur && !identical(l, curLine)) continue;
+        cells.putIfAbsent(e.key, () => e.value);
       }
     }
     // 오른쪽의 부호 없는 숫자 가운데 맨 위 것이 평가금이다. 손익은 부호나
@@ -923,10 +973,8 @@ HoldingsShot? _parseList(List<OcrWord> words) {
     }
     // 「현재가」와 그 값이 줄이 어긋나 짝을 못 지었으면 가장 가까운 숫자
     if (!cells.containsKey(_F.cur)) {
-      final label = inRange
-          .expand((l) => l)
-          .where((w) => w.text.contains('현재가'))
-          .firstOrNull;
+      final label =
+          curLine?.where((w) => w.text.contains('현재가')).firstOrNull;
       if (label != null) {
         OcrWord? best;
         for (final w in inRange.expand((l) => l)) {
@@ -946,7 +994,7 @@ HoldingsShot? _parseList(List<OcrWord> words) {
       }
     }
     final named = _composeName(r.name, 0.6 * h);
-    var foreign = named.foreign;
+    var foreign = named.foreign || inForeignSection(r.anchor.cy);
     if (right != null && !cells.containsKey(_F.value)) {
       if (right.text.contains(r'$')) foreign = true;
       final cur = _parse(cells[_F.cur]);
@@ -961,7 +1009,10 @@ HoldingsShot? _parseList(List<OcrWord> words) {
       }
     }
     final built = _build(named.name, cells, foreign: foreign);
-    if (built == null || named.name.isEmpty) {
+    // 「7.70594…」 — 화면이 수량을 잘라서 보여 줬다. 그 수량으로 넣으면
+    // 조용히 모자라게 들어간다. (해외 종목은 어차피 넣지 않는다)
+    final cut = r.anchor.text.endsWith('.') && !(built?.foreign ?? false);
+    if (built == null || named.name.isEmpty || cut) {
       unreadable.add(named.name);
     } else {
       holdings.add(built);
