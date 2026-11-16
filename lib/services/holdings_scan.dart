@@ -505,6 +505,49 @@ Map<String, String> priceTickers(List<HoldingRow> rows) => {
         },
     };
 
+final _plainTicker = RegExp(r'^[A-Z]{1,5}(-[A-Z])?$');
+
+/// 종목 목록에 없는 티커들 — **시세를 물어볼** 것.
+///
+/// 앱의 미국 종목 목록은 거래소 상장 주식·ETF다. 뮤추얼펀드(FXAIX)와
+/// MMF(SPAXX)는 거래소에 없어서 목록에도 없다 — Fidelity·Vanguard 계좌에는
+/// 흔하다. 시세는 받을 수 있으므로, 시세가 오면 있는 종목으로 친다.
+Map<String, String> unlistedUsTickers(List<HoldingRow> rows) => {
+      for (final r in rows)
+        if (r.existing == null &&
+            r.scan.currency == 'USD' &&
+            r.lookup.kind == NameMatch.none &&
+            r.scan.symbol != null &&
+            _plainTicker.hasMatch(r.scan.symbol!))
+          r.scan.symbol!: 'US',
+    };
+
+/// 목록에 없지만 **시세가 온** 티커를 종목으로 받아들인다.
+List<HoldingRow> adoptQuotedTickers(
+    List<HoldingRow> rows, Map<String, double> live, Portfolio pf) {
+  final asked = unlistedUsTickers(rows);
+  return [
+    for (final r in rows)
+      if (asked.containsKey(r.scan.symbol) && live[r.scan.symbol] != null)
+        () {
+          final sym = r.scan.symbol!;
+          final name = r.scan.name.trim();
+          final stock = StockSearchResult(
+              ticker: sym,
+              name: name.isEmpty || name == sym ? sym : name,
+              market: 'US');
+          return HoldingRow(
+              r.scan,
+              StockLookup(NameMatch.exact, stock: stock),
+              findExisting(pf, stock, stock.name),
+              conflictQtys: r.conflictQtys,
+              live: r.live);
+        }()
+      else
+        r
+  ];
+}
+
 /// 기록할 매수 단가 — 캡처의 평단가. 못 읽었으면 현재가.
 double scanBuyPrice(ScannedHolding s) =>
     s.avgPrice > 0 ? s.avgPrice : s.currentPrice;

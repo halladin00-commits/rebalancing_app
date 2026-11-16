@@ -482,6 +482,63 @@ void main() {
       expect(it.market, 'US');
     });
 
+    test('목록에 없는 티커(뮤추얼펀드)는 시세가 오면 종목으로 받는다', () {
+      const fund = ScannedHolding(
+          name: 'FXXIX',
+          symbol: 'FXXIX',
+          currency: 'USD',
+          qty: 6.276,
+          avgPrice: 166.45,
+          currentPrice: 239.14,
+          value: 1500.84,
+          priceDerived: true,
+          check: NumberCheck.none);
+      var rows = buildHoldingRows([
+        const HoldingsShot(holdings: [fund, pill])
+      ], _pf(), const [], usStocks: _usList);
+      expect(rows.first.issues, [HoldingIssue.notFound]);
+      // 목록에 있는 종목은 묻지 않는다
+      expect(unlistedUsTickers(rows), {'FXXIX': 'US'});
+
+      // 시세가 안 오면 그대로 「못 찾았다」
+      expect(adoptQuotedTickers(rows, const {}, _pf()).first.issues,
+          [HoldingIssue.notFound]);
+
+      const live = {'FXXIX': 240.0};
+      rows = [
+        for (final r in adoptQuotedTickers(rows, live, _pf())) r.withLive(live)
+      ];
+      final r = rows.first;
+      expect(r.stock!.ticker, 'FXXIX');
+      expect(r.stock!.market, 'US');
+      expect(r.issues, isEmpty, reason: '평가금액 ÷ 수량이 시세와 맞는다');
+      final it = newItemFromScan(r, 'n1', DateTime(2026, 11, 17));
+      expect(it.ticker, 'FXXIX');
+      expect(it.transactions.single.price, 166.45);
+    });
+
+    test('티커 꼴이 아닌 것은 시세를 묻지 않는다', () {
+      const coin = ScannedHolding(
+          name: 'DOGEUSD DogeCoin',
+          currency: 'USD',
+          qty: 750,
+          avgPrice: 0,
+          currentPrice: 0.2,
+          value: 156);
+      const junk = ScannedHolding(
+          name: 'GO0G',
+          symbol: 'X0X0',
+          currency: 'USD',
+          qty: 1,
+          avgPrice: 0,
+          currentPrice: 1,
+          value: 1);
+      final rows = buildHoldingRows([
+        const HoldingsShot(holdings: [coin, junk])
+      ], _pf(), const [], usStocks: _usList);
+      expect(unlistedUsTickers(rows), isEmpty);
+    });
+
     test('시세를 받을 종목은 시장과 함께 넘긴다', () {
       final r = rowOf(pill);
       expect(priceTickers([r]), {'AAA': 'US'});

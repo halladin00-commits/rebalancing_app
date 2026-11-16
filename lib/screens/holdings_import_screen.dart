@@ -286,11 +286,13 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
     // 숫자를 잘못 읽은 것만 잡는다 — 이름이 잘려 다른 종목으로 찾아진 것은
     // 숫자가 멀쩡해서 못 잡는다.
     setState(() => _checkingPrices = true);
-    final tickers = priceTickers(rows);
+    // 목록에 없는 티커(뮤추얼펀드 등)도 함께 묻는다 — 시세가 오면 있는 종목이다
+    final tickers = {...priceTickers(rows), ...unlistedUsTickers(rows)};
     final live = tickers.isEmpty
         ? const <String, double>{}
         : await HoldingsOcrService.livePrices(tickers);
     if (!mounted) return;
+    rows = adoptQuotedTickers(rows, live, pf);
     rows = [for (final r in rows) r.withLive(live)];
 
     setState(() {
