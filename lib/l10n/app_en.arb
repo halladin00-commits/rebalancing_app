@@ -1071,6 +1071,7 @@
       }
     }
   },
+  "holdingsQtyOnly": "{qty} sh",
   "holdingsSameQty": "Matches",
   "holdingsQtyDiff": "App {app} · Broker {broker}",
   "@holdingsQtyDiff": {

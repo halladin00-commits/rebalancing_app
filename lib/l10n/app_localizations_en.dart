@@ -1540,6 +1540,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String holdingsQtyOnly(String qty) {
+    return '$qty sh';
+  }
+
+  @override
   String get holdingsSameQty => 'Matches';
 
   @override

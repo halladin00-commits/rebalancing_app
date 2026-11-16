@@ -531,10 +531,13 @@ List<HoldingRow> adoptQuotedTickers(
       if (asked.containsKey(r.scan.symbol) && live[r.scan.symbol] != null)
         () {
           final sym = r.scan.symbol!;
+          // 화면의 이름은 잘려 있곤 하다(「Micron Techno...」) — 잘린 이름을
+          // 종목 이름으로 남기느니 티커를 쓴다
           final name = r.scan.name.trim();
+          final cut = name.endsWith('.') || name.endsWith('…');
           final stock = StockSearchResult(
               ticker: sym,
-              name: name.isEmpty || name == sym ? sym : name,
+              name: name.isEmpty || name == sym || cut ? sym : name,
               market: 'US');
           return HoldingRow(
               r.scan,

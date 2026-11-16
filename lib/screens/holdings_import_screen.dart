@@ -511,7 +511,7 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
             const SizedBox(height: 2),
             Text(
                 r.value == null
-                    ? '$qty ${l10n.unitShares}'
+                    ? l10n.holdingsQtyOnly(qty)
                     : l10n.holdingsQtyLine(
                         qty, fmtMoney(r.value!, r.scan.currency)),
                 style: TextStyle(

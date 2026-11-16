@@ -1084,6 +1084,8 @@
       }
     }
   },
+  "holdingsQtyOnly": "{qty}주",
+  "@holdingsQtyOnly": {"placeholders": {"qty": {"type": "String"}}},
   "holdingsSameQty": "수량 일치",
   "holdingsQtyDiff": "앱 {app}주 · 증권사 {broker}주",
   "@holdingsQtyDiff": {

@@ -1502,6 +1502,11 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String holdingsQtyOnly(String qty) {
+    return '$qty주';
+  }
+
+  @override
   String get holdingsSameQty => '수량 일치';
 
   @override

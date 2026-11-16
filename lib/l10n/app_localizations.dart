@@ -2690,6 +2690,12 @@ abstract class AppLocalizations {
   /// **'{qty}주 · 평가 {value}'**
   String holdingsQtyLine(String qty, String value);
 
+  /// No description provided for @holdingsQtyOnly.
+  ///
+  /// In ko, this message translates to:
+  /// **'{qty}주'**
+  String holdingsQtyOnly(String qty);
+
   /// No description provided for @holdingsSameQty.
   ///
   /// In ko, this message translates to:
