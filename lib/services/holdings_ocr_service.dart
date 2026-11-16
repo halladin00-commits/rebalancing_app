@@ -38,17 +38,17 @@ class HoldingsOcrService {
   ///
   /// 시세 갱신처럼 4개씩 나눠 받는다. 망이 나쁘면 한 종목에 20초까지 걸릴 수
   /// 있어서, [limit]이 지나면 그때까지 받은 것만 쓴다.
-  static Future<Map<String, double>> livePrices(Iterable<String> tickers,
+  static Future<Map<String, double>> livePrices(Map<String, String> tickers,
       {Duration limit = const Duration(seconds: 15)}) async {
     final out = <String, double>{};
-    final queue = tickers.toSet().toList();
+    final queue = tickers.keys.toList();
     Future<void> lane() async {
       while (queue.isNotEmpty) {
         final t = queue.removeLast();
         // 하나가 터져도 나머지는 받는다 — 터진 채로 두면 화면이
         // 「시세 확인 중」에서 영영 안 넘어간다
         try {
-          final r = await ApiService.fetchStockPrice(t, 'KR');
+          final r = await ApiService.fetchStockPrice(t, tickers[t] ?? 'KR');
           final p = r.data?.currentPrice ?? 0;
           if (r.ok && p > 0) out[t] = p;
         } catch (_) {}
@@ -67,18 +67,18 @@ class HoldingsOcrService {
   static Future<List<HoldingsShot>> read(List<String> paths,
       {void Function(int done)? onProgress}) async {
     final rec = TextRecognizer(script: TextRecognitionScript.korean);
-    final shots = <HoldingsShot>[];
+    final read = <List<OcrWord>>[];
     try {
       for (final path in paths) {
         final r = await rec.processImage(InputImage.fromFilePath(path));
-        shots.add(parseHoldings([
+        read.add([
           for (final b in r.blocks)
             for (final l in b.lines)
               for (final e in l.elements)
                 OcrWord(e.text, e.boundingBox.left, e.boundingBox.top,
                     e.boundingBox.right, e.boundingBox.bottom),
-        ]));
-        onProgress?.call(shots.length);
+        ]);
+        onProgress?.call(read.length);
       }
     } on PlatformException catch (e) {
       if ('${e.message}'.contains('download')) throw OcrModelNotReady();
@@ -90,6 +90,7 @@ class HoldingsOcrService {
         await FilePicker.platform.clearTemporaryFiles();
       } catch (_) {}
     }
-    return shots;
+    // 다 읽은 뒤에 한꺼번에 푼다 — 머리글이 없는 장은 다른 장의 칸 자리를 빌린다
+    return parseHoldingsShots(read);
   }
 }

@@ -481,7 +481,7 @@ void main() {
           _h('BETA 글로벌반도체TOP4', 1),
         ])
       ], _pf([_item('b', '100002', 'BETA 글로벌반도체TOP4 Plus', 1)]), _stocks);
-      expect(priceTickers(rows), {'100003', '100004'},
+      expect(priceTickers(rows).keys.toSet(), {'100003', '100004'},
           reason: '이미 있는 종목은 바꾸지 않으니 대 보지 않는다');
     });
   });

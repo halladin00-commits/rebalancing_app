@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 
+import 'holdings_parse_en.dart';
+
 /// 잔고 캡처에서 읽은 낱말 하나와 그 자리(픽셀).
 ///
 /// 글자 읽기(ML Kit)와 떼어 둔다 — 이 파일은 **읽힌 결과를 종목 목록으로
@@ -43,8 +45,20 @@ class ScannedHolding {
   /// 현재가가 화면에 없어서 다른 숫자로 셈한 것이다.
   final bool priceDerived;
 
+  /// 화면에 적힌 티커(「AAPL」). 영어 앱은 종목을 이름이 아니라 티커로 적는다.
+  final String? symbol;
+
+  /// 금액의 통화 — 한국 앱 화면은 'KRW', 영어 앱 화면은 'USD'.
+  final String currency;
+
+  /// [currentPrice]에 넣어 둔 값이 **현재가인지 평가금액인지 모른다.**
+  /// 머리글 없는 목록은 오른쪽 값이 앱마다 다르다(Robinhood는 현재가,
+  /// Fidelity는 평가금액). 시세를 받아야 가릴 수 있다.
+  final bool priceMaybeValue;
+
   final NumberCheck? _check;
 
+  /// [currentPrice]는 0일 수 있다 — 화면에 가격이 없다(수량만 적는 화면).
   const ScannedHolding({
     required this.name,
     required this.qty,
@@ -53,6 +67,9 @@ class ScannedHolding {
     required this.value,
     this.foreign = false,
     this.priceDerived = false,
+    this.symbol,
+    this.currency = 'KRW',
+    this.priceMaybeValue = false,
     NumberCheck? check,
   }) : _check = check;
 
@@ -1042,6 +1059,30 @@ HoldingsShot? _parseList(List<OcrWord> words) {
   return HoldingsShot(holdings: holdings, unreadable: unreadable);
 }
 
+/// 캡처 여러 장을 읽는다 — 한 장씩 읽되, 머리글이 화면 밖으로 밀려 못 읽은
+/// 장은 **같이 고른 다른 장의 칸 자리**로 다시 읽어 본다(영어 앱의 표).
+List<HoldingsShot> parseHoldingsShots(List<List<OcrWord>> shots) {
+  final out = [for (final w in shots) parseHoldings(w)];
+  final layouts = <EnTableLayout>[];
+  for (var i = 0; i < shots.length; i++) {
+    if (out[i].holdings.length < 2) continue;
+    final l = enTableLayoutOf(shots[i]);
+    if (l != null) layouts.add(l);
+  }
+  if (layouts.isEmpty) return out;
+  for (var i = 0; i < shots.length; i++) {
+    if (!out[i].notHoldingsScreen) continue;
+    for (final l in layouts) {
+      final again = parseHoldingsEnWith(shots[i], l);
+      if (again != null) {
+        out[i] = again;
+        break;
+      }
+    }
+  }
+  return out;
+}
+
 /// 증권사 앱의 잔고 화면 캡처를 읽는다.
 ///
 /// 증권사마다 화면이 다르지만 모양은 셋 중 하나다.
@@ -1055,6 +1096,20 @@ HoldingsShot? _parseList(List<OcrWord> words) {
 /// 앱이 개편돼 칸 순서가 바뀌어도, 처음 보는 증권사여도 머리글 낱말이
 /// 같으면 읽는다.
 HoldingsShot parseHoldings(List<OcrWord> words) {
+  // 한글이 거의 없으면 영어 앱 화면이다. 먼저 그쪽으로 읽는다 — 한국 앱용
+  // 목록 읽기가 「0.134181 shares」의 소수점 수량을 닻으로 잡아 엉뚱하게 읽는다.
+  // (영어 화면에서도 정렬 화살표 따위가 한글 한 글자로 읽히곤 한다.)
+  final hangul = words
+      .where((w) =>
+          w.text.length >= 2 && RegExp(r'[가-힣]').hasMatch(w.text))
+      .length;
+  // 「60주」 — 수량을 「주」로 적었으면 한글이 적어도 한국 앱 화면이다
+  final koreanQty = words.any((w) => RegExp(r'\d주').hasMatch(w.text));
+  if (hangul < 3 && !koreanQty) {
+    // 한글이 없는 화면을 한국 앱용으로 읽으면 엉뚱한 숫자를 종목으로 읽는다
+    return parseHoldingsEn(words) ??
+        const HoldingsShot(notHoldingsScreen: true);
+  }
   final table = _parseTable(words);
   if (table != null &&
       (table.holdings.isNotEmpty || table.unreadable.isNotEmpty)) {

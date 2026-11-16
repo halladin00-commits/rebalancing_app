@@ -1401,7 +1401,8 @@ class AppLocalizationsKo extends AppLocalizations {
       '증권사 앱에서 종목명과 보유수량이 함께 보이는 잔고 화면을 캡처하세요. 종목이 많으면 스크롤하며 여러 장 찍어 한꺼번에 고르면 됩니다. 겹쳐 찍힌 종목은 하나로 합칩니다.';
 
   @override
-  String get holdingsSupportNote => '국내 종목만 읽습니다. 넣기 전에 읽은 내용을 보여 드립니다.';
+  String get holdingsSupportNote =>
+      '국내 증권사와 미국 증권사(영어) 앱의 화면을 읽습니다. 넣기 전에 읽은 내용을 보여 드립니다.';
 
   @override
   String get holdingsPrivacyNote => '캡처는 이 폰 안에서만 읽고, 어디로도 보내지 않습니다.';
@@ -1521,6 +1522,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get issueNotFound => '종목을 못 찾았어요. 직접 추가해 주세요.';
+
+  @override
+  String get issueNoPrice => '시세를 받지 못했어요. 인터넷을 확인하고 다시 불러와 주세요.';
 
   @override
   String get issueForeign => '해외 종목은 아직 못 불러와요.';

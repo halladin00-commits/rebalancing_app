@@ -82,6 +82,20 @@ class StockSearchService {
     ];
   }
 
+  /// 미국 종목 전체 — 영어 앱 캡처의 티커를 종목에 대 보는 데 쓴다.
+  static Future<List<StockSearchResult>> usStocks() async {
+    await _ready();
+    return [
+      for (final s in _stocks ?? const <Map<String, dynamic>>[])
+        if (s['m'] == 'US')
+          StockSearchResult(
+              ticker: s['t'] as String,
+              name: s['n'] as String,
+              market: 'US',
+              isEtf: s['ty'] == 'E'),
+    ];
+  }
+
   /// 종목 검색 — Hybrid 방식
   /// 한글 포함: 로컬 JSON (Yahoo Finance가 한글 HTTP 400 반환)
   /// 영문/숫자: Yahoo + 로컬 병합 후 스코어 재정렬 (정확 일치 누락 방지)

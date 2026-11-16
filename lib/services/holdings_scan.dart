@@ -110,6 +110,39 @@ StockLookup _lookup(
   return const StockLookup(NameMatch.none);
 }
 
+/// 글자 읽기가 글자를 숫자로 잘못 읽는 짝 — 「GO0G」.
+const _digitForLetter = {'0': 'O', '1': 'I', '5': 'S', '8': 'B', '2': 'Z'};
+
+/// 영어 앱 캡처의 한 줄을 미국 종목 목록에 대 본다.
+///
+/// 티커가 있으면 티커로 찾는다 — 똑같으면 그 종목이다. 숫자가 섞여 못 찾으면
+/// 글자로 되돌려 한 번 더 본다(사용자가 확인한다). 티커를 못 읽은 줄은
+/// 이름으로 찾는다.
+StockLookup lookupUsStock(ScannedHolding h, List<StockSearchResult> us,
+    {List<String>? norms}) {
+  final sym = h.symbol?.toUpperCase();
+  if (sym != null && sym.isNotEmpty) {
+    StockSearchResult? byTicker(String t) {
+      final dash = t.replaceAll('.', '-');
+      for (final s in us) {
+        if (s.ticker == t || s.ticker == dash) return s;
+      }
+      return null;
+    }
+
+    final hit = byTicker(sym);
+    if (hit != null) return StockLookup(NameMatch.exact, stock: hit);
+    final fixed = sym.split('').map((c) => _digitForLetter[c] ?? c).join();
+    if (fixed != sym) {
+      final guess = byTicker(fixed);
+      if (guess != null) return StockLookup(NameMatch.fuzzy, stock: guess);
+    }
+    return const StockLookup(NameMatch.none);
+  }
+  if (h.name.trim().length < 3) return const StockLookup(NameMatch.none);
+  return _lookup(h.name, us, norms ?? [for (final s in us) _norm(s.name)]);
+}
+
 /// 우선주 이름의 끝 — 「삼성전자우」「현대차2우B」.
 final _preferred = RegExp(r'우[A-C]?$');
 
@@ -160,6 +193,9 @@ enum HoldingIssue {
   /// 찾은 종목의 지금 시세가 캡처의 현재가와 많이 다르다 — 다른 종목일 수 있다
   priceOff,
 
+  /// 화면에 가격이 없는데 시세도 받지 못했다 — 얼마에 넣을지 모른다
+  noPrice,
+
   /// 이름이 같은 종목을 찾았지만 더 긴 이름의 종목도 있고, 시세로도 어느
   /// 쪽인지 가리지 못했다
   similarNames,
@@ -191,10 +227,45 @@ class HoldingRow {
   /// 앱 화면에 보일 이름 — 찾은 종목 이름이 잘리지 않은 온전한 이름이다.
   String get displayName => existing?.name ?? stock?.name ?? scan.name;
 
-  /// 시세가 캡처의 현재가 근처인가.
+  static bool _close(double a, double b) =>
+      b > 0 && (a / b - 1).abs() <= priceTolerance;
+
+  /// 캡처의 오른쪽 값이 **평가금액**이었는가 — 그 값 ÷ 수량이 시세와 맞는다.
+  /// 머리글 없는 목록([ScannedHolding.priceMaybeValue])에서만 묻는다.
+  bool _isValue(double price) =>
+      scan.priceMaybeValue &&
+      scan.qty > 0 &&
+      !_close(price, scan.currentPrice) &&
+      _close(price, scan.currentPrice / scan.qty);
+
+  /// 시세가 캡처와 맞는가. 캡처에 가격이 없으면 대 볼 것이 없다 — 맞는 것으로 본다.
   bool nearShot(double price) =>
-      scan.currentPrice > 0 &&
-      (price / scan.currentPrice - 1).abs() <= priceTolerance;
+      scan.currentPrice <= 0 ||
+      _close(price, scan.currentPrice) ||
+      _isValue(price);
+
+  /// 이 종목의 현재가 — 넣을 때 쓴다. 모르면 null.
+  ///
+  /// 한국 앱 화면은 캡처의 현재가를 그대로 쓴다. 영어 앱의 목록은 화면에
+  /// 가격이 없거나(수량만), 오른쪽 값이 가격인지 평가금액인지 모른다 —
+  /// 그때는 받은 시세로 가린다.
+  double? get price {
+    final s = stock;
+    final p = s == null ? null : live[s.ticker];
+    if (scan.priceMaybeValue) {
+      if (p == null) return null;
+      return _isValue(p) ? scan.currentPrice / scan.qty : scan.currentPrice;
+    }
+    if (scan.currentPrice > 0) return scan.currentPrice;
+    return p;
+  }
+
+  /// 평가금액. 달러 화면은 수량 × 현재가로 낸다(화면에 없는 앱이 많다).
+  double? get value {
+    if (scan.currency == 'KRW') return scan.value;
+    final p = price;
+    return p == null ? null : scan.qty * p;
+  }
 
   /// 찾은 종목이 맞다는 걸 **시세가 뒷받침하는가** — 그 종목 시세는 캡처와
   /// 가깝고, 이름이 비슷한 다른 종목 중에는 가까운 것이 없다.
@@ -227,9 +298,12 @@ class HoldingRow {
       // 현재가를 평가금액 ÷ 수량으로 셈한 화면이면, 그 값이 지금 시세와
       // 맞는 것이 곧 수량을 맞춰 본 것이다. 그것도 못 했으면 확인을 받는다.
       final p = s == null ? null : live[s.ticker];
-      if (!(scan.priceDerived && p != null && nearShot(p))) {
-        out.add(HoldingIssue.numbersUnchecked);
-      }
+      final byPrice = p != null &&
+          ((scan.priceDerived && nearShot(p)) || _isValue(p));
+      if (!byPrice) out.add(HoldingIssue.numbersUnchecked);
+    }
+    if (existing == null && s != null && price == null) {
+      out.add(HoldingIssue.noPrice);
     }
     if (existing == null && s != null) {
       if (lookup.kind == NameMatch.fuzzy) out.add(HoldingIssue.nameGuessed);
@@ -252,6 +326,7 @@ class HoldingRow {
     HoldingIssue.notFound,
     HoldingIssue.nameAmbiguous,
     HoldingIssue.qtyConflict,
+    HoldingIssue.noPrice,
   };
 
   /// 고르면 새 종목으로 넣을 수 있나.
@@ -341,16 +416,26 @@ PortfolioItem? findExisting(Portfolio pf, StockSearchResult? s, String name) {
 /// 합친다. 같은 종목인데 수량이 다르면 합치되 **어긋났다고 표시**한다 —
 /// 한쪽을 조용히 버리면 그 수량이 사라진다.
 List<HoldingRow> buildHoldingRows(
-    List<HoldingsShot> shots, Portfolio pf, List<StockSearchResult> stocks) {
+    List<HoldingsShot> shots, Portfolio pf, List<StockSearchResult> stocks,
+    {List<StockSearchResult> usStocks = const []}) {
   final rows = <HoldingRow>[];
   final norms = [for (final s in stocks) _norm(s.name)];
+  List<String>? usNorms;
   for (final shot in shots) {
     // **한 장 안에서** 같은 종목이 두 줄이면 한 계좌에 나뉘어 적힌 것이다
     // (「현금 1주」와 「소수점 0.8주」). 한 화면이 같은 줄을 두 번 보여 주지는
     // 않으니 겹쳐 찍힌 것일 수 없다 — 더한다.
     final mine = <HoldingRow>[];
     for (final h in shot.holdings) {
-      final lookup = _lookup(h.name, stocks, norms);
+      final StockLookup lookup;
+      if (h.currency == 'USD') {
+        if (h.symbol == null) {
+          usNorms ??= [for (final s in usStocks) _norm(s.name)];
+        }
+        lookup = lookupUsStock(h, usStocks, norms: usNorms);
+      } else {
+        lookup = _lookup(h.name, stocks, norms);
+      }
       final existing = findExisting(pf, lookup.stock, h.name);
       // 0주는 넣을 것이 없다. 앱에 있는 종목이면 「증권사 0주」라는 차이가
       // 보여야 하니 남긴다.
@@ -391,10 +476,17 @@ ScannedHolding _sum(ScannedHolding a, ScannedHolding b) {
     name: a.name,
     qty: qty,
     avgPrice: qty > 0 ? cost / qty : 0,
-    currentPrice: a.currentPrice,
+    // 가격인지 평가금액인지 모르는 값은 더한다 — 같은 종목을 두 줄로 나눠
+    // 적는 앱(Fidelity)은 평가금액을 적는다
+    currentPrice: a.priceMaybeValue
+        ? a.currentPrice + b.currentPrice
+        : a.currentPrice,
     value: a.value + b.value,
     foreign: a.foreign || b.foreign,
     priceDerived: a.priceDerived || b.priceDerived,
+    symbol: a.symbol,
+    currency: a.currency,
+    priceMaybeValue: a.priceMaybeValue || b.priceMaybeValue,
     check: checks.contains(NumberCheck.failed)
         ? NumberCheck.failed
         : checks.contains(NumberCheck.none)
@@ -403,19 +495,23 @@ ScannedHolding _sum(ScannedHolding a, ScannedHolding b) {
   );
 }
 
-/// 시세로 대조할 종목 코드 — 새로 넣을 수 있는 줄의 종목과, 이름이 비슷해
-/// 헷갈릴 수 있는 후보들.
-Set<String> priceTickers(List<HoldingRow> rows) => {
+/// 시세로 대조할 종목 코드(→ 시장) — 새로 넣을 수 있는 줄의 종목과, 이름이
+/// 비슷해 헷갈릴 수 있는 후보들.
+Map<String, String> priceTickers(List<HoldingRow> rows) => {
       for (final r in rows)
-        if (r.existing == null) ...[
-          if (r.stock != null) r.stock!.ticker,
-          for (final c in r.choices) c.ticker,
-        ],
+        if (r.existing == null) ...{
+          if (r.stock != null) r.stock!.ticker: r.stock!.market,
+          for (final c in r.choices) c.ticker: c.market,
+        },
     };
 
 /// 기록할 매수 단가 — 캡처의 평단가. 못 읽었으면 현재가.
 double scanBuyPrice(ScannedHolding s) =>
     s.avgPrice > 0 ? s.avgPrice : s.currentPrice;
+
+/// 줄의 매수 단가 — 평단가가 없으면 그 줄의 현재가([HoldingRow.price]).
+double rowBuyPrice(HoldingRow r) =>
+    r.scan.avgPrice > 0 ? r.scan.avgPrice : (r.price ?? 0);
 
 /// 캡처의 한 줄로 새 종목을 만든다 — **오늘, 평단가로 매수 1건.**
 ///
@@ -432,13 +528,13 @@ PortfolioItem newItemFromScan(HoldingRow r, String id, DateTime today) {
     name: s.name,
     ticker: s.ticker,
     market: s.market,
-    currentPrice: r.scan.currentPrice,
+    currentPrice: r.price ?? 0,
     transactions: [
       StockTransaction(
           id: '${id}_0',
           date: date,
           quantity: r.scan.qty,
-          price: scanBuyPrice(r.scan)),
+          price: rowBuyPrice(r)),
     ],
   )..syncFromTransactions();
 }

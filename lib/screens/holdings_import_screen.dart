@@ -14,11 +14,9 @@ import '../utils/share_format.dart';
 
 /// 잔고 캡처 불러오기를 **눈에 띄는 자리**(첫 화면·종목 추가)에 내놓을까.
 ///
-/// 한국 증권사 앱 화면과 국내 종목만 읽는다. 영어 화면을 쓰는 해외 사용자
-/// 에게는 쓸 수 없는 기능이라, 맨 위에 두면 자리만 차지한다. 포트 메뉴의
-/// 줄은 언어와 상관없이 남아 있다.
-bool holdingsCaptureOffered(BuildContext context) =>
-    Localizations.localeOf(context).languageCode == 'ko';
+/// 처음에는 한국 증권사 앱만 읽어서 한국어 화면에서만 내놨다. 2026-11
+/// 영어 앱(미국 증권사)도 읽게 되어 언어를 가리지 않는다.
+bool holdingsCaptureOffered(BuildContext context) => true;
 
 /// 잔고 캡처로 불러오기.
 ///
@@ -251,10 +249,15 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
     final stocks = error == null
         ? await StockSearchService.krStocks()
         : const <StockSearchResult>[];
+    // 달러로 적힌 줄이 있을 때만 미국 종목 목록을 편다 (만 개가 넘는다)
+    final usStocks = error == null &&
+            shots.any((s) => s.holdings.any((h) => h.currency == 'USD'))
+        ? await StockSearchService.usStocks()
+        : const <StockSearchResult>[];
     if (!mounted) return;
 
     var rows = error == null
-        ? buildHoldingRows(shots, pf, stocks)
+        ? buildHoldingRows(shots, pf, stocks, usStocks: usStocks)
         : const <HoldingRow>[];
     // 해외 종목은 넣지 못한다. 줄마다 「못 불러와요」를 달아 늘어놓으면
     // 해외 주식이 많은 사람은 넣을 수 있는 종목을 그 사이에서 찾아야 한다
@@ -444,8 +447,9 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
           HoldingIssue.numbersUnchecked => l10n.issueNumbersUnchecked,
           HoldingIssue.nameGuessed => l10n.issueNameGuessed(r.scan.name),
           HoldingIssue.priceOff => l10n.issuePriceOff(
-              fmtMoney(r.scan.currentPrice, 'KRW'),
-              fmtMoney(r.live[r.stock!.ticker]!, 'KRW')),
+              fmtMoney(r.scan.currentPrice, r.scan.currency),
+              fmtMoney(r.live[r.stock!.ticker]!, r.scan.currency)),
+          HoldingIssue.noPrice => l10n.issueNoPrice,
           HoldingIssue.similarNames => l10n.issueSimilarNames,
         };
 
@@ -503,7 +507,11 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
                     color: context.textPrimary),
                 overflow: TextOverflow.ellipsis),
             const SizedBox(height: 2),
-            Text(l10n.holdingsQtyLine(qty, fmtMoney(r.scan.value, 'KRW')),
+            Text(
+                r.value == null
+                    ? '$qty ${l10n.unitShares}'
+                    : l10n.holdingsQtyLine(
+                        qty, fmtMoney(r.value!, r.scan.currency)),
                 style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
@@ -513,7 +521,8 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
               const SizedBox(height: 2),
               Text(
                   r.scan.avgPrice > 0
-                      ? l10n.holdingsAvgLine(fmtMoney(r.scan.avgPrice, 'KRW'))
+                      ? l10n.holdingsAvgLine(
+                          fmtMoney(r.scan.avgPrice, r.scan.currency))
                       : l10n.holdingsNoAvg,
                   style: TextStyle(
                       fontSize: 11,
@@ -620,7 +629,7 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
               alignment: Alignment.centerLeft,
               child: Text(
                   '${l10n.issueNameGuessed(r.scan.name)}\n'
-                  '${l10n.holdingsShotPrice(fmtMoney(r.scan.currentPrice, 'KRW'))}',
+                  '${l10n.holdingsShotPrice(fmtMoney(r.scan.currentPrice, r.scan.currency))}',
                   style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -635,6 +644,7 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
                 child: Column(children: [
                   for (final c in choices)
                     _choiceRow(ctx, c,
+                        currency: r.scan.currency,
                         price: r.live[c.ticker],
                         near: r.live[c.ticker] != null &&
                             r.nearShot(r.live[c.ticker]!),
@@ -659,7 +669,10 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
   }
 
   Widget _choiceRow(BuildContext context, StockSearchResult c,
-      {double? price, required bool near, required bool taken}) {
+      {double? price,
+      required String currency,
+      required bool near,
+      required bool taken}) {
     final l10n = context.l10n;
     final row = Container(
       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -679,7 +692,7 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
             Text(
                 [
                   c.ticker,
-                  if (price != null) fmtMoney(price, 'KRW'),
+                  if (price != null) fmtMoney(price, currency),
                   if (taken) l10n.holdingsInList,
                 ].join(' · '),
                 style: TextStyle(

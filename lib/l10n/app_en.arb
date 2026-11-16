@@ -990,8 +990,8 @@
     }
   },
   "holdingsHowTitle": "How to capture",
-  "holdingsHowBody": "In your broker app, capture the holdings screen that shows stock names together with quantities. If you hold many stocks, scroll and take several screenshots, then pick them all at once. Stocks that appear twice are merged.",
-  "holdingsSupportNote": "Only Korean-listed stocks are read. You'll see what was read before anything is added.",
+  "holdingsHowBody": "In your broker app, capture the positions screen that shows each symbol together with its number of shares. If you hold many stocks, scroll and take several screenshots, then pick them all at once. Stocks that appear twice are merged.",
+  "holdingsSupportNote": "Reads US broker apps (English) and Korean broker apps. You'll see what was read before anything is added.",
   "holdingsPrivacyNote": "Screenshots are read on this phone and never sent anywhere.",
   "pickScreenshots": "Pick screenshots",
   "pickScreenshotsDesc": "Several at once",
@@ -1094,6 +1094,7 @@
   },
   "issueNameAmbiguous": "Several stocks match. Tap to choose.",
   "issueNotFound": "Not found. Please add it yourself.",
+  "issueNoPrice": "Couldn't get a price. Check your connection and import again.",
   "issueForeign": "Overseas holdings aren't supported yet.",
   "holdingsPickStock": "Which stock is it?",
   "holdingsAddN": "Add {count} holdings",

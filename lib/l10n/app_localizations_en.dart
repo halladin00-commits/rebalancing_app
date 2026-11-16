@@ -1431,11 +1431,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get holdingsHowBody =>
-      'In your broker app, capture the holdings screen that shows stock names together with quantities. If you hold many stocks, scroll and take several screenshots, then pick them all at once. Stocks that appear twice are merged.';
+      'In your broker app, capture the positions screen that shows each symbol together with its number of shares. If you hold many stocks, scroll and take several screenshots, then pick them all at once. Stocks that appear twice are merged.';
 
   @override
   String get holdingsSupportNote =>
-      'Only Korean-listed stocks are read. You\'ll see what was read before anything is added.';
+      'Reads US broker apps (English) and Korean broker apps. You\'ll see what was read before anything is added.';
 
   @override
   String get holdingsPrivacyNote =>
@@ -1560,6 +1560,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get issueNotFound => 'Not found. Please add it yourself.';
+
+  @override
+  String get issueNoPrice =>
+      'Couldn\'t get a price. Check your connection and import again.';
 
   @override
   String get issueForeign => 'Overseas holdings aren\'t supported yet.';

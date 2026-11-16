@@ -2537,7 +2537,7 @@ abstract class AppLocalizations {
   /// No description provided for @holdingsSupportNote.
   ///
   /// In ko, this message translates to:
-  /// **'국내 종목만 읽습니다. 넣기 전에 읽은 내용을 보여 드립니다.'**
+  /// **'국내 증권사와 미국 증권사(영어) 앱의 화면을 읽습니다. 넣기 전에 읽은 내용을 보여 드립니다.'**
   String get holdingsSupportNote;
 
   /// No description provided for @holdingsPrivacyNote.
@@ -2725,6 +2725,12 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'종목을 못 찾았어요. 직접 추가해 주세요.'**
   String get issueNotFound;
+
+  /// No description provided for @issueNoPrice.
+  ///
+  /// In ko, this message translates to:
+  /// **'시세를 받지 못했어요. 인터넷을 확인하고 다시 불러와 주세요.'**
+  String get issueNoPrice;
 
   /// No description provided for @issueForeign.
   ///
