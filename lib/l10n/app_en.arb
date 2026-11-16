@@ -509,6 +509,11 @@
     }
   },
   "backupFailed": "Backup failed",
+  "backupReminderNever": "You haven't backed up yet",
+  "backupReminderDays": "Last backup was {days} days ago",
+  "backupReminderBody": "Your records live only on this phone. They are lost if you switch phones or delete the app.",
+  "backupReminderNow": "Back up now",
+  "backupReminderLater": "Later",
   "restoreConfirmTitle": "Restore Data",
   "restoreConfirmContent": "Restore {count} portfolios?\nAll current data will be replaced.",
   "@restoreConfirmContent": {

@@ -512,6 +512,12 @@
     }
   },
   "backupFailed": "백업 실패",
+  "backupReminderNever": "아직 백업한 적이 없습니다",
+  "backupReminderDays": "백업한 지 {days}일 지났습니다",
+  "@backupReminderDays": {"placeholders": {"days": {"type": "int"}}},
+  "backupReminderBody": "기록은 이 폰에만 저장됩니다. 폰을 바꾸거나 앱을 지우면 사라집니다.",
+  "backupReminderNow": "지금 백업",
+  "backupReminderLater": "나중에",
   "restoreConfirmTitle": "데이터 복원",
   "restoreConfirmContent": "포트폴리오 {count}개를 복원합니다.\n현재 데이터는 모두 교체됩니다.",
   "@restoreConfirmContent": {

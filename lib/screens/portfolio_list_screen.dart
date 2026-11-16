@@ -17,6 +17,7 @@ import 'portfolio_reorder_screen.dart';
 import 'transaction_import_screen.dart';
 import 'holdings_import_screen.dart';
 import '../widgets/app_logo.dart';
+import '../widgets/backup_reminder.dart';
 import '../widgets/brand_stat_tile.dart';
 import '../widgets/app_menu.dart';
 import '../widgets/collapsing_header.dart';
@@ -437,6 +438,8 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     if (portfolios.isNotEmpty) ...[
+                      // 기록은 이 폰에만 있다 — 백업이 오래됐으면 여기서 알린다
+                      BackupReminder(portfolios: portfolios),
                       _buildActionCards(context, portfolios),
                       const SizedBox(height: 10),
                       _buildPortfolioCard(context, portfolios),

@@ -854,6 +854,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backupFailed => 'Backup failed';
 
   @override
+  String get backupReminderNever => 'You haven\'t backed up yet';
+
+  @override
+  String backupReminderDays(int days) {
+    return 'Last backup was $days days ago';
+  }
+
+  @override
+  String get backupReminderBody =>
+      'Your records live only on this phone. They are lost if you switch phones or delete the app.';
+
+  @override
+  String get backupReminderNow => 'Back up now';
+
+  @override
+  String get backupReminderLater => 'Later';
+
+  @override
   String get restoreConfirmTitle => 'Restore Data';
 
   @override

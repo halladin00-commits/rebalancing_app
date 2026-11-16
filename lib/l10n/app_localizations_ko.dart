@@ -835,6 +835,23 @@ class AppLocalizationsKo extends AppLocalizations {
   String get backupFailed => '백업 실패';
 
   @override
+  String get backupReminderNever => '아직 백업한 적이 없습니다';
+
+  @override
+  String backupReminderDays(int days) {
+    return '백업한 지 $days일 지났습니다';
+  }
+
+  @override
+  String get backupReminderBody => '기록은 이 폰에만 저장됩니다. 폰을 바꾸거나 앱을 지우면 사라집니다.';
+
+  @override
+  String get backupReminderNow => '지금 백업';
+
+  @override
+  String get backupReminderLater => '나중에';
+
+  @override
   String get restoreConfirmTitle => '데이터 복원';
 
   @override

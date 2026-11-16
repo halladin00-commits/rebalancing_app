@@ -1592,6 +1592,36 @@ abstract class AppLocalizations {
   /// **'백업 실패'**
   String get backupFailed;
 
+  /// No description provided for @backupReminderNever.
+  ///
+  /// In ko, this message translates to:
+  /// **'아직 백업한 적이 없습니다'**
+  String get backupReminderNever;
+
+  /// No description provided for @backupReminderDays.
+  ///
+  /// In ko, this message translates to:
+  /// **'백업한 지 {days}일 지났습니다'**
+  String backupReminderDays(int days);
+
+  /// No description provided for @backupReminderBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'기록은 이 폰에만 저장됩니다. 폰을 바꾸거나 앱을 지우면 사라집니다.'**
+  String get backupReminderBody;
+
+  /// No description provided for @backupReminderNow.
+  ///
+  /// In ko, this message translates to:
+  /// **'지금 백업'**
+  String get backupReminderNow;
+
+  /// No description provided for @backupReminderLater.
+  ///
+  /// In ko, this message translates to:
+  /// **'나중에'**
+  String get backupReminderLater;
+
   /// No description provided for @restoreConfirmTitle.
   ///
   /// In ko, this message translates to:

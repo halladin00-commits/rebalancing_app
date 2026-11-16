@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,6 +10,10 @@ import '../models/portfolio.dart';
 class StorageService {
   static const String _key = 'portfolios_v1';
   static const String _lastBackupKey = 'last_backup_at_v1';
+
+  /// 백업을 내보낼 때마다 값이 바뀐다. 첫 화면의 백업 알림이 듣고 있다가
+  /// 사라진다 — 더보기 탭에서 백업했는데 알림이 그대로면 안 한 줄 안다.
+  static final backupDone = ValueNotifier<int>(0);
 
   /// 포트폴리오 목록 불러오기
   static Future<List<Portfolio>> loadPortfolios() async {
@@ -55,6 +60,7 @@ class StorageService {
     if (res.status != ShareResultStatus.success) return false;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_lastBackupKey, DateTime.now().millisecondsSinceEpoch);
+    backupDone.value++;
     return true;
   }
 
