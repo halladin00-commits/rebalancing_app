@@ -41,11 +41,23 @@ class _Screen {
         x += 90;
       }
     }
-    w('20,000', 340, top + 19, width: 195); // 평가손익 — 안 쓴다
+    // 평가손익·수익률 — 평단가를 맞춰 보는 데 쓰인다. 숫자가 제대로 된
+    // 줄이면 앞뒤가 맞게 적는다 (일부러 망가뜨린 숫자면 아무 값이나).
+    double? n(String t) => double.tryParse(t.replaceAll(',', ''));
+    final q = n(qty), a = n(avg), c = n(cur);
+    final sane = q != null && a != null && c != null && a > 0;
+    String commas(int v) => v
+        .abs()
+        .toString()
+        .replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},');
+    w(sane ? commas(((c - a) * q).round()) : '20,000', 340, top + 19,
+        width: 195);
     w(qty, 697, top + 19, width: 98);
     w(avg, 944, top + 19, width: 117);
     final second = top + 96;
-    w('3.05%', 425, second, width: 100); // 수익률 — 안 쓴다
+    w(sane ? '${((c / a - 1) * 100).abs().toStringAsFixed(2)}%' : '3.05%',
+        425, second,
+        width: 100);
     if (splitValue != null) {
       w(splitValue[0], 597, second, width: 140);
       w(splitValue[1], 745, second, width: 50);
@@ -491,9 +503,75 @@ void main() {
     final tx = it.transactions.single;
     expect(tx.date, DateTime(2026, 10, 22));
     expect(tx.quantity, 64);
-    expect(tx.price, 70190, reason: '매입가(37,294)가 아니라 현재가');
+    expect(tx.price, 37294, reason: '평단가로 기록한다 (2026-11-16 결정)');
     expect(it.shares, 64);
-    expect(it.shares * it.currentPrice, 4492160,
-        reason: '들어간 날 평가금액 = 산 돈');
+    expect(it.avgPrice, 37294);
+    expect(it.currentPrice, 70190, reason: '시세는 캡처의 현재가');
+  });
+
+  test('평단가를 못 읽은 종목은 현재가로 기록한다', () {
+    final row = HoldingRow(
+        const ScannedHolding(
+            name: 'BETA 글로벌반도체TOP4',
+            qty: 64,
+            avgPrice: 0,
+            currentPrice: 70190,
+            value: 4492160),
+        lookupStock('BETA 글로벌반도체TOP4', _stocks),
+        null);
+    final it = newItemFromScan(row, 'n1', DateTime(2026, 10, 22));
+    expect(it.transactions.single.price, 70190);
+  });
+
+  group('평단가 맞춰 보기 — 틀리게 읽은 값을 매수 단가로 쓰지 않는다', () {
+    ScannedHolding read(String avg, {String cur = '42,170'}) {
+      final s = _Screen()..header();
+      s.holding([['ALPHA', '미국테크'], ['100액티브']], '5,236', '220,802,120',
+          '38,311', cur);
+      // 평단가 칸만 다르게 읽힌 것으로 바꾼다
+      final i = s.words.indexWhere((w) => w.text == '38,311');
+      final o = s.words[i];
+      s.words[i] = OcrWord(avg, o.left, o.top, o.right, o.bottom);
+      s.bottomNav();
+      return parseNamuHoldings(s.words).holdings.single;
+    }
+
+    test('손익·수익률과 맞는 평단가는 그대로 쓴다', () {
+      expect(read('38,311').avgPrice, 38311);
+    });
+
+    test('한 자리 빠뜨려 읽은 평단가는 버린다 — 현재가로 기록된다', () {
+      final h = read('3,831');
+      expect(h.avgPrice, 0);
+      expect(scanBuyPrice(h), 42170);
+    });
+
+    test('숫자 하나를 다르게 읽은 평단가도 버린다', () {
+      expect(read('33,311').avgPrice, 0);
+    });
+  });
+
+  test('나뉜 두 줄 중 한쪽 평단가를 모르면 합친 평단가도 모른다', () {
+    // 이름이 같은 두 줄 — 온주와 소수점 잔고
+    final shots = [
+      const HoldingsShot(holdings: [
+        ScannedHolding(
+            name: 'GAMMA 미국배당',
+            qty: 1,
+            avgPrice: 10000,
+            currentPrice: 12000,
+            value: 12000),
+        ScannedHolding(
+            name: 'GAMMA 미국배당',
+            qty: 0.8,
+            avgPrice: 0,
+            currentPrice: 12000,
+            value: 9600),
+      ]),
+    ];
+    final rows = buildHoldingRows(shots, _pf([]), _stocks);
+    final r = rows.single;
+    expect(r.scan.qty, closeTo(1.8, 1e-9));
+    expect(r.scan.avgPrice, 0, reason: '0을 섞어 평균 내면 절반짜리 평단가가 된다');
   });
 }

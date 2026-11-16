@@ -381,7 +381,11 @@ List<HoldingRow> buildHoldingRows(
 /// 한 화면에 두 줄로 나뉘어 적힌 같은 종목을 하나로 더한다.
 ScannedHolding _sum(ScannedHolding a, ScannedHolding b) {
   final qty = a.qty + b.qty;
-  final cost = a.avgPrice * a.qty + b.avgPrice * b.qty;
+  // 한쪽이라도 평단가를 못 읽었으면 합친 평단가도 모르는 것이다 —
+  // 0을 섞어 평균 내면 절반짜리 평단가가 나온다
+  final cost = a.avgPrice > 0 && b.avgPrice > 0
+      ? a.avgPrice * a.qty + b.avgPrice * b.qty
+      : 0.0;
   final checks = {a.check, b.check};
   return ScannedHolding(
     name: a.name,
@@ -409,12 +413,17 @@ Set<String> priceTickers(List<HoldingRow> rows) => {
         ],
     };
 
-/// 캡처의 한 줄로 새 종목을 만든다 — **오늘, 오늘 현재가로 매수 1건.**
+/// 기록할 매수 단가 — 캡처의 평단가. 못 읽었으면 현재가.
+double scanBuyPrice(ScannedHolding s) =>
+    s.avgPrice > 0 ? s.avgPrice : s.currentPrice;
+
+/// 캡처의 한 줄로 새 종목을 만든다 — **오늘, 평단가로 매수 1건.**
 ///
-/// 매입가로 넣지 않는다. 결산은 「산 돈」과 「지금 평가금액」의 차이를 그
-/// 기간의 수익으로 본다. 매입가로 넣으면 몇 년 치 평가이익이 **이번 주
-/// 결산에 한꺼번에** 잡힌다. 현재가로 넣으면 결산이 오늘부터 깨끗하게
-/// 시작한다 — 대신 앱의 평균단가·평가손익은 0에서 시작한다(사용자가 정함).
+/// 처음에는 현재가로 넣었다(평단가로 넣으면 몇 년 치 평가이익이 이번 결산에
+/// 한꺼번에 잡혀서). 그런데 그러면 「내가 얼마 벌었나」가 0에서 시작해
+/// 증권사 화면과 달라진다. 2026-11-16 사용자가 뒤집었다 — 평단가로 넣고,
+/// 결산 화면이 「이전 거래를 넣어야 과거 결산이 맞다」고 알린다
+/// (`SettlementService.hasOneDayOfHistory`).
 PortfolioItem newItemFromScan(HoldingRow r, String id, DateTime today) {
   final s = r.stock!;
   final date = DateTime(today.year, today.month, today.day);
@@ -429,7 +438,7 @@ PortfolioItem newItemFromScan(HoldingRow r, String id, DateTime today) {
           id: '${id}_0',
           date: date,
           quantity: r.scan.qty,
-          price: r.scan.currentPrice),
+          price: scanBuyPrice(r.scan)),
     ],
   )..syncFromTransactions();
 }

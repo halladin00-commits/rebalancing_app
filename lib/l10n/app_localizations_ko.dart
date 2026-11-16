@@ -112,7 +112,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get netSell => '순매도';
 
   @override
-  String get fractionalIntro => '소수점 매매 가능 여부는 증권사·계좌마다 다릅니다. 되는 계좌만 켜세요.';
+  String get fractionalIntro =>
+      '국내·해외 종목에 같이 적용됩니다. 끄면 1주 단위로만 사고팝니다. 소수점 매매가 되는 계좌에서만 켜세요.';
 
   @override
   String get fractionalPerAccount => '계좌별 설정';
@@ -337,11 +338,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get calcBasisTitle => '계산 기준';
 
   @override
-  String get roundingWholeShares => '단주는 반올림';
+  String get roundingWholeShares => '1주 단위 거래';
 
   @override
-  String get roundingWholeSharesDesc =>
-      '1주 단위로만 계산합니다. 목표 비중에 0에 가장 가까운 수량으로 맞춥니다.';
+  String get roundingWholeSharesDesc => '1주 단위로만 사고팝니다. 소수점으로 가진 수량은 그대로 둡니다.';
 
   @override
   String get roundingFractional => '소수점 거래';
@@ -1474,7 +1474,22 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get holdingsBuyNote =>
-      '고른 종목은 오늘 날짜, 오늘 현재가로 매수 1건씩 기록합니다. 그래서 결산은 오늘부터 잡히고, 평가손익은 0에서 시작합니다.';
+      '고른 종목은 오늘 날짜에 평단가로 매수 1건씩 기록합니다. 지금까지의 평가손익은 이번 결산에 한꺼번에 잡힙니다.';
+
+  @override
+  String holdingsAvgLine(String price) {
+    return '평단 $price';
+  }
+
+  @override
+  String get holdingsNoAvg => '평단가를 못 읽어 현재가로 기록합니다';
+
+  @override
+  String get historyHintTitle => '거래 내역이 하루치뿐입니다';
+
+  @override
+  String get historyHintBody =>
+      '지금까지의 평가손익이 이 기간에 한꺼번에 잡혔습니다. 이전 거래를 입력하면 과거 결산까지 맞게 나옵니다.';
 
   @override
   String get holdingsExistingNote =>

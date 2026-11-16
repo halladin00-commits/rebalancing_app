@@ -58,7 +58,7 @@
   },
   "netBuy": "순매수",
   "netSell": "순매도",
-  "fractionalIntro": "소수점 매매 가능 여부는 증권사·계좌마다 다릅니다. 되는 계좌만 켜세요.",
+  "fractionalIntro": "국내·해외 종목에 같이 적용됩니다. 끄면 1주 단위로만 사고팝니다. 소수점 매매가 되는 계좌에서만 켜세요.",
   "fractionalPerAccount": "계좌별 설정",
   "fractionalReasonOverseas": "해외주식 · 소수점 매매 가능",
   "fractionalReasonPartial": "해외 종목 {count}개만 해당",
@@ -208,8 +208,8 @@
   "@calcBasisTitle": {
     "description": "접히는 안내 묶음의 제목"
   },
-  "roundingWholeShares": "단주는 반올림",
-  "roundingWholeSharesDesc": "1주 단위로만 계산합니다. 목표 비중에 0에 가장 가까운 수량으로 맞춥니다.",
+  "roundingWholeShares": "1주 단위 거래",
+  "roundingWholeSharesDesc": "1주 단위로만 사고팝니다. 소수점으로 가진 수량은 그대로 둡니다.",
   "roundingFractional": "소수점 거래",
   "roundingFractionalDesc": "소수점 {digits}자리에서 버립니다. 예산을 넘지 않게 하려는 것이라 아주 적은 금액이 남습니다.",
   "@roundingFractionalDesc": {
@@ -1066,7 +1066,12 @@
   "holdingsNewSection": "새 종목",
   "holdingsCheckSection": "확인이 필요한 종목",
   "holdingsExistingSection": "이미 있는 종목",
-  "holdingsBuyNote": "고른 종목은 오늘 날짜, 오늘 현재가로 매수 1건씩 기록합니다. 그래서 결산은 오늘부터 잡히고, 평가손익은 0에서 시작합니다.",
+  "holdingsBuyNote": "고른 종목은 오늘 날짜에 평단가로 매수 1건씩 기록합니다. 지금까지의 평가손익은 이번 결산에 한꺼번에 잡힙니다.",
+  "holdingsAvgLine": "평단 {price}",
+  "@holdingsAvgLine": {"placeholders": {"price": {"type": "String"}}},
+  "holdingsNoAvg": "평단가를 못 읽어 현재가로 기록합니다",
+  "historyHintTitle": "거래 내역이 하루치뿐입니다",
+  "historyHintBody": "지금까지의 평가손익이 이 기간에 한꺼번에 잡혔습니다. 이전 거래를 입력하면 과거 결산까지 맞게 나옵니다.",
   "holdingsExistingNote": "이미 있는 종목은 바꾸지 않습니다. 수량이 다르면 거래 내역을 확인해 주세요.",
   "holdingsQtyLine": "{qty}주 · 평가 {value}",
   "@holdingsQtyLine": {

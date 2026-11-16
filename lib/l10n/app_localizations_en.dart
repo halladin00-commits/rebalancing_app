@@ -119,7 +119,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fractionalIntro =>
-      'Fractional trading depends on your broker and account. Turn it on only where it works.';
+      'Applies to every holding. When off, trades are in whole shares only. Turn it on only where your broker allows fractional orders.';
 
   @override
   String get fractionalPerAccount => 'Per account';
@@ -352,7 +352,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get roundingWholeSharesDesc =>
-      'Quantities stay in whole shares, picked to land closest to the target weight.';
+      'Trades are in whole shares only. Any fraction you already hold is left as is.';
 
   @override
   String get roundingFractional => 'Fractional shares';
@@ -1512,7 +1512,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get holdingsBuyNote =>
-      'Each holding you pick is recorded as one buy today at today\'s price, so returns count from today and gain/loss starts at zero.';
+      'Each holding you pick is recorded as one buy today at your average cost. Gains or losses so far all land in the current period.';
+
+  @override
+  String holdingsAvgLine(String price) {
+    return 'Avg cost $price';
+  }
+
+  @override
+  String get holdingsNoAvg =>
+      'Average cost unreadable — recorded at today\'s price';
+
+  @override
+  String get historyHintTitle => 'Only one day of trades';
+
+  @override
+  String get historyHintBody =>
+      'All gains and losses so far landed in this period. Enter your earlier trades to get past periods right.';
 
   @override
   String get holdingsExistingNote =>

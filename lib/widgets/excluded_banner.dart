@@ -11,6 +11,49 @@ import '../theme/design_system.dart';
 ///
 /// 혼내는 톤으로 쓰지 않는다 — 간편 입력은 잘못이 아니라 선택이었고,
 /// 자산·리밸런싱에서는 아무 손해가 없다. 결산만 못 할 뿐이다.
+/// 「거래 내역이 하루치뿐입니다」 — 잔고만 넣고 시작한 포트의 결산에 붙는다.
+///
+/// 평단가로 넣은 잔고는 지금까지의 평가손익을 넣은 날의 기간에 몰아 준다.
+/// 숫자만 보면 이번 주에 크게 번(잃은) 것처럼 보인다.
+class HistoryHintBanner extends StatelessWidget {
+  const HistoryHintBanner({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(13, 11, 13, 11),
+      decoration: BoxDecoration(
+        color: context.warningBg,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 1),
+          child: Icon(Icons.info_outline, size: 16, color: context.warningText),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(l10n.historyHintTitle,
+                style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w800,
+                    color: context.warningText)),
+            const SizedBox(height: 2),
+            Text(l10n.historyHintBody,
+                style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    height: 1.45,
+                    color: context.warningText)),
+          ]),
+        ),
+      ]),
+    );
+  }
+}
+
 class ExcludedBanner extends StatelessWidget {
   final List<PortfolioItem> items;
 

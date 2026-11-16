@@ -381,11 +381,31 @@ ScannedHolding? _build(String name, Map<_F, String> cells,
     check = NumberCheck.none;
   }
 
+  // 평단가는 그대로 매수 단가로 기록된다. 잘못 읽은 값이 들어가면 평가손익이
+  // 통째로 틀리므로, 화면의 다른 숫자와 어긋나면 **못 읽은 것으로 친다**
+  // (그러면 현재가로 기록하고 그렇다고 알린다). 손익·수익률은 부호 없이
+  // 색으로만 적는 화면이 있어 양쪽 부호를 다 대 본다.
+  var avgPrice = avg?.v ?? 0;
+  if (avgPrice > 0) {
+    bool near(double a) => (a - cur!).abs() <= cur * 0.01;
+    bool? ok;
+    if (cost != null) {
+      ok = closeAmounts(qty * avgPrice, cost.v);
+    } else if (pnl != null && !derived) {
+      final d = pnl.v.abs() / qty;
+      ok = near(avgPrice + d) || near(avgPrice - d);
+    } else if (rate != null && !derived) {
+      final r = rate.v.abs() / 100;
+      ok = near(avgPrice * (1 + r)) || near(avgPrice * (1 - r));
+    }
+    if (ok == false) avgPrice = 0;
+  }
+
   final fx = [curRead, valueRead, avg].any((n) => n != null && n.fx);
   return ScannedHolding(
     name: name,
     qty: qty,
-    avgPrice: avg?.v ?? 0,
+    avgPrice: avgPrice,
     currentPrice: cur,
     value: value,
     foreign: foreign || fx,

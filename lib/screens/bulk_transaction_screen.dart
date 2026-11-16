@@ -280,7 +280,7 @@ class _BulkTransactionScreenState extends State<BulkTransactionScreen> {
         Row(children: [
           Expanded(
               child: _field(l10n.transactionQty, _qtyCtrl[r.id]!,
-                  // 소수점은 시장이 정한다 — 국내 종목은 늘 정수다
+                  // 소수점을 쓸지는 계좌의 스위치 하나가 정한다
                   isInt: !Rebalancer.allowsFractional(widget.pf, item))),
           const SizedBox(width: 8),
           // **단가에 통화를 붙인다.** 금액은 포트 통화(₩)로 적으면서 단가는

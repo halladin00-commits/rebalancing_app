@@ -508,6 +508,20 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                     color: context.textSecondary)),
+            // 이 값이 그대로 매수 단가로 기록된다 — 넣기 전에 눈으로 본다
+            if (r.existing == null && canPick) ...[
+              const SizedBox(height: 2),
+              Text(
+                  r.scan.avgPrice > 0
+                      ? l10n.holdingsAvgLine(fmtMoney(r.scan.avgPrice, 'KRW'))
+                      : l10n.holdingsNoAvg,
+                  style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: r.scan.avgPrice > 0
+                          ? context.textSecondary
+                          : context.warningText)),
+            ],
             if (existingLine != null) ...[
               const SizedBox(height: 3),
               Text(existingLine,

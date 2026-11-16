@@ -293,7 +293,7 @@ abstract class AppLocalizations {
   /// No description provided for @fractionalIntro.
   ///
   /// In ko, this message translates to:
-  /// **'소수점 매매 가능 여부는 증권사·계좌마다 다릅니다. 되는 계좌만 켜세요.'**
+  /// **'국내·해외 종목에 같이 적용됩니다. 끄면 1주 단위로만 사고팝니다. 소수점 매매가 되는 계좌에서만 켜세요.'**
   String get fractionalIntro;
 
   /// No description provided for @fractionalPerAccount.
@@ -695,13 +695,13 @@ abstract class AppLocalizations {
   /// No description provided for @roundingWholeShares.
   ///
   /// In ko, this message translates to:
-  /// **'단주는 반올림'**
+  /// **'1주 단위 거래'**
   String get roundingWholeShares;
 
   /// No description provided for @roundingWholeSharesDesc.
   ///
   /// In ko, this message translates to:
-  /// **'1주 단위로만 계산합니다. 목표 비중에 0에 가장 가까운 수량으로 맞춥니다.'**
+  /// **'1주 단위로만 사고팝니다. 소수점으로 가진 수량은 그대로 둡니다.'**
   String get roundingWholeSharesDesc;
 
   /// No description provided for @roundingFractional.
@@ -2651,8 +2651,32 @@ abstract class AppLocalizations {
   /// No description provided for @holdingsBuyNote.
   ///
   /// In ko, this message translates to:
-  /// **'고른 종목은 오늘 날짜, 오늘 현재가로 매수 1건씩 기록합니다. 그래서 결산은 오늘부터 잡히고, 평가손익은 0에서 시작합니다.'**
+  /// **'고른 종목은 오늘 날짜에 평단가로 매수 1건씩 기록합니다. 지금까지의 평가손익은 이번 결산에 한꺼번에 잡힙니다.'**
   String get holdingsBuyNote;
+
+  /// No description provided for @holdingsAvgLine.
+  ///
+  /// In ko, this message translates to:
+  /// **'평단 {price}'**
+  String holdingsAvgLine(String price);
+
+  /// No description provided for @holdingsNoAvg.
+  ///
+  /// In ko, this message translates to:
+  /// **'평단가를 못 읽어 현재가로 기록합니다'**
+  String get holdingsNoAvg;
+
+  /// No description provided for @historyHintTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'거래 내역이 하루치뿐입니다'**
+  String get historyHintTitle;
+
+  /// No description provided for @historyHintBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'지금까지의 평가손익이 이 기간에 한꺼번에 잡혔습니다. 이전 거래를 입력하면 과거 결산까지 맞게 나옵니다.'**
+  String get historyHintBody;
 
   /// No description provided for @holdingsExistingNote.
   ///

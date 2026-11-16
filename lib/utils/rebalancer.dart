@@ -57,12 +57,32 @@ class Rebalancer {
 
   /// 이 종목에 **소수점 수량을 쓸 수 있는가.**
   ///
-  /// 소수점 매매 가능 여부는 계좌가 아니라 **시장**이 정한다. 국내 상장
-  /// 종목은 소수점 주문이 안 된다. 계산과 화면이 각자 판단하면 어긋난다 —
-  /// 설정 화면 미리보기가 국내 종목을 골라 `2819주 → 2819주`처럼
-  /// 똑같은 두 값을 "이렇게 바뀝니다"라고 보여준 적이 있다.
+  /// **스위치 하나가 국내·해외를 같이 정한다** (2026-11-16 사용자 결정).
+  /// 예전에는 국내 종목을 늘 정수로 묶었다 — 해외 때문에 켠 설정이 국내
+  /// ETF를 `2819.1312주`로 만들어서였다. 그런데 국내도 소수점 거래가 되는
+  /// 증권사가 있고, 스위치를 시장별로 나누면 쓰는 사람이 헷갈린다. 대신
+  /// 조정 제안 화면에서 바로 끌 수 있게 했다.
+  ///
+  /// 계산과 화면이 각자 판단하면 어긋난다 — 반드시 이 함수를 부른다.
   static bool allowsFractional(Portfolio portfolio, PortfolioItem item) =>
-      portfolio.fractionalEnabled && !item.isCash && item.market != 'KR';
+      portfolio.fractionalEnabled && !item.isCash;
+
+  /// 소수점을 껐을 때의 수량 — **한 주 단위로만 사고판** 결과 가운데
+  /// [ideal]을 넘지 않는 가장 큰 값.
+  ///
+  /// 가진 수량이 정수면 그냥 내림이다. 1.8주처럼 소수점이 붙어 있으면
+  /// (잔고 캡처가 온주와 소수점 잔고를 합쳐 넣는다) 0.8 / 1.8 / 2.8…만
+  /// 고른다 — 내림만 하면 「0.8주 매도」처럼 낼 수 없는 주문이 나온다.
+  /// 목표가 0이면 소수점까지 다 판다. 그 밖에는 소수점 부분을 남긴다.
+  static double wholeStepFloor(double held, double ideal) {
+    final frac = held - held.floorToDouble();
+    if (frac < sharesEpsilon || frac > 1 - sharesEpsilon) {
+      return ideal.floorToDouble();
+    }
+    if (ideal <= 0) return 0;
+    final whole = (ideal - frac).floorToDouble();
+    return whole < 0 ? frac : whole + frac;
+  }
 
   /// 편차를 못 내는 **이유**. 낼 수 있으면 null.
   ///
@@ -222,10 +242,6 @@ class Rebalancer {
       }
     }
 
-    // 소수점 매매 가능 여부는 **계좌가 아니라 시장**이 정한다.
-    // 국내 상장 종목은 소수점 주문이 안 된다. 계좌 설정 하나로 켜고 끄면,
-    // 해외주식 때문에 켠 설정이 국내 ETF까지 소수점으로 만들어
-    // `2819.1312주` 같은 **그대로는 주문할 수 없는 수량**이 나온다.
     bool fractionalFor(PortfolioItem item) =>
         allowsFractional(portfolio, item);
 
@@ -276,7 +292,7 @@ class Rebalancer {
                           FractionalRounding.minDeviation
                       ? roundShares(ideal)
                       : floorShares(ideal))
-                  : ideal.floorToDouble());
+                  : wholeStepFloor(item.shares, ideal));
           out.add(_CalcItem(
               item: item, price: p, currentValue: cv, currentWeight: cw,
               targetValue: tv, ideal: ideal, baseShares: assigned,
@@ -318,6 +334,7 @@ class Rebalancer {
       for (final d in stocks) {
         if (d.item.targetWeight > 0 && d.remainder > 0 && budget >= d.price) {
           d.baseShares += 1;
+          d.bumped = true;
           budget -= d.price;
         }
       }
@@ -325,7 +342,7 @@ class Rebalancer {
       final allocated = data.fold(0.0, (sum, d) => d.item.isCash ? sum + d.baseShares : sum + d.baseShares * d.price);
       if (total - allocated < commissionOf(data) && stocks.isNotEmpty) {
         final removable = stocks
-            .where((d) => d.remainder > 0 && d.baseShares > (d.ideal ?? 0).floorToDouble())
+            .where((d) => d.bumped)
             .toList();
         if (removable.isNotEmpty) removable.last.baseShares -= 1;
       }
@@ -363,6 +380,8 @@ class _CalcItem {
   final double targetValue;
   final double? ideal;
   double baseShares;
+  /// 최대잉여법에서 한 주를 더 받았는가 — 수수료가 모자라면 이걸 되돌린다.
+  bool bumped = false;
   final double remainder;
   /// 허용 편차 안이라 거래하지 않는 종목
   final bool locked;

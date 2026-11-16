@@ -128,6 +128,8 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
                         children: [
                           _buildModeSegment(context, pf),
                           const SizedBox(height: 9),
+                          _buildFractionalSwitch(context, pf),
+                          const SizedBox(height: 9),
                           if (shown.isEmpty)
                             _buildNothingToDo(context)
                           else ...[
@@ -320,6 +322,38 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
 
 
   // ── 모드 세그먼트 ──
+
+  /// 계좌 설정의 소수점 스위치와 **같은 스위치**다 — 여기서 바꾸면 설정도
+  /// 바뀐다. 평소에는 소수점까지 맞추다가 실제로 주문할 때는 한 주 단위로
+  /// 내려는 사람이 설정 화면까지 다녀오지 않게 한다 (2026-11-16 사용자 결정).
+  Widget _buildFractionalSwitch(BuildContext context, Portfolio pf) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 2, 8, 2),
+      decoration: BoxDecoration(
+        color: context.cardBg,
+        borderRadius: BorderRadius.circular(DS.listCardRadius),
+        boxShadow: const [
+          BoxShadow(
+              color: Color(0x0D16130F), blurRadius: 2, offset: Offset(0, 1)),
+        ],
+      ),
+      child: Row(children: [
+        Expanded(
+          child: Text(context.l10n.fractionalUse,
+              style: TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                  color: context.textPrimary)),
+        ),
+        Switch(
+          value: pf.fractionalEnabled,
+          onChanged: (v) => context
+              .read<PortfolioProvider>()
+              .updateSettings(pf.id, fractionalEnabled: v),
+        ),
+      ]),
+    );
+  }
 
   Widget _buildModeSegment(BuildContext context, Portfolio pf) {
     final l10n = context.l10n;

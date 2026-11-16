@@ -352,6 +352,11 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
                       sliver: SliverList(
                         delegate: SliverChildListDelegate([
                           _buildExcluded(context, pf),
+                          if (SettlementService.hasOneDayOfHistory(pf))
+                            const Padding(
+                              padding: EdgeInsets.only(bottom: 10),
+                              child: HistoryHintBanner(),
+                            ),
                           _buildChartCard(context, pf),
                           const SizedBox(height: 14),
                           _buildItemContributions(context, pf),

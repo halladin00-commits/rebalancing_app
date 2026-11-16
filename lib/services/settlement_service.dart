@@ -354,6 +354,24 @@ class SettlementService {
   static DateTime endExclusive(DateTime end) =>
       DateTime(end.year, end.month, end.day).add(const Duration(days: 1));
 
+  /// 이 포트의 거래가 **하루치뿐인가** — 잔고만 넣고 시작한 포트다.
+  ///
+  /// 잔고 캡처·간편 입력은 「오늘, 평단가로 매수 1건」을 남긴다. 그러면 지금
+  /// 까지의 평가손익이 그날이 든 기간에 한꺼번에 잡히고, 그 앞 기간은 비어
+  /// 있다. 틀린 값은 아니지만 사용자가 그 까닭을 알아야 한다 — 화면이 「이전
+  /// 거래를 넣으면 과거 결산이 맞게 나온다」고 알리는 데 쓴다.
+  static bool hasOneDayOfHistory(Portfolio pf) {
+    final days = <int>{};
+    for (final i in pf.items) {
+      if (i.isCash) continue;
+      for (final t in i.transactions) {
+        days.add(t.date.year * 10000 + t.date.month * 100 + t.date.day);
+        if (days.length > 1) return false;
+      }
+    }
+    return days.length == 1;
+  }
+
   /// 결산에서 빠지는 종목.
   ///
   /// `holdingsAt`은 거래 내역을 더해 그 시점 보유량을 구한다. 그래서 지금

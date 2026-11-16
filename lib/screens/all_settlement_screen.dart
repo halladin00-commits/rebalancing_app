@@ -425,6 +425,12 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
                       _buildExcluded(context),
+                      if (widget.portfolios
+                          .any(SettlementService.hasOneDayOfHistory))
+                        const Padding(
+                          padding: EdgeInsets.only(bottom: 10),
+                          child: HistoryHintBanner(),
+                        ),
                       _buildChartCard(context, l10n),
                       const SizedBox(height: 14),
                       _buildContributions(context),
