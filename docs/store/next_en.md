@@ -128,6 +128,27 @@ This app is a calculator for your own reference. It does not give investment adv
 
 ## Screenshots
 
-See `next_ko.md` — the plan is the same for both languages: add the
-screenshot-import review screen as the second image, and retake the
-adjustment plan and the single-holding screen, whose wording changed.
+Upload the five files in `screenshots_next/framed_en/` (1440×2560, no
+transparency) to the **English** listing. Same order and same idea as the
+Korean set (`next_ko.md`), with copy rewritten for an English reader rather
+than translated.
+
+| # | File | Headline | Subline |
+|---|---|---|---|
+| 1 | `1_drift` | Has your portfolio drifted off target? | Prices move, and your weights move with them |
+| 2 | `2_plan` | Know exactly what to buy and sell | Share counts that bring you back to target |
+| 3 | `3_capture` | Add your holdings from a screenshot | Reads symbols and quantities off your broker app |
+| 4 | `4_accounts` | All your accounts on one screen | Keep accounts separate and still see the total |
+| 5 | `5_returns` | Your returns, month by month | Weekly to yearly returns, calculated for you |
+
+- **Screens come from a US demo**: `tools/make_demo_data_en.py` — Roth IRA,
+  Traditional IRA and Brokerage holding US ETFs, app set to English and the
+  totals currency to USD. Raw captures are in `screenshots_next/en/`.
+- **5 uses a single portfolio's Returns screen** (Roth IRA). Shot before the
+  Returns tab followed the totals currency; the tab now shows dollars too.
+- **3 shows an invented positions table** — no broker's screen or logo —
+  marked "(example)". It matches what the app read below it.
+- **Needs the 2026-11-17 build or later.** 2 shows "4 shares" and 4 has no
+  "1 USD = ₩…" chip; older builds show "4shares" and the chip.
+- Made on the Claude Design canvas, exported as PNG (RGBA), then flattened
+  to RGB — Play rejects PNGs with an alpha channel.
