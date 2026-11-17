@@ -754,18 +754,24 @@ class SettlementService {
 
   // ── 전체 합산 ──
 
-  /// 여러 포트폴리오를 원화 기준으로 합산한다.
+  /// 여러 포트폴리오를 [currency] 기준으로 합산한다 (기본 원화).
   ///
-  /// 포트마다 통화가 다를 수 있어 각자의 환율로 환산한 뒤 더한다.
+  /// 포트마다 통화가 다를 수 있어 환산한 뒤 더한다. 환산 비율은
+  /// [combineFx]가 정한다 — 포트 통화가 합산 통화와 같으면 1이라,
+  /// 달러 계좌만 있는 사람이 달러로 보면 **포트별 결산과 숫자가 똑같다.**
+  ///
+  /// 수익률·기여 %p는 통화와 무관하다 — 기간 전체에 같은 환율을 곱하므로
+  /// 나눗셈에서 지워진다.
   static Future<CombinedSettlement?> calculateCombined(
     List<Portfolio> portfolios,
     SettlementPeriod period,
     PeriodKey key, {
     bool useCache = true,
+    String currency = 'KRW',
   }) async {
     if (portfolios.isEmpty) return null;
 
-    final ck = _ck('__all__', period, key);
+    final ck = _combinedKey(period, key, currency);
     if (useCache && _combinedCache.containsKey(ck)) return _combinedCache[ck];
 
     final results = await Future.wait(portfolios.map((pf) async =>
@@ -779,7 +785,7 @@ class SettlementService {
     for (final e in results) {
       final r = e.r;
       if (r == null) continue;
-      final fx = e.pf.currency == 'USD' ? e.pf.exchangeRate : 1.0;
+      final fx = combineFx(e.pf, portfolios, currency);
       start += r.startValue * fx;
       end += r.endValue * fx;
       abs += r.absoluteReturn * fx;
@@ -856,8 +862,40 @@ class SettlementService {
   ///
   /// 진행 중인 기간은 캐시하지 않으므로 늘 null이 나온다 — 현재가에 따라
   /// 값이 바뀌는 칸이라 그게 맞다.
-  static CombinedSettlement? peekCombined(SettlementPeriod p, PeriodKey k) =>
-      _combinedCache[_ck('__all__', p, k)];
+  static CombinedSettlement? peekCombined(SettlementPeriod p, PeriodKey k,
+          {String currency = 'KRW'}) =>
+      _combinedCache[_combinedKey(p, k, currency)];
+
+  /// 합산 캐시 키. **통화마다 따로** 둔다 — 원화로 낸 값을 달러 화면이
+  /// 꺼내 쓰면 ₩ 금액에 $가 붙는다.
+  static String _combinedKey(SettlementPeriod p, PeriodKey k, String currency) =>
+      _ck(currency == 'KRW' ? '__all__' : '__all__$currency', p, k);
+
+  /// 포트 [pf]의 금액을 [currency]로 바꾸는 비율.
+  ///
+  /// - 포트 통화가 합산 통화와 같으면 1.
+  /// - 달러 포트 → 원화: 그 포트의 환율 (예전부터 이 식이었다).
+  /// - 원화 포트 → 달러: 전 포트 환율의 평균으로 나눈다. **홈 화면의 합계가
+  ///   달러로 바꿀 때 쓰는 값과 같다** — 두 화면의 「지금 평가금액」이 맞는다.
+  static double combineFx(
+      Portfolio pf, List<Portfolio> all, String currency) {
+    if (pf.currency == currency) return 1.0;
+    if (currency == 'KRW') {
+      return pf.currency == 'USD' ? pf.exchangeRate : 1.0;
+    }
+    // currency == 'USD', pf.currency == 'KRW'
+    final rate = averageRate(all);
+    return rate > 0 ? 1.0 / rate : 0.0;
+  }
+
+  /// 전 포트 환율의 평균. 받은 환율이 하나도 없으면 1370.
+  static double averageRate(List<Portfolio> all) {
+    final rates =
+        all.where((p) => p.exchangeRate > 0).map((p) => p.exchangeRate).toList();
+    return rates.isEmpty
+        ? 1370.0
+        : rates.reduce((a, b) => a + b) / rates.length;
+  }
 
   /// 전체 합산의 최근 [count]개 기간 (차트용)
   static Future<List<CombinedSettlement?>> calculateCombinedSeries(
@@ -866,6 +904,7 @@ class SettlementService {
     PeriodKey endKey, {
     int count = 6,
     void Function(List<CombinedSettlement?> partial)? onProgress,
+    String currency = 'KRW',
   }) async {
     final keys = [
       for (var i = count - 1; i >= 0; i--) shiftKey(period, endKey, -i),
@@ -877,7 +916,7 @@ class SettlementService {
     // 보인다. 실제로도 진행 표시가 0/12부터 다시 시작했다.
     for (var i = 0; i < keys.length; i++) {
       if (isFuture(period, keys[i])) continue;
-      out[i] = peekCombined(period, keys[i]);
+      out[i] = peekCombined(period, keys[i], currency: currency);
     }
     if (out.any((e) => e != null)) onProgress?.call(List.of(out));
 
@@ -885,7 +924,8 @@ class SettlementService {
     for (var i = keys.length - 1; i >= 0; i--) {
       final k = keys[i];
       if (out[i] != null || isFuture(period, k)) continue;
-      out[i] = await calculateCombined(portfolios, period, k);
+      out[i] = await calculateCombined(portfolios, period, k,
+          currency: currency);
       onProgress?.call(List.of(out));
     }
     return out;

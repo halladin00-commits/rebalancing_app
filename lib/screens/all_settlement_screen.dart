@@ -110,6 +110,33 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
   /// 이미 반영한 이동 요청. 같은 요청을 두 번 처리하지 않는다.
   int? _appliedJump;
 
+  /// 금액을 적는 통화 — 더보기의 「합계 표시 통화」를 따른다.
+  ///
+  /// 예전에는 원화로 박혀 있어, 달러 계좌만 있는 사람도 결산 탭에서만
+  /// ₩로 봤다. 홈 합계·포트별 결산은 달러인데 이 탭만 원화였다.
+  String _cur = 'KRW';
+  bool _curReady = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final cur = Provider.of<MainCurrencyNotifier>(context).currency;
+    if (!_curReady) {
+      _curReady = true;
+      _cur = cur;
+      return;
+    }
+    if (cur == _cur) return;
+    // 통화가 바뀌면 이미 낸 값은 전부 다른 통화다 — 비우고 다시 낸다.
+    // 계산 중이던 칸도 옛 통화라 버린다 (`_loadVisible`이 확인한다).
+    _cur = cur;
+    _results.clear();
+    _busy.clear();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _loadVisible(around: _selected);
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -200,10 +227,11 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
   /// 현재가에 영향받는 칸은 진행 중인 하나뿐이다.
   Future<void> _refreshLive() async {
     final now = SettlementService.currentKey(_period);
+    final cur = _cur;
     final r = await SettlementService.calculateCombined(
         widget.portfolios, _period, now,
-        useCache: false);
-    if (!mounted) return;
+        useCache: false, currency: cur);
+    if (!mounted || cur != _cur) return;
     setState(() {
       if (r != null) _results[now] = r;
     });
@@ -267,10 +295,19 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       if (!finished && mounted) setState(() => _loading = true);
     });
 
+    final cur = _cur;
     for (final k in todo) {
-      final r =
-          await SettlementService.calculateCombined(widget.portfolios, _period, k);
+      final r = await SettlementService.calculateCombined(
+          widget.portfolios, _period, k,
+          currency: cur);
       if (!mounted) return;
+      // 계산하는 사이 통화가 바뀌었으면 이 값은 버린다 — 새 통화로 다시 낸다
+      // 로딩 표시는 새 계산이 맡는다 — 이 타이머가 나중에 켜면 꺼 줄 쪽이 없다
+      if (cur != _cur) {
+        finished = true;
+        loaderTimer.cancel();
+        return;
+      }
       setState(() {
         if (r != null) _results[k] = r;
         _busy.remove(k);
@@ -335,6 +372,7 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       // 차트가 첫 거래부터 시작하니 시트도 거기까지만 연다
       earliestDay: AssetBackfillService.firstTransactionDay(widget.portfolios),
       amountOf: (k) => _results[k]?.absoluteReturn,
+      currency: _cur,
     );
     if (picked == null || !mounted) return;
     // 고른 기간이 화면 밖이면 **차트도 그리로 옮긴다** — 골라 놓고 어디 있는지
@@ -473,7 +511,7 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
             child: Text(
-              '${up ? '+' : '−'}${fmtMoney(r.absoluteReturn.abs(), 'KRW')}',
+              '${up ? '+' : '−'}${fmtMoney(r.absoluteReturn.abs(), _cur)}',
               maxLines: 1,
               style: TextStyle(
                   fontSize: 18,
@@ -528,7 +566,7 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
                 netCashFlow: r?.netCashFlow ?? 0,
                 partial: r?.isPartial ?? false,
                 inProgress: r?.isCurrentPeriod ?? false,
-                currency: 'KRW',
+                currency: _cur,
                 fallback: (r == null && !_loading)
                     ? _buildCannotCompute(context, l10n)
                     : null,
@@ -648,9 +686,9 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       final e = SettlementService.excludedItems(pf, _period, _selected);
       if (e.isEmpty) continue;
       excluded.addAll(e);
-      // 포트 통화가 섞일 수 있으므로 원화로 모은다
+      // 포트 통화가 섞일 수 있으므로 합계 통화로 모은다 — 위 합산과 같은 비율
       final v = SettlementService.excludedValue(pf, e);
-      value += pf.currency == 'USD' ? v * pf.exchangeRate : v;
+      value += v * SettlementService.combineFx(pf, widget.portfolios, _cur);
     }
     return (items: excluded, value: value);
   }
@@ -666,7 +704,7 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       padding: const EdgeInsets.only(bottom: 10),
       child: ExcludedBanner(
         items: excluded,
-        amountText: fmtMoney(value, 'KRW'),
+        amountText: fmtMoney(value, _cur),
         onFix: () => showExcludedSheet(context, items: excluded),
       ),
     );
@@ -848,7 +886,7 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       endValue: c.endValue,
       share: sumAbs > 0 ? c.absoluteReturn.abs() / sumAbs : 0.0,
       contribution: c.contribution,
-      currency: 'KRW',
+      currency: _cur,
       isKo: _isKo,
       positiveColor: pnlColors.positiveColor,
       negativeColor: pnlColors.negativeColor,
@@ -1061,7 +1099,7 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       endValue: r?.endValue ?? 0,
       netCashFlow: r?.netCashFlow ?? 0,
       inProgress: inProgress,
-      currency: 'KRW',
+      currency: _cur,
       // 화면의 절반을 차지하는 요소다. 빠지면 「이번 달 얼마」만 남고
       // 「지난 달들과 견주면 어떤가」가 사라진다.
       bars: _buildBars(l10n),
@@ -1071,7 +1109,7 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       rowsTitle: _isKo ? '포트별 기여' : 'Contribution by portfolio',
       // 결산에서 빠진 종목은 **그림에도** 밝힌다.
       excludedItems: _excludedAll().items,
-      excludedAmount: fmtMoney(_excludedAll().value, 'KRW'),
+      excludedAmount: fmtMoney(_excludedAll().value, _cur),
       isKo: _isKo,
       positiveColor: context.read<PnlColorNotifier>().positiveColor,
       negativeColor: context.read<PnlColorNotifier>().negativeColor,

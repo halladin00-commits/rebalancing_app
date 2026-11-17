@@ -256,6 +256,7 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
       // 이 시트가 어느 범위를 다루는지 밝힌다
       scopeName: pf.name,
       amountOf: (k) => _results[k]?.absoluteReturn,
+      currency: pf.currency,
     );
     if (picked == null || !mounted) return;
 

@@ -27,6 +27,10 @@ class PeriodJumpSheet extends StatefulWidget {
   /// 칸에 적을 손익. 계산된 기간만 넣는다.
   final double? Function(PeriodKey key)? amountOf;
 
+  /// [amountOf]의 통화. 달러면 「$1.5K」처럼 기호를 붙인다 — 「1.5만」으로
+  /// 적으면 원화로 읽힌다.
+  final String currency;
+
   const PeriodJumpSheet({
     super.key,
     required this.period,
@@ -35,6 +39,7 @@ class PeriodJumpSheet extends StatefulWidget {
     required this.scopeName,
     this.earliestDay,
     this.amountOf,
+    this.currency = 'KRW',
   });
 
   /// 선택된 키를 돌려준다. 취소하면 null.
@@ -46,6 +51,7 @@ class PeriodJumpSheet extends StatefulWidget {
     required String scopeName,
     DateTime? earliestDay,
     double? Function(PeriodKey key)? amountOf,
+    String currency = 'KRW',
   }) {
     return showModalBottomSheet<PeriodKey>(
       context: context,
@@ -59,6 +65,7 @@ class PeriodJumpSheet extends StatefulWidget {
         scopeName: scopeName,
         earliestDay: earliestDay,
         amountOf: amountOf,
+        currency: currency,
       ),
     );
   }
@@ -487,6 +494,12 @@ class _PeriodJumpSheetState extends State<PeriodJumpSheet> {
 
   /// 칸이 좁아 축약해 적는다 (한국어 만 단위, 영어 K/M)
   String _fmtCompact(double v) {
+    if (widget.currency == 'USD') {
+      // 달러는 언어와 관계없이 K/M — 「1.5만」 달러는 아무도 그렇게 안 읽는다
+      if (v >= 1000000) return '\$${(v / 1000000).toStringAsFixed(1)}M';
+      if (v >= 1000) return '\$${(v / 1000).toStringAsFixed(1)}K';
+      return '\$${v.round()}';
+    }
     if (_isKo) {
       if (v >= 100000000) return '${(v / 100000000).toStringAsFixed(1)}억';
       if (v >= 10000) return '${(v / 10000).toStringAsFixed(1)}만';
