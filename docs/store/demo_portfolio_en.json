@@ -1,0 +1,268 @@
+[
+ {
+  "id": "Roth IRA",
+  "name": "Roth IRA",
+  "currency": "USD",
+  "commissionEnabled": false,
+  "commissionRate": 0.0,
+  "exchangeAuto": true,
+  "exchangeRate": 1380.0,
+  "rebalancingThreshold": 3.0,
+  "items": [
+   {
+    "id": "Roth IRA-VOO",
+    "name": "Vanguard S&P 500 ETF",
+    "ticker": "VOO",
+    "market": "US",
+    "isCash": false,
+    "inWeight": true,
+    "targetWeight": 50,
+    "shares": 33,
+    "avgPrice": 612.98,
+    "currentPrice": 680.26,
+    "previousClose": 693.38,
+    "transactions": [
+     {
+      "id": "Roth IRA-VOO-1",
+      "date": 1760059800000,
+      "quantity": 20,
+      "price": 600.51
+     },
+     {
+      "id": "Roth IRA-VOO-2",
+      "date": 1765330200000,
+      "quantity": 13,
+      "price": 632.16
+     }
+    ],
+    "createdAt": "2025-10-10"
+   },
+   {
+    "id": "Roth IRA-VXUS",
+    "name": "Vanguard Total Intl Stock",
+    "ticker": "VXUS",
+    "market": "US",
+    "isCash": false,
+    "inWeight": true,
+    "targetWeight": 30,
+    "shares": 128,
+    "avgPrice": 75.71,
+    "currentPrice": 80.99,
+    "previousClose": 82.64,
+    "transactions": [
+     {
+      "id": "Roth IRA-VXUS-1",
+      "date": 1757467800000,
+      "quantity": 51,
+      "price": 72.51
+     },
+     {
+      "id": "Roth IRA-VXUS-2",
+      "date": 1768008600000,
+      "quantity": 77,
+      "price": 77.83
+     }
+    ],
+    "createdAt": "2025-09-10"
+   },
+   {
+    "id": "Roth IRA-BND",
+    "name": "Vanguard Total Bond Market",
+    "ticker": "BND",
+    "market": "US",
+    "isCash": false,
+    "inWeight": true,
+    "targetWeight": 20,
+    "shares": 102,
+    "avgPrice": 72.24,
+    "currentPrice": 70.62,
+    "previousClose": 70.56,
+    "transactions": [
+     {
+      "id": "Roth IRA-BND-1",
+      "date": 1744248600000,
+      "quantity": 61,
+      "price": 72.1
+     },
+     {
+      "id": "Roth IRA-BND-2",
+      "date": 1749519000000,
+      "quantity": 41,
+      "price": 72.46
+     }
+    ],
+    "createdAt": "2025-04-10"
+   }
+  ],
+  "lastUpdated": 1794900819646,
+  "additionalInvestment": 0
+ },
+ {
+  "id": "Traditional IRA",
+  "name": "Traditional IRA",
+  "currency": "USD",
+  "commissionEnabled": false,
+  "commissionRate": 0.0,
+  "exchangeAuto": true,
+  "exchangeRate": 1380.0,
+  "rebalancingThreshold": 3.0,
+  "items": [
+   {
+    "id": "Traditional IRA-VTI",
+    "name": "Vanguard Total Stock Market",
+    "ticker": "VTI",
+    "market": "US",
+    "isCash": false,
+    "inWeight": true,
+    "targetWeight": 40,
+    "shares": 24,
+    "avgPrice": 328.2,
+    "currentPrice": 364.3,
+    "previousClose": 371.11,
+    "transactions": [
+     {
+      "id": "Traditional IRA-VTI-1",
+      "date": 1752111000000,
+      "quantity": 10,
+      "price": 308.32
+     },
+     {
+      "id": "Traditional IRA-VTI-2",
+      "date": 1768008600000,
+      "quantity": 14,
+      "price": 342.4
+     }
+    ],
+    "createdAt": "2025-07-10"
+   },
+   {
+    "id": "Traditional IRA-VEA",
+    "name": "Vanguard Developed Markets",
+    "ticker": "VEA",
+    "market": "US",
+    "isCash": false,
+    "inWeight": true,
+    "targetWeight": 30,
+    "shares": 89,
+    "avgPrice": 64.97,
+    "currentPrice": 68.22,
+    "previousClose": 69.44,
+    "transactions": [
+     {
+      "id": "Traditional IRA-VEA-1",
+      "date": 1765330200000,
+      "quantity": 53,
+      "price": 62.54
+     },
+     {
+      "id": "Traditional IRA-VEA-2",
+      "date": 1770687000000,
+      "quantity": 36,
+      "price": 68.54
+     }
+    ],
+    "createdAt": "2025-12-10"
+   },
+   {
+    "id": "Traditional IRA-BND",
+    "name": "Vanguard Total Bond Market",
+    "ticker": "BND",
+    "market": "US",
+    "isCash": false,
+    "inWeight": true,
+    "targetWeight": 30,
+    "shares": 88,
+    "avgPrice": 72.24,
+    "currentPrice": 70.62,
+    "previousClose": 70.56,
+    "transactions": [
+     {
+      "id": "Traditional IRA-BND-1",
+      "date": 1744248600000,
+      "quantity": 53,
+      "price": 72.1
+     },
+     {
+      "id": "Traditional IRA-BND-2",
+      "date": 1749519000000,
+      "quantity": 35,
+      "price": 72.46
+     }
+    ],
+    "createdAt": "2025-04-10"
+   }
+  ],
+  "lastUpdated": 1794900821050,
+  "additionalInvestment": 0
+ },
+ {
+  "id": "Brokerage",
+  "name": "Brokerage",
+  "currency": "USD",
+  "commissionEnabled": false,
+  "commissionRate": 0.0,
+  "exchangeAuto": true,
+  "exchangeRate": 1380.0,
+  "rebalancingThreshold": 5.0,
+  "items": [
+   {
+    "id": "Brokerage-QQQ",
+    "name": "Invesco QQQ Trust",
+    "ticker": "QQQ",
+    "market": "US",
+    "isCash": false,
+    "inWeight": true,
+    "targetWeight": 60,
+    "shares": 18,
+    "avgPrice": 590.7,
+    "currentPrice": 661.75,
+    "previousClose": 679.89,
+    "transactions": [
+     {
+      "id": "Brokerage-QQQ-1",
+      "date": 1749519000000,
+      "quantity": 7,
+      "price": 534.21
+     },
+     {
+      "id": "Brokerage-QQQ-2",
+      "date": 1768008600000,
+      "quantity": 11,
+      "price": 626.65
+     }
+    ],
+    "createdAt": "2025-06-10"
+   },
+   {
+    "id": "Brokerage-SCHD",
+    "name": "Schwab US Dividend Equity",
+    "ticker": "SCHD",
+    "market": "US",
+    "isCash": false,
+    "inWeight": true,
+    "targetWeight": 40,
+    "shares": 149,
+    "avgPrice": 31.14,
+    "currentPrice": 35.86,
+    "previousClose": 36.12,
+    "transactions": [
+     {
+      "id": "Brokerage-SCHD-1",
+      "date": 1770687000000,
+      "quantity": 89,
+      "price": 31.3
+     },
+     {
+      "id": "Brokerage-SCHD-2",
+      "date": 1773106200000,
+      "quantity": 60,
+      "price": 30.9
+     }
+    ],
+    "createdAt": "2026-02-10"
+   }
+  ],
+  "lastUpdated": 1794900822323,
+  "additionalInvestment": 0
+ }
+]

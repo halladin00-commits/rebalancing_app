@@ -31,7 +31,7 @@ def dump(tries=4):
     """화면의 접근성 정보. 가끔 빈 값이 와서 몇 번 다시 본다."""
     for _ in range(tries):
         out = sh('shell',
-                 'uiautomator dump /sdcard/u.xml >/dev/null 2>&1; cat /sdcard/u.xml')
+                 'rm -f /sdcard/u.xml; uiautomator dump /sdcard/u.xml >/dev/null 2>&1; cat /sdcard/u.xml')
         if out and b'<node' in out:
             return out.decode('utf-8', 'ignore')
         time.sleep(2)
