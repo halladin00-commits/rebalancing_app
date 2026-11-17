@@ -24,7 +24,9 @@ import io
 import re
 import sys
 
-FILES = ['docs/store/listing_ko.md', 'docs/store/listing_en.md']
+FILES = ['docs/store/listing_ko.md', 'docs/store/listing_en.md',
+         # 다음 출시용 초안 — 올리는 날 위 두 파일을 이것으로 바꾼다
+         'docs/store/next_ko.md', 'docs/store/next_en.md']
 
 LIMITS = [
     ('app name', 30), ('앱 이름', 30),
