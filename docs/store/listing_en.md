@@ -41,21 +41,36 @@ v1.1.0 — The whole app, redrawn
 
 ---
 
+## App name (30 char limit)
+
+```
+Rebalancing - Stock Calculator
+```
+
+30 characters. Was "Rebalancing - Portfolio Tool" — nobody searches for
+"tool". **The name stays in front**: the launcher label and the logo on every
+shared image say "Rebalancing", and someone who saw one of those images
+should find the same word on the store. "Rebalancing Portfolio Calculator"
+would be better still but runs to 32.
+
+Rejected: a trailing "- ETFs" (reads as an afterthought), "Stock Manager"
+(reads as inventory), "port" (not how anyone abbreviates portfolio).
+
+---
+
 ## Short description (80 char limit)
 
 ```
-Balance your stocks and ETFs, down to the exact share count
+Rebalance your stock & ETF portfolio, down to the exact share count
 ```
 
-58 characters. **It leads with what the app is.** This one line is all most
-people read before deciding, and "your weights have drifted from target"
-only means something to someone who already rebalances.
+67 characters. **It carries the search words the name has no room for** —
+"ETF" and "portfolio" — and opens with the verb people type. The earlier
+line began "Balance your stocks…", which is not a search term.
 
-**This slot renders as a large headline.** The earlier line — "Track your
-stocks and ETFs, and see how many shares to buy or sell." — was two flat
-clauses strung together with *and*, and it wrapped onto three lines with a
-stub at the end. One clause plus the payoff phrase reads better big, and
-mirrors the Korean, which does the same thing with 「…부터 …까지」.
+It still leads with what the app is: this one line is all most people read
+before deciding, and "your weights have drifted from target" only means
+something to someone who already rebalances.
 
 ---
 
@@ -78,14 +93,14 @@ mirrors the Korean, which does the same thing with 「…부터 …까지」.
 > way to bold. Left out here because the `■` markers already do the work.
 
 ```
-See holdings scattered across several accounts in one place. Set a target weight for each, and when prices push those weights off target, the app tells you how many shares to buy or sell. No more spreadsheets.
+A portfolio rebalancing calculator and tracker for stocks and ETFs. See holdings scattered across several accounts in one place. Set a target weight for each, and when prices push those weights off target, the app tells you how many shares to buy or sell. No more spreadsheets.
 
 Covers listings in Korea and the United States.
 
 
 ■ Assets
 
-• Keep accounts apart — brokerage, ISA, retirement — and still see one combined total
+• Keep accounts apart — brokerage, IRA, 401(k) — and still see one combined total
 • Korean and US prices and the exchange rate are fetched for you
 • Unrealized gain and daily change, per account and per holding
 • Chart your total over a week, a month, or a year
@@ -128,7 +143,7 @@ Covers listings in Korea and the United States.
 
 ■ Who it's for
 
-• Anyone who rebalances stocks and ETFs on a schedule
+• Index-fund and ETF investors who keep a fixed asset allocation and rebalance on a schedule
 • Anyone holding across several accounts with no single view of the whole
 • Anyone who reaches for a calculator or a spreadsheet every single time
 • Anyone who wants to know how this month, or this quarter, actually went

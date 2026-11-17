@@ -27,6 +27,7 @@ import sys
 FILES = ['docs/store/listing_ko.md', 'docs/store/listing_en.md']
 
 LIMITS = [
+    ('app name', 30), ('앱 이름', 30),
     ('release notes', 500), ('출시 노트', 500),
     ('short description', 80), ('간단한 설명', 80),
     ('full description', 4000), ('자세한 설명', 4000),
@@ -127,11 +128,10 @@ def main():
                           % (name, len(lines), px, ONE_LINE))
                     for l in lines:
                         print('            | %s' % l)
-                    # 마지막 줄이 짧게 남는 것이 가장 보기 싫다
+                    # 2026-11-17부터 실패로 치지 않는다 — 한 줄 맞춤보다 검색
+                    # 유입을 택했다 (listing_ko.md). 어떻게 접히는지만 알린다.
                     if text_width(tail) < ONE_LINE * 0.45:
-                        print('            └ 끝에 「%s」만 남습니다. 줄이십시오.'
-                              % tail)
-                        fails += 1
+                        print('            └ 끝에 「%s」만 남습니다 (참고).' % tail)
                 else:
                     print('            큰 글씨 한 줄에 들어갑니다 '
                           '(폭 %.0f / %.0f)' % (px, ONE_LINE))
