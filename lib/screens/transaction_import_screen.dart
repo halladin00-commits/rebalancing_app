@@ -467,7 +467,7 @@ class _TransactionImportScreenState extends State<TransactionImportScreen> {
                 '${r.date.month.toString().padLeft(2, '0')}'
                 '.${r.date.day.toString().padLeft(2, '0')} · '
                 '${fmtPrice(r.price, r.market)} · '
-                '${formatShares(r.qty)}${l10n.unitShares}',
+                '${l10n.sharesCount(r.qty, formatShares(r.qty))}',
                 style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,

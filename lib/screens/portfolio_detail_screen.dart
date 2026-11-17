@@ -1229,7 +1229,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
       subtitle: item.isCash
           ? null
           : Text(
-              '${fmtPrice(item.currentPrice, item.market)} · ${formatShares(item.shares)}${context.l10n.unitShares}',
+              '${fmtPrice(item.currentPrice, item.market)} · ${context.l10n.sharesCount(item.shares, formatShares(item.shares))}',
               style: TextStyle(
                   fontSize: DS.body,
                   fontWeight: FontWeight.w600,

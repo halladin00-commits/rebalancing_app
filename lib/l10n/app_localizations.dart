@@ -2689,6 +2689,12 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'합계 표시 통화'**
   String get totalsCurrency;
+
+  /// No description provided for @sharesCount.
+  ///
+  /// In ko, this message translates to:
+  /// **'{text}주'**
+  String sharesCount(num count, String text);
 }
 
 class _AppLocalizationsDelegate

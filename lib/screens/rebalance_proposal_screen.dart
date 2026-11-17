@@ -648,7 +648,7 @@ class _RebalanceProposalScreenState extends State<RebalanceProposalScreen> {
         (prev.abs() - r.delta.abs()).abs() > sharesEpsilon;
 
     String sharesText(double d) =>
-        '${formatShares(d.abs())}${l10n.unitShares}';
+        l10n.sharesCount(d.abs(), formatShares(d.abs()));
 
     return Container(
       // 배지가 카드 모서리에 붙지 않게 좌우를 띄운다

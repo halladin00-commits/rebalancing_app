@@ -344,7 +344,7 @@
   },
   "portfolioNotFound": "Portfolio not found",
   "additionalInvestmentHint": "Money to add. Use − to take money out",
-  "evaluationAmount": "Evaluation Amount",
+  "evaluationAmount": "Market value",
   "weightWarning": "Target weight: {pct} (not 100%)",
   "@weightWarning": {
     "placeholders": {
@@ -496,7 +496,7 @@
     }
   },
   "restoreFailed": "That's not a valid backup file",
-  "notifReminder": "Rebalancing Reminders",
+  "notifReminder": "Rebalancing reminders",
   "notifEnableDesc": "Periodic rebalancing reminders",
   "notifEnableHint": "We'll send you a reminder at the set interval",
   "purchaseDateLabel": "Purchase Date",
@@ -561,7 +561,7 @@
     }
   },
   "excelImportNothingAdded": "No transactions were added",
-  "settlementNotifHeader": "Settlement Reminders",
+  "settlementNotifHeader": "Returns reminders",
   "rebalancingThresholdLabel": "Tolerance",
   "rebalancingThresholdHint": "No adjustment below this deviation",
   "fractionalTrading": "Fractional Shares",
@@ -836,7 +836,7 @@
   "firstRunUploadDesc": "If you can export a transaction file from your broker, dozens of trades come in at once.",
   "firstRunUploadCta": "Start from a file",
   "firstRunRecordTitle": "Search and enter",
-  "firstRunRecordDesc": "Search for a stock and enter quantity, average cost and buy date. Record later buys and sells to keep Settlement accurate.",
+  "firstRunRecordDesc": "Search for a stock and enter quantity, average cost and buy date. Record later buys and sells to keep Returns accurate.",
   "firstRunRecordCta": "Start by searching",
   "hintThenUpload": "You'll go straight to uploading a file.",
   "createAndUpload": "Create and upload",
@@ -937,7 +937,7 @@
   },
   "holdingsImportTitle": "Import from screenshots",
   "holdingsStep1": "1 / 2 · Pick screenshots",
-  "holdingsStep2": "2 / 2 · {count} screenshots",
+  "holdingsStep2": "{count, plural, =1{2 / 2 · 1 screenshot} other{2 / 2 · {count} screenshots}}",
   "@holdingsStep2": {
     "placeholders": {
       "count": {
@@ -966,9 +966,9 @@
   "holdingsReadFailed": "Couldn't read the screenshots. Please try again.",
   "holdingsNoneFound": "No holdings found. Make sure the screenshots show stock names and quantities.",
   "holdingsForeignSkipped": "Left out {count} overseas holdings — they can't be imported yet.",
-  "holdingsNoQuantity": "Couldn't read {count} screenshots that don't show quantities. Capture a screen that shows how many shares you hold.",
+  "holdingsNoQuantity": "{count, plural, =1{Couldn't read 1 screenshot that doesn't show quantities. Capture a screen that shows how many shares you hold.} other{Couldn't read {count} screenshots that don't show quantities. Capture a screen that shows how many shares you hold.}}",
   "issueNumbersUnchecked": "There was nothing on screen to cross-check the quantity against. Please confirm it.",
-  "holdingsSkippedShots": "Skipped {count} screenshots that aren't the balance screen.",
+  "holdingsSkippedShots": "{count, plural, =1{Skipped 1 screenshot that isn't the balance screen.} other{Skipped {count} screenshots that aren't the balance screen.}}",
   "@holdingsSkippedShots": {
     "placeholders": {
       "count": {
@@ -1125,5 +1125,23 @@
   },
   "portfolioSettings": "Portfolio settings",
   "exchangeRateAuto": "Fetch automatically",
-  "totalsCurrency": "Totals currency"
+  "totalsCurrency": "Totals currency",
+  "sharesCount": "{count, plural, =1{{text} share} other{{text} shares}}",
+  "@sharesCount": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      },
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "@holdingsNoQuantity": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

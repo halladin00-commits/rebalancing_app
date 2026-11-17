@@ -327,7 +327,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
 
     return ListCard(rows: [
       _kv(context, l10n.holdingQty,
-          '${formatShares(item.shares)}${l10n.unitShares}',
+          l10n.sharesCount(item.shares, formatShares(item.shares)),
           note: fromTx ? l10n.basedOnTransactions : l10n.enteredDirectly),
       _kv(context, l10n.avgCost, fmtPrice(item.avgPrice, item.market),
           note: fromTx ? l10n.basedOnTransactions : l10n.enteredDirectly),
@@ -515,7 +515,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                     children: [
                       TextSpan(text: fmtPrice(t.price, item.market)),
                       TextSpan(
-                        text: ' · ${formatShares(qty)}${l10n.unitShares}',
+                        text: ' · ${l10n.sharesCount(qty, formatShares(qty))}',
                         style: TextStyle(
                             fontWeight: FontWeight.w600,
                             color: context.textSecondary),

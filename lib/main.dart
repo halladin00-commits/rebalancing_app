@@ -230,9 +230,20 @@ class MainCurrencyNotifier extends ChangeNotifier {
 
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
-    _currency = prefs.getString(_key) ?? 'KRW';
+    _currency = prefs.getString(_key) ?? defaultFor(
+        WidgetsBinding.instance.platformDispatcher.locale.languageCode);
     notifyListeners();
   }
+
+  /// 고른 적이 없을 때의 기본값. **기기 언어가 한국어가 아니면 달러.**
+  ///
+  /// 예전에는 누구나 원화였다. 미국 사용자가 달러 계좌를 만들어도 홈 합계는
+  /// ₩로 나와, 처음 보는 숫자부터 낯설었다. 언어를 고르는 규칙
+  /// (`LocaleProvider` — 한국어 기기만 한국어)과 같은 기준을 쓴다.
+  ///
+  /// 저장하지 않는다. 한 번이라도 고르면 그 값이 이긴다.
+  static String defaultFor(String languageCode) =>
+      languageCode == 'ko' ? 'KRW' : 'USD';
 
   Future<void> setCurrency(String c) async {
     _currency = c;

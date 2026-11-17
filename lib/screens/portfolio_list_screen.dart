@@ -131,11 +131,6 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
   }
 
 
-  // 포트폴리오 손익을 KRW로 환산 (USD 포트폴리오는 exchangeRate 사용)
-  double _toKrw(double value, Portfolio pf) {
-    if (pf.currency == 'USD') return value * pf.exchangeRate;
-    return value;
-  }
 
   void _openDetail(BuildContext context, String id) {
     Navigator.push(
@@ -168,7 +163,11 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
         builder: (_) => PortfolioFormScreen(
           next: next,
           onSave: (name) {
-            final pf = Portfolio(id: _uid(), name: name);
+            // 새 포트는 합계 표시 통화를 따른다 — 한국어가 아닌 기기는 달러
+            final pf = Portfolio(
+                id: _uid(),
+                name: name,
+                currency: context.read<MainCurrencyNotifier>().currency);
             context.read<PortfolioProvider>().addPortfolio(pf);
             // 빈 포트만 덩그러니 남기지 않는다 — 바로 종목을 담게 이어준다.
             //
@@ -472,24 +471,19 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
       return AppLogo(iconSize: 21, textColor: context.onBrandSecondary);
     }
 
-    double totalKrw = 0, dayKrw = 0;
+    // 합계 통화로 바로 더한다 — 결산 탭과 같은 비율(`combineFx`).
+    // 예전에는 원화로 모은 뒤 평균 환율로 나눠, 달러 계좌만 있어도 계좌마다
+    // 환율이 조금씩 다르면 합계가 계좌 합과 몇 센트 어긋날 수 있었다.
+    double total = 0, day = 0;
     var hasDay = false;
-    final rates = portfolios
-        .where((p) => p.exchangeRate > 0)
-        .map((p) => p.exchangeRate)
-        .toList();
-    final avgRate =
-        rates.isNotEmpty ? rates.reduce((a, b) => a + b) / rates.length : 1370.0;
-
     for (final pf in portfolios) {
-      totalKrw += _toKrw(pf.totalValue, pf);
+      final fx = SettlementService.combineFx(pf, portfolios, displayCur);
+      total += pf.totalValue * fx;
       if (pf.hasDayData) {
-        dayKrw += _toKrw(pf.dayPnL, pf);
+        day += pf.dayPnL * fx;
         hasDay = true;
       }
     }
-    final total = displayCur == 'USD' ? totalKrw / avgRate : totalKrw;
-    final day = displayCur == 'USD' ? dayKrw / avgRate : dayKrw;
     final dayPct = (total - day) > 0 ? day / (total - day) * 100 : 0.0;
     final up = day >= 0;
 
@@ -573,39 +567,31 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
 
     final hasAnyPrice = portfolios.any((p) => p.hasPriceData);
 
-    double totalKrw = 0, pnlKrw = 0, dayKrw = 0;
+    // 합계 통화로 바로 더한다 — 결산 탭과 같은 비율(`combineFx`)
+    double total = 0, pnl = 0, day = 0;
     bool hasAvg = false, hasDay = false;
-
-    final rates = portfolios
-        .where((p) => p.exchangeRate > 0)
-        .map((p) => p.exchangeRate)
-        .toList();
-    final avgRate = rates.isNotEmpty
-        ? rates.reduce((a, b) => a + b) / rates.length
-        : 1370.0;
-
     for (final pf in portfolios) {
-      totalKrw += _toKrw(pf.totalValue, pf);
+      final fx = SettlementService.combineFx(pf, portfolios, displayCur);
+      total += pf.totalValue * fx;
       if (pf.hasAvgData) {
-        pnlKrw += _toKrw(pf.unrealizedPnL, pf);
+        pnl += pf.unrealizedPnL * fx;
         hasAvg = true;
       }
       if (pf.hasDayData) {
-        dayKrw += _toKrw(pf.dayPnL, pf);
+        day += pf.dayPnL * fx;
         hasDay = true;
       }
     }
 
-    final total = displayCur == 'USD' ? totalKrw / avgRate : totalKrw;
-    final pnl = displayCur == 'USD' ? pnlKrw / avgRate : pnlKrw;
-    final day = displayCur == 'USD' ? dayKrw / avgRate : dayKrw;
-
     final pnlPct = (total - pnl) > 0 ? pnl / (total - pnl) * 100 : 0.0;
     final dayPct = (total - day) > 0 ? day / (total - day) * 100 : 0.0;
 
-    // 환율 칩은 해외 종목이 있을 때만 의미가 있다
-    final hasForeign = portfolios.any(
-        (p) => p.currency == 'USD' || p.items.any((i) => i.market == 'US'));
+    // 환율 칩은 **환산이 실제로 일어날 때만** 낸다. 예전에는 「해외 종목이
+    // 있으면」이었어서, 달러 계좌만 있고 달러로 보는 사람에게도
+    // 「1 USD = ₩1335」가 떴다 — 그 사람의 숫자에는 환율이 하나도 안 낀다.
+    final hasForeign =
+        SettlementService.needsExchangeRate(portfolios, displayCur);
+    final avgRate = SettlementService.averageRate(portfolios);
 
 
     return Column(

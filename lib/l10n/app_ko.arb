@@ -1170,5 +1170,16 @@
   },
   "portfolioSettings": "포트폴리오 설정",
   "exchangeRateAuto": "자동으로 받기",
-  "totalsCurrency": "합계 표시 통화"
+  "totalsCurrency": "합계 표시 통화",
+  "sharesCount": "{text}주",
+  "@sharesCount": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      },
+      "text": {
+        "type": "String"
+      }
+    }
+  }
 }

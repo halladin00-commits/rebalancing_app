@@ -443,7 +443,7 @@ class _HoldingsImportScreenState extends State<HoldingsImportScreen> {
           HoldingIssue.notFound => l10n.issueNotFound,
           HoldingIssue.nameAmbiguous => l10n.issueNameAmbiguous,
           HoldingIssue.qtyConflict => l10n.issueQtyConflict(r.conflictQtys
-              .map((q) => '${formatShares(q)}${l10n.unitShares}')
+              .map((q) => l10n.sharesCount(q, formatShares(q)))
               .join(' · ')),
           HoldingIssue.numbersOff => l10n.issueNumbersOff,
           HoldingIssue.numbersUnchecked => l10n.issueNumbersUnchecked,

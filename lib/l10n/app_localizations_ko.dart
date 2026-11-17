@@ -1513,4 +1513,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get totalsCurrency => '합계 표시 통화';
+
+  @override
+  String sharesCount(num count, String text) {
+    return '$text주';
+  }
 }

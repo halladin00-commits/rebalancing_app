@@ -500,7 +500,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                 Text(
                   '${d.month.toString().padLeft(2, '0')}.${d.day.toString().padLeft(2, '0')}'
                   ' · ${fmtPrice(e.tx.price, e.item.market)}'
-                  ' · ${formatShares(qty)}${l10n.unitShares}',
+                  ' · ${l10n.sharesCount(qty, formatShares(qty))}',
                   style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,

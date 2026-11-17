@@ -498,7 +498,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Money to add. Use − to take money out';
 
   @override
-  String get evaluationAmount => 'Evaluation Amount';
+  String get evaluationAmount => 'Market value';
 
   @override
   String weightWarning(String pct) {
@@ -812,7 +812,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get restoreFailed => 'That\'s not a valid backup file';
 
   @override
-  String get notifReminder => 'Rebalancing Reminders';
+  String get notifReminder => 'Rebalancing reminders';
 
   @override
   String get notifEnableDesc => 'Periodic rebalancing reminders';
@@ -895,7 +895,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get excelImportNothingAdded => 'No transactions were added';
 
   @override
-  String get settlementNotifHeader => 'Settlement Reminders';
+  String get settlementNotifHeader => 'Returns reminders';
 
   @override
   String get rebalancingThresholdLabel => 'Tolerance';
@@ -1165,7 +1165,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get firstRunRecordDesc =>
-      'Search for a stock and enter quantity, average cost and buy date. Record later buys and sells to keep Settlement accurate.';
+      'Search for a stock and enter quantity, average cost and buy date. Record later buys and sells to keep Returns accurate.';
 
   @override
   String get firstRunRecordCta => 'Start by searching';
@@ -1330,7 +1330,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String holdingsStep2(int count) {
-    return '2 / 2 · $count screenshots';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '2 / 2 · $count screenshots',
+      one: '2 / 2 · 1 screenshot',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -1378,7 +1384,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String holdingsNoQuantity(int count) {
-    return 'Couldn\'t read $count screenshots that don\'t show quantities. Capture a screen that shows how many shares you hold.';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Couldn\'t read $count screenshots that don\'t show quantities. Capture a screen that shows how many shares you hold.',
+      one:
+          'Couldn\'t read 1 screenshot that doesn\'t show quantities. Capture a screen that shows how many shares you hold.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -1387,7 +1401,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String holdingsSkippedShots(int count) {
-    return 'Skipped $count screenshots that aren\'t the balance screen.';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Skipped $count screenshots that aren\'t the balance screen.',
+      one: 'Skipped 1 screenshot that isn\'t the balance screen.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -1549,4 +1569,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get totalsCurrency => 'Totals currency';
+
+  @override
+  String sharesCount(num count, String text) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$text shares',
+      one: '$text share',
+    );
+    return '$_temp0';
+  }
 }

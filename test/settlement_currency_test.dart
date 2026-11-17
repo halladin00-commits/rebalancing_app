@@ -44,6 +44,33 @@ void main() {
     });
   });
 
+  group('환율 칩은 환산이 실제로 일어날 때만', () {
+    PortfolioItem it(String m) => PortfolioItem(
+        id: m, name: m, ticker: m, market: m, shares: 1, currentPrice: 1);
+
+    test('달러 계좌의 미국 종목만 달러로 보면 환율이 안 낀다', () {
+      final u = Portfolio(id: 'u', name: 'u', currency: 'USD', items: [it('US')]);
+      expect(SettlementService.needsExchangeRate([u], 'USD'), isFalse);
+      // 원화로 보면 합계에서 환산한다
+      expect(SettlementService.needsExchangeRate([u], 'KRW'), isTrue);
+    });
+
+    test('원화 계좌의 국내 종목만 원화로 보면 환율이 안 낀다', () {
+      final k = Portfolio(id: 'k', name: 'k', items: [it('KR')]);
+      expect(SettlementService.needsExchangeRate([k], 'KRW'), isFalse);
+    });
+
+    test('원화 계좌에 미국 종목이 있으면 평가금액에 환율이 낀다', () {
+      final k = Portfolio(id: 'k', name: 'k', items: [it('KR'), it('US')]);
+      expect(SettlementService.needsExchangeRate([k], 'KRW'), isTrue);
+    });
+
+    test('달러 계좌에 국내 종목이 있어도 마찬가지', () {
+      final u = Portfolio(id: 'u', name: 'u', currency: 'USD', items: [it('KR')]);
+      expect(SettlementService.needsExchangeRate([u], 'USD'), isTrue);
+    });
+  });
+
   test('합산 수익률은 통화와 무관하다 — 같은 비율이 분자·분모에 곱해진다', () {
     // 원화 포트 하나: 기초 1,350,000원 → 손익 +135,000원 (10%)
     // 달러로 보면 기초 $1,000 → 손익 +$100. 수익률은 그대로 10%.

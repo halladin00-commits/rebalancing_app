@@ -240,7 +240,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       if (item.ticker.isNotEmpty) item.ticker,
       if (item.currentPrice > 0)
         '${l10n.currentPrice} ${_fmtMoney(item.currentPrice)}',
-      '${l10n.holdingQty} ${formatShares(item.shares)}${l10n.unitShares}',
+      '${l10n.holdingQty} ${l10n.sharesCount(item.shares, formatShares(item.shares))}',
     ];
 
     return Container(
@@ -543,7 +543,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       if (t != null) owned -= t.quantity;
       if (_qty > owned + sharesEpsilon) {
         setState(() => _error = l10n.validationSellExceeds(
-            '${formatShares(owned)}${l10n.unitShares}'));
+            l10n.sharesCount(owned, formatShares(owned))));
         return;
       }
     }

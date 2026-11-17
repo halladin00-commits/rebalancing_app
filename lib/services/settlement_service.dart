@@ -888,6 +888,22 @@ class SettlementService {
     return rate > 0 ? 1.0 / rate : 0.0;
   }
 
+  /// [currency]로 볼 때 어딘가에서 환율이 쓰이는가.
+  ///
+  /// - 포트 통화가 [currency]와 다르면 합계에서 환산한다.
+  /// - 포트 안에 다른 나라 종목이 있으면 평가금액을 낼 때 환산한다
+  ///   (원화 포트의 미국 종목, 달러 포트의 국내 종목).
+  ///
+  /// 둘 다 없으면 화면의 어떤 숫자에도 환율이 끼지 않는다 — 환율을 적으면
+  /// 「이게 왜 여기 있지」만 남긴다.
+  static bool needsExchangeRate(List<Portfolio> all, String currency) =>
+      all.any((p) =>
+          p.currency != currency ||
+          p.items.any((i) =>
+              !i.isCash &&
+              ((i.market == 'US' && p.currency != 'USD') ||
+                  (i.market == 'KR' && p.currency != 'KRW'))));
+
   /// 전 포트 환율의 평균. 받은 환율이 하나도 없으면 1370.
   static double averageRate(List<Portfolio> all) {
     final rates =

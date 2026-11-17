@@ -36,6 +36,18 @@
 
 **되돌리려면**: `SettlementService.combineFx`의 원화 포트 → 달러 줄.
 
+**이어서 (같은 날, 사용자 요청)**:
+- **한국어가 아닌 기기는 처음부터 달러.** 합계 표시 통화를 고른 적이 없으면
+  기기 언어로 정한다 (언어를 고르는 규칙과 같은 기준). 새로 만드는 포트도
+  합계 표시 통화를 따른다. 영향: 한국어가 아닌 기기에서 이 설정을 한 번도
+  안 건드린 기존 사용자는 업데이트 뒤 합계가 달러로 바뀐다. 한국어 기기는
+  아무것도 안 바뀐다. 되돌리려면 `MainCurrencyNotifier.defaultFor`.
+- 홈 합계도 결산 탭과 같은 환산(`combineFx`)으로 바로 더한다. 환율 칩
+  「1 USD = ₩…」는 **환산이 실제로 일어날 때만** 낸다 (`needsExchangeRate`).
+- 영어 문구: 「4shares」→「4 shares / 1 share」, 「1 screenshots」 복수형,
+  「Evaluation Amount」→「Market value」, 「Settlement Reminders」→
+  「Returns reminders」. 날짜 형식(11.01 – 11.30)은 그대로 뒀다.
+
 ### 2026-11-17 · 잔고 캡처 — 미국 증권사 앱(영어 화면)도 읽는다
 
 (사용자: 「해외 사용자 유입 대비 — 대표 앱을 추려 구현·검증」) 미국 앱 10곳의

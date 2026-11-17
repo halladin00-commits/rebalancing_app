@@ -124,7 +124,11 @@ void createPortfolioThenAddItems(BuildContext context) {
     MaterialPageRoute(
       builder: (_) => PortfolioFormScreen(
         onSave: (name) {
-          final pf = Portfolio(id: _uid(), name: name);
+          // 새 포트는 합계 표시 통화를 따른다 — 한국어가 아닌 기기는 달러
+          final pf = Portfolio(
+              id: _uid(),
+              name: name,
+              currency: context.read<MainCurrencyNotifier>().currency);
           context.read<PortfolioProvider>().addPortfolio(pf);
           // 폼이 pop 되기 전에 불리므로 프레임이 끝난 뒤에 민다
           WidgetsBinding.instance.addPostFrameCallback((_) {
