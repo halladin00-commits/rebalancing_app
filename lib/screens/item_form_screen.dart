@@ -20,7 +20,6 @@ class ItemFormScreen extends StatefulWidget {
   /// 미리 채워 둘 값 (검색 결과에서 넘어올 때).
   final PortfolioItem? preset;
 
-  final bool priceAuto;
   final String currency;
 
   /// **이 종목을 뺀** 나머지 종목들의 목표 비중 합.
@@ -37,7 +36,6 @@ class ItemFormScreen extends StatefulWidget {
     super.key,
     this.item,
     this.preset,
-    this.priceAuto = false,
     this.currency = 'KRW',
     this.otherWeights = 0,
     required this.onSave,
@@ -68,6 +66,13 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
   /// 편집일 때 수량은 잠근다 — 보유 수량은 거래 내역에서 계산되는 결과다.
   /// 여기서 직접 고치면 거래와 어긋난다.
   bool get _sharesLocked => _isEdit && widget.item!.transactions.isNotEmpty;
+
+  /// 현재가를 손으로 넣어야 하는 종목인가 — 티커가 없어 시세를 받을 수 없다.
+  ///
+  /// 예전에는 포트의 「시세 자동」이 켜져 있으면 이 칸을 통째로 숨겼다.
+  /// 그래서 검색에 없어 직접 입력한 종목은 현재가가 0으로 저장됐고,
+  /// 현재가 0인 종목이 하나라도 있으면 조정 제안이 계산되지 않았다.
+  bool get _manualPrice => !_isCash && _ticker.isEmpty;
 
   @override
   void initState() {
@@ -168,7 +173,7 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
                       enabled: !_sharesLocked,
                       note: _sharesLocked ? l10n.basedOnTransactions : null),
                   _numRow(context, l10n.avgCost, _avgCtl, prefix: _sym),
-                  if (!widget.priceAuto)
+                  if (_manualPrice)
                     _numRow(context, l10n.currentPrice, _priceCtl,
                         prefix: _sym),
                 ] else ...[
@@ -553,7 +558,7 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
       setState(() => _error = l10n.validationNonNegative);
       return;
     }
-    if (!_isCash && !widget.priceAuto && price <= 0) {
+    if (_manualPrice && price <= 0) {
       setState(() => _error = l10n.validationPositive);
       return;
     }

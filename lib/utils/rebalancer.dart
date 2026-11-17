@@ -288,10 +288,7 @@ class Rebalancer {
           final assigned = locked
               ? item.shares
               : (frac
-                  ? (portfolio.fractionalRounding ==
-                          FractionalRounding.minDeviation
-                      ? roundShares(ideal)
-                      : floorShares(ideal))
+                  ? floorShares(ideal)
                   : wholeStepFloor(item.shares, ideal));
           out.add(_CalcItem(
               item: item, price: p, currentValue: cv, currentWeight: cw,

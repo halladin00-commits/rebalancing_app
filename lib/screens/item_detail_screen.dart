@@ -563,7 +563,6 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
               otherWeights: pf.weighedItems
                   .where((i) => i.id != item.id)
                   .fold<double>(0, (s, i) => s + i.targetWeight),
-              priceAuto: pf.priceAuto,
               currency: pf.currency,
               onSave: (updated) =>
                   context.read<PortfolioProvider>().updateItem(pf.id, updated),

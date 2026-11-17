@@ -80,8 +80,7 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
 
   void _autoRefreshIfStale() {
     final portfolios = context.read<PortfolioProvider>().portfolios;
-    final hasAuto = portfolios.any((p) => p.exchangeAuto || p.priceAuto);
-    if (!hasAuto) return;
+    if (portfolios.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
     final isStale = portfolios.any(
         (p) => p.lastUpdated == null || (now - p.lastUpdated!) > 5 * 60 * 1000);
@@ -1062,7 +1061,7 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
       ),
       const SizedBox(height: 13),
       // 캡처가 맨 위다 — 폰에 이미 있는 화면을 찍기만 하면 돼서 가장 빨리
-      // 끝난다. 한국 증권사 앱 화면만 읽으므로 한국어 화면에서만 보인다.
+      // 끝난다.
       if (holdingsCaptureOffered(context)) ...[
         _firstRunOption(
           context,
@@ -1077,23 +1076,15 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
         ),
         const SizedBox(height: 10),
       ],
+      // 예전에는 「직접 거래 기록하기」와 「보유 현황만 빠르게」 두 장이었다.
+      // 둘 다 같은 검색 화면으로 갔고, 뒤쪽의 「결산에는 안 나온다」는 설명은
+      // 수량을 넣으면 매수 거래가 만들어지게 된 뒤로 사실이 아니었다.
       _firstRunOption(
         context,
-        icon: Icons.history,
+        icon: Icons.search,
         title: l10n.firstRunRecordTitle,
-        badge: l10n.firstRunRecommended,
-        badgeStrong: !holdingsCaptureOffered(context),
         desc: l10n.firstRunRecordDesc,
         cta: l10n.firstRunRecordCta,
-        onTap: () => _startFirstRun(context),
-      ),
-      const SizedBox(height: 10),
-      _firstRunOption(
-        context,
-        icon: Icons.bolt,
-        title: l10n.firstRunQuickTitle,
-        desc: l10n.firstRunQuickDesc,
-        cta: l10n.firstRunQuickCta,
         onTap: () => _startFirstRun(context),
       ),
       const SizedBox(height: 10),

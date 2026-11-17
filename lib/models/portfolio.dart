@@ -210,16 +210,6 @@ class PortfolioItem {
   );
 }
 
-/// 소수점 거래에서 수량을 어떻게 맞출지.
-enum FractionalRounding {
-  /// 목표 비중에 가장 가까운 수량 (넷째 자리 반올림).
-  /// 편차는 최소가 되지만 배분 합계가 예산을 아주 조금 넘을 수 있다.
-  minDeviation,
-
-  /// 예산을 넘지 않는 쪽으로 내림. 현금이 조금 남는다.
-  floorCash,
-}
-
 /// 포트폴리오
 class Portfolio {
   String id;
@@ -229,16 +219,16 @@ class Portfolio {
   bool commissionEnabled;
   double exchangeRate;
   bool exchangeAuto;
-  bool priceAuto;
   double additionalInvestment;
   double rebalancingThreshold;
 
   /// 소수점 단위 매매 허용 여부. 기본은 온주(1주 단위) 거래다.
   /// 증권사·계좌에 따라 소수점 매매가 되는 곳만 켠다.
+  ///
+  /// 수량은 늘 **예산을 넘지 않게 내림**한다. 예전에는 반올림(편차 최소)도
+  /// 고를 수 있었는데, 그쪽은 예수금이 모자랄 수 있는 제안을 냈다.
+  /// 옛 저장본의 `fractionalRounding` · `priceAuto` 키는 읽지 않고 버린다.
   bool fractionalEnabled;
-
-  /// 소수점 수량을 맞추는 규칙. 기본은 예산을 넘지 않는 내림.
-  FractionalRounding fractionalRounding;
 
   int? lastUpdated;
 
@@ -269,11 +259,9 @@ class Portfolio {
     this.commissionEnabled = false,
     this.exchangeRate = 1370,
     this.exchangeAuto = true,
-    this.priceAuto = true,
     this.additionalInvestment = 0,
     this.rebalancingThreshold = 3.0,
     this.fractionalEnabled = false,
-    this.fractionalRounding = FractionalRounding.floorCash,
     this.lastUpdated,
     this.lastRebalancedAt,
     List<PortfolioItem>? items,
@@ -408,11 +396,9 @@ class Portfolio {
     'commissionEnabled': commissionEnabled,
     'exchangeRate': exchangeRate,
     'exchangeAuto': exchangeAuto,
-    'priceAuto': priceAuto,
     'additionalInvestment': additionalInvestment,
     'rebalancingThreshold': rebalancingThreshold,
     'fractionalEnabled': fractionalEnabled,
-    'fractionalRounding': fractionalRounding.name,
     'lastUpdated': lastUpdated,
     'lastRebalancedAt': lastRebalancedAt,
     'items': items.map((e) => e.toJson()).toList(),
@@ -430,14 +416,9 @@ class Portfolio {
     commissionEnabled: json['commissionEnabled'] ?? false,
     exchangeRate: (json['exchangeRate'] ?? 1370).toDouble(),
     exchangeAuto: json['exchangeAuto'] ?? true,
-    priceAuto: json['priceAuto'] ?? true,
     additionalInvestment: (json['additionalInvestment'] ?? 0).toDouble(),
     rebalancingThreshold: (json['rebalancingThreshold'] ?? 0.0).toDouble(),
     fractionalEnabled: json['fractionalEnabled'] ?? false,
-    fractionalRounding: FractionalRounding.values.firstWhere(
-      (e) => e.name == json['fractionalRounding'],
-      orElse: () => FractionalRounding.floorCash,
-    ),
     lastUpdated: json['lastUpdated'],
     // 옛 저장본에는 이 키가 없다. null이면 화면이 「기록 없음」이라고
     // 말한다 — 없는 날짜를 지어내지 않는다.
@@ -467,11 +448,9 @@ class Portfolio {
     bool? commissionEnabled,
     double? exchangeRate,
     bool? exchangeAuto,
-    bool? priceAuto,
     double? additionalInvestment,
     double? rebalancingThreshold,
     bool? fractionalEnabled,
-    FractionalRounding? fractionalRounding,
     int? lastUpdated,
     int? lastRebalancedAt,
     List<PortfolioItem>? items,
@@ -487,11 +466,9 @@ class Portfolio {
     commissionEnabled: commissionEnabled ?? this.commissionEnabled,
     exchangeRate: exchangeRate ?? this.exchangeRate,
     exchangeAuto: exchangeAuto ?? this.exchangeAuto,
-    priceAuto: priceAuto ?? this.priceAuto,
     additionalInvestment: additionalInvestment ?? this.additionalInvestment,
     rebalancingThreshold: rebalancingThreshold ?? this.rebalancingThreshold,
     fractionalEnabled: fractionalEnabled ?? this.fractionalEnabled,
-    fractionalRounding: fractionalRounding ?? this.fractionalRounding,
     lastUpdated: lastUpdated ?? this.lastUpdated,
     lastRebalancedAt: lastRebalancedAt ?? this.lastRebalancedAt,
     items: items ?? this.items.map((e) => e.copyWith()).toList(),

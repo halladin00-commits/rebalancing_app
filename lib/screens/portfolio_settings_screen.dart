@@ -4,7 +4,6 @@ import '../main.dart';
 import '../models/portfolio.dart';
 import '../theme/design_system.dart';
 import '../widgets/brand_header.dart';
-import '../utils/share_format.dart';
 import '../widgets/list_card.dart';
 
 /// 포트폴리오 설정.
@@ -29,11 +28,9 @@ class PortfolioSettingsScreen extends StatefulWidget {
 
 class _PortfolioSettingsScreenState extends State<PortfolioSettingsScreen> {
   late String _currency;
-  late bool _priceAuto;
   late bool _exAuto;
   late bool _commEnabled;
   late bool _fracEnabled;
-  late FractionalRounding _fracRounding;
   late final TextEditingController _exRateCtl;
   late final TextEditingController _commRateCtl;
   String? _error;
@@ -43,11 +40,9 @@ class _PortfolioSettingsScreenState extends State<PortfolioSettingsScreen> {
     super.initState();
     final pf = widget.portfolio;
     _currency = pf.currency;
-    _priceAuto = pf.priceAuto;
     _exAuto = pf.exchangeAuto;
     _commEnabled = pf.commissionEnabled;
     _fracEnabled = pf.fractionalEnabled;
-    _fracRounding = pf.fractionalRounding;
     _exRateCtl = TextEditingController(text: _trim(pf.exchangeRate));
     _commRateCtl = TextEditingController(text: _trim(pf.commissionRate));
   }
@@ -95,12 +90,14 @@ class _PortfolioSettingsScreenState extends State<PortfolioSettingsScreen> {
               _buildCurrencySegment(context),
               const SizedBox(height: 16),
 
-              SectionTitle(title: l10n.autoUpdateSection),
+              // 시세는 늘 자동이다. 예전에는 여기에 시세 스위치도 있었는데,
+              // 끄면 그 포트의 **모든** 종목 현재가를 손으로 넣어야 했다.
+              // 손으로 넣을 일은 시세를 받을 수 없는 종목뿐이고, 그 칸은
+              // 종목 입력 화면이 그 종목에만 보여준다.
+              SectionTitle(title: l10n.exchangeRateSetting),
               const SizedBox(height: DS.cardGap),
               ListCard(rows: [
-                _toggle(context, l10n.stockPriceSetting, _priceAuto,
-                    (v) => setState(() => _priceAuto = v)),
-                _toggle(context, l10n.exchangeRateSetting, _exAuto,
+                _toggle(context, l10n.exchangeRateAuto, _exAuto,
                     (v) => setState(() => _exAuto = v)),
                 if (!_exAuto)
                   _numField(context, l10n.exchangeRateInput, _exRateCtl,
@@ -129,12 +126,6 @@ class _PortfolioSettingsScreenState extends State<PortfolioSettingsScreen> {
               ]),
               const SizedBox(height: 6),
               _hint(context, l10n.fractionalIntro),
-              if (_fracEnabled) ...[
-                const SizedBox(height: 16),
-                SectionTitle(title: l10n.fractionalRoundingTitle),
-                const SizedBox(height: DS.cardGap),
-                _buildRoundingCard(context),
-              ],
 
               if (_error != null) ...[
                 const SizedBox(height: 12),
@@ -206,66 +197,6 @@ class _PortfolioSettingsScreenState extends State<PortfolioSettingsScreen> {
               color: context.textTertiary)),
     );
   }
-
-  /// 수량을 어떻게 맞출지.
-  ///
-  /// 예전에는 소수점을 켠 **모든** 계좌에 같은 규칙을 걸었다. 계좌마다
-  /// 증권사가 다른데 규칙만 묶여 있을 이유가 없다 — 이 계좌 것만 정한다.
-  Widget _buildRoundingCard(BuildContext context) {
-    return ListCard(rows: [
-      for (final r in FractionalRounding.values)
-        InkWell(
-          onTap: () => setState(() => _fracRounding = r),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 9),
-            child: Row(children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(_roundingLabel(context, r),
-                        style: TextStyle(
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.w600,
-                            color: context.textPrimary)),
-                    const SizedBox(height: 3),
-                    Text(_roundingDesc(context, r),
-                        style: TextStyle(
-                            fontSize: DS.caption,
-                            fontWeight: FontWeight.w500,
-                            height: 1.4,
-                            color: context.textTertiary)),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 10),
-              Icon(
-                _fracRounding == r
-                    ? Icons.radio_button_checked
-                    : Icons.radio_button_unchecked,
-                size: 20,
-                color: _fracRounding == r
-                    ? context.brand
-                    : context.textTertiary,
-              ),
-            ]),
-          ),
-        ),
-    ]);
-  }
-
-  String _roundingLabel(BuildContext context, FractionalRounding r) =>
-      switch (r) {
-        FractionalRounding.minDeviation => context.l10n.roundingMinDeviation,
-        FractionalRounding.floorCash => context.l10n.roundingFloorCash,
-      };
-
-  String _roundingDesc(BuildContext context, FractionalRounding r) =>
-      switch (r) {
-        FractionalRounding.minDeviation =>
-          context.l10n.roundingMinDeviationDesc(sharesDecimals),
-        FractionalRounding.floorCash => context.l10n.roundingFloorCashDesc,
-      };
 
   Widget _toggle(BuildContext context, String label, bool value,
       ValueChanged<bool> onChanged) {
@@ -373,8 +304,6 @@ class _PortfolioSettingsScreenState extends State<PortfolioSettingsScreen> {
       'exchangeAuto': _exAuto,
       'exchangeRate': exRate ?? widget.portfolio.exchangeRate,
       'fractionalEnabled': _fracEnabled,
-      'fractionalRounding': _fracRounding,
-      'priceAuto': _priceAuto,
     });
     Navigator.pop(context);
   }

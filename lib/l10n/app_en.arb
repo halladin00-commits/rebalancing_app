@@ -24,8 +24,7 @@
   "hintTargetsInRebalanceTab": "Set target weights in the Rebalance tab after adding holdings.",
   "hintThenAddStocks": "You will go straight to stock search.",
   "createAndAddStocks": "Create & add holdings",
-  "autoUpdateSection": "Auto refresh",
-  "thresholdNote": "Holdings drifting less than this are left alone. Set 0 to adjust everything.",
+  "thresholdNote": "Set 0 to adjust everything.",
   "itemEditNote": "Quantity is computed from transactions. Add or edit a transaction to change it.",
   "itemName": "Name",
   "itemNameHint": "e.g. Vanguard S&P 500",
@@ -59,35 +58,7 @@
   "netBuy": "net buy",
   "netSell": "net sell",
   "fractionalIntro": "Applies to every holding. When off, trades are in whole shares only. Turn it on only where your broker allows fractional orders.",
-  "fractionalPerAccount": "Per account",
-  "fractionalReasonOverseas": "Overseas · fractional supported",
-  "fractionalReasonPartial": "Applies to {count} overseas holdings",
-  "@fractionalReasonPartial": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "fractionalReasonKrOnly": "Domestic only · may not be supported",
   "fractionalUse": "Allow fractional shares",
-  "fractionalRoundingTitle": "Quantity rounding",
-  "fractionalRoundingDisabled": "No account has fractional trading on yet. Turn one on to choose a rounding rule.",
-  "roundingMinDeviation": "Closest to target",
-  "roundingMinDeviationDesc": "Rounds at {digits} decimal places. Closest to target, but may exceed your budget slightly.",
-  "@roundingMinDeviationDesc": {
-    "placeholders": {
-      "digits": {
-        "type": "int"
-      }
-    }
-  },
-  "roundingFloorCash": "Round down, keep cash",
-  "roundingFloorCashDesc": "Never exceeds your budget. A tiny amount of cash is left over.",
-  "fractionalPreviewTitle": "How your proposal changes",
-  "previewWholeShares": "Whole shares",
-  "previewFractional": "Fractional",
-  "noPortfolios": "No portfolios yet",
   "refreshPartialFail": "{count} holdings still show older prices",
   "@refreshPartialFail": {
     "placeholders": {
@@ -185,7 +156,6 @@
   "menuGroupData": "Data",
   "menuGroupThisPortfolio": "This portfolio",
   "editPortfolios": "Edit portfolio list",
-  "editPortfoliosHint": "Drag to reorder; use ⋮ to rename, duplicate, or delete",
   "reorderPortfolios": "Reorder portfolios",
   "reorderItems": "Edit holdings list",
   "holdingQty": "Quantity",
@@ -283,7 +253,7 @@
       }
     }
   },
-  "undoFromImport": "Import · {count} trades · {when}",
+  "undoFromImport": "Upload · {count} trades · {when}",
   "@undoFromImport": {
     "placeholders": {
       "count": {
@@ -303,7 +273,7 @@
       }
     }
   },
-  "undoConfirmItems": "{count} holdings created by this import will also be removed.",
+  "undoConfirmItems": "{count} holdings created by this upload will also be removed.",
   "@undoConfirmItems": {
     "placeholders": {
       "count": {
@@ -334,7 +304,6 @@
   "a11yRefresh": "Refresh",
   "a11yMenu": "Open menu",
   "a11yClearInput": "Clear",
-  "a11yRemove": "Remove",
   "cancel": "Cancel",
   "save": "Save",
   "confirm": "OK",
@@ -357,7 +326,6 @@
   },
   "appExitContent": "Exit the app?",
   "neverUpdated": "Not fetched yet",
-  "toastAutoSettingRequired": "Turn on auto price and FX in portfolio settings",
   "updateFailed": "Couldn't get prices: {msg}",
   "@updateFailed": {
     "placeholders": {
@@ -385,7 +353,6 @@
       }
     }
   },
-  "labelSettings": "Settings",
   "labelGraph": "Graph",
   "addStock": "Add Stock",
   "buy": "Buy",
@@ -410,11 +377,9 @@
   "portfolioGraph": "Portfolio Graph",
   "editCompleteTooltip": "Done",
   "editTooltip": "Edit",
-  "editCompleteBeforeSave": "Finish editing before saving",
   "saveImage": "Save Image",
   "shareImage": "Share Image",
-  "capture": "Capture",
-  "notifPermissionDenied": "Turn on notifications for this app in your phone settings",
+  "capture": "Export as image",
   "targetWeight": "Target Weight",
   "currentWeight": "Current Weight",
   "noPriceInfo": "No prices yet. Pull to refresh",
@@ -448,7 +413,6 @@
   "feeRate": "Fee Rate",
   "exchangeRateSetting": "Exchange Rate",
   "exchangeRateInput": "Rate (1 USD)",
-  "stockPriceSetting": "Prices",
   "language": "Language",
   "portfolioAddBtn": "Add Portfolio",
   "holdingsSection": "Holdings",
@@ -570,8 +534,8 @@
       }
     }
   },
-  "excelImportTitle": "Upload Transactions",
-  "excelImportDone": "Import Complete",
+  "excelImportTitle": "Upload a transaction file",
+  "excelImportDone": "Upload complete",
   "excelImportAdded": "{count} transactions added",
   "@excelImportAdded": {
     "placeholders": {
@@ -598,20 +562,12 @@
   },
   "excelImportNothingAdded": "No transactions were added",
   "settlementNotifHeader": "Settlement Reminders",
-  "rebalancingThresholdLabel": "Rebalancing Threshold",
-  "rebalancingThresholdHint": "No trade recommended below this deviation",
+  "rebalancingThresholdLabel": "Tolerance",
+  "rebalancingThresholdHint": "No adjustment below this deviation",
   "fractionalTrading": "Fractional Shares",
   "maxDriftAfter": "Max drift after",
   "planMustRunAll": "If you place all {count} orders",
   "@planMustRunAll": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "allItemsInRange": "All {count} holdings are within tolerance.",
-  "@allItemsInRange": {
     "placeholders": {
       "count": {
         "type": "int"
@@ -649,7 +605,6 @@
   "cashInWeightOn": "Cash gets a target weight and takes part in rebalancing.",
   "cashInWeightOff": "Excluded from weights, and never spent when rebalancing — use «Add cash» in the plan to spend it.",
   "cashCheckAfterTrade": "Cash is not calculated for you. Check your broker after the fills and update it.",
-  "cashAfterAdjust": "Cash after adjusting",
   "cashSharedNote": "The buys draw on the same cash — computing them separately does not add up.",
   "sellFirstNote": "Sell first — foreign holdings can take a day or two if FX conversion is needed.",
   "recordNTransactions": "Record {count} trades",
@@ -660,7 +615,6 @@
       }
     }
   },
-  "shareProposal": "Share proposal",
   "driftedTogether": "{count} drifted holdings together",
   "@driftedTogether": {
     "placeholders": {
@@ -765,7 +719,6 @@
       }
     }
   },
-  "followsPortfolioSettings": "Commission and cash follow this portfolio's settings.",
   "priceIsProposalNote": "Prices are the current prices at proposal time — correct them to your fills so the next adjustment is accurate.",
   "recordNButton": "Record {count}",
   "@recordNButton": {
@@ -847,7 +800,7 @@
       }
     }
   },
-  "importNButton": "Import {count}",
+  "importNButton": "Add {count}",
   "@importNButton": {
     "placeholders": {
       "count": {
@@ -882,20 +835,16 @@
   "firstRunNeedsPc": "needs a PC",
   "firstRunUploadDesc": "If you can export a transaction file from your broker, dozens of trades come in at once.",
   "firstRunUploadCta": "Start from a file",
-  "firstRunRecordTitle": "Record trades yourself",
-  "firstRunRecommended": "recommended",
-  "firstRunRecordDesc": "Recording buys and sells with quantity, price and date gives you period P&L in the Settlement tab.",
-  "firstRunRecordCta": "Start by recording",
-  "firstRunQuickTitle": "Just current holdings",
-  "firstRunQuickDesc": "Enter what you hold now and your average price. Assets and rebalancing work the same, but the Settlement tab's period P&L will not.",
-  "firstRunQuickCta": "Enter holdings only",
+  "firstRunRecordTitle": "Search and enter",
+  "firstRunRecordDesc": "Search for a stock and enter quantity, average cost and buy date. Record later buys and sells to keep Settlement accurate.",
+  "firstRunRecordCta": "Start by searching",
   "hintThenUpload": "You'll go straight to uploading a file.",
   "createAndUpload": "Create and upload",
   "hintThenCapture": "You'll go straight to importing from screenshots.",
   "createAndCapture": "Create and import",
   "firstRunCaptureTitle": "Import from screenshots",
   "firstRunFastest": "fastest",
-  "firstRunCaptureDesc": "Pick screenshots of your broker app's holdings screen and we read the stocks and quantities. Korean-listed stocks only.",
+  "firstRunCaptureDesc": "Pick screenshots of your broker app's holdings screen and we read the stocks and quantities.",
   "firstRunCaptureCta": "Start from screenshots",
   "captureCardTitle": "Add all at once from screenshots",
   "captureCardDesc": "Reads your broker app's holdings screen",
@@ -958,8 +907,6 @@
   "notifDayOfMonth": "Day {day}",
   "notifDayLastDay": "Last day",
   "notifDayCapHint": "In short months like February, it arrives on that month’s last day",
-  "settlementNotifTime": "Reminder time",
-  "settlementNotifTimeHint": "Applies to all settlement reminders",
   "@notifDayOfMonth": {
     "placeholders": {
       "day": {
@@ -980,8 +927,12 @@
   "@captureOthersSum": {
     "description": "결산 그림이 줄을 뺐을 때 마지막 줄. 뺀 줄의 합계를 적어 그림 속 금액이 맨 위 손익과 맞게 한다.",
     "placeholders": {
-      "count": {"type": "int"},
-      "amount": {"type": "String"}
+      "count": {
+        "type": "int"
+      },
+      "amount": {
+        "type": "String"
+      }
     }
   },
   "holdingsImportTitle": "Import from screenshots",
@@ -1171,5 +1122,8 @@
         "type": "int"
       }
     }
-  }
+  },
+  "portfolioSettings": "Portfolio settings",
+  "exchangeRateAuto": "Fetch automatically",
+  "totalsCurrency": "Totals currency"
 }

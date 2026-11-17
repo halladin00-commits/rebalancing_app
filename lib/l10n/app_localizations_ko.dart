@@ -65,11 +65,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get createAndAddStocks => '만들고 종목 담기';
 
   @override
-  String get autoUpdateSection => '자동 새로고침';
-
-  @override
-  String get thresholdNote =>
-      '편차가 이 값보다 작은 종목은 조정 제안에서 빠집니다. 0이면 모든 종목을 조정합니다.';
+  String get thresholdNote => '0이면 모든 종목을 조정합니다.';
 
   @override
   String get itemEditNote => '보유 수량은 거래 내역에서 계산됩니다. 바꾸려면 거래를 추가하거나 고치세요.';
@@ -116,54 +112,7 @@ class AppLocalizationsKo extends AppLocalizations {
       '국내·해외 종목에 같이 적용됩니다. 끄면 1주 단위로만 사고팝니다. 소수점 매매가 되는 계좌에서만 켜세요.';
 
   @override
-  String get fractionalPerAccount => '계좌별 설정';
-
-  @override
-  String get fractionalReasonOverseas => '해외주식 · 소수점 매매 가능';
-
-  @override
-  String fractionalReasonPartial(int count) {
-    return '해외 종목 $count개만 해당';
-  }
-
-  @override
-  String get fractionalReasonKrOnly => '국내 종목만 있음 · 증권사에 따라 안 될 수 있습니다';
-
-  @override
   String get fractionalUse => '소수점 매매 허용';
-
-  @override
-  String get fractionalRoundingTitle => '수량 반올림';
-
-  @override
-  String get fractionalRoundingDisabled =>
-      '소수점 거래를 켠 계좌가 없습니다. 계좌를 먼저 켜면 반올림 규칙을 고를 수 있습니다.';
-
-  @override
-  String get roundingMinDeviation => '편차가 가장 작아지는 수량';
-
-  @override
-  String roundingMinDeviationDesc(int digits) {
-    return '소수점 $digits째 자리까지 반올림합니다. 목표에 가장 가깝지만 예산을 아주 조금 넘을 수 있습니다.';
-  }
-
-  @override
-  String get roundingFloorCash => '예수금이 남는 쪽으로 내림';
-
-  @override
-  String get roundingFloorCashDesc => '예산을 넘지 않습니다. 대신 아주 적은 예수금이 남습니다.';
-
-  @override
-  String get fractionalPreviewTitle => '지금 조정 제안이 이렇게 바뀝니다';
-
-  @override
-  String get previewWholeShares => '주 단위';
-
-  @override
-  String get previewFractional => '소수점';
-
-  @override
-  String get noPortfolios => '포트폴리오가 없습니다';
 
   @override
   String refreshPartialFail(int count) {
@@ -265,7 +214,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get saveTransaction => '거래 저장';
 
   @override
-  String get transactionAffectsAvg => '저장하면 보유 수량과 평단도 같이 바뀝니다.';
+  String get transactionAffectsAvg => '저장하면 보유 수량과 평단가도 같이 바뀝니다.';
 
   @override
   String get validationQtyPositive => '수량을 0보다 크게 입력해 주세요';
@@ -295,9 +244,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get editPortfolios => '포트폴리오 목록 편집';
-
-  @override
-  String get editPortfoliosHint => '끌어서 순서를 바꾸고, ⋮에서 이름·복제·삭제를 합니다';
 
   @override
   String get reorderPortfolios => '포트폴리오 순서 변경';
@@ -338,13 +284,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get calcBasisTitle => '계산 기준';
 
   @override
-  String get roundingWholeShares => '1주 단위 거래';
+  String get roundingWholeShares => '1주 단위 매매';
 
   @override
   String get roundingWholeSharesDesc => '1주 단위로만 사고팝니다. 소수점으로 가진 수량은 그대로 둡니다.';
 
   @override
-  String get roundingFractional => '소수점 거래';
+  String get roundingFractional => '소수점 매매';
 
   @override
   String roundingFractionalDesc(int digits) {
@@ -428,7 +374,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String undoFromImport(int count, String when) {
-    return '업로드 $count건 · $when';
+    return '파일 올리기 $count건 · $when';
   }
 
   @override
@@ -441,7 +387,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String undoConfirmItems(int count) {
-    return '이 업로드가 만든 종목 $count개도 함께 지웁니다.';
+    return '이 파일이 만든 종목 $count개도 함께 지웁니다.';
   }
 
   @override
@@ -474,9 +420,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get a11yClearInput => '입력 지우기';
-
-  @override
-  String get a11yRemove => '빼기';
 
   @override
   String get cancel => '취소';
@@ -526,9 +469,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get neverUpdated => '아직 안 받음';
 
   @override
-  String get toastAutoSettingRequired => '포트 설정에서 환율·시세 자동 조회를 켜 주세요';
-
-  @override
   String updateFailed(String msg) {
     return '시세를 받지 못했습니다: $msg';
   }
@@ -551,9 +491,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String weightWarning(String pct) {
     return '목표 비중 합계: $pct (100%가 아닙니다)';
   }
-
-  @override
-  String get labelSettings => '설정';
 
   @override
   String get labelGraph => '그래프';
@@ -609,19 +546,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get editTooltip => '편집';
 
   @override
-  String get editCompleteBeforeSave => '편집 완료 후 저장 가능';
-
-  @override
   String get saveImage => '이미지 저장';
 
   @override
   String get shareImage => '이미지 공유';
 
   @override
-  String get capture => '캡처';
-
-  @override
-  String get notifPermissionDenied => '휴대폰 설정에서 이 앱의 알림을 켜 주세요';
+  String get capture => '이미지로 내보내기';
 
   @override
   String get targetWeight => '목표 비중';
@@ -686,7 +617,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get searchHint => '종목명 또는 티커 입력';
 
   @override
-  String get avgCost => '평균 매수단가';
+  String get avgCost => '평단가';
 
   @override
   String get profitLoss => '평가손익';
@@ -726,9 +657,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get exchangeRateInput => '환율 (1 USD)';
-
-  @override
-  String get stockPriceSetting => '시세';
 
   @override
   String get language => '언어';
@@ -886,7 +814,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get deleteTransactionTitle => '이 거래를 지울까요?';
 
   @override
-  String get deleteTransactionBody => '수량과 평균 단가가 이 거래를 뺀 값으로 다시 계산됩니다.';
+  String get deleteTransactionBody => '수량과 평단가가 이 거래를 뺀 값으로 다시 계산됩니다.';
 
   @override
   String get transactionDeleted => '거래를 지웠습니다';
@@ -925,10 +853,10 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get excelImportTitle => '거래내역 업로드';
+  String get excelImportTitle => '거래 내역 파일 올리기';
 
   @override
-  String get excelImportDone => '가져오기 완료';
+  String get excelImportDone => '올리기 완료';
 
   @override
   String excelImportAdded(int count) {
@@ -946,19 +874,19 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get excelImportNothingAdded => '추가된 거래내역이 없습니다';
+  String get excelImportNothingAdded => '추가된 거래 내역이 없습니다';
 
   @override
   String get settlementNotifHeader => '결산 알림';
 
   @override
-  String get rebalancingThresholdLabel => '리밸런싱 임계값';
+  String get rebalancingThresholdLabel => '허용 편차';
 
   @override
-  String get rebalancingThresholdHint => '편차가 이 값 미만이면 거래 권고 안 함';
+  String get rebalancingThresholdHint => '이 값보다 작으면 조정 안 함';
 
   @override
-  String get fractionalTrading => '소수점 거래';
+  String get fractionalTrading => '소수점 매매';
 
   @override
   String get maxDriftAfter => '조정 후 최대 편차';
@@ -966,11 +894,6 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String planMustRunAll(int count) {
     return '$count건을 모두 주문했을 때';
-  }
-
-  @override
-  String allItemsInRange(int count) {
-    return '$count종목 전부 허용 편차 안.';
   }
 
   @override
@@ -1013,9 +936,6 @@ class AppLocalizationsKo extends AppLocalizations {
       '예수금은 앱이 계산하지 않습니다. 체결 뒤 증권사에서 확인해 직접 고쳐 주세요.';
 
   @override
-  String get cashAfterAdjust => '조정 후 예수금';
-
-  @override
   String get cashSharedNote => '매수가 같은 예수금을 나눠 씁니다 — 따로 계산하면 맞지 않습니다.';
 
   @override
@@ -1027,11 +947,8 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get shareProposal => '제안 공유';
-
-  @override
   String driftedTogether(int count) {
-    return '이탈 $count종목 함께';
+    return '허용 밖 $count종목 함께';
   }
 
   @override
@@ -1097,9 +1014,6 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get followsPortfolioSettings => '수수료·예수금은 이 포트 설정을 따릅니다.';
-
-  @override
   String get priceIsProposalNote => '단가는 제안 시점 현재가입니다 — 체결가로 고쳐야 다음 조정이 정확합니다.';
 
   @override
@@ -1124,7 +1038,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get targetPortfolio => '담을 포트폴리오';
 
   @override
-  String get uploadHow => '업로드 방법';
+  String get uploadHow => '올리는 방법';
 
   @override
   String get downloadTemplateTitle => '표준 양식 내려받기';
@@ -1186,7 +1100,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String importNButton(int count) {
-    return '$count건 가져오기';
+    return '$count건 추가';
   }
 
   @override
@@ -1212,40 +1126,27 @@ class AppLocalizationsKo extends AppLocalizations {
   String get firstRunSubtitle => '나중에 바꾸거나 섞어 쓸 수 있습니다.';
 
   @override
-  String get firstRunUploadTitle => '거래내역 파일 올리기';
+  String get firstRunUploadTitle => '거래 내역 파일 올리기';
 
   @override
   String get firstRunNeedsPc => 'PC 필요';
 
   @override
   String get firstRunUploadDesc =>
-      'HTS·홈페이지에서 거래내역 파일을 받을 수 있다면 수십 건이 한 번에 들어옵니다.';
+      'HTS·홈페이지에서 거래 내역 파일을 받을 수 있다면 수십 건이 한 번에 들어옵니다.';
 
   @override
   String get firstRunUploadCta => '파일로 시작';
 
   @override
-  String get firstRunRecordTitle => '직접 거래 기록하기';
-
-  @override
-  String get firstRunRecommended => '권장';
+  String get firstRunRecordTitle => '검색해서 직접 입력';
 
   @override
   String get firstRunRecordDesc =>
-      '매수·매도를 수량 · 단가 · 날짜로 남기면 결산 탭의 기간별 손익까지 나옵니다.';
+      '종목을 검색해 수량 · 평단가 · 매수일을 넣습니다. 이후 매수·매도를 기록하면 결산이 맞게 나옵니다.';
 
   @override
-  String get firstRunRecordCta => '기록하며 시작';
-
-  @override
-  String get firstRunQuickTitle => '보유 현황만 빠르게';
-
-  @override
-  String get firstRunQuickDesc =>
-      '지금 가진 수량과 평단만 넣습니다. 자산·리밸런싱은 그대로 되지만 결산 탭의 기간별 손익은 안 나옵니다.';
-
-  @override
-  String get firstRunQuickCta => '현재 보유만 입력';
+  String get firstRunRecordCta => '검색으로 시작';
 
   @override
   String get hintThenUpload => '만들면 바로 파일 올리기로 넘어갑니다.';
@@ -1266,8 +1167,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get firstRunFastest => '가장 빠름';
 
   @override
-  String get firstRunCaptureDesc =>
-      '증권사 앱의 잔고 화면을 캡처해 고르면 종목과 수량을 읽어 옵니다. 국내 종목만 됩니다.';
+  String get firstRunCaptureDesc => '증권사 앱의 잔고 화면을 캡처해 고르면 종목과 수량을 읽어 옵니다.';
 
   @override
   String get firstRunCaptureCta => '캡처로 시작';
@@ -1384,12 +1284,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get notifDayCapHint => '2월처럼 짧은 달에는 그 달의 마지막 날에 알려드립니다';
 
   @override
-  String get settlementNotifTime => '알림 시간';
-
-  @override
-  String get settlementNotifTimeHint => '모든 결산 알림에 적용됩니다';
-
-  @override
   String captureTruncated(int count) {
     return '…외 $count건은 앱에서 보세요';
   }
@@ -1496,7 +1390,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String holdingsAvgLine(String price) {
-    return '평단 $price';
+    return '평단가 $price';
   }
 
   @override
@@ -1610,4 +1504,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String undoConfirmItemsScan(int count) {
     return '이 불러오기가 만든 종목 $count개도 함께 지웁니다.';
   }
+
+  @override
+  String get portfolioSettings => '포트폴리오 설정';
+
+  @override
+  String get exchangeRateAuto => '자동으로 받기';
+
+  @override
+  String get totalsCurrency => '합계 표시 통화';
 }

@@ -33,7 +33,8 @@ void main() {
       final settings = codeOf('lib/screens/portfolio_settings_screen.dart');
       expect(settings.contains('fractionalEnabled'), isTrue,
           reason: '소수점 거래는 계좌 설정 화면에 있어야 한다');
-      expect(settings.contains('fractionalRounding'), isTrue);
+      // 반올림 규칙은 고르게 하지 않는다 — 늘 예산을 넘지 않게 내림한다
+      expect(settings.contains('fractionalRounding'), isFalse);
     });
   });
 

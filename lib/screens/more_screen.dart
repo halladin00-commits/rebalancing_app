@@ -163,7 +163,7 @@ class _MoreScreenState extends State<MoreScreen> {
                       ),
                       _row(
                         context,
-                        label: l10n.baseCurrency,
+                        label: l10n.totalsCurrency,
                         value: context.watch<MainCurrencyNotifier>().currency ==
                                 'KRW'
                             ? l10n.currencyKRW
@@ -549,7 +549,7 @@ class _MoreScreenState extends State<MoreScreen> {
     final l10n = context.l10n;
     final notifier = context.read<MainCurrencyNotifier>();
     _pickSheet(
-      title: l10n.baseCurrency,
+      title: l10n.totalsCurrency,
       options: [
         (
           label: l10n.currencyKRW,

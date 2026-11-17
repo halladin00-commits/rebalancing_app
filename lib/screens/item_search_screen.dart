@@ -521,7 +521,6 @@ class _ItemSearchScreenState extends State<ItemSearchScreen> {
                   : null),
           otherWeights:
               pf.weighedItems.fold<double>(0, (s, i) => s + i.targetWeight),
-          priceAuto: pf.priceAuto,
           currency: pf.currency,
           onSave: (item) {
             context.read<PortfolioProvider>().addItem(pf.id, item);

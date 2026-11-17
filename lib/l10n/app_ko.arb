@@ -24,8 +24,7 @@
   "hintTargetsInRebalanceTab": "목표 비중은 종목을 담은 뒤 리밸런싱 탭에서 정합니다.",
   "hintThenAddStocks": "만들면 바로 종목 검색으로 넘어갑니다.",
   "createAndAddStocks": "만들고 종목 담기",
-  "autoUpdateSection": "자동 새로고침",
-  "thresholdNote": "편차가 이 값보다 작은 종목은 조정 제안에서 빠집니다. 0이면 모든 종목을 조정합니다.",
+  "thresholdNote": "0이면 모든 종목을 조정합니다.",
   "itemEditNote": "보유 수량은 거래 내역에서 계산됩니다. 바꾸려면 거래를 추가하거나 고치세요.",
   "itemName": "종목명",
   "itemNameHint": "예: TIGER 미국S&P500",
@@ -59,35 +58,7 @@
   "netBuy": "순매수",
   "netSell": "순매도",
   "fractionalIntro": "국내·해외 종목에 같이 적용됩니다. 끄면 1주 단위로만 사고팝니다. 소수점 매매가 되는 계좌에서만 켜세요.",
-  "fractionalPerAccount": "계좌별 설정",
-  "fractionalReasonOverseas": "해외주식 · 소수점 매매 가능",
-  "fractionalReasonPartial": "해외 종목 {count}개만 해당",
-  "@fractionalReasonPartial": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "fractionalReasonKrOnly": "국내 종목만 있음 · 증권사에 따라 안 될 수 있습니다",
   "fractionalUse": "소수점 매매 허용",
-  "fractionalRoundingTitle": "수량 반올림",
-  "fractionalRoundingDisabled": "소수점 거래를 켠 계좌가 없습니다. 계좌를 먼저 켜면 반올림 규칙을 고를 수 있습니다.",
-  "roundingMinDeviation": "편차가 가장 작아지는 수량",
-  "roundingMinDeviationDesc": "소수점 {digits}째 자리까지 반올림합니다. 목표에 가장 가깝지만 예산을 아주 조금 넘을 수 있습니다.",
-  "@roundingMinDeviationDesc": {
-    "placeholders": {
-      "digits": {
-        "type": "int"
-      }
-    }
-  },
-  "roundingFloorCash": "예수금이 남는 쪽으로 내림",
-  "roundingFloorCashDesc": "예산을 넘지 않습니다. 대신 아주 적은 예수금이 남습니다.",
-  "fractionalPreviewTitle": "지금 조정 제안이 이렇게 바뀝니다",
-  "previewWholeShares": "주 단위",
-  "previewFractional": "소수점",
-  "noPortfolios": "포트폴리오가 없습니다",
   "refreshPartialFail": "{count}종목은 예전 시세 그대로입니다",
   "@refreshPartialFail": {
     "placeholders": {
@@ -168,7 +139,7 @@
   "editTransaction": "거래 수정",
   "transactionAmount": "거래금액",
   "saveTransaction": "거래 저장",
-  "transactionAffectsAvg": "저장하면 보유 수량과 평단도 같이 바뀝니다.",
+  "transactionAffectsAvg": "저장하면 보유 수량과 평단가도 같이 바뀝니다.",
   "validationQtyPositive": "수량을 0보다 크게 입력해 주세요",
   "validationPricePositive": "단가를 0보다 크게 입력해 주세요",
   "validationSellExceeds": "보유 수량({owned})보다 많이 팔 수 없습니다",
@@ -185,7 +156,6 @@
   "menuGroupData": "데이터",
   "menuGroupThisPortfolio": "이 포트폴리오",
   "editPortfolios": "포트폴리오 목록 편집",
-  "editPortfoliosHint": "끌어서 순서를 바꾸고, ⋮에서 이름·복제·삭제를 합니다",
   "reorderPortfolios": "포트폴리오 순서 변경",
   "reorderItems": "종목 목록 편집",
   "holdingQty": "보유 수량",
@@ -208,9 +178,9 @@
   "@calcBasisTitle": {
     "description": "접히는 안내 묶음의 제목"
   },
-  "roundingWholeShares": "1주 단위 거래",
+  "roundingWholeShares": "1주 단위 매매",
   "roundingWholeSharesDesc": "1주 단위로만 사고팝니다. 소수점으로 가진 수량은 그대로 둡니다.",
-  "roundingFractional": "소수점 거래",
+  "roundingFractional": "소수점 매매",
   "roundingFractionalDesc": "소수점 {digits}자리에서 버립니다. 예산을 넘지 않게 하려는 것이라 아주 적은 금액이 남습니다.",
   "@roundingFractionalDesc": {
     "placeholders": {
@@ -286,7 +256,7 @@
       }
     }
   },
-  "undoFromImport": "업로드 {count}건 · {when}",
+  "undoFromImport": "파일 올리기 {count}건 · {when}",
   "@undoFromImport": {
     "placeholders": {
       "count": {
@@ -306,7 +276,7 @@
       }
     }
   },
-  "undoConfirmItems": "이 업로드가 만든 종목 {count}개도 함께 지웁니다.",
+  "undoConfirmItems": "이 파일이 만든 종목 {count}개도 함께 지웁니다.",
   "@undoConfirmItems": {
     "placeholders": {
       "count": {
@@ -337,7 +307,6 @@
   "a11yRefresh": "새로고침",
   "a11yMenu": "메뉴 열기",
   "a11yClearInput": "입력 지우기",
-  "a11yRemove": "빼기",
   "cancel": "취소",
   "save": "저장",
   "confirm": "확인",
@@ -360,7 +329,6 @@
   },
   "appExitContent": "앱을 종료하시겠습니까?",
   "neverUpdated": "아직 안 받음",
-  "toastAutoSettingRequired": "포트 설정에서 환율·시세 자동 조회를 켜 주세요",
   "updateFailed": "시세를 받지 못했습니다: {msg}",
   "@updateFailed": {
     "placeholders": {
@@ -388,7 +356,6 @@
       }
     }
   },
-  "labelSettings": "설정",
   "labelGraph": "그래프",
   "addStock": "종목 추가",
   "buy": "매수",
@@ -413,11 +380,9 @@
   "portfolioGraph": "포트폴리오 그래프",
   "editCompleteTooltip": "편집 완료",
   "editTooltip": "편집",
-  "editCompleteBeforeSave": "편집 완료 후 저장 가능",
   "saveImage": "이미지 저장",
   "shareImage": "이미지 공유",
-  "capture": "캡처",
-  "notifPermissionDenied": "휴대폰 설정에서 이 앱의 알림을 켜 주세요",
+  "capture": "이미지로 내보내기",
   "targetWeight": "목표 비중",
   "currentWeight": "현재 비중",
   "noPriceInfo": "아직 시세를 받지 못했습니다. 새로고침해 주세요",
@@ -437,7 +402,7 @@
   "disclaimerStartBtn": "확인하고 시작하기",
   "disclaimerConfirmBtn": "확인",
   "searchHint": "종목명 또는 티커 입력",
-  "avgCost": "평균 매수단가",
+  "avgCost": "평단가",
   "profitLoss": "평가손익",
   "currentPrice": "현재가",
   "unitKRW": "원",
@@ -451,7 +416,6 @@
   "feeRate": "수수료율",
   "exchangeRateSetting": "환율",
   "exchangeRateInput": "환율 (1 USD)",
-  "stockPriceSetting": "시세",
   "language": "언어",
   "portfolioAddBtn": "포트폴리오 추가",
   "holdingsSection": "구성 종목",
@@ -514,7 +478,13 @@
   "backupFailed": "백업 실패",
   "backupReminderNever": "아직 백업한 적이 없습니다",
   "backupReminderDays": "백업한 지 {days}일 지났습니다",
-  "@backupReminderDays": {"placeholders": {"days": {"type": "int"}}},
+  "@backupReminderDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "backupReminderBody": "기록은 이 폰에만 저장됩니다. 폰을 바꾸거나 앱을 지우면 사라집니다.",
   "backupReminderNow": "지금 백업",
   "backupReminderLater": "나중에",
@@ -542,7 +512,7 @@
   "purchaseDateLabel": "매수 일자",
   "transactionHistory": "거래 내역",
   "deleteTransactionTitle": "이 거래를 지울까요?",
-  "deleteTransactionBody": "수량과 평균 단가가 이 거래를 뺀 값으로 다시 계산됩니다.",
+  "deleteTransactionBody": "수량과 평단가가 이 거래를 뺀 값으로 다시 계산됩니다.",
   "transactionDeleted": "거래를 지웠습니다",
   "addTransaction": "거래 추가",
   "transactionBuy": "매수",
@@ -574,8 +544,8 @@
       }
     }
   },
-  "excelImportTitle": "거래내역 업로드",
-  "excelImportDone": "가져오기 완료",
+  "excelImportTitle": "거래 내역 파일 올리기",
+  "excelImportDone": "올리기 완료",
   "excelImportAdded": "{count}건 거래 추가됨",
   "@excelImportAdded": {
     "placeholders": {
@@ -600,22 +570,14 @@
       }
     }
   },
-  "excelImportNothingAdded": "추가된 거래내역이 없습니다",
+  "excelImportNothingAdded": "추가된 거래 내역이 없습니다",
   "settlementNotifHeader": "결산 알림",
-  "rebalancingThresholdLabel": "리밸런싱 임계값",
-  "rebalancingThresholdHint": "편차가 이 값 미만이면 거래 권고 안 함",
-  "fractionalTrading": "소수점 거래",
+  "rebalancingThresholdLabel": "허용 편차",
+  "rebalancingThresholdHint": "이 값보다 작으면 조정 안 함",
+  "fractionalTrading": "소수점 매매",
   "maxDriftAfter": "조정 후 최대 편차",
   "planMustRunAll": "{count}건을 모두 주문했을 때",
   "@planMustRunAll": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "allItemsInRange": "{count}종목 전부 허용 편차 안.",
-  "@allItemsInRange": {
     "placeholders": {
       "count": {
         "type": "int"
@@ -653,7 +615,6 @@
   "cashInWeightOn": "예수금도 목표 비중을 갖고, 조정 대상에 들어갑니다.",
   "cashInWeightOff": "비중에서 빠집니다. 조정할 때 쓰지도 않습니다 — 쓰려면 조정 제안에서 «추가 입금으로»에 넣으세요.",
   "cashCheckAfterTrade": "예수금은 앱이 계산하지 않습니다. 체결 뒤 증권사에서 확인해 직접 고쳐 주세요.",
-  "cashAfterAdjust": "조정 후 예수금",
   "cashSharedNote": "매수가 같은 예수금을 나눠 씁니다 — 따로 계산하면 맞지 않습니다.",
   "sellFirstNote": "매도 먼저 실행 — 해외 종목은 환전이 필요하면 하루 이틀 늦어질 수 있습니다.",
   "recordNTransactions": "{count}건 거래 내역으로 기록",
@@ -664,8 +625,7 @@
       }
     }
   },
-  "shareProposal": "제안 공유",
-  "driftedTogether": "이탈 {count}종목 함께",
+  "driftedTogether": "허용 밖 {count}종목 함께",
   "@driftedTogether": {
     "placeholders": {
       "count": {
@@ -769,7 +729,6 @@
       }
     }
   },
-  "followsPortfolioSettings": "수수료·예수금은 이 포트 설정을 따릅니다.",
   "priceIsProposalNote": "단가는 제안 시점 현재가입니다 — 체결가로 고쳐야 다음 조정이 정확합니다.",
   "recordNButton": "{count}건 기록하기",
   "@recordNButton": {
@@ -800,7 +759,7 @@
     }
   },
   "targetPortfolio": "담을 포트폴리오",
-  "uploadHow": "업로드 방법",
+  "uploadHow": "올리는 방법",
   "downloadTemplateTitle": "표준 양식 내려받기",
   "downloadTemplateDesc": "XLSX · 옮겨 적으면 확실하게 들어갑니다",
   "brokerFileOk": "증권사에서 받은 파일을 그대로 올려도 됩니다 — 거래일 · 종목 · 구분 · 수량 · 단가 같은 열 이름을 자동으로 찾습니다.",
@@ -851,7 +810,7 @@
       }
     }
   },
-  "importNButton": "{count}건 가져오기",
+  "importNButton": "{count}건 추가",
   "@importNButton": {
     "placeholders": {
       "count": {
@@ -882,24 +841,20 @@
     }
   },
   "firstRunSubtitle": "나중에 바꾸거나 섞어 쓸 수 있습니다.",
-  "firstRunUploadTitle": "거래내역 파일 올리기",
+  "firstRunUploadTitle": "거래 내역 파일 올리기",
   "firstRunNeedsPc": "PC 필요",
-  "firstRunUploadDesc": "HTS·홈페이지에서 거래내역 파일을 받을 수 있다면 수십 건이 한 번에 들어옵니다.",
+  "firstRunUploadDesc": "HTS·홈페이지에서 거래 내역 파일을 받을 수 있다면 수십 건이 한 번에 들어옵니다.",
   "firstRunUploadCta": "파일로 시작",
-  "firstRunRecordTitle": "직접 거래 기록하기",
-  "firstRunRecommended": "권장",
-  "firstRunRecordDesc": "매수·매도를 수량 · 단가 · 날짜로 남기면 결산 탭의 기간별 손익까지 나옵니다.",
-  "firstRunRecordCta": "기록하며 시작",
-  "firstRunQuickTitle": "보유 현황만 빠르게",
-  "firstRunQuickDesc": "지금 가진 수량과 평단만 넣습니다. 자산·리밸런싱은 그대로 되지만 결산 탭의 기간별 손익은 안 나옵니다.",
-  "firstRunQuickCta": "현재 보유만 입력",
+  "firstRunRecordTitle": "검색해서 직접 입력",
+  "firstRunRecordDesc": "종목을 검색해 수량 · 평단가 · 매수일을 넣습니다. 이후 매수·매도를 기록하면 결산이 맞게 나옵니다.",
+  "firstRunRecordCta": "검색으로 시작",
   "hintThenUpload": "만들면 바로 파일 올리기로 넘어갑니다.",
   "createAndUpload": "만들고 파일 올리기",
   "hintThenCapture": "만들면 바로 잔고 캡처 불러오기로 넘어갑니다.",
   "createAndCapture": "만들고 캡처 불러오기",
   "firstRunCaptureTitle": "잔고 캡처로 불러오기",
   "firstRunFastest": "가장 빠름",
-  "firstRunCaptureDesc": "증권사 앱의 잔고 화면을 캡처해 고르면 종목과 수량을 읽어 옵니다. 국내 종목만 됩니다.",
+  "firstRunCaptureDesc": "증권사 앱의 잔고 화면을 캡처해 고르면 종목과 수량을 읽어 옵니다.",
   "firstRunCaptureCta": "캡처로 시작",
   "captureCardTitle": "잔고 캡처로 한꺼번에 담기",
   "captureCardDesc": "증권사 앱 잔고 화면에서 읽어 옵니다",
@@ -969,8 +924,6 @@
   "notifDayOfMonth": "{day}일",
   "notifDayLastDay": "말일",
   "notifDayCapHint": "2월처럼 짧은 달에는 그 달의 마지막 날에 알려드립니다",
-  "settlementNotifTime": "알림 시간",
-  "settlementNotifTimeHint": "모든 결산 알림에 적용됩니다",
   "@notifDayOfMonth": {
     "placeholders": {
       "day": {
@@ -991,8 +944,12 @@
   "@captureOthersSum": {
     "description": "결산 그림이 줄을 뺐을 때 마지막 줄. 뺀 줄의 합계를 적어 그림 속 금액이 맨 위 손익과 맞게 한다.",
     "placeholders": {
-      "count": {"type": "int"},
-      "amount": {"type": "String"}
+      "count": {
+        "type": "int"
+      },
+      "amount": {
+        "type": "String"
+      }
     }
   },
   "holdingsImportTitle": "잔고 캡처로 불러오기",
@@ -1026,9 +983,21 @@
   "holdingsReadFailed": "캡처를 읽지 못했습니다. 다시 시도해 주세요.",
   "holdingsNoneFound": "종목을 찾지 못했습니다. 종목명과 보유수량이 보이는 잔고 화면인지 확인해 주세요.",
   "holdingsForeignSkipped": "해외 종목 {count}개는 아직 못 불러와서 뺐습니다.",
-  "@holdingsForeignSkipped": {"placeholders": {"count": {"type": "int"}}},
+  "@holdingsForeignSkipped": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "holdingsNoQuantity": "수량이 안 보이는 화면 {count}장은 읽지 못했습니다. 보유수량이 나오는 화면을 캡처해 주세요.",
-  "@holdingsNoQuantity": {"placeholders": {"count": {"type": "int"}}},
+  "@holdingsNoQuantity": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "issueNumbersUnchecked": "수량을 맞춰 볼 숫자가 화면에 없었어요. 맞는지 확인하세요.",
   "holdingsSkippedShots": "잔고 화면이 아닌 캡처 {count}장은 건너뛰었습니다.",
   "@holdingsSkippedShots": {
@@ -1073,8 +1042,14 @@
   "holdingsCheckSection": "확인이 필요한 종목",
   "holdingsExistingSection": "이미 있는 종목",
   "holdingsBuyNote": "고른 종목은 오늘 날짜에 평단가로 매수 1건씩 기록합니다. 지금까지의 평가손익은 이번 결산에 한꺼번에 잡힙니다.",
-  "holdingsAvgLine": "평단 {price}",
-  "@holdingsAvgLine": {"placeholders": {"price": {"type": "String"}}},
+  "holdingsAvgLine": "평단가 {price}",
+  "@holdingsAvgLine": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
   "holdingsNoAvg": "평단가를 못 읽어 현재가로 기록합니다",
   "historyHintTitle": "거래 내역이 하루치뿐입니다",
   "historyHintBody": "지금까지의 평가손익이 이 기간에 한꺼번에 잡혔습니다. 이전 거래를 입력하면 과거 결산까지 맞게 나옵니다.",
@@ -1091,7 +1066,13 @@
     }
   },
   "holdingsQtyOnly": "{qty}주",
-  "@holdingsQtyOnly": {"placeholders": {"qty": {"type": "String"}}},
+  "@holdingsQtyOnly": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      }
+    }
+  },
   "holdingsSameQty": "수량 일치",
   "holdingsQtyDiff": "앱 {app}주 · 증권사 {broker}주",
   "@holdingsQtyDiff": {
@@ -1186,5 +1167,8 @@
         "type": "int"
       }
     }
-  }
+  },
+  "portfolioSettings": "포트폴리오 설정",
+  "exchangeRateAuto": "자동으로 받기",
+  "totalsCurrency": "합계 표시 통화"
 }

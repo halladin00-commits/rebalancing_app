@@ -67,11 +67,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createAndAddStocks => 'Create & add holdings';
 
   @override
-  String get autoUpdateSection => 'Auto refresh';
-
-  @override
-  String get thresholdNote =>
-      'Holdings drifting less than this are left alone. Set 0 to adjust everything.';
+  String get thresholdNote => 'Set 0 to adjust everything.';
 
   @override
   String get itemEditNote =>
@@ -122,55 +118,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Applies to every holding. When off, trades are in whole shares only. Turn it on only where your broker allows fractional orders.';
 
   @override
-  String get fractionalPerAccount => 'Per account';
-
-  @override
-  String get fractionalReasonOverseas => 'Overseas · fractional supported';
-
-  @override
-  String fractionalReasonPartial(int count) {
-    return 'Applies to $count overseas holdings';
-  }
-
-  @override
-  String get fractionalReasonKrOnly => 'Domestic only · may not be supported';
-
-  @override
   String get fractionalUse => 'Allow fractional shares';
-
-  @override
-  String get fractionalRoundingTitle => 'Quantity rounding';
-
-  @override
-  String get fractionalRoundingDisabled =>
-      'No account has fractional trading on yet. Turn one on to choose a rounding rule.';
-
-  @override
-  String get roundingMinDeviation => 'Closest to target';
-
-  @override
-  String roundingMinDeviationDesc(int digits) {
-    return 'Rounds at $digits decimal places. Closest to target, but may exceed your budget slightly.';
-  }
-
-  @override
-  String get roundingFloorCash => 'Round down, keep cash';
-
-  @override
-  String get roundingFloorCashDesc =>
-      'Never exceeds your budget. A tiny amount of cash is left over.';
-
-  @override
-  String get fractionalPreviewTitle => 'How your proposal changes';
-
-  @override
-  String get previewWholeShares => 'Whole shares';
-
-  @override
-  String get previewFractional => 'Fractional';
-
-  @override
-  String get noPortfolios => 'No portfolios yet';
 
   @override
   String refreshPartialFail(int count) {
@@ -306,10 +254,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editPortfolios => 'Edit portfolio list';
 
   @override
-  String get editPortfoliosHint =>
-      'Drag to reorder; use ⋮ to rename, duplicate, or delete';
-
-  @override
   String get reorderPortfolios => 'Reorder portfolios';
 
   @override
@@ -442,7 +386,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String undoFromImport(int count, String when) {
-    return 'Import · $count trades · $when';
+    return 'Upload · $count trades · $when';
   }
 
   @override
@@ -455,7 +399,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String undoConfirmItems(int count) {
-    return '$count holdings created by this import will also be removed.';
+    return '$count holdings created by this upload will also be removed.';
   }
 
   @override
@@ -488,9 +432,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get a11yClearInput => 'Clear';
-
-  @override
-  String get a11yRemove => 'Remove';
 
   @override
   String get cancel => 'Cancel';
@@ -540,10 +481,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get neverUpdated => 'Not fetched yet';
 
   @override
-  String get toastAutoSettingRequired =>
-      'Turn on auto price and FX in portfolio settings';
-
-  @override
   String updateFailed(String msg) {
     return 'Couldn\'t get prices: $msg';
   }
@@ -567,9 +504,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String weightWarning(String pct) {
     return 'Target weight: $pct (not 100%)';
   }
-
-  @override
-  String get labelSettings => 'Settings';
 
   @override
   String get labelGraph => 'Graph';
@@ -625,20 +559,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editTooltip => 'Edit';
 
   @override
-  String get editCompleteBeforeSave => 'Finish editing before saving';
-
-  @override
   String get saveImage => 'Save Image';
 
   @override
   String get shareImage => 'Share Image';
 
   @override
-  String get capture => 'Capture';
-
-  @override
-  String get notifPermissionDenied =>
-      'Turn on notifications for this app in your phone settings';
+  String get capture => 'Export as image';
 
   @override
   String get targetWeight => 'Target Weight';
@@ -743,9 +670,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get exchangeRateInput => 'Rate (1 USD)';
-
-  @override
-  String get stockPriceSetting => 'Prices';
 
   @override
   String get language => 'Language';
@@ -947,10 +871,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get excelImportTitle => 'Upload Transactions';
+  String get excelImportTitle => 'Upload a transaction file';
 
   @override
-  String get excelImportDone => 'Import Complete';
+  String get excelImportDone => 'Upload complete';
 
   @override
   String excelImportAdded(int count) {
@@ -974,11 +898,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settlementNotifHeader => 'Settlement Reminders';
 
   @override
-  String get rebalancingThresholdLabel => 'Rebalancing Threshold';
+  String get rebalancingThresholdLabel => 'Tolerance';
 
   @override
-  String get rebalancingThresholdHint =>
-      'No trade recommended below this deviation';
+  String get rebalancingThresholdHint => 'No adjustment below this deviation';
 
   @override
   String get fractionalTrading => 'Fractional Shares';
@@ -989,11 +912,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String planMustRunAll(int count) {
     return 'If you place all $count orders';
-  }
-
-  @override
-  String allItemsInRange(int count) {
-    return 'All $count holdings are within tolerance.';
   }
 
   @override
@@ -1037,9 +955,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Cash is not calculated for you. Check your broker after the fills and update it.';
 
   @override
-  String get cashAfterAdjust => 'Cash after adjusting';
-
-  @override
   String get cashSharedNote =>
       'The buys draw on the same cash — computing them separately does not add up.';
 
@@ -1051,9 +966,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String recordNTransactions(int count) {
     return 'Record $count trades';
   }
-
-  @override
-  String get shareProposal => 'Share proposal';
 
   @override
   String driftedTogether(int count) {
@@ -1121,10 +1033,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String commissionAutoSum(String rate, int count) {
     return 'Commission $rate% auto · $count trades';
   }
-
-  @override
-  String get followsPortfolioSettings =>
-      'Commission and cash follow this portfolio\'s settings.';
 
   @override
   String get priceIsProposalNote =>
@@ -1214,7 +1122,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String importNButton(int count) {
-    return 'Import $count';
+    return 'Add $count';
   }
 
   @override
@@ -1253,27 +1161,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get firstRunUploadCta => 'Start from a file';
 
   @override
-  String get firstRunRecordTitle => 'Record trades yourself';
-
-  @override
-  String get firstRunRecommended => 'recommended';
+  String get firstRunRecordTitle => 'Search and enter';
 
   @override
   String get firstRunRecordDesc =>
-      'Recording buys and sells with quantity, price and date gives you period P&L in the Settlement tab.';
+      'Search for a stock and enter quantity, average cost and buy date. Record later buys and sells to keep Settlement accurate.';
 
   @override
-  String get firstRunRecordCta => 'Start by recording';
-
-  @override
-  String get firstRunQuickTitle => 'Just current holdings';
-
-  @override
-  String get firstRunQuickDesc =>
-      'Enter what you hold now and your average price. Assets and rebalancing work the same, but the Settlement tab\'s period P&L will not.';
-
-  @override
-  String get firstRunQuickCta => 'Enter holdings only';
+  String get firstRunRecordCta => 'Start by searching';
 
   @override
   String get hintThenUpload => 'You\'ll go straight to uploading a file.';
@@ -1296,7 +1191,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get firstRunCaptureDesc =>
-      'Pick screenshots of your broker app\'s holdings screen and we read the stocks and quantities. Korean-listed stocks only.';
+      'Pick screenshots of your broker app\'s holdings screen and we read the stocks and quantities.';
 
   @override
   String get firstRunCaptureCta => 'Start from screenshots';
@@ -1416,12 +1311,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get notifDayCapHint =>
       'In short months like February, it arrives on that month’s last day';
-
-  @override
-  String get settlementNotifTime => 'Reminder time';
-
-  @override
-  String get settlementNotifTimeHint => 'Applies to all settlement reminders';
 
   @override
   String captureTruncated(int count) {
@@ -1651,4 +1540,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String undoConfirmItemsScan(int count) {
     return '$count holdings created by this import will also be removed.';
   }
+
+  @override
+  String get portfolioSettings => 'Portfolio settings';
+
+  @override
+  String get exchangeRateAuto => 'Fetch automatically';
+
+  @override
+  String get totalsCurrency => 'Totals currency';
 }

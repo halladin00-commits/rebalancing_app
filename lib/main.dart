@@ -630,7 +630,7 @@ class PortfolioProvider extends ChangeNotifier {
           await updateSettings(pf.id, exchangeRate: cachedRate);
         }
       }
-      if (pf.priceAuto) {
+      {
         final targets = pf.items
             .where((i) => !i.isCash && i.ticker.isNotEmpty)
             .toList();
@@ -956,10 +956,8 @@ class PortfolioProvider extends ChangeNotifier {
     bool? commissionEnabled,
     double? exchangeRate,
     bool? exchangeAuto,
-    bool? priceAuto,
     double? rebalancingThreshold,
     bool? fractionalEnabled,
-    FractionalRounding? fractionalRounding,
   }) async {
     final pf = getPortfolio(pfId);
     if (pf != null) {
@@ -982,10 +980,8 @@ class PortfolioProvider extends ChangeNotifier {
       if (commissionEnabled != null) pf.commissionEnabled = commissionEnabled;
       if (exchangeRate != null) pf.exchangeRate = exchangeRate;
       if (exchangeAuto != null) pf.exchangeAuto = exchangeAuto;
-      if (priceAuto != null) pf.priceAuto = priceAuto;
       if (rebalancingThreshold != null) pf.rebalancingThreshold = rebalancingThreshold;
       if (fractionalEnabled != null) pf.fractionalEnabled = fractionalEnabled;
-      if (fractionalRounding != null) pf.fractionalRounding = fractionalRounding;
       await _save(settlementAffected: affects);
     }
   }

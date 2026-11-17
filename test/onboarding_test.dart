@@ -226,9 +226,7 @@ void main() {
     expect(dotsY(), closeTo(before, 0.5), reason: '3쪽에서도 제자리여야 한다');
   });
   test('첫 실행 안내는 손이 덜 가는 순서가 아니라 쓸모 순서로 놓는다', () {
-    // ① 직접 거래 기록 — 결산 탭의 기간별 손익까지 나오는 유일한 길
-    // ② 보유 현황만 빠르게 — 자산·리밸런싱은 되지만 결산은 안 나온다
-    // ③ 거래내역 파일 올리기 — 가장 빠르지만 PC가 있어야 한다
+    // ① 잔고 캡처 ② 검색해서 직접 입력 ③ 파일 올리기 (PC가 있어야 한다)
     //
     // 파일 올리기가 맨 위에 있으면 PC 없는 사람이 첫 줄에서 막힌다.
     final src =
@@ -240,13 +238,13 @@ void main() {
     final order = [
       'firstRunCaptureTitle',
       'firstRunRecordTitle',
-      'firstRunQuickTitle',
       'firstRunUploadTitle'
     ].map(body.indexOf).toList();
-    expect(order.every((i) => i >= 0), isTrue, reason: '네 갈래를 못 찾았다');
+    expect(order.every((i) => i >= 0), isTrue, reason: '세 갈래를 못 찾았다');
     expect(order[0] < order[1], isTrue, reason: '잔고 캡처가 맨 위여야 한다');
-    expect(order[1] < order[2], isTrue, reason: '직접 기록이 그다음이어야 한다');
-    expect(order[2] < order[3], isTrue, reason: '파일 올리기가 맨 아래여야 한다');
+    expect(order[1] < order[2], isTrue, reason: '파일 올리기가 맨 아래여야 한다');
+    // 같은 화면으로 가는 갈래를 두 장으로 내지 않는다
+    expect(body.contains('firstRunQuick'), isFalse);
   });
 
   // **여러 폭에서 잰다.** 폭 하나만 보면 못 잡는다 — 바깥 Column의 기본

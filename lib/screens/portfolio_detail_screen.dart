@@ -19,6 +19,7 @@ import '../widgets/portfolio_actions.dart';
 import 'holdings_import_screen.dart';
 import 'transaction_import_screen.dart';
 import 'item_form_screen.dart';
+import 'portfolio_rebalance_screen.dart';
 import 'portfolio_settings_screen.dart';
 import 'item_detail_screen.dart';
 import 'item_search_screen.dart';
@@ -99,7 +100,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
   void _autoRefreshIfStale() {
     final pf =
         context.read<PortfolioProvider>().getPortfolio(widget.portfolioId);
-    if (pf == null || (!pf.exchangeAuto && !pf.priceAuto)) return;
+    if (pf == null) return;
     final now = DateTime.now().millisecondsSinceEpoch;
     final stale =
         pf.lastUpdated == null || (now - pf.lastUpdated!) > 5 * 60 * 1000;
@@ -111,10 +112,6 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
   Future<void> _doRefresh(Portfolio pf) async {
     if (_refreshing) return;
     final l10n = context.l10n;
-    if (!pf.exchangeAuto && !pf.priceAuto) {
-      _showToast(l10n.toastAutoSettingRequired, danger: true);
-      return;
-    }
     setState(() => _refreshing = true);
     final provider = context.read<PortfolioProvider>();
     // **문구가 아니라 종류를 모은다.** 예전에는 서비스가 만든 한국어
@@ -131,17 +128,15 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
         errors.add(r.kind);
       }
     }
-    if (pf.priceAuto) {
-      for (final item
-          in pf.items.where((i) => !i.isCash && i.ticker.isNotEmpty)) {
-        final r = await ApiService.fetchStockPrice(item.ticker, item.market);
-        if (r.ok) {
-          item.currentPrice = r.data!.currentPrice;
-          item.previousClose = r.data!.previousClose;
-          successCount++;
-        } else {
-          errors.add(r.kind);
-        }
+    for (final item
+        in pf.items.where((i) => !i.isCash && i.ticker.isNotEmpty)) {
+      final r = await ApiService.fetchStockPrice(item.ticker, item.market);
+      if (r.ok) {
+        item.currentPrice = r.data!.currentPrice;
+        item.previousClose = r.data!.previousClose;
+        successCount++;
+      } else {
+        errors.add(r.kind);
       }
     }
     pf.lastUpdated = DateTime.now().millisecondsSinceEpoch;
@@ -192,7 +187,6 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
           otherWeights: pf.weighedItems
               .where((i) => i.id != item?.id)
               .fold<double>(0, (s, i) => s + i.targetWeight),
-          priceAuto: pf.priceAuto,
           currency: pf.currency,
           onSave: (newItem) {
             final p = context.read<PortfolioProvider>();
@@ -220,9 +214,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                 commissionRate: s['commissionRate'],
                 exchangeAuto: s['exchangeAuto'],
                 exchangeRate: s['exchangeRate'],
-                priceAuto: s['priceAuto'],
-                fractionalEnabled: s['fractionalEnabled'],
-                fractionalRounding: s['fractionalRounding']);
+                fractionalEnabled: s['fractionalEnabled']);
           },
         ),
       ),
@@ -409,9 +401,18 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
         );
       }),
       MenuAction(Icons.pie_chart_outline, l10n.labelGraph, () => _openGraph(pf)),
+      // 예전에는 여기서 이 포트의 편차·조정 제안으로 가는 길이 없어, 뒤로
+      // 나가 리밸런싱 탭에서 같은 포트를 다시 찾아야 했다.
+      MenuAction(Icons.balance, l10n.tabRebalancing, () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (_) => PortfolioRebalanceScreen(portfolioId: pf.id)),
+        );
+      }),
 
       MenuSection(l10n.menuGroupSetup),
-      MenuAction(Icons.balance, l10n.targetWeightsTitle, () {
+      MenuAction(Icons.track_changes, l10n.targetWeightsTitle, () {
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -420,7 +421,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
       }),
       MenuAction(Icons.swap_vert, l10n.reorderItems,
           () => setState(() => _editMode = true)),
-      MenuAction(Icons.tune, l10n.labelSettings, () => _showSettings(pf)),
+      MenuAction(Icons.tune, l10n.portfolioSettings, () => _showSettings(pf)),
 
       MenuSection(l10n.menuGroupData),
       MenuAction(Icons.upload_file, l10n.excelImportTitle,
@@ -756,10 +757,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                                 height: 20,
                                 child: CircularProgressIndicator(
                                     color: Colors.white, strokeWidth: 2))
-                            : Icon(Icons.refresh,
-                                color: (pf.exchangeAuto || pf.priceAuto)
-                                    ? Colors.white
-                                    : context.onBrandSecondary),
+                            : const Icon(Icons.refresh, color: Colors.white),
                         onPressed: () => _doRefresh(pf),
                       ),
                     if (!_editMode) ...[
@@ -1017,10 +1015,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
                         height: 20,
                         child: CircularProgressIndicator(
                             color: Colors.white, strokeWidth: 2))
-                    : Icon(Icons.refresh,
-                        color: (pf.exchangeAuto || pf.priceAuto)
-                            ? Colors.white
-                            : context.onBrandSecondary),
+                    : const Icon(Icons.refresh, color: Colors.white),
                 onPressed: () => _doRefresh(pf),
               ),
               CaptureMenu(

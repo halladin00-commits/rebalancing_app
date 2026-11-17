@@ -206,16 +206,10 @@ abstract class AppLocalizations {
   /// **'만들고 종목 담기'**
   String get createAndAddStocks;
 
-  /// No description provided for @autoUpdateSection.
-  ///
-  /// In ko, this message translates to:
-  /// **'자동 새로고침'**
-  String get autoUpdateSection;
-
   /// No description provided for @thresholdNote.
   ///
   /// In ko, this message translates to:
-  /// **'편차가 이 값보다 작은 종목은 조정 제안에서 빠집니다. 0이면 모든 종목을 조정합니다.'**
+  /// **'0이면 모든 종목을 조정합니다.'**
   String get thresholdNote;
 
   /// No description provided for @itemEditNote.
@@ -296,95 +290,11 @@ abstract class AppLocalizations {
   /// **'국내·해외 종목에 같이 적용됩니다. 끄면 1주 단위로만 사고팝니다. 소수점 매매가 되는 계좌에서만 켜세요.'**
   String get fractionalIntro;
 
-  /// No description provided for @fractionalPerAccount.
-  ///
-  /// In ko, this message translates to:
-  /// **'계좌별 설정'**
-  String get fractionalPerAccount;
-
-  /// No description provided for @fractionalReasonOverseas.
-  ///
-  /// In ko, this message translates to:
-  /// **'해외주식 · 소수점 매매 가능'**
-  String get fractionalReasonOverseas;
-
-  /// No description provided for @fractionalReasonPartial.
-  ///
-  /// In ko, this message translates to:
-  /// **'해외 종목 {count}개만 해당'**
-  String fractionalReasonPartial(int count);
-
-  /// No description provided for @fractionalReasonKrOnly.
-  ///
-  /// In ko, this message translates to:
-  /// **'국내 종목만 있음 · 증권사에 따라 안 될 수 있습니다'**
-  String get fractionalReasonKrOnly;
-
   /// No description provided for @fractionalUse.
   ///
   /// In ko, this message translates to:
   /// **'소수점 매매 허용'**
   String get fractionalUse;
-
-  /// No description provided for @fractionalRoundingTitle.
-  ///
-  /// In ko, this message translates to:
-  /// **'수량 반올림'**
-  String get fractionalRoundingTitle;
-
-  /// No description provided for @fractionalRoundingDisabled.
-  ///
-  /// In ko, this message translates to:
-  /// **'소수점 거래를 켠 계좌가 없습니다. 계좌를 먼저 켜면 반올림 규칙을 고를 수 있습니다.'**
-  String get fractionalRoundingDisabled;
-
-  /// No description provided for @roundingMinDeviation.
-  ///
-  /// In ko, this message translates to:
-  /// **'편차가 가장 작아지는 수량'**
-  String get roundingMinDeviation;
-
-  /// No description provided for @roundingMinDeviationDesc.
-  ///
-  /// In ko, this message translates to:
-  /// **'소수점 {digits}째 자리까지 반올림합니다. 목표에 가장 가깝지만 예산을 아주 조금 넘을 수 있습니다.'**
-  String roundingMinDeviationDesc(int digits);
-
-  /// No description provided for @roundingFloorCash.
-  ///
-  /// In ko, this message translates to:
-  /// **'예수금이 남는 쪽으로 내림'**
-  String get roundingFloorCash;
-
-  /// No description provided for @roundingFloorCashDesc.
-  ///
-  /// In ko, this message translates to:
-  /// **'예산을 넘지 않습니다. 대신 아주 적은 예수금이 남습니다.'**
-  String get roundingFloorCashDesc;
-
-  /// No description provided for @fractionalPreviewTitle.
-  ///
-  /// In ko, this message translates to:
-  /// **'지금 조정 제안이 이렇게 바뀝니다'**
-  String get fractionalPreviewTitle;
-
-  /// No description provided for @previewWholeShares.
-  ///
-  /// In ko, this message translates to:
-  /// **'주 단위'**
-  String get previewWholeShares;
-
-  /// No description provided for @previewFractional.
-  ///
-  /// In ko, this message translates to:
-  /// **'소수점'**
-  String get previewFractional;
-
-  /// No description provided for @noPortfolios.
-  ///
-  /// In ko, this message translates to:
-  /// **'포트폴리오가 없습니다'**
-  String get noPortfolios;
 
   /// No description provided for @refreshPartialFail.
   ///
@@ -557,7 +467,7 @@ abstract class AppLocalizations {
   /// No description provided for @transactionAffectsAvg.
   ///
   /// In ko, this message translates to:
-  /// **'저장하면 보유 수량과 평단도 같이 바뀝니다.'**
+  /// **'저장하면 보유 수량과 평단가도 같이 바뀝니다.'**
   String get transactionAffectsAvg;
 
   /// No description provided for @validationQtyPositive.
@@ -613,12 +523,6 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'포트폴리오 목록 편집'**
   String get editPortfolios;
-
-  /// No description provided for @editPortfoliosHint.
-  ///
-  /// In ko, this message translates to:
-  /// **'끌어서 순서를 바꾸고, ⋮에서 이름·복제·삭제를 합니다'**
-  String get editPortfoliosHint;
 
   /// No description provided for @reorderPortfolios.
   ///
@@ -695,7 +599,7 @@ abstract class AppLocalizations {
   /// No description provided for @roundingWholeShares.
   ///
   /// In ko, this message translates to:
-  /// **'1주 단위 거래'**
+  /// **'1주 단위 매매'**
   String get roundingWholeShares;
 
   /// No description provided for @roundingWholeSharesDesc.
@@ -707,7 +611,7 @@ abstract class AppLocalizations {
   /// No description provided for @roundingFractional.
   ///
   /// In ko, this message translates to:
-  /// **'소수점 거래'**
+  /// **'소수점 매매'**
   String get roundingFractional;
 
   /// No description provided for @roundingFractionalDesc.
@@ -845,7 +749,7 @@ abstract class AppLocalizations {
   /// No description provided for @undoFromImport.
   ///
   /// In ko, this message translates to:
-  /// **'업로드 {count}건 · {when}'**
+  /// **'파일 올리기 {count}건 · {when}'**
   String undoFromImport(int count, String when);
 
   /// No description provided for @undoConfirmTitle.
@@ -863,7 +767,7 @@ abstract class AppLocalizations {
   /// No description provided for @undoConfirmItems.
   ///
   /// In ko, this message translates to:
-  /// **'이 업로드가 만든 종목 {count}개도 함께 지웁니다.'**
+  /// **'이 파일이 만든 종목 {count}개도 함께 지웁니다.'**
   String undoConfirmItems(int count);
 
   /// No description provided for @undoConfirmCash.
@@ -919,12 +823,6 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'입력 지우기'**
   String get a11yClearInput;
-
-  /// No description provided for @a11yRemove.
-  ///
-  /// In ko, this message translates to:
-  /// **'빼기'**
-  String get a11yRemove;
 
   /// No description provided for @cancel.
   ///
@@ -1016,12 +914,6 @@ abstract class AppLocalizations {
   /// **'아직 안 받음'**
   String get neverUpdated;
 
-  /// No description provided for @toastAutoSettingRequired.
-  ///
-  /// In ko, this message translates to:
-  /// **'포트 설정에서 환율·시세 자동 조회를 켜 주세요'**
-  String get toastAutoSettingRequired;
-
   /// No description provided for @updateFailed.
   ///
   /// In ko, this message translates to:
@@ -1057,12 +949,6 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'목표 비중 합계: {pct} (100%가 아닙니다)'**
   String weightWarning(String pct);
-
-  /// No description provided for @labelSettings.
-  ///
-  /// In ko, this message translates to:
-  /// **'설정'**
-  String get labelSettings;
 
   /// No description provided for @labelGraph.
   ///
@@ -1166,12 +1052,6 @@ abstract class AppLocalizations {
   /// **'편집'**
   String get editTooltip;
 
-  /// No description provided for @editCompleteBeforeSave.
-  ///
-  /// In ko, this message translates to:
-  /// **'편집 완료 후 저장 가능'**
-  String get editCompleteBeforeSave;
-
   /// No description provided for @saveImage.
   ///
   /// In ko, this message translates to:
@@ -1187,14 +1067,8 @@ abstract class AppLocalizations {
   /// No description provided for @capture.
   ///
   /// In ko, this message translates to:
-  /// **'캡처'**
+  /// **'이미지로 내보내기'**
   String get capture;
-
-  /// No description provided for @notifPermissionDenied.
-  ///
-  /// In ko, this message translates to:
-  /// **'휴대폰 설정에서 이 앱의 알림을 켜 주세요'**
-  String get notifPermissionDenied;
 
   /// No description provided for @targetWeight.
   ///
@@ -1313,7 +1187,7 @@ abstract class AppLocalizations {
   /// No description provided for @avgCost.
   ///
   /// In ko, this message translates to:
-  /// **'평균 매수단가'**
+  /// **'평단가'**
   String get avgCost;
 
   /// No description provided for @profitLoss.
@@ -1393,12 +1267,6 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'환율 (1 USD)'**
   String get exchangeRateInput;
-
-  /// No description provided for @stockPriceSetting.
-  ///
-  /// In ko, this message translates to:
-  /// **'시세'**
-  String get stockPriceSetting;
 
   /// No description provided for @language.
   ///
@@ -1685,7 +1553,7 @@ abstract class AppLocalizations {
   /// No description provided for @deleteTransactionBody.
   ///
   /// In ko, this message translates to:
-  /// **'수량과 평균 단가가 이 거래를 뺀 값으로 다시 계산됩니다.'**
+  /// **'수량과 평단가가 이 거래를 뺀 값으로 다시 계산됩니다.'**
   String get deleteTransactionBody;
 
   /// No description provided for @transactionDeleted.
@@ -1751,13 +1619,13 @@ abstract class AppLocalizations {
   /// No description provided for @excelImportTitle.
   ///
   /// In ko, this message translates to:
-  /// **'거래내역 업로드'**
+  /// **'거래 내역 파일 올리기'**
   String get excelImportTitle;
 
   /// No description provided for @excelImportDone.
   ///
   /// In ko, this message translates to:
-  /// **'가져오기 완료'**
+  /// **'올리기 완료'**
   String get excelImportDone;
 
   /// No description provided for @excelImportAdded.
@@ -1781,7 +1649,7 @@ abstract class AppLocalizations {
   /// No description provided for @excelImportNothingAdded.
   ///
   /// In ko, this message translates to:
-  /// **'추가된 거래내역이 없습니다'**
+  /// **'추가된 거래 내역이 없습니다'**
   String get excelImportNothingAdded;
 
   /// No description provided for @settlementNotifHeader.
@@ -1793,19 +1661,19 @@ abstract class AppLocalizations {
   /// No description provided for @rebalancingThresholdLabel.
   ///
   /// In ko, this message translates to:
-  /// **'리밸런싱 임계값'**
+  /// **'허용 편차'**
   String get rebalancingThresholdLabel;
 
   /// No description provided for @rebalancingThresholdHint.
   ///
   /// In ko, this message translates to:
-  /// **'편차가 이 값 미만이면 거래 권고 안 함'**
+  /// **'이 값보다 작으면 조정 안 함'**
   String get rebalancingThresholdHint;
 
   /// No description provided for @fractionalTrading.
   ///
   /// In ko, this message translates to:
-  /// **'소수점 거래'**
+  /// **'소수점 매매'**
   String get fractionalTrading;
 
   /// No description provided for @maxDriftAfter.
@@ -1819,12 +1687,6 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'{count}건을 모두 주문했을 때'**
   String planMustRunAll(int count);
-
-  /// No description provided for @allItemsInRange.
-  ///
-  /// In ko, this message translates to:
-  /// **'{count}종목 전부 허용 편차 안.'**
-  String allItemsInRange(int count);
 
   /// No description provided for @togetherNTrades.
   ///
@@ -1886,12 +1748,6 @@ abstract class AppLocalizations {
   /// **'예수금은 앱이 계산하지 않습니다. 체결 뒤 증권사에서 확인해 직접 고쳐 주세요.'**
   String get cashCheckAfterTrade;
 
-  /// No description provided for @cashAfterAdjust.
-  ///
-  /// In ko, this message translates to:
-  /// **'조정 후 예수금'**
-  String get cashAfterAdjust;
-
   /// No description provided for @cashSharedNote.
   ///
   /// In ko, this message translates to:
@@ -1910,16 +1766,10 @@ abstract class AppLocalizations {
   /// **'{count}건 거래 내역으로 기록'**
   String recordNTransactions(int count);
 
-  /// No description provided for @shareProposal.
-  ///
-  /// In ko, this message translates to:
-  /// **'제안 공유'**
-  String get shareProposal;
-
   /// No description provided for @driftedTogether.
   ///
   /// In ko, this message translates to:
-  /// **'이탈 {count}종목 함께'**
+  /// **'허용 밖 {count}종목 함께'**
   String driftedTogether(int count);
 
   /// No description provided for @selectedExcluded.
@@ -2006,12 +1856,6 @@ abstract class AppLocalizations {
   /// **'수수료 {rate}% 자동 · {count}건 합'**
   String commissionAutoSum(String rate, int count);
 
-  /// No description provided for @followsPortfolioSettings.
-  ///
-  /// In ko, this message translates to:
-  /// **'수수료·예수금은 이 포트 설정을 따릅니다.'**
-  String get followsPortfolioSettings;
-
   /// No description provided for @priceIsProposalNote.
   ///
   /// In ko, this message translates to:
@@ -2051,7 +1895,7 @@ abstract class AppLocalizations {
   /// No description provided for @uploadHow.
   ///
   /// In ko, this message translates to:
-  /// **'업로드 방법'**
+  /// **'올리는 방법'**
   String get uploadHow;
 
   /// No description provided for @downloadTemplateTitle.
@@ -2159,7 +2003,7 @@ abstract class AppLocalizations {
   /// No description provided for @importNButton.
   ///
   /// In ko, this message translates to:
-  /// **'{count}건 가져오기'**
+  /// **'{count}건 추가'**
   String importNButton(int count);
 
   /// No description provided for @nothingToImport.
@@ -2201,7 +2045,7 @@ abstract class AppLocalizations {
   /// No description provided for @firstRunUploadTitle.
   ///
   /// In ko, this message translates to:
-  /// **'거래내역 파일 올리기'**
+  /// **'거래 내역 파일 올리기'**
   String get firstRunUploadTitle;
 
   /// No description provided for @firstRunNeedsPc.
@@ -2213,7 +2057,7 @@ abstract class AppLocalizations {
   /// No description provided for @firstRunUploadDesc.
   ///
   /// In ko, this message translates to:
-  /// **'HTS·홈페이지에서 거래내역 파일을 받을 수 있다면 수십 건이 한 번에 들어옵니다.'**
+  /// **'HTS·홈페이지에서 거래 내역 파일을 받을 수 있다면 수십 건이 한 번에 들어옵니다.'**
   String get firstRunUploadDesc;
 
   /// No description provided for @firstRunUploadCta.
@@ -2225,44 +2069,20 @@ abstract class AppLocalizations {
   /// No description provided for @firstRunRecordTitle.
   ///
   /// In ko, this message translates to:
-  /// **'직접 거래 기록하기'**
+  /// **'검색해서 직접 입력'**
   String get firstRunRecordTitle;
-
-  /// No description provided for @firstRunRecommended.
-  ///
-  /// In ko, this message translates to:
-  /// **'권장'**
-  String get firstRunRecommended;
 
   /// No description provided for @firstRunRecordDesc.
   ///
   /// In ko, this message translates to:
-  /// **'매수·매도를 수량 · 단가 · 날짜로 남기면 결산 탭의 기간별 손익까지 나옵니다.'**
+  /// **'종목을 검색해 수량 · 평단가 · 매수일을 넣습니다. 이후 매수·매도를 기록하면 결산이 맞게 나옵니다.'**
   String get firstRunRecordDesc;
 
   /// No description provided for @firstRunRecordCta.
   ///
   /// In ko, this message translates to:
-  /// **'기록하며 시작'**
+  /// **'검색으로 시작'**
   String get firstRunRecordCta;
-
-  /// No description provided for @firstRunQuickTitle.
-  ///
-  /// In ko, this message translates to:
-  /// **'보유 현황만 빠르게'**
-  String get firstRunQuickTitle;
-
-  /// No description provided for @firstRunQuickDesc.
-  ///
-  /// In ko, this message translates to:
-  /// **'지금 가진 수량과 평단만 넣습니다. 자산·리밸런싱은 그대로 되지만 결산 탭의 기간별 손익은 안 나옵니다.'**
-  String get firstRunQuickDesc;
-
-  /// No description provided for @firstRunQuickCta.
-  ///
-  /// In ko, this message translates to:
-  /// **'현재 보유만 입력'**
-  String get firstRunQuickCta;
 
   /// No description provided for @hintThenUpload.
   ///
@@ -2303,7 +2123,7 @@ abstract class AppLocalizations {
   /// No description provided for @firstRunCaptureDesc.
   ///
   /// In ko, this message translates to:
-  /// **'증권사 앱의 잔고 화면을 캡처해 고르면 종목과 수량을 읽어 옵니다. 국내 종목만 됩니다.'**
+  /// **'증권사 앱의 잔고 화면을 캡처해 고르면 종목과 수량을 읽어 옵니다.'**
   String get firstRunCaptureDesc;
 
   /// No description provided for @firstRunCaptureCta.
@@ -2510,18 +2330,6 @@ abstract class AppLocalizations {
   /// **'2월처럼 짧은 달에는 그 달의 마지막 날에 알려드립니다'**
   String get notifDayCapHint;
 
-  /// No description provided for @settlementNotifTime.
-  ///
-  /// In ko, this message translates to:
-  /// **'알림 시간'**
-  String get settlementNotifTime;
-
-  /// No description provided for @settlementNotifTimeHint.
-  ///
-  /// In ko, this message translates to:
-  /// **'모든 결산 알림에 적용됩니다'**
-  String get settlementNotifTimeHint;
-
   /// 캡처가 목록을 잘랐을 때. 잘린 줄 없이 두면 그림이 전부인 줄 안다.
   ///
   /// In ko, this message translates to:
@@ -2687,7 +2495,7 @@ abstract class AppLocalizations {
   /// No description provided for @holdingsAvgLine.
   ///
   /// In ko, this message translates to:
-  /// **'평단 {price}'**
+  /// **'평단가 {price}'**
   String holdingsAvgLine(String price);
 
   /// No description provided for @holdingsNoAvg.
@@ -2863,6 +2671,24 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'이 불러오기가 만든 종목 {count}개도 함께 지웁니다.'**
   String undoConfirmItemsScan(int count);
+
+  /// No description provided for @portfolioSettings.
+  ///
+  /// In ko, this message translates to:
+  /// **'포트폴리오 설정'**
+  String get portfolioSettings;
+
+  /// No description provided for @exchangeRateAuto.
+  ///
+  /// In ko, this message translates to:
+  /// **'자동으로 받기'**
+  String get exchangeRateAuto;
+
+  /// No description provided for @totalsCurrency.
+  ///
+  /// In ko, this message translates to:
+  /// **'합계 표시 통화'**
+  String get totalsCurrency;
 }
 
 class _AppLocalizationsDelegate
