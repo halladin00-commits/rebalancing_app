@@ -42,6 +42,21 @@ CAPS = [
     ('5_item',   '종목마다 수량 · 단가 · 비중'),
 ]
 
+# 다음 출시용 여섯 장 — 잔고 캡처를 둘째에 둔다. 첫 장은 무슨 앱인지,
+# 둘째 장은 시작이 쉽다는 것. 검색 결과에서는 앞의 두세 장만 보인다.
+#   python tools/frame_screenshots.py next
+if sys.argv[1:] == ['next']:
+    SRC = 'docs/store/screenshots_next'
+    OUT = 'docs/store/screenshots_next/framed'
+    CAPS = [
+        ('1_asset',   '흩어진 계좌를 한곳에서'),
+        ('2_capture', '잔고 캡처로 종목을 한 번에'),
+        ('3_drift',   '목표에서 얼마나 벗어났는지'),
+        ('4_plan',    '몇 주를 사고팔지 계산합니다'),
+        ('5_settle',  '이번 달은 얼마였는지'),
+        ('6_item',    '종목마다 수량 · 단가 · 비중'),
+    ]
+
 
 def rounded(img, r):
     """모서리를 깎는다. 화면 네 귀퉁이가 각지면 그림이 아니라 캡처로 보인다."""
