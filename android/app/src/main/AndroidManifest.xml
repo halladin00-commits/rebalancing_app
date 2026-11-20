@@ -3,6 +3,9 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.VIBRATE"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- 화면을 세로로 고정하면 Play가 「세로 화면 필수」로 읽어 태블릿·크롬북 등에서
+         설치를 막는다. 세로 고정은 유지하되 필수 조건은 아니라고 밝힌다. -->
+    <uses-feature android:name="android.hardware.screen.portrait" android:required="false"/>
     <application
         android:label="Rebalancing"
         android:name="${applicationName}"
