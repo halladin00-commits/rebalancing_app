@@ -23,6 +23,7 @@ import '../widgets/brand_header.dart';
 import '../widgets/list_card.dart';
 import 'item_form_screen.dart';
 import 'transaction_form_screen.dart';
+import '../utils/date_label.dart';
 
 /// 종목 상세 (시안 v12c).
 ///
@@ -525,7 +526,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  '${t.date.year}.${t.date.month.toString().padLeft(2, '0')}.${t.date.day.toString().padLeft(2, '0')}',
+                  fmtDate(t.date, dateLang(context)),
                   style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,

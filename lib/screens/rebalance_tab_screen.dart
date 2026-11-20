@@ -21,6 +21,7 @@ import 'portfolio_detail_screen.dart';
 import 'portfolio_rebalance_screen.dart';
 import 'target_weights_screen.dart';
 import 'rebalance_proposal_screen.dart';
+import '../utils/date_label.dart';
 
 /// 리밸런싱 탭 — 포트폴리오별 편차 진단.
 ///
@@ -232,8 +233,7 @@ class _RebalanceTabScreenState extends State<RebalanceTabScreen> {
         ? context.l10n.neverUpdated
         : () {
             final d = DateTime.fromMillisecondsSinceEpoch(oldest);
-            return '${d.month.toString().padLeft(2, '0')}.${d.day.toString().padLeft(2, '0')} '
-                '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+            return fmtMonthDayTime(d, dateLang(context));
           }();
 
     final baseStyle = TextStyle(

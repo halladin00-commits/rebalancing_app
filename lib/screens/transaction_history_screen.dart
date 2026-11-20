@@ -11,6 +11,7 @@ import '../widgets/bottom_banner_ad.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/list_card.dart';
 import 'transaction_form_screen.dart';
+import '../utils/date_label.dart';
 
 /// 포트폴리오 전체 거래 내역 (시안 v16a).
 ///
@@ -498,7 +499,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                     overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 3),
                 Text(
-                  '${d.month.toString().padLeft(2, '0')}.${d.day.toString().padLeft(2, '0')}'
+                  '${fmtMonthDay(d, dateLang(context))}'
                   ' · ${fmtPrice(e.tx.price, e.item.market)}'
                   ' · ${l10n.sharesCount(qty, formatShares(qty))}',
                   style: TextStyle(

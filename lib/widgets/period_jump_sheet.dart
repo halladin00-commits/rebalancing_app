@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../main.dart';
 import '../services/settlement_service.dart';
 import '../theme/design_system.dart';
+import '../utils/date_label.dart';
 
 /// 기간 점프 시트 (v22c).
 ///
@@ -488,9 +489,7 @@ class _PeriodJumpSheetState extends State<PeriodJumpSheet> {
       ][m - 1];
 
   String _rangeLabel(DateTime a, DateTime b) =>
-      '${a.month.toString().padLeft(2, '0')}.${a.day.toString().padLeft(2, '0')}'
-      ' – '
-      '${b.month.toString().padLeft(2, '0')}.${b.day.toString().padLeft(2, '0')}';
+      fmtRange(a, b, dateLang(context));
 
   /// 칸이 좁아 축약해 적는다 (한국어 만 단위, 영어 K/M)
   String _fmtCompact(double v) {

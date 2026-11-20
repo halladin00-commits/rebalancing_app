@@ -8,6 +8,7 @@ import '../theme/design_system.dart';
 import '../utils/share_format.dart';
 import '../widgets/custom_date_picker.dart';
 import '../widgets/list_card.dart';
+import '../utils/date_label.dart';
 
 /// 거래 추가·수정 (시안 v15a).
 ///
@@ -394,7 +395,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                     color: context.textSecondary)),
           ),
           Text(
-            '${_date.year}.${_date.month.toString().padLeft(2, '0')}.${_date.day.toString().padLeft(2, '0')}',
+            fmtDate(_date, dateLang(context)),
             style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w700,

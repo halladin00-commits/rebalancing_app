@@ -25,6 +25,7 @@ import '../widgets/sparkline_panel.dart';
 import '../services/settlement_service.dart';
 import '../widgets/dashed_border_box.dart';
 import 'portfolio_detail_screen.dart';
+import '../utils/date_label.dart';
 
 class PortfolioListScreen extends StatefulWidget {
   /// 액션 카드에서 다른 탭으로 보내기 위한 콜백 (MainShell이 넘긴다).
@@ -703,10 +704,7 @@ class PortfolioListScreenState extends State<PortfolioListScreen> {
         .fold<int?>(null, (m, t) => m == null || t < m ? t : m);
     if (oldest == null) return l10n.neverUpdated;
     final d = DateTime.fromMillisecondsSinceEpoch(oldest);
-    final time = '${d.month.toString().padLeft(2, '0')}.'
-        '${d.day.toString().padLeft(2, '0')} '
-        '${d.hour.toString().padLeft(2, '0')}:'
-        '${d.minute.toString().padLeft(2, '0')}';
+    final time = fmtMonthDayTime(d, dateLang(context));
     if (context.read<PortfolioProvider>().lastRefreshFailed > 0) {
       return l10n.refreshFailedNote(time);
     }

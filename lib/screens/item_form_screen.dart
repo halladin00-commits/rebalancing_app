@@ -7,6 +7,7 @@ import '../theme/design_system.dart';
 import '../utils/share_format.dart';
 import '../widgets/custom_date_picker.dart';
 import '../widgets/list_card.dart';
+import '../utils/date_label.dart';
 
 /// 종목 직접 등록 · 편집.
 ///
@@ -502,7 +503,7 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
                     color: context.textSecondary)),
           ),
           Text(
-            '${_purchaseDate.year}.${_purchaseDate.month.toString().padLeft(2, '0')}.${_purchaseDate.day.toString().padLeft(2, '0')}',
+            fmtDate(_purchaseDate, dateLang(context)),
             style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w700,

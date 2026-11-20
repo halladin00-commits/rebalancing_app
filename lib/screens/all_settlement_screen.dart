@@ -23,6 +23,7 @@ import '../widgets/settlement_capture_card.dart';
 import '../widgets/settlement_header.dart';
 import '../widgets/excluded_banner.dart';
 import 'portfolio_settlement_screen.dart';
+import '../utils/date_label.dart';
 
 /// 결산 탭 — 전체 포트폴리오 합산 (v22a).
 ///
@@ -1000,9 +1001,7 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       _fullRangeLabel(r.start, r.end);
 
   String _fullRangeLabel(DateTime a, DateTime b) =>
-      '${a.year}.${a.month.toString().padLeft(2, '0')}.${a.day.toString().padLeft(2, '0')}'
-      ' – '
-      '${b.month.toString().padLeft(2, '0')}.${b.day.toString().padLeft(2, '0')}';
+      fmtRange(a, b, dateLang(context), withYear: true);
 
   // ── 이미지 저장 · 공유 ──
   Future<void> _saveImage() async {

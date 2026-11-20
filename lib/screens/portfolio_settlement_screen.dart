@@ -22,6 +22,7 @@ import '../widgets/settlement_chart.dart';
 import '../widgets/settlement_capture_card.dart';
 import '../widgets/settlement_header.dart';
 import '../widgets/excluded_banner.dart';
+import '../utils/date_label.dart';
 
 /// 포트폴리오 하나의 결산 (v22b).
 ///
@@ -782,9 +783,7 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
       _fullRangeLabel(r.start, inProgress ? DateTime.now() : r.end);
 
   String _fullRangeLabel(DateTime a, DateTime b) =>
-      '${a.year}.${a.month.toString().padLeft(2, '0')}.${a.day.toString().padLeft(2, '0')}'
-      ' – '
-      '${b.month.toString().padLeft(2, '0')}.${b.day.toString().padLeft(2, '0')}';
+      fmtRange(a, b, dateLang(context), withYear: true);
 
 
   // ── 공유 ──

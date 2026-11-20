@@ -40,6 +40,7 @@ import '../widgets/sparkline_panel.dart';
 import '../services/asset_history_service.dart';
 import '../theme/design_system.dart';
 import 'portfolio_graph_screen.dart';
+import '../utils/date_label.dart';
 
 class PortfolioDetailScreen extends StatefulWidget {
   final String portfolioId;
@@ -91,8 +92,7 @@ class _PortfolioDetailScreenState extends State<PortfolioDetailScreen> {
   String _fmtTimeShort(int? ts) {
     if (ts == null) return context.l10n.neverUpdated;
     final d = DateTime.fromMillisecondsSinceEpoch(ts);
-    return '${d.month.toString().padLeft(2, '0')}.${d.day.toString().padLeft(2, '0')} '
-        '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+    return fmtMonthDayTime(d, dateLang(context));
   }
 
   // ── Auto refresh ──
