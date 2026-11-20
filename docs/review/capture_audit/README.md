@@ -42,7 +42,7 @@ adb push docs/store/demo_portfolio.json /sdcard/Download/zz_demo.json
 
 먼저 해 둘 것 — **비행기 모드**(안 그러면 그림에 배너 광고가 찍힌다),
 **상태 표시줄 고정**(장마다 시계가 달라지지 않게). 자세한 명령은
-`docs/store/screenshots.md`에 있다.
+`docs/store/listing.md`에 있다.
 
 평범한 자료로는 안 보이는 것들이 있다. **예외 상태를 따로 만들어** 본다 —
 예수금 · 소수점 수량 · 시세 없는 종목 · 종목 10개 이상 · 거래 20건 이상 ·
