@@ -1580,4 +1580,53 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get dividendTitle => 'Dividends (estimate)';
+
+  @override
+  String get dividendNote => 'Before tax · not in return';
+
+  @override
+  String get dividendTotalLabel => 'By ex-dividend date in this period';
+
+  @override
+  String dividendLine(String date, String perShare, String shares) {
+    return '$date · $perShare × $shares';
+  }
+
+  @override
+  String dividendMore(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Show $count more',
+      one: 'Show 1 more',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dividendLess => 'Show less';
+
+  @override
+  String dividendFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count holdings left out — no dividend data',
+      one: '1 holding left out — no dividend data',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dividendInfoTitle => 'About the dividend estimate';
+
+  @override
+  String get dividendInfoBody =>
+      'Shares you held before each ex-dividend date, times the dividend per share.\n\n· Before tax. What reaches your account is less, and tax-advantaged accounts are taxed differently.\n· Counted by ex-dividend date. The payment usually arrives weeks later and can fall in the next period.\n· Dividend records come from public data and can be missing or late.\n\nThis amount is not part of the return and gain shown above.';
+
+  @override
+  String get a11yDividendInfo => 'About the dividend estimate';
 }

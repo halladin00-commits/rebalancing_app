@@ -2695,6 +2695,66 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'{text}주'**
   String sharesCount(num count, String text);
+
+  /// No description provided for @dividendTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'배당 (추정)'**
+  String get dividendTitle;
+
+  /// No description provided for @dividendNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'세전 · 수익률 미포함'**
+  String get dividendNote;
+
+  /// No description provided for @dividendTotalLabel.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 기간 배당락일 기준'**
+  String get dividendTotalLabel;
+
+  /// 배당 한 건. 날짜 · 1주당 배당 × 수량
+  ///
+  /// In ko, this message translates to:
+  /// **'{date} · {perShare} × {shares}'**
+  String dividendLine(String date, String perShare, String shares);
+
+  /// No description provided for @dividendMore.
+  ///
+  /// In ko, this message translates to:
+  /// **'{count}건 더 보기'**
+  String dividendMore(int count);
+
+  /// No description provided for @dividendLess.
+  ///
+  /// In ko, this message translates to:
+  /// **'접기'**
+  String get dividendLess;
+
+  /// No description provided for @dividendFailed.
+  ///
+  /// In ko, this message translates to:
+  /// **'{count}개 종목은 배당 기록을 받지 못해 빠졌습니다'**
+  String dividendFailed(int count);
+
+  /// No description provided for @dividendInfoTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'배당 추정이란'**
+  String get dividendInfoTitle;
+
+  /// No description provided for @dividendInfoBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'배당락일 전날까지 갖고 있던 수량에 1주당 배당금을 곱해 어림한 값입니다.\n\n· 세금을 떼기 전 금액입니다. 실제 입금액은 이보다 적고, ISA·연금 계좌는 세금 처리가 다릅니다.\n· 배당락일로 기간을 나눕니다. 실제 입금은 보통 몇 주 뒤라 다음 기간에 들어올 수 있습니다.\n· 배당 기록은 외부 공개 데이터라 빠지거나 늦을 수 있습니다.\n\n이 금액은 위의 수익률과 손익에 들어 있지 않습니다.'**
+  String get dividendInfoBody;
+
+  /// No description provided for @a11yDividendInfo.
+  ///
+  /// In ko, this message translates to:
+  /// **'배당 추정 설명'**
+  String get a11yDividendInfo;
 }
 
 class _AppLocalizationsDelegate

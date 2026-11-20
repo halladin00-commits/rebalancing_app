@@ -1181,5 +1181,43 @@
         "type": "String"
       }
     }
-  }
+  },
+  "dividendTitle": "배당 (추정)",
+  "dividendNote": "세전 · 수익률 미포함",
+  "dividendTotalLabel": "이 기간 배당락일 기준",
+  "dividendLine": "{date} · {perShare} × {shares}",
+  "@dividendLine": {
+    "description": "배당 한 건. 날짜 · 1주당 배당 × 수량",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "perShare": {
+        "type": "String"
+      },
+      "shares": {
+        "type": "String"
+      }
+    }
+  },
+  "dividendMore": "{count}건 더 보기",
+  "@dividendMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dividendLess": "접기",
+  "dividendFailed": "{count}개 종목은 배당 기록을 받지 못해 빠졌습니다",
+  "@dividendFailed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dividendInfoTitle": "배당 추정이란",
+  "dividendInfoBody": "배당락일 전날까지 갖고 있던 수량에 1주당 배당금을 곱해 어림한 값입니다.\n\n· 세금을 떼기 전 금액입니다. 실제 입금액은 이보다 적고, ISA·연금 계좌는 세금 처리가 다릅니다.\n· 배당락일로 기간을 나눕니다. 실제 입금은 보통 몇 주 뒤라 다음 기간에 들어올 수 있습니다.\n· 배당 기록은 외부 공개 데이터라 빠지거나 늦을 수 있습니다.\n\n이 금액은 위의 수익률과 손익에 들어 있지 않습니다.",
+  "a11yDividendInfo": "배당 추정 설명"
 }

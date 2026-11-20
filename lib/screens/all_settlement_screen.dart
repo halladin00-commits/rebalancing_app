@@ -10,6 +10,7 @@ import '../main.dart';
 import '../utils/money_format.dart';
 import '../models/portfolio.dart';
 import '../services/asset_backfill_service.dart';
+import '../services/dividend_service.dart';
 import '../services/settlement_service.dart';
 import '../theme/design_system.dart';
 import '../widgets/app_menu.dart';
@@ -22,6 +23,7 @@ import '../widgets/settlement_chart.dart';
 import '../widgets/settlement_capture_card.dart';
 import '../widgets/settlement_header.dart';
 import '../widgets/excluded_banner.dart';
+import '../widgets/dividend_card.dart';
 import 'portfolio_settlement_screen.dart';
 import '../utils/date_label.dart';
 
@@ -118,6 +120,20 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
   String _cur = 'KRW';
   bool _curReady = false;
 
+  /// 배당 추정 — 고른 기간만 받는다. 수익률과 따로 논다.
+  ///
+  /// 통화·기간 단위·포트 목록이 바뀌면 [_resetDividends]로 비운다. 그 전에
+  /// 떠난 요청은 세대 번호가 달라 결과를 버린다.
+  final Map<PeriodKey, DividendEstimate> _dividends = {};
+  final Set<PeriodKey> _dividendBusy = {};
+  int _dividendGen = 0;
+
+  void _resetDividends() {
+    _dividends.clear();
+    _dividendBusy.clear();
+    _dividendGen++;
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -133,6 +149,7 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
     _cur = cur;
     _results.clear();
     _busy.clear();
+    _resetDividends();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _loadVisible(around: _selected);
     });
@@ -215,6 +232,7 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
     if (old.portfolios != widget.portfolios) {
       _loadedStamp = _priceStamp;
       _results.clear();
+      _resetDividends();
       _loadVisible();
     } else if (_priceStamp != _loadedStamp) {
       _loadedStamp = _priceStamp;
@@ -346,6 +364,7 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
       // 3분기 라벨 밑에 뜬다.** 지어낸 숫자보다 빈 화면이 낫다.
       _results.clear();
       _busy.clear();
+      _resetDividends();
       _selected = SettlementService.currentKey(p);
     });
     if (_chartScroll.hasClients) _chartScroll.jumpTo(0);
@@ -472,6 +491,7 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
                         ),
                       _buildChartCard(context, l10n),
                       const SizedBox(height: 14),
+                      _buildDividends(),
                       _buildContributions(context),
                     ]),
                   ),
@@ -820,6 +840,33 @@ class _AllSettlementScreenState extends State<AllSettlementScreen> {
   }
 
   // ── 포트별 기여 ──
+
+  /// 고른 기간의 배당 추정 (합계 표시 통화). 없으면 받으러 간다.
+  Widget _buildDividends() {
+    final key = _selected;
+    final have = _dividends[key];
+    if (have == null &&
+        !_dividendBusy.contains(key) &&
+        widget.portfolios.isNotEmpty &&
+        !SettlementService.isFuture(_period, key)) {
+      _dividendBusy.add(key);
+      final gen = _dividendGen;
+      final range = SettlementService.periodRange(_period, key);
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final end = range.end.isBefore(today) ? range.end : today;
+      DividendService.estimateCombined(
+              widget.portfolios, _cur, range.start, end)
+          .then((e) {
+        if (!mounted || gen != _dividendGen) return;
+        setState(() {
+          _dividends[key] = e;
+          _dividendBusy.remove(key);
+        });
+      });
+    }
+    return DividendCard(estimate: have, byPortfolio: true);
+  }
 
   Widget _buildContributions(BuildContext context) {
     final r = _current;

@@ -1518,4 +1518,41 @@ class AppLocalizationsKo extends AppLocalizations {
   String sharesCount(num count, String text) {
     return '$text주';
   }
+
+  @override
+  String get dividendTitle => '배당 (추정)';
+
+  @override
+  String get dividendNote => '세전 · 수익률 미포함';
+
+  @override
+  String get dividendTotalLabel => '이 기간 배당락일 기준';
+
+  @override
+  String dividendLine(String date, String perShare, String shares) {
+    return '$date · $perShare × $shares';
+  }
+
+  @override
+  String dividendMore(int count) {
+    return '$count건 더 보기';
+  }
+
+  @override
+  String get dividendLess => '접기';
+
+  @override
+  String dividendFailed(int count) {
+    return '$count개 종목은 배당 기록을 받지 못해 빠졌습니다';
+  }
+
+  @override
+  String get dividendInfoTitle => '배당 추정이란';
+
+  @override
+  String get dividendInfoBody =>
+      '배당락일 전날까지 갖고 있던 수량에 1주당 배당금을 곱해 어림한 값입니다.\n\n· 세금을 떼기 전 금액입니다. 실제 입금액은 이보다 적고, ISA·연금 계좌는 세금 처리가 다릅니다.\n· 배당락일로 기간을 나눕니다. 실제 입금은 보통 몇 주 뒤라 다음 기간에 들어올 수 있습니다.\n· 배당 기록은 외부 공개 데이터라 빠지거나 늦을 수 있습니다.\n\n이 금액은 위의 수익률과 손익에 들어 있지 않습니다.';
+
+  @override
+  String get a11yDividendInfo => '배당 추정 설명';
 }

@@ -10,6 +10,7 @@ import '../main.dart';
 import '../utils/money_format.dart';
 import '../models/portfolio.dart';
 import '../services/asset_backfill_service.dart';
+import '../services/dividend_service.dart';
 import '../services/settlement_service.dart';
 import '../theme/design_system.dart';
 import '../services/ad_service.dart';
@@ -22,6 +23,7 @@ import '../widgets/settlement_chart.dart';
 import '../widgets/settlement_capture_card.dart';
 import '../widgets/settlement_header.dart';
 import '../widgets/excluded_banner.dart';
+import '../widgets/dividend_card.dart';
 import '../utils/date_label.dart';
 
 /// 포트폴리오 하나의 결산 (v22b).
@@ -57,6 +59,10 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
   /// 계산해 둔 결과. 차트에 깔린 기간 전부가 아니라 **본 것만** 들어 있다.
   final Map<PeriodKey, SettlementResult> _results = {};
   final Set<PeriodKey> _busy = {};
+
+  /// 배당 추정 — 고른 기간만 받는다. 수익률과 따로 논다.
+  final Map<PeriodKey, DividendEstimate> _dividends = {};
+  final Set<PeriodKey> _dividendBusy = {};
 
   /// 차트 가로 스크롤. 멈춘 자리를 읽어 그 구간만 계산한다.
   final ScrollController _chartScroll = ScrollController();
@@ -237,6 +243,8 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
       _period = p;
       _results.clear();
       _busy.clear();
+      _dividends.clear();
+      _dividendBusy.clear();
       _selected = SettlementService.currentKey(p);
     });
     if (_chartScroll.hasClients) _chartScroll.jumpTo(0);
@@ -361,6 +369,7 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
                             ),
                           _buildChartCard(context, pf),
                           const SizedBox(height: 14),
+                          _buildDividends(pf),
                           _buildItemContributions(context, pf),
                         ]),
                       ),
@@ -646,6 +655,32 @@ class _PortfolioSettlementScreenState extends State<PortfolioSettlementScreen> {
           );
         }(),
     ];
+  }
+
+  // ── 배당 (추정) ──
+
+  /// 고른 기간의 배당 추정. 없으면 받으러 가고, 받는 동안은 아무것도 안 그린다.
+  Widget _buildDividends(Portfolio pf) {
+    final key = _selected;
+    final have = _dividends[key];
+    if (have == null &&
+        !_dividendBusy.contains(key) &&
+        !SettlementService.isFuture(_period, key)) {
+      _dividendBusy.add(key);
+      final period = _period;
+      final range = SettlementService.periodRange(period, key);
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final end = range.end.isBefore(today) ? range.end : today;
+      DividendService.estimate(pf, range.start, end).then((e) {
+        if (!mounted || period != _period) return;
+        setState(() {
+          _dividends[key] = e;
+          _dividendBusy.remove(key);
+        });
+      });
+    }
+    return DividendCard(estimate: have);
   }
 
   // ── 종목별 기여 ──

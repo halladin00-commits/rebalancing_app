@@ -1143,5 +1143,42 @@
         "type": "int"
       }
     }
-  }
+  },
+  "dividendTitle": "Dividends (estimate)",
+  "dividendNote": "Before tax · not in return",
+  "dividendTotalLabel": "By ex-dividend date in this period",
+  "dividendLine": "{date} · {perShare} × {shares}",
+  "@dividendLine": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "perShare": {
+        "type": "String"
+      },
+      "shares": {
+        "type": "String"
+      }
+    }
+  },
+  "dividendMore": "{count, plural, =1{Show 1 more} other{Show {count} more}}",
+  "@dividendMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dividendLess": "Show less",
+  "dividendFailed": "{count, plural, =1{1 holding left out — no dividend data} other{{count} holdings left out — no dividend data}}",
+  "@dividendFailed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dividendInfoTitle": "About the dividend estimate",
+  "dividendInfoBody": "Shares you held before each ex-dividend date, times the dividend per share.\n\n· Before tax. What reaches your account is less, and tax-advantaged accounts are taxed differently.\n· Counted by ex-dividend date. The payment usually arrives weeks later and can fall in the next period.\n· Dividend records come from public data and can be missing or late.\n\nThis amount is not part of the return and gain shown above.",
+  "a11yDividendInfo": "About the dividend estimate"
 }
