@@ -7,3 +7,4 @@ Unsplash 라이선스 — 상업적 사용 포함 무료, 출처 표기 의무 �
 |---|---|---|
 | `cover_chart.jpg` | https://unsplash.com/photos/financial-candlestick-chart-market-trends-3r8rcSy0Ffg | Tötös Ádám |
 | `cover_planner.jpg` | https://unsplash.com/photos/finance-tracker-planner-with-budget-sheets-Ok76F6yW2iA | NORTHFOLK |
+| `pc_title_966x385.jpg`, `pc_title_1932x770.jpg` | 위 `cover_planner.jpg`와 같은 사진, 원본 4000px에서 가로로 자름 (PC 타이틀) | NORTHFOLK |
