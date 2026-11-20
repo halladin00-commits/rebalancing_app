@@ -69,25 +69,32 @@ class _DividendCardState extends State<DividendCard> {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(2, 0, 0, 4),
+            // 「세전 · 수익률 미포함」은 제목 밑 줄에 둔다. 제목 옆에 두면
+            // 영어(「Before tax · not in return」)가 잘렸다 — 이 카드에서
+            // 가장 중요한 단서가 잘리면 안 된다.
             child: Row(
               children: [
-                Text(
-                  l10n.dividendTitle,
-                  style: TextStyle(
-                      fontSize: DS.sectionTitle,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.2,
-                      color: context.textPrimary),
-                ),
-                const Spacer(),
-                Flexible(
-                  child: Text(
-                    l10n.dividendNote,
-                    style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: context.textTertiary),
-                    overflow: TextOverflow.ellipsis,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.dividendTitle,
+                        style: TextStyle(
+                            fontSize: DS.sectionTitle,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.2,
+                            color: context.textPrimary),
+                      ),
+                      const SizedBox(height: 1),
+                      Text(
+                        l10n.dividendNote,
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: context.textTertiary),
+                      ),
+                    ],
                   ),
                 ),
                 IconButton(
