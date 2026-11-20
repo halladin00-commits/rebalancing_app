@@ -30,6 +30,45 @@
 
 ---
 
+## 출시 노트 (언어마다 500자 제한)
+
+Play Console 「출시 노트」 칸에 상자째 붙입니다. `<ko-KR>` 같은 태그로 언어가 나뉩니다.
+
+```
+<ko-KR>
+v1.2.0 — 증권사 잔고 화면을 캡처하면 종목이 들어옵니다
+
+✨ 새로워진 것
+• 잔고 캡처로 불러오기: 증권사 앱의 잔고 화면을 캡처해 고르면 종목·수량·평단가를 읽어 옵니다. 국내·미국 증권사 앱을 읽으며, 이미지는 기기 밖으로 나가지 않습니다
+• 미국 종목을 한글 이름으로 찾습니다 (애플 → AAPL)
+• 백업한 지 30일이 지나면 첫 화면에서 알려드립니다
+• 포트폴리오 메뉴에서 리밸런싱으로 바로 갑니다
+
+🔧 바뀐 것
+• 시세는 늘 자동으로 받습니다. 포트폴리오별 「시세」 스위치를 없앴습니다. 꺼 두셨다면 다음 새로고침에 받은 시세로 바뀝니다
+• 소수점 매매 수량은 늘 내림합니다. 반올림을 고르셨다면 제안 수량이 달라질 수 있습니다
+• 검색에 없어 직접 입력한 종목은 현재가를 넣어야 조정 제안이 나옵니다
+</ko-KR>
+<en-US>
+v1.2.0 — Import your holdings from a screenshot
+
+✨ New
+• Pick screenshots of your broker app's holdings screen and the app reads the stocks, quantities and average cost. Images never leave your device
+• A reminder on the home screen when your last backup is over 30 days old
+• Jump to Rebalance from a portfolio's menu
+
+🔧 Changed
+• Prices are always fetched; the per-portfolio switch is gone
+• Fractional quantities always round down
+• Holdings entered by hand need a current price
+</en-US>
+```
+
+- **「바뀐 것」을 빼지 않습니다.** 쓰던 분의 숫자가 어제와 달라지는 변경은 적어 두지 않으면 버그로 읽힙니다.
+- 영어판에는 한글 이름 검색을 뺐습니다. 영어 독자에게 의미가 없습니다.
+
+---
+
 # 한국어 (ko-KR)
 
 ## 앱 이름 (30자 제한)
@@ -53,26 +92,6 @@
 - 단어를 더 넣지 않습니다. 검색어만 늘어놓으면 Play 정책 위반입니다.
   「무료」 같은 가격 홍보도 못 씁니다.
 - 효과는 Play Console 유입 보고서에서 「스토어 검색」 설치 수 전후로 잽니다.
-
-## 출시 노트 (500자 제한)
-
-```
-v1.2.0 — 증권사 잔고 화면을 캡처하면 종목이 들어옵니다
-
-✨ 새로워진 것
-• 잔고 캡처로 불러오기: 증권사 앱의 잔고 화면을 캡처해 고르면 종목·수량·평단가를 읽어 옵니다. 국내·미국 증권사 앱을 읽으며, 이미지는 기기 밖으로 나가지 않습니다
-• 미국 종목을 한글 이름으로 찾습니다 (애플 → AAPL)
-• 백업한 지 30일이 지나면 첫 화면에서 알려드립니다
-• 포트폴리오 메뉴에서 리밸런싱으로 바로 갑니다
-
-🔧 바뀐 것
-• 시세는 늘 자동으로 받습니다. 포트폴리오별 「시세」 스위치를 없앴습니다. 꺼 두셨다면 다음 새로고침에 받은 시세로 바뀝니다
-• 소수점 매매 수량은 늘 내림합니다. 반올림을 고르셨다면 제안 수량이 달라질 수 있습니다
-• 검색에 없어 직접 입력한 종목은 현재가를 넣어야 조정 제안이 나옵니다
-```
-
-**「바뀐 것」을 빼지 않습니다.** 쓰던 분의 숫자가 어제와 달라지는 변경은
-적어 두지 않으면 버그로 읽힙니다.
 
 ## 자세한 설명 (4000자 제한)
 
@@ -195,24 +214,6 @@ Rebalance your stock & ETF portfolio, down to the exact share count
 
 - 이름에 못 넣은 검색어(ETF, portfolio)를 담았습니다.
 - 사람들이 실제로 치는 동사 「Rebalance」로 시작합니다.
-
-## Release notes (500 char limit)
-
-```
-v1.2.0 — Import your holdings from a screenshot
-
-✨ New
-• Pick screenshots of your broker app's holdings screen and the app reads the stocks, quantities and average cost. Images never leave your device
-• A reminder on the home screen when your last backup is over 30 days old
-• Jump to Rebalance from a portfolio's menu
-
-🔧 Changed
-• Prices are always fetched; the per-portfolio switch is gone
-• Fractional quantities always round down
-• Holdings entered by hand need a current price
-```
-
-한글 이름 검색은 영어 독자에게 의미가 없어 뺐습니다.
 
 ## Full description (4000 char limit)
 

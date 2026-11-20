@@ -90,8 +90,17 @@ def blocks(text):
         if not m:
             continue
         code = re.search(r'^```\n(.*?)^```', sec, re.S | re.M)
-        if code:
-            out.append((m.group(1), code.group(1)))
+        if not code:
+            continue
+        body = code.group(1)
+        # 출시 노트는 한 상자에 <ko-KR>…</ko-KR><en-US>…</en-US>로 함께 둔다.
+        # 500자 제한은 언어마다 따로라서 갈라서 잰다.
+        tagged = re.findall(r'<([a-z]{2}-[A-Z]{2})>\n(.*?)</\1>', body, re.S)
+        if tagged:
+            for lang, part in tagged:
+                out.append(('%s %s' % (lang, m.group(1)), part))
+        else:
+            out.append((m.group(1), body))
     return out
 
 
