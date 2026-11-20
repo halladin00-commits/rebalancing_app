@@ -55,7 +55,7 @@
 <main>
 
 <h1>Rebalancing 개인정보처리방침</h1>
-<p class="sub">시행일 2026년 9월 14일</p>
+<p class="sub">시행일 2026년 11월 20일</p>
 
 <p class="lead"><strong>Rebalancing은 회원가입이 없고, 개발자가 운영하는 서버도 없습니다.</strong>
 입력하신 포트폴리오·거래내역·설정은 전부 사용하시는 기기 안에만 저장되며,
@@ -69,6 +69,8 @@
   <li>증권사 계좌번호, 인증서, 아이디·비밀번호 — 증권사에 연결하지 않습니다</li>
   <li>연락처, 사진첩, 통화 기록, 정확한 위치</li>
 </ul>
+<p><strong>잔고 캡처 불러오기</strong>에서 직접 고르신 사진은 기기 안에서 글자만
+읽은 뒤 버립니다. 사진도, 읽은 글자도 저장하거나 어디로도 보내지 않습니다.</p>
 
 <h2>2. 기기에만 저장되는 정보</h2>
 <p>아래 정보는 기기 안에 저장되며 외부로 나가지 않습니다.</p>
@@ -84,7 +86,7 @@
 파일을 내보내 두시기를 권합니다.</p>
 
 <h2>3. 외부로 전송되는 정보</h2>
-<p>시세를 받아오고 광고를 표시하기 위해 아래 네 곳과 통신합니다.</p>
+<p>시세를 받아오고, 광고를 표시하고, 캡처의 글자를 읽기 위해 아래 다섯 곳과 통신합니다.</p>
 
 <div class="scroll">
 <table>
@@ -111,6 +113,13 @@
       <td>Google AdMob</td>
       <td>광고 ID, 기기 종류와 운영체제, IP 주소, 광고 조회·클릭 기록</td>
       <td>앱 안 광고 표시</td>
+    </tr>
+    <tr>
+      <td>Google ML Kit<br>(Google Play 서비스)</td>
+      <td>기기 종류와 운영체제, 앱 이름과 버전, 기기 식별자, 기능 사용·성능·오류 기록.
+        <strong>사진과 읽은 글자는 보내지 않습니다</strong></td>
+      <td>캡처의 글자를 읽는 모델 받기, 오류 진단
+        (<a href="https://developers.google.com/ml-kit/android-data-disclosure">Google 안내</a>)</td>
     </tr>
   </tbody>
 </table>
@@ -150,8 +159,8 @@
   </tbody>
 </table>
 </div>
-<p>백업 파일 내보내기·불러오기, 결산 이미지 저장·공유는 <strong>직접 누르셨을 때만</strong>
-동작하며, 그때 고르신 파일 하나만 읽거나 씁니다.</p>
+<p>백업 파일 내보내기·불러오기, 결산 이미지 저장·공유, 잔고 캡처 불러오기는
+<strong>직접 누르셨을 때만</strong> 동작하며, 그때 고르신 파일만 읽거나 씁니다.</p>
 
 <h2>5. 만 14세 미만 아동</h2>
 <p>이 앱은 만 14세 미만 아동을 대상으로 하지 않으며, 아동의 개인정보를
@@ -166,14 +175,14 @@
 <p><strong><a href="mailto:rebalancing.app@gmail.com">rebalancing.app@gmail.com</a></strong></p>
 
 <footer>
-  Rebalancing · 개인정보처리방침 · 시행일 2026-09-14
+  Rebalancing · 개인정보처리방침 · 시행일 2026-11-20
 </footer>
 
 <!-- ─────────────────────────────────────────────── -->
 
 <section class="en" lang="en">
 <h1>Rebalancing — Privacy Policy</h1>
-<p class="sub">Effective 14 September 2026</p>
+<p class="sub">Effective 20 November 2026</p>
 
 <p class="lead"><strong>Rebalancing has no accounts and no server operated by the
 developer.</strong> The portfolios, transactions and settings you enter are stored
@@ -187,6 +196,9 @@ read them.</p>
   <li>Brokerage account numbers, certificates or passwords — the app does not connect to any broker</li>
   <li>Contacts, photo library, call logs, precise location</li>
 </ul>
+<p>Screenshots you pick for <strong>Import from screenshots</strong> are read on
+the device for their text and then discarded. Neither the images nor the text
+read from them is stored or sent anywhere.</p>
 
 <h2>2. Information stored on your device only</h2>
 <ul>
@@ -226,6 +238,14 @@ copy and cannot restore it. Please use the backup feature to export a file.</p>
       <td>Advertising ID, device model and OS, IP address, ad impressions and clicks</td>
       <td>Showing ads in the app</td>
     </tr>
+    <tr>
+      <td>Google ML Kit<br>(Google Play services)</td>
+      <td>Device model and OS, app name and version, device identifiers, feature
+        usage, performance and error events. <strong>Images and the text read
+        from them are never sent</strong></td>
+      <td>Downloading the text recognition model, diagnostics
+        (<a href="https://developers.google.com/ml-kit/android-data-disclosure">Google's disclosure</a>)</td>
+    </tr>
   </tbody>
 </table>
 </div>
@@ -260,9 +280,9 @@ users outside those regions.</p>
   </tbody>
 </table>
 </div>
-<p>Exporting or importing a backup and saving or sharing an image happen
-<strong>only when you tap those actions</strong>, and touch only the single file
-you choose.</p>
+<p>Exporting or importing a backup, saving or sharing an image, and importing
+from screenshots happen <strong>only when you tap those actions</strong>, and touch
+only the files you choose.</p>
 
 <h2>5. Children</h2>
 <p>This app is not directed at children under 14 and does not knowingly collect
@@ -276,7 +296,7 @@ is revised. Significant changes are also noted in the app's release notes.</p>
 <p><strong><a href="mailto:rebalancing.app@gmail.com">rebalancing.app@gmail.com</a></strong></p>
 
 <footer>
-  Rebalancing · Privacy Policy · Effective 2026-09-14
+  Rebalancing · Privacy Policy · Effective 2026-11-20
 </footer>
 </section>
 
