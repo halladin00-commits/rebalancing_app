@@ -24,9 +24,7 @@ import io
 import re
 import sys
 
-FILES = ['docs/store/listing_ko.md', 'docs/store/listing_en.md',
-         # 다음 출시용 초안 — 올리는 날 위 두 파일을 이것으로 바꾼다
-         'docs/store/next_ko.md', 'docs/store/next_en.md']
+FILES = ['docs/store/listing.md']
 
 LIMITS = [
     ('app name', 30), ('앱 이름', 30),
@@ -81,7 +79,20 @@ def limit_for(head):
 
 
 def blocks(text):
-    return re.findall(r'^## (.+?)$.*?^```\n(.*?)^```', text, re.S | re.M)
+    """`## 제목` 구역마다 첫 코드 블록(붙여 넣을 원고)을 꺼낸다.
+
+    구역별로 자른 뒤 찾는다 — 원고가 없는 구역(메모뿐인 곳)이 다음 구역의
+    원고를 제 것으로 집어 가지 않게.
+    """
+    out = []
+    for sec in re.split(r'^(?=#{1,2} )', text, flags=re.M):
+        m = re.match(r'## (.+?)$', sec, re.M)
+        if not m:
+            continue
+        code = re.search(r'^```\n(.*?)^```', sec, re.S | re.M)
+        if code:
+            out.append((m.group(1), code.group(1)))
+    return out
 
 
 def wrapped_prose(body):
@@ -103,6 +114,9 @@ def wrapped_prose(body):
 
 
 def main():
+    # 윈도 콘솔(cp949)은 —·「」를 못 찍고 죽는다
+    if hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(encoding='utf-8')
     fails = 0
     for path in FILES:
         print('== %s' % path)
@@ -131,7 +145,7 @@ def main():
                     for l in lines:
                         print('            | %s' % l)
                     # 2026-11-17부터 실패로 치지 않는다 — 한 줄 맞춤보다 검색
-                    # 유입을 택했다 (listing_ko.md). 어떻게 접히는지만 알린다.
+                    # 유입을 택했다 (listing.md). 어떻게 접히는지만 알린다.
                     if text_width(tail) < ONE_LINE * 0.45:
                         print('            └ 끝에 「%s」만 남습니다 (참고).' % tail)
                 else:
